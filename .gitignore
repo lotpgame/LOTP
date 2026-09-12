@@ -37,6 +37,9 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Prisma tarafından üretilen client (postinstall/prisma generate ile yeniden üretilir)
+/src/generated/
+
 # Test / coverage
 coverage/
 .vitest/
@@ -48,3 +51,5 @@ scratch/
 
 # Arşivler (kaynak dosyalar docs/gdd altında açık halde tutuluyor)
 *.rar
+
+/src/generated/prisma

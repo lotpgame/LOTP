@@ -137,19 +137,26 @@ Bir engine'e başlamadan önce kendisinden önce gelen bağımlılıkları çal�
 
 ### Komutlar
 ```bash
-npm run dev        # geliştirme sunucusu (http://localhost:3000)
-npm run build      # production build (kurulum doğrulaması)
-npm run lint       # ESLint
-# --- ileride eklenecek ---
-npm run test       # Vitest testleri
-npm run sim        # başsız dengeleme simülasyonu (scripts/)
-npx prisma studio  # veritabanını görsel incele
-npx prisma migrate dev  # şema değişikliğini uygula
+npm run dev         # geliştirme sunucusu (http://localhost:3000)
+npm run build       # production build (kurulum doğrulaması)
+npm run lint        # ESLint
+npm test            # Vitest testleri
+npm run sim         # başsız çalıştırıcı (scripts/sim.ts) — RNG + DB smoke
+npm run db:migrate  # şema değişikliğini uygula (prisma migrate dev)
+npm run db:generate # Prisma client'ı üret (postinstall'da otomatik)
+npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 ```
 
 > ⚠️ **Next.js 16 uyarısı:** Bu sürüm eğitim verimden yeni; API'ler değişmiş olabilir.
 > Next-özel kod yazmadan önce `node_modules/next/dist/docs/` altındaki ilgili kılavuzu
 > oku (kök `AGENTS.md` de bunu hatırlatır, `next dev` tarafından yeniden üretilir).
+
+> ⚠️ **Prisma 7 notu:** Eğitim verimden yeni. Yeni mimari: `generator client` (eski
+> `prisma-client-js` değil), `output = src/generated/prisma`, datasource URL'i şemada
+> DEĞİL `prisma7.config.ts`'te. **SQLite için driver adapter zorunlu**
+> (`@prisma/adapter-better-sqlite3`). Client `src/db/client.ts`'te bu adapter'la kurulur.
+> Detaylı v7 rehberi için gerekirse `npx prisma init`'in ürettiği `prisma/skills` referansları
+> (github: prisma/skills) — repoya eklenmez.
 
 > ⚠️ **PATH notu:** Node.js winget ile user-scope kuruldu. Yeni açılan terminaller
 > yeni PATH'i alır; ama mevcut Claude Code oturumu almazsa komutlara şu ön ek eklenir:
@@ -211,9 +218,10 @@ npx prisma migrate dev  # şema değişikliğini uygula
 - [x] Node.js LTS kuruldu (winget, v24.19.0 / npm 11.17.0)
 - [x] Next.js 16 + TypeScript + Tailwind iskeleti kuruldu, `build` doğrulandı
 - [x] Teknik uygulama planı hazırlandı → [`docs/ROADMAP.md`](docs/ROADMAP.md) (M0–M8)
-- [ ] **M0 — Altyapı:** Prisma+SQLite, Vitest, seeded RNG, events, Data Service iskeleti
+- [x] **M0 — Altyapı:** Prisma 7+SQLite (better-sqlite3 adapter), Vitest, seeded RNG,
+      events, `src/db` + Data Service iskeleti. build+lint+test yeşil.
 - [ ] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren →
-      turnuva → sonuç → ranking → save/load)
+      turnuva → sonuç → ranking → save/load) ← sıradaki
 - [ ] M2+ : bkz. `docs/ROADMAP.md` §B (aşama detayları ve canlı durum §F)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste

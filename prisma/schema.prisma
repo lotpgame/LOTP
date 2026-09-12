@@ -1,0 +1,63 @@
+// Project Engarde — Prisma şeması
+// GDD 22 (Database Yapısı) temel alınır. Database YALNIZ saklar; hesaplama engine'lerde.
+// Kurallar: kariyer verisi silinmez (soft-delete/history), tek kaynaklı veri, PostgreSQL-uyumlu.
+// Not (Prisma 7): datasource url'i prisma7.config.ts'te (DATABASE_URL); SQLite'ta enum yok →
+// gender/weapon/status gibi alanlar String + uygulama tarafında Zod ile doğrulanır.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Ülke — oyuncu/kulüp/turnuva tarafından paylaşılır (GDD 22.41).
+model Country {
+  id      Int      @id @default(autoincrement())
+  code    String   @unique // ISO benzeri kısa kod, örn. "TR"
+  name    String
+  players Player[]
+
+  createdAt DateTime @default(now())
+}
+
+/// Sezon — oyun yılı / Quarter takvimi için temel (GDD 17.5, 22.40).
+model Season {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // örn. "2026"
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("UPCOMING") // UPCOMING | ACTIVE | FINISHED
+
+  createdAt DateTime @default(now())
+}
+
+/// Oyuncu — kariyer boyunca yaşayan merkezi kimlik (GDD 8, 22.5).
+/// Bu M0 iskeletidir; skill/psychology/ranking gibi ilişkiler sonraki milestone'larda eklenir.
+model Player {
+  id   Int    @id @default(autoincrement())
+  code String @unique // görünen kalıcı kimlik, örn. "P-000001" (GDD 7.4)
+
+  // Değişmez kimlik (GDD 7.33)
+  firstName String
+  lastName  String
+  gender    String // MALE | FEMALE
+  birthDate DateTime // yaş buradan türetilir (GDD 8.7)
+  weapon    String // FOIL | EPEE | SABRE
+
+  nationalityId Int
+  nationality   Country @relation(fields: [nationalityId], references: [id])
+
+  // Değişebilen durum (GDD 8.16)
+  status String  @default("ACTIVE") // ACTIVE | INJURED | RETIRED | INACTIVE
+  isAI   Boolean @default(false) // insan mı AI mı — aynı yapı (GDD 8.53)
+
+  careerStartDate DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([nationalityId])
+  @@index([gender, weapon]) // kategori/ranking sorguları için
+}

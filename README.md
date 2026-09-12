@@ -13,8 +13,9 @@ Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yöne
 
 ## Teknoloji
 
-TypeScript · Next.js 16 (React 19, App Router) · Tailwind CSS · ESLint
-Veritabanı: SQLite (geliştirme) → PostgreSQL (multiplayer fazı), Prisma ORM ile *(sıradaki adım)*.
+TypeScript · Next.js 16 (React 19, App Router) · Tailwind CSS · ESLint · Vitest
+Veritabanı: SQLite (geliştirme) → PostgreSQL (multiplayer fazı), **Prisma 7 ORM** ile
+(SQLite için `better-sqlite3` driver adapter).
 
 ## Kurulum ve çalıştırma
 
@@ -22,11 +23,17 @@ Veritabanı: SQLite (geliştirme) → PostgreSQL (multiplayer fazı), Prisma ORM
 yazdırmalı. (Not: Node winget ile kurulduğu için, kurulumdan önce açılmış terminaller
 PATH'i görmez — terminali/Claude Code'u bir kez yeniden başlatmak yeterli.)
 
+İlk kurulumda `.env` gerekir: `cp .env.example .env` (SQLite yolu hazır gelir).
+
 ```bash
-npm install     # bağımlılıkları kur (ilk sefer / yeni makinede)
-npm run dev     # geliştirme sunucusu → http://localhost:3000
-npm run build   # production build
-npm run lint    # ESLint
+npm install       # bağımlılıkları kur (+ prisma client'ı otomatik üretir)
+npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişince)
+npm run dev       # geliştirme sunucusu → http://localhost:3000
+npm run build     # production build
+npm run lint      # ESLint
+npm test          # Vitest testleri
+npm run sim       # başsız simülasyon / smoke (RNG + DB bağlantı kontrolü)
+npm run db:studio # veritabanını görsel incele (Prisma Studio)
 ```
 
 ## Proje yapısı
@@ -52,5 +59,7 @@ Economy → Memory → AI.** V1 hedefi: uçtan uca çalışan kariyer döngüsü
 
 Ayrıntılı aşamalar ve güncel durum: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-Sıradaki adım: **M0 — Altyapı** (Prisma+SQLite, Vitest, tohumlanabilir RNG), ardından
-**M1 — Dikey dilim**: oyuncu oluştur → antren → turnuva → sonuç → ranking (oynanabilir).
+✅ **M0 — Altyapı** tamam (Prisma 7+SQLite, Vitest, tohumlanabilir RNG, Data Service iskeleti).
+
+Sıradaki adım: **M1 — Dikey dilim**: oyuncu oluştur → antren → turnuva → sonuç → ranking
+(uçtan uca oynanabilir minimal kariyer).
