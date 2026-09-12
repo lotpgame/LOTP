@@ -185,3 +185,21 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [ ] **M8** — Cila & denge
 
 > Bir aşama tamamlandığında burada işaretlenir ve `CHANGELOG.md`'ye yazılır.
+
+---
+
+## G. Backlog — izlenen derinlik notları (unutulmayacak)
+
+Oyun sahibinin (eskrim uzmanı) geri bildirimiyle eklenen, ilerideki milestone'lara
+bağlanan derinlik maddeleri. Buraya yazılır ki hiçbiri kaybolmasın.
+
+- **Fiziksel yapı / antropometri** (2026-09-13, kullanıcı geri bildirimi): oyuncu profilinde
+  **boy, kol erimi (reach), bacak/ayak** gibi statik fiziksel özellikler eksik. Bunlar
+  antrenmanla gelişen *skill* değil, oyuncu *attribute*'udur; Combat'ta mesafe/erişim
+  modifier'ı olarak kullanılır (özellikle Epe). **Yeri:** M5 (yaş/büyüme ile boy gençlerde
+  değişir) + Combat mesafe mekaniği derinleşince ağırlıklandırılır. Player Creation'da
+  üretilir ve ekranda gösterilir. (GDD 2.7–2.8 "fiziksel yapı ile farklılaşma".)
+- **Mental derinlik** (2026-09-13): mevcut Mental *skill* grubu (Konsantrasyon, Soğukkanlılık)
+  sığ; moral/motivasyon/özgüven/stres **Psychology Engine**'e ait. **Yeri:** M6. (GDD 11.)
+- **Combat log seviyeleri** (Basit/Normal/Ayrıntılı, GDD 18.53): şu an tek düzey anlatım var;
+  seçici için yapılandırılmış maç olayları (Combat Event, GDD 22.31) gerekir. **Yeri:** M-sonrası cila.
