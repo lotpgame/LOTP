@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { resetCareerAction, runTournamentAction, trainAction } from "@/app/actions";
 import {
   GENDER_LABEL_TR,
-  TOURNAMENT_LABEL_TR,
   WEAPON_LABEL_TR,
   type Gender,
   type SkillCategory,
@@ -50,17 +49,21 @@ export default async function KariyerPage() {
 
       {/* Durum özeti */}
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Tarih" value={date} />
+        <Stat label="Sezon" value={`Q${c.quarter} · Hafta ${c.week}/12`} />
         <Stat label="Genel" value={c.overall.toFixed(1)} />
         <Stat label="Yorgunluk" value={`${c.fatigue.toFixed(0)} / 100`} />
-        <Stat label="Durum" value={c.status === "ACTIVE" ? "Aktif" : c.status} />
+        <Stat
+          label="Milli Takım"
+          value={c.nationalTeam ? "✔ Kadroda" : "—"}
+        />
       </section>
+      <p className="mt-2 text-xs opacity-50">{date}</p>
 
       {/* Antrenman */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Günlük Antrenman</h2>
+        <h2 className="text-lg font-semibold">Haftalık Antrenman</h2>
         <p className="text-sm opacity-70">
-          Bir çalışma seç — gün ilerler, ilgili skill&apos;ler gelişir, yorgunluk değişir.
+          Bir çalışma seç — hafta ilerler, ilgili skill&apos;ler gelişir, yorgunluk değişir.
         </p>
         <form action={trainAction} className="mt-3 flex flex-wrap gap-2">
           {TRAINING_TYPES.map((t) => (
@@ -95,29 +98,40 @@ export default async function KariyerPage() {
         </div>
       </section>
 
-      {/* Turnuva */}
+      {/* Bu haftanın turnuvaları */}
       <section className="mt-8 rounded-xl border border-black/10 p-4 dark:border-white/15">
-        <h2 className="text-lg font-semibold">Turnuvaya Katıl</h2>
+        <h2 className="text-lg font-semibold">Bu Hafta — Turnuvalar</h2>
         <p className="text-sm opacity-70">
-          Havuz (round-robin) → FIE sıralaması → eleme tablosu. Prestij arttıkça ranking puanı artar.
-          Maçlar otomatik simüle edilir.
+          Havuz → FIE sıralaması → eleme. Uluslararası organizasyonlar Quarter Ranking&apos;e göre
+          davetlidir. Katılınca hafta ilerler.
         </p>
-        <form action={runTournamentAction} className="mt-3 flex flex-wrap gap-2">
-          {(["IL", "OPEN", "TURKIYE"] as const).map((lvl) => (
-            <button
-              key={lvl}
-              name="level"
-              value={lvl}
-              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500"
-            >
-              {TOURNAMENT_LABEL_TR[lvl]}
-            </button>
-          ))}
+        <form action={runTournamentAction} className="mt-3 flex flex-col gap-2">
+          {c.weekEvents.map((e) =>
+            e.qualified ? (
+              <button
+                key={e.level}
+                name="level"
+                value={e.level}
+                className="flex items-center justify-between rounded-lg bg-emerald-600 px-4 py-2.5 text-left text-sm font-medium text-white transition hover:bg-emerald-500"
+              >
+                <span>{e.label}</span>
+                <span className="text-xs opacity-80">Katıl →</span>
+              </button>
+            ) : (
+              <div
+                key={e.level}
+                className="flex items-center justify-between rounded-lg border border-black/10 px-4 py-2.5 text-sm opacity-60 dark:border-white/15"
+              >
+                <span>{e.label}</span>
+                <span className="text-xs">🔒 {e.requirement}</span>
+              </div>
+            ),
+          )}
         </form>
       </section>
 
-      {/* Ranking */}
-      <RankingTable ranking={c.ranking} />
+      {/* Quarter Ranking */}
+      <RankingTable ranking={c.ranking} quarter={c.quarter} />
     </main>
   );
 }
@@ -148,20 +162,21 @@ function SkillBar({ label, current, potential }: { label: string; current: numbe
   );
 }
 
-function RankingTable({ ranking }: { ranking: CareerDTO["ranking"] }) {
+function RankingTable({ ranking, quarter }: { ranking: CareerDTO["ranking"]; quarter: number }) {
   if (ranking.length === 0) {
     return (
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Kategori Sıralaması</h2>
+        <h2 className="text-lg font-semibold">Quarter Ranking (Q{quarter})</h2>
         <p className="mt-1 text-sm opacity-60">
-          Henüz turnuva oynanmadı. İlk turnuvadan sonra sıralama oluşur.
+          Bu quarter henüz turnuva oynanmadı. İlk turnuvadan sonra sıralama oluşur (quarter
+          sonunda sıfırlanır).
         </p>
       </section>
     );
   }
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-semibold">Kategori Sıralaması</h2>
+      <h2 className="text-lg font-semibold">Quarter Ranking (Q{quarter})</h2>
       <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
         {ranking.map((r) => (
           <li

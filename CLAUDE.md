@@ -226,7 +226,9 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
       momentum, açıklanabilir analiz, maç formatı. 42 test.
 - [x] **M3 — Tam turnuva sistemi:** havuz 6 + FIE tie-break + seed'li eleme + bye + seviye
       puan tabloları (İl/Open/Türkiye…); 24 kişilik alan. 45 test.
-- [ ] **M4 — Quarter Ranking + uluslararası + milli takım** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
+- [x] **M4 — Quarter Ranking + uluslararası + milli takım:** hafta/quarter takvimi (12 hafta=1
+      oyun yılı), Quarter Ranking (quarter sonu sıfırlanır), davet/uygunluk (ilk 16 / ilk 4). 48 test.
+- [ ] **M5 — Günlük/haftalık/sezon döngüsü** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

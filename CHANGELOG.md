@@ -7,6 +7,19 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **M4 — Quarter Ranking + uluslararası + milli takım:**
+  - Hafta/quarter zaman modeli (`src/engine/season.ts`): 12 hafta = 1 Quarter = 1 oyun yılı;
+    haftalık takvim (İl/Open her hafta, Türkiye çift haftalarda, Satellite/GP/Avrupa/Dünya özel
+    haftalarda); uygunluk kuralları (ilk 16 / milli takım ilk 4).
+  - **Quarter Ranking**: kategori × quarter bazlı; quarter sonunda sıfırlanır (yeni quarter =
+    yeni sıralama). Yaş her quarter +1 ilerler (GDD 17.5).
+  - Uluslararası turnuvalar Quarter Ranking'e göre **davet/uygunluk kapısıyla** açılır; milli
+    takım = ilk 4. Kalıcılık: `GameState.weekIndex`, `Ranking.quarter`, `Tournament.quarter/week`
+    (migration `m4_quarter`).
+  - UI: Sezon (Q/hafta) + milli takım rozeti; "Bu Hafta — Turnuvalar" (uygun=Katıl, kilitli=
+    gerekçe); Quarter Ranking görünümü. Antrenman ve turnuva artık **hafta** ilerletir.
+  - 48 test (season modeli + mevcutlar). Uçtan uca tarayıcıda doğrulandı.
+  - Basitleştirme (ROADMAP §G): rekabet kategorisi M4'te sabit; U17→U21 ilerlemesi M7'ye.
 - **M3 — Tam turnuva sistemi (gerçek FIE yapısı):**
   - Turnuva motoru yeniden yazıldı (`simulateTournament`): **Havuz** (6 kişi round-robin, 5 tuş)
     → **Turnuva Ranking** (FIE tie-break: galibiyet oranı → indicator → toplam tuş → kura)

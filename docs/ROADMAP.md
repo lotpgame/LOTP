@@ -178,8 +178,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M1** — Dikey dilim (oynanabilir minimal kariyer: oluştur→antren→turnuva→sonuç→ranking) ✅
 - [x] **M2** — Combat + Probability derinleştirme (silah ağırlıkları, effective strength, momentum, açıklanabilirlik) ✅
 - [x] **M3** — Tam turnuva sistemi (havuz 6 + FIE tie-break + seed'li eleme + bye + seviye puanları) ✅
-- [ ] **M4** — Quarter Ranking + uluslararası + milli takım ← sıradaki
-- [ ] **M5** — Günlük/haftalık/sezon döngüsü
+- [x] **M4** — Quarter Ranking + uluslararası + milli takım (hafta/quarter takvimi, davet/uygunluk) ✅
+- [ ] **M5** — Günlük/haftalık/sezon döngüsü ← sıradaki
 - [ ] **M6** — Gelişim çevresi engine'leri
 - [ ] **M7** — Dünya simülasyonu + AI + Memory
 - [ ] **M8** — Cila & denge
@@ -203,3 +203,6 @@ bağlanan derinlik maddeleri. Buraya yazılır ki hiçbiri kaybolmasın.
   sığ; moral/motivasyon/özgüven/stres **Psychology Engine**'e ait. **Yeri:** M6. (GDD 11.)
 - **Combat log seviyeleri** (Basit/Normal/Ayrıntılı, GDD 18.53): şu an tek düzey anlatım var;
   seçici için yapılandırılmış maç olayları (Combat Event, GDD 22.31) gerekir. **Yeri:** M-sonrası cila.
+- **Yaş kategorisi ilerlemesi** (2026-09-13): M4'te rekabet kategorisi kariyer boyunca **sabit**
+  (yaş her quarter +1 gösterilir ama U17→U21 geçişi yok). Gerçek kategori ilerlemesi, kategori
+  boşaldıkça yeni AI üretimi (dünya yeniden-üretimi) gerektirir. **Yeri:** M7 (AI dünya simülasyonu).

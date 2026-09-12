@@ -64,9 +64,10 @@ oyuncu oluştur → antren yap (gün ilerler) → 8 kişilik turnuvaya katıl �
 metinle izle → kategori ranking'inde yerini gör. Kariyer veritabanında saklanır (kaldığın
 yerden devam). `npm run dev` → http://localhost:3000.
 
-✅ **M2 — Combat + Probability** ve ✅ **M3 — Tam turnuva sistemi** tamam. Turnuvalar artık
-gerçek FIE yapısında: havuz (6 kişi round-robin) → FIE sıralaması → seed'li eleme tablosu
-(bye'lı) → dereceler; İl/Open/Türkiye seviyeleri farklı puan verir.
+✅ M2, ✅ M3 ve ✅ **M4 — Quarter Ranking + uluslararası + milli takım** tamam. Oyun artık
+**hafta/quarter takvimiyle** ilerliyor (12 hafta = 1 oyun yılı): her hafta İl/Open (+ çift
+haftalarda Türkiye) turnuvaları; Satellite/Grand Prix ilk 16'ya, Avrupa/Dünya Kupası
+**milli takıma (ilk 4)** davetli. Quarter Ranking quarter sonunda sıfırlanır, yaş +1 ilerler.
 
-Sıradaki adım: **M4 — Quarter Ranking + uluslararası turnuvalar + milli takım** (quarter
-takvimi, kategori bazlı Quarter Ranking, Satellite/Grand Prix davetleri, milli takım ilk 4).
+Sıradaki adım: **M5 — Günlük/haftalık/sezon döngüsü** (gün içi plan, dinlenme/toparlanma,
+sharpness, sakatlık riski, haftalık program).

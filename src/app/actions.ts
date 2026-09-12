@@ -13,7 +13,7 @@ import {
   hasCareer,
   resetCareer,
   runTournament,
-  trainOneDay,
+  trainWeek,
 } from "@/server/careerService";
 
 // M3'te oyuncunun serbestçe katılabileceği yurt içi seviyeler (davet/ranking şartı yok).
@@ -35,7 +35,7 @@ export async function createCareerAction(formData: FormData): Promise<void> {
 export async function trainAction(formData: FormData): Promise<void> {
   const type = String(formData.get("type") ?? "") as TrainingType;
   if (!TRAINING_TYPES.includes(type)) throw new Error("Geçersiz antrenman türü");
-  await trainOneDay(type);
+  await trainWeek(type);
   revalidatePath("/kariyer");
 }
 

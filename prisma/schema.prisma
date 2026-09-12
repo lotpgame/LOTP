@@ -95,7 +95,8 @@ model GameState {
   id            Int      @id @default(autoincrement())
   humanPlayerId Int      @unique
   seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
-  currentDate   DateTime // oyun-içi tarih (Daily Loop ilerletir)
+  currentDate   DateTime // oyun-içi tarih (gösterim)
+  weekIndex     Int      @default(0) // 0-tabanlı global hafta; quarter/hafta buradan türetilir
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -106,8 +107,10 @@ model Tournament {
   name       String
   categoryId String // örn. "U17-M-FL"
   level      String   @default("OPEN")
+  quarter    Int      @default(1)
+  week       Int      @default(1) // quarter içindeki hafta (1..12)
   date       DateTime
-  status     String   @default("FINISHED") // M1: turnuva anında simüle edilir
+  status     String   @default("FINISHED") // turnuva anında simüle edilir
 
   participants TournamentParticipant[]
   matches      Match[]
@@ -172,12 +175,13 @@ model Ranking {
   playerId   Int
   player     Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   categoryId String
+  quarter    Int    @default(1) // Quarter Ranking: her quarter ayrı; quarter sonu "sıfırlanır" (GDD 17.90)
 
   points   Float @default(0)
   position Int? // sıralamada yer (güncellemede hesaplanır)
 
   updatedAt DateTime @updatedAt
 
-  @@unique([playerId, categoryId])
-  @@index([categoryId])
+  @@unique([playerId, categoryId, quarter])
+  @@index([categoryId, quarter])
 }

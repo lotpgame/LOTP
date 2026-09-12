@@ -8,9 +8,7 @@
 import { prisma } from "@/db";
 import {
   clamp,
-  computeAge,
   formatPlayerCode,
-  makeCategoryId,
   roundSkill,
   TOURNAMENT_LABEL_TR,
   type Gender,
@@ -34,6 +32,13 @@ import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engin
 import type { Combatant } from "@/engine/combat";
 import { simulateTournament } from "@/engine/tournament";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
+import {
+  eventsForWeek,
+  qualificationLabel,
+  qualifies,
+  quarterOf,
+  weekInQuarter,
+} from "@/engine/season";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
@@ -88,7 +93,26 @@ async function ensureCountry(code: string, name: string): Promise<number> {
   return created.id;
 }
 
+/**
+ * Kariyerin sabit kimliği (yaş kategorisi + categoryId), başlangıç anına göre.
+ * M4 basitleştirmesi: kategori quarter geçişiyle değişmez (U17→U21 ilerlemesi + dünya
+ * yeniden-üretimi M7'de). Yaş her quarter +1 gösterilir ama rekabet kategorisi sabit kalır.
+ */
+function baseIdentity(human: { gender: string; weapon: string; birthDate: Date }) {
+  return deriveIdentity(
+    { gender: human.gender as Gender, weapon: human.weapon as Weapon, birthDate: human.birthDate },
+    GAME_START,
+  );
+}
+
 // ---------- DTO'lar ----------
+
+export interface WeekEventDTO {
+  level: TournamentLevel;
+  label: string;
+  qualified: boolean;
+  requirement: string; // katılım kuralı (kilit sebebi)
+}
 
 export interface CareerDTO {
   humanPlayerId: number;
@@ -101,9 +125,13 @@ export interface CareerDTO {
   status: string;
   fatigue: number;
   currentDate: string;
+  quarter: number;
+  week: number; // quarter içindeki hafta (1..12)
+  nationalTeam: boolean; // Quarter Ranking ilk 4 (GDD 17.32)
   overall: number;
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
+  weekEvents: WeekEventDTO[];
 }
 
 // ---------- işlemler ----------
@@ -207,18 +235,23 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const { gs, human } = state;
 
   const skills = rowsToSkills(human.skills);
-  const age = computeAge(human.birthDate, gs.currentDate);
-  const categoryId = makeCategoryId(
-    // yaş kategorisi türetimi deriveIdentity ile aynı mantık
-    deriveIdentity(
-      { gender: human.gender as Gender, weapon: human.weapon as Weapon, birthDate: human.birthDate },
-      gs.currentDate,
-    ).ageCategory,
-    human.gender as Gender,
-    human.weapon as Weapon,
-  );
+  const quarter = quarterOf(gs.weekIndex);
+  const week = weekInQuarter(gs.weekIndex);
+  const base = baseIdentity(human);
+  const categoryId = base.categoryId;
+  const age = base.age + (quarter - 1); // 1 quarter = 1 oyun yılı (GDD 17.5)
 
-  const ranking = await buildRankingView(categoryId, human.id);
+  const ranking = await buildRankingView(categoryId, quarter, human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  const nationalTeam = humanRank != null && humanRank <= 4;
+  const weekEvents = eventsForWeek(week).map(
+    (e): WeekEventDTO => ({
+      level: e.level,
+      label: TOURNAMENT_LABEL_TR[e.level],
+      qualified: qualifies(e.qualification, humanRank),
+      requirement: qualificationLabel(e.qualification),
+    }),
+  );
 
   return {
     humanPlayerId: human.id,
@@ -231,6 +264,9 @@ export async function getCareer(): Promise<CareerDTO | null> {
     status: human.status,
     fatigue: roundSkill(human.fatigue),
     currentDate: gs.currentDate.toISOString(),
+    quarter,
+    week,
+    nationalTeam,
     overall: roundSkill(overall(skills)),
     skills: SKILLS.map((def) => ({
       key: def.key,
@@ -240,12 +276,13 @@ export async function getCareer(): Promise<CareerDTO | null> {
       potential: roundSkill(skills[def.key].potential),
     })),
     ranking,
+    weekEvents,
   };
 }
 
-async function buildRankingView(categoryId: string, humanId: number) {
+async function buildRankingView(categoryId: string, quarter: number, humanId: number) {
   const rows = await prisma.ranking.findMany({
-    where: { categoryId },
+    where: { categoryId, quarter },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
   });
   const players = await prisma.player.findMany({
@@ -269,17 +306,18 @@ export interface TrainingSummaryDTO {
   currentDate: string;
 }
 
-/** Bir günlük antrenman uygular ve günü ilerletir (Daily Loop — M1 basit). */
-export async function trainOneDay(type: TrainingType): Promise<TrainingSummaryDTO> {
+/** Bir haftalık antrenman uygular ve haftayı ilerletir (GDD 17: hafta temelli zaman). */
+export async function trainWeek(type: TrainingType): Promise<TrainingSummaryDTO> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
 
+  const quarter = quarterOf(gs.weekIndex);
   const skills = rowsToSkills(human.skills);
-  const age = computeAge(human.birthDate, gs.currentDate);
+  const age = baseIdentity(human).age + (quarter - 1);
   const result = applyTraining(skills, { type, age, currentFatigue: human.fatigue });
   const newFatigue = clamp(human.fatigue + result.fatigueDelta, 0, 100);
-  const nextDate = addDays(gs.currentDate, 1);
+  const nextDate = addDays(gs.currentDate, 7);
 
   const labelByKey = new Map<string, string>(SKILLS.map((s) => [s.key, s.label]));
 
@@ -297,7 +335,10 @@ export async function trainOneDay(type: TrainingType): Promise<TrainingSummaryDT
       data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
     });
     await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
-    await tx.gameState.update({ where: { id: gs.id }, data: { currentDate: nextDate } });
+    await tx.gameState.update({
+      where: { id: gs.id },
+      data: { currentDate: nextDate, weekIndex: gs.weekIndex + 1 },
+    });
   });
 
   return {
@@ -444,11 +485,19 @@ export async function runTournament(
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
 
-  const identity = deriveIdentity(
-    { gender: human.gender as Gender, weapon: human.weapon as Weapon, birthDate: human.birthDate },
-    gs.currentDate,
-  );
-  const categoryId = identity.categoryId;
+  const quarter = quarterOf(gs.weekIndex);
+  const week = weekInQuarter(gs.weekIndex);
+  const base = baseIdentity(human);
+  const categoryId = base.categoryId;
+
+  // Takvim + uygunluk kapısı (GDD 17.19–17.34): bu hafta düzenleniyor mu, hakkın var mı?
+  const scheduled = eventsForWeek(week).find((e) => e.level === level);
+  if (!scheduled) throw new Error("Bu hafta bu turnuva düzenlenmiyor.");
+  const preRanking = await buildRankingView(categoryId, quarter, human.id);
+  const humanRank = preRanking.find((r) => r.isHuman)?.position ?? null;
+  if (!qualifies(scheduled.qualification, humanRank)) {
+    throw new Error(`Katılım hakkın yok — ${qualificationLabel(scheduled.qualification)}.`);
+  }
 
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
@@ -481,12 +530,12 @@ export async function runTournament(
   const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
   const seedByPlayer = new Map(outcome.ranking.map((r) => [r.playerId, r.seedRank]));
   const poolByPlayer = new Map(outcome.pools.map((p) => [p.playerId, p]));
-  const nextDate = addDays(gs.currentDate, 1);
-  const tournamentName = `${identity.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
+  const nextDate = addDays(gs.currentDate, 7);
+  const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
 
   const tournamentId = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
-      data: { name: tournamentName, categoryId, level, date: gs.currentDate, status: "FINISHED" },
+      data: { name: tournamentName, categoryId, level, quarter, week, date: gs.currentDate, status: "FINISHED" },
     });
 
     for (const c of combatants) {
@@ -540,21 +589,24 @@ export async function runTournament(
       const pts = rankingPointsForPosition(s.position, level);
       if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
       await tx.ranking.upsert({
-        where: { playerId_categoryId: { playerId: s.playerId, categoryId } },
-        create: { playerId: s.playerId, categoryId, points: pts },
+        where: { playerId_categoryId_quarter: { playerId: s.playerId, categoryId, quarter } },
+        create: { playerId: s.playerId, categoryId, quarter, points: pts },
         update: { points: { increment: pts } },
       });
     }
-    const rankRows = await tx.ranking.findMany({ where: { categoryId } });
+    const rankRows = await tx.ranking.findMany({ where: { categoryId, quarter } });
     const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
     for (const r of ranked) {
       await tx.ranking.update({
-        where: { playerId_categoryId: { playerId: r.playerId, categoryId } },
+        where: { playerId_categoryId_quarter: { playerId: r.playerId, categoryId, quarter } },
         data: { position: r.position },
       });
     }
 
-    await tx.gameState.update({ where: { id: gs.id }, data: { currentDate: nextDate } });
+    await tx.gameState.update({
+      where: { id: gs.id },
+      data: { currentDate: nextDate, weekIndex: gs.weekIndex + 1 },
+    });
     return tournament.id;
   });
 
