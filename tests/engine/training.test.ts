@@ -1,0 +1,50 @@
+import { describe, expect, it } from "vitest";
+import { createRng } from "@/engine/probability";
+import { generateStartingSkills, skillKeysOf } from "@/engine/skill";
+import { applyTraining } from "@/engine/training";
+
+const baseSkills = () =>
+  generateStartingSkills(createRng("trainee"), { age: 15, profile: "BALANCED" });
+
+describe("Training Engine", () => {
+  it("teknik antrenman teknik skill'leri geliştirir, diğerlerini değiştirmez", () => {
+    const skills = baseSkills();
+    const { skills: next, gains } = applyTraining(skills, {
+      type: "TECHNICAL",
+      age: 15,
+      currentFatigue: 0,
+    });
+    for (const k of skillKeysOf("TECHNICAL")) {
+      expect(next[k].current).toBeGreaterThan(skills[k].current);
+      expect(gains[k]).toBeGreaterThan(0);
+    }
+    for (const k of skillKeysOf("PHYSICAL")) {
+      expect(next[k].current).toBe(skills[k].current);
+    }
+  });
+
+  it("antrenman yorgunluk üretir, REST toparlar", () => {
+    const skills = baseSkills();
+    expect(applyTraining(skills, { type: "PHYSICAL", age: 15, currentFatigue: 0 }).fatigueDelta)
+      .toBeGreaterThan(0);
+    const rest = applyTraining(skills, { type: "REST", age: 15, currentFatigue: 50 });
+    expect(rest.fatigueDelta).toBeLessThan(0);
+    expect(rest.gains).toEqual({}); // dinlenme skill geliştirmez
+  });
+
+  it("yüksek yorgunluk verimi düşürür (aynı antrenman daha az gelişim)", () => {
+    const skills = baseSkills();
+    const fresh = applyTraining(skills, { type: "TECHNICAL", age: 15, currentFatigue: 0 });
+    const tired = applyTraining(skills, { type: "TECHNICAL", age: 15, currentFatigue: 90 });
+    const sum = (g: Record<string, number | undefined>) =>
+      Object.values(g).reduce<number>((a, b) => a + (b ?? 0), 0);
+    expect(sum(fresh.gains)).toBeGreaterThan(sum(tired.gains));
+  });
+
+  it("saf: girdi skill nesnesini bozmaz", () => {
+    const skills = baseSkills();
+    const before = skills.attack.current;
+    applyTraining(skills, { type: "TECHNICAL", age: 15, currentFatigue: 0 });
+    expect(skills.attack.current).toBe(before);
+  });
+});
