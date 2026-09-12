@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
 
 describe("Ranking Engine", () => {
-  it("Open puan tablosu (GDD 17.83)", () => {
+  it("seviyeye göre puan tabloları (GDD 17.82–17.88)", () => {
+    // Open (varsayılan)
     expect(rankingPointsForPosition(1)).toBe(6);
-    expect(rankingPointsForPosition(2)).toBe(4.5);
-    expect(rankingPointsForPosition(3)).toBe(3.5);
     expect(rankingPointsForPosition(5)).toBe(2.5);
-    expect(rankingPointsForPosition(9)).toBe(0); // puansız derece
+    // İl daha düşük, Türkiye daha yüksek
+    expect(rankingPointsForPosition(1, "IL")).toBe(5);
+    expect(rankingPointsForPosition(1, "TURKIYE")).toBe(12);
+    expect(rankingPointsForPosition(1, "WORLD_CUP")).toBe(40);
+    // puansız derece
+    expect(rankingPointsForPosition(9, "EUROPEAN")).toBe(10);
+    expect(rankingPointsForPosition(33, "EUROPEAN")).toBe(0); // Avrupa'da son 64 yok
+    expect(rankingPointsForPosition(999)).toBe(0);
   });
 
   it("rankEntries puana göre sıralar ve pozisyon atar", () => {

@@ -224,7 +224,9 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
       → sonuç → ranking → save/load). 7 engine + testler; Next 16 Server Actions ile ekranlar.
 - [x] **M2 — Combat + Probability:** silaha göre ağırlıklar, effective strength + modifier,
       momentum, açıklanabilir analiz, maç formatı. 42 test.
-- [ ] **M3 — Tam turnuva sistemi** ← sıradaki (havuz 6, FIE tie-break, knockout; bkz. `docs/ROADMAP.md` §B)
+- [x] **M3 — Tam turnuva sistemi:** havuz 6 + FIE tie-break + seed'li eleme + bye + seviye
+      puan tabloları (İl/Open/Türkiye…); 24 kişilik alan. 45 test.
+- [ ] **M4 — Quarter Ranking + uluslararası + milli takım** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

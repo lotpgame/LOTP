@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { createRng } from "@/engine/probability";
 import { SKILL_KEYS, type PlayerSkills, type SkillValue } from "@/engine/skill";
 import type { Combatant } from "@/engine/combat";
-import { runSingleElimination } from "@/engine/tournament";
+import {
+  bracketSeedOrder,
+  bracketSize,
+  computePoolSizes,
+  simulateTournament,
+} from "@/engine/tournament";
 
 function flatSkills(current: number): PlayerSkills {
   const v: SkillValue = { current, potential: 100, floor: 0, ceiling: 100 };
@@ -13,41 +18,69 @@ function field(size: number): Combatant[] {
   return Array.from({ length: size }, (_, i) => ({
     id: i + 1,
     name: `P${i + 1}`,
-    weapon: "FOIL" as const,
-    skills: flatSkills(50 + i * 3),
+    weapon: "EPEE" as const,
+    skills: flatSkills(45 + (i % 20) * 2),
     fatigue: 0,
   }));
 }
 
-describe("Tournament Engine (tek eleme)", () => {
-  it("8 kişilik turnuva tek şampiyon ve tam sıralama üretir", () => {
-    const out = runSingleElimination(field(8), createRng("t"), 15);
-    expect(out.standings).toHaveLength(8);
-    const champs = out.standings.filter((s) => s.position === 1);
-    expect(champs).toHaveLength(1);
-    expect(champs[0].playerId).toBe(out.championId);
-
-    // Pozisyon kümesi: 1 şampiyon, 1 finalist(2), 2 yarı-final(3), 4 çeyrek(5)
-    const positions = out.standings.map((s) => s.position).sort((a, b) => a - b);
-    expect(positions).toEqual([1, 2, 3, 3, 5, 5, 5, 5]);
-    // 3 tur = 4 + 2 + 1 = 7 maç
-    expect(out.matches).toHaveLength(7);
-    expect(out.matches.filter((m) => m.round === "Final")).toHaveLength(1);
+describe("Tournament yardımcıları", () => {
+  it("computePoolSizes 5–7 arası dengeli havuzlar üretir", () => {
+    expect(computePoolSizes(24)).toEqual([6, 6, 6, 6]);
+    expect(computePoolSizes(23)).toEqual([6, 6, 6, 5]);
+    expect(computePoolSizes(30)).toEqual([6, 6, 6, 6, 6]);
+    expect(computePoolSizes(13)).toEqual([7, 6]);
+    expect(computePoolSizes(24).reduce((a, b) => a + b, 0)).toBe(24);
   });
 
-  it("aynı seed → aynı şampiyon (tekrarlanabilir)", () => {
-    const a = runSingleElimination(field(8), createRng("same"), 15);
-    const b = runSingleElimination(field(8), createRng("same"), 15);
+  it("bracketSize en küçük 2'nin kuvveti (≥ N)", () => {
+    expect(bracketSize(24)).toBe(32);
+    expect(bracketSize(16)).toBe(16);
+    expect(bracketSize(17)).toBe(32);
+    expect(bracketSize(8)).toBe(8);
+  });
+
+  it("bracketSeedOrder standart eşleşme (1 en zayıfla)", () => {
+    expect(bracketSeedOrder(4)).toEqual([1, 4, 2, 3]);
+    expect(bracketSeedOrder(8)).toEqual([1, 8, 4, 5, 2, 7, 3, 6]);
+  });
+});
+
+describe("simulateTournament (havuz + eleme)", () => {
+  it("24 kişilik turnuva: herkes derece alır, tek şampiyon, havuz+eleme maçları", () => {
+    const out = simulateTournament(field(24), createRng("t"), { poolSize: 6 });
+    expect(out.standings).toHaveLength(24);
+    expect(out.standings.filter((s) => s.position === 1)).toHaveLength(1);
+    expect(out.ranking).toHaveLength(24);
+    expect(out.pools).toHaveLength(24); // her oyuncu için havuz kaydı
+    expect(out.matches.some((m) => m.phase === "POOL")).toBe(true);
+    expect(out.matches.some((m) => m.phase === "DE")).toBe(true);
+
+    // Derece kademeleri (bracket 32): 1,2,3,5,9,17
+    const positions = new Set(out.standings.map((s) => s.position));
+    for (const p of positions) expect([1, 2, 3, 5, 9, 17]).toContain(p);
+  });
+
+  it("aynı seed → aynı şampiyon ve sıralama (tekrarlanabilir)", () => {
+    const a = simulateTournament(field(24), createRng("same"), { poolSize: 6 });
+    const b = simulateTournament(field(24), createRng("same"), { poolSize: 6 });
     expect(a.championId).toBe(b.championId);
     expect(a.standings).toEqual(b.standings);
+    expect(a.ranking).toEqual(b.ranking);
   });
 
-  it("turlar arası yorgunluk birikir (şampiyon 3 maç oynar)", () => {
-    const out = runSingleElimination(field(8), createRng("f"), 15);
-    expect(out.finalFatigue[out.championId]).toBeGreaterThanOrEqual(24); // 3 maç × 8
+  it("havuz istatistikleri tutarlı (galibiyet+mağlubiyet = maç sayısı, indicator=TS−TR)", () => {
+    const out = simulateTournament(field(12), createRng("p"), { poolSize: 6 });
+    for (const pr of out.pools) {
+      expect(pr.wins + pr.losses).toBe(pr.matches);
+      expect(pr.indicator).toBe(pr.touchesScored - pr.touchesReceived);
+    }
   });
 
-  it("katılımcı sayısı 2'nin kuvveti değilse hata", () => {
-    expect(() => runSingleElimination(field(6), createRng("x"), 15)).toThrow();
+  it("bye çalışır: 24 oyuncu 32'lik tabloda, ilk tur elenen 17. kademe", () => {
+    const out = simulateTournament(field(24), createRng("bye"), { poolSize: 6 });
+    // İlk DE turunda (Son 32) elenenler 17. pozisyon; bye alanlar maçsız ilerler
+    expect(out.standings.filter((s) => s.position === 17).length).toBeGreaterThan(0);
+    expect(out.standings.filter((s) => s.position === 17).length).toBeLessThanOrEqual(8);
   });
 });

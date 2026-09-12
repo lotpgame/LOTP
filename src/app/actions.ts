@@ -6,6 +6,7 @@
  */
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { TournamentLevel } from "@/engine/domain";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
   createCareer,
@@ -14,6 +15,9 @@ import {
   runTournament,
   trainOneDay,
 } from "@/server/careerService";
+
+// M3'te oyuncunun serbestçe katılabileceği yurt içi seviyeler (davet/ranking şartı yok).
+const PLAYABLE_LEVELS: readonly TournamentLevel[] = ["IL", "OPEN", "TURKIYE"];
 
 export async function createCareerAction(formData: FormData): Promise<void> {
   if (await hasCareer()) redirect("/kariyer");
@@ -35,8 +39,10 @@ export async function trainAction(formData: FormData): Promise<void> {
   revalidatePath("/kariyer");
 }
 
-export async function runTournamentAction(): Promise<void> {
-  const result = await runTournament();
+export async function runTournamentAction(formData: FormData): Promise<void> {
+  const level = String(formData.get("level") ?? "OPEN") as TournamentLevel;
+  if (!PLAYABLE_LEVELS.includes(level)) throw new Error("Geçersiz turnuva seviyesi");
+  const result = await runTournament(level);
   redirect(`/turnuva/${result.tournamentId}`);
 }
 

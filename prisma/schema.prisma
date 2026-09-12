@@ -128,6 +128,15 @@ model TournamentParticipant {
   seed          Int
   finalPosition Int? // turnuva bitince kesinleşir (1 = şampiyon)
 
+  // Havuz istatistikleri (GDD 22.28) + Turnuva Ranking seed sırası
+  poolNumber      Int?
+  wins            Int?
+  losses          Int?
+  touchesScored   Int?
+  touchesReceived Int?
+  indicator       Int?
+  seedRank        Int? // havuz sonrası Turnuva Ranking sırası (1 = en iyi)
+
   @@unique([tournamentId, playerId])
   @@index([tournamentId])
   @@index([playerId])
@@ -139,7 +148,8 @@ model Match {
   tournamentId Int
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
-  round      String // "Çeyrek Final" | "Yarı Final" | "Final"
+  phase      String @default("DE") // POOL | DE
+  round      String // "Havuz 1" | "Çeyrek Final" | "Yarı Final" | "Final"
   orderIndex Int // turnuva içindeki sıra (gösterim için)
 
   playerAId Int

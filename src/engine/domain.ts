@@ -21,6 +21,37 @@ export type PlayerProfile =
 /** Dört ana yetenek grubu (GDD 9.5). */
 export type SkillCategory = "TECHNICAL" | "PHYSICAL" | "MENTAL" | "TACTICAL";
 
+/** Turnuva seviyeleri (GDD 17.7–17.8, 17.93). Prestij arttıkça puan/XP artar. */
+export type TournamentLevel =
+  | "IL" // İl Şampiyonası
+  | "OPEN" // Open Turnuvası
+  | "TURKIYE" // Türkiye Şampiyonası
+  | "SATELLITE"
+  | "GRAND_PRIX"
+  | "EUROPEAN" // Avrupa Şampiyonası (milli takım)
+  | "WORLD_CUP"; // Dünya Kupası
+
+export const TOURNAMENT_LABEL_TR: Record<TournamentLevel, string> = {
+  IL: "İl Şampiyonası",
+  OPEN: "Open Turnuva",
+  TURKIYE: "Türkiye Şampiyonası",
+  SATELLITE: "Satellite",
+  GRAND_PRIX: "Grand Prix",
+  EUROPEAN: "Avrupa Şampiyonası",
+  WORLD_CUP: "Dünya Kupası",
+};
+
+/** Görünmeyen prestij katsayısı (GDD 17.93) — XP/kariyer etkisi için. */
+export const TOURNAMENT_PRESTIGE: Record<TournamentLevel, number> = {
+  IL: 1,
+  OPEN: 2,
+  TURKIYE: 3,
+  SATELLITE: 4,
+  GRAND_PRIX: 5,
+  EUROPEAN: 6,
+  WORLD_CUP: 7,
+};
+
 export const WEAPONS: readonly Weapon[] = ["FOIL", "EPEE", "SABRE"] as const;
 export const GENDERS: readonly Gender[] = ["MALE", "FEMALE"] as const;
 export const PROFILES: readonly PlayerProfile[] = [

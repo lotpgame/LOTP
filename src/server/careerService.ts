@@ -12,7 +12,9 @@ import {
   formatPlayerCode,
   makeCategoryId,
   roundSkill,
+  TOURNAMENT_LABEL_TR,
   type Gender,
+  type TournamentLevel,
   type Weapon,
 } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
@@ -30,13 +32,14 @@ import {
 } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
 import type { Combatant } from "@/engine/combat";
-import { runSingleElimination } from "@/engine/tournament";
+import { simulateTournament } from "@/engine/tournament";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
 const AI_DAILY_RECOVERY = 12;
-const FIELD_SIZE = 8;
+const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
+const POOL_SIZE = 6;
 
 // ---------- yardımcılar ----------
 
@@ -126,7 +129,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   });
 
   const aiSpecs = generateAiOpponents(createRng(`${seed}:world`), {
-    count: FIELD_SIZE - 1,
+    count: AI_COUNT,
     gender: data.gender,
     weapon: data.weapon,
     ageCategory: identity.ageCategory,
@@ -321,6 +324,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   if (!t) return null;
   const gs = await prisma.gameState.findFirst();
   const humanId = gs?.humanPlayerId ?? -1;
+  const fieldSize = t.participants.length;
 
   const nameById = new Map(
     t.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
@@ -334,15 +338,19 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   return {
     tournamentId: t.id,
     name: t.name,
+    level: t.level,
     categoryId: t.categoryId,
-    yourPosition: you?.finalPosition ?? FIELD_SIZE,
+    yourPosition: you?.finalPosition ?? fieldSize,
+    yourSeedRank: you?.seedRank ?? null,
     championName: champion ? (nameById.get(champion.playerId) ?? "?") : "?",
+    pools: buildPoolsView(t.participants, nameById, humanId),
     standings: sortedParticipants.map((p) => ({
-      position: p.finalPosition ?? FIELD_SIZE,
+      position: p.finalPosition ?? fieldSize,
       name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
       isHuman: p.playerId === humanId,
     })),
     matches: t.matches.map((m) => ({
+      phase: m.phase,
       round: m.round,
       aName: nameById.get(m.playerAId) ?? formatPlayerCode(m.playerAId),
       bName: nameById.get(m.playerBId) ?? formatPlayerCode(m.playerBId),
@@ -367,19 +375,71 @@ export async function resetCareer(): Promise<void> {
   ]);
 }
 
+export interface PoolViewDTO {
+  poolNumber: number;
+  players: { name: string; wins: number; losses: number; indicator: number; isHuman: boolean }[];
+}
+
 export interface TournamentResultDTO {
   tournamentId: number;
   name: string;
+  level: string;
   categoryId: string;
   yourPosition: number;
+  yourSeedRank: number | null;
   championName: string;
+  pools: PoolViewDTO[];
   standings: { position: number; name: string; isHuman: boolean }[];
-  matches: { round: string; aName: string; bName: string; scoreA: number; scoreB: number; log: string[] }[];
+  matches: {
+    phase: string;
+    round: string;
+    aName: string;
+    bName: string;
+    scoreA: number;
+    scoreB: number;
+    log: string[];
+  }[];
   currentDate: string;
 }
 
-/** Kategori turnuvasını çalıştırır (8 kişilik tek eleme), sonuçları ve ranking'i kalıcılaştırır. */
-export async function runTournament(): Promise<TournamentResultDTO> {
+/** Katılımcı satırlarından havuz görünümü kurar (id ile yükleme ve canlı sonuç ortak kullanır). */
+function buildPoolsView(
+  participants: readonly {
+    playerId: number;
+    poolNumber: number | null;
+    wins: number | null;
+    losses: number | null;
+    indicator: number | null;
+  }[],
+  nameById: Map<number, string>,
+  humanId: number,
+): PoolViewDTO[] {
+  const byPool = new Map<number, PoolViewDTO>();
+  for (const p of participants) {
+    if (p.poolNumber == null) continue;
+    if (!byPool.has(p.poolNumber)) byPool.set(p.poolNumber, { poolNumber: p.poolNumber, players: [] });
+    byPool.get(p.poolNumber)!.players.push({
+      name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
+      wins: p.wins ?? 0,
+      losses: p.losses ?? 0,
+      indicator: p.indicator ?? 0,
+      isHuman: p.playerId === humanId,
+    });
+  }
+  const pools = [...byPool.values()].sort((a, b) => a.poolNumber - b.poolNumber);
+  for (const pool of pools) {
+    pool.players.sort((a, b) => b.wins - a.wins || b.indicator - a.indicator);
+  }
+  return pools;
+}
+
+/**
+ * Kategori turnuvasını çalıştırır (havuz + eleme), sonuçları ve ranking'i kalıcılaştırır.
+ * `level`: İl/Open/Türkiye — puan tablosunu ve prestiji belirler (GDD 17.80–17.88).
+ */
+export async function runTournament(
+  level: TournamentLevel = "OPEN",
+): Promise<TournamentResultDTO> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
@@ -393,11 +453,8 @@ export async function runTournament(): Promise<TournamentResultDTO> {
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
     include: { skills: true },
-    take: FIELD_SIZE - 1,
+    take: AI_COUNT,
   });
-  if (aiPlayers.length < FIELD_SIZE - 1) {
-    throw new Error("Turnuva için yeterli rakip yok.");
-  }
 
   const nameById = new Map<number, string>();
   const toCombatant = (p: {
@@ -413,31 +470,40 @@ export async function runTournament(): Promise<TournamentResultDTO> {
     return { id: p.id, name, weapon: p.weapon as Weapon, skills: rowsToSkills(p.skills), fatigue: p.fatigue };
   };
 
-  const combatants: Combatant[] = [
-    toCombatant(human),
-    ...aiPlayers.map(toCombatant),
-  ];
+  const combatants: Combatant[] = [toCombatant(human), ...aiPlayers.map(toCombatant)];
+  if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
-  const rng = createRng(`${gs.seed}:tournament:${dateKey}`);
-  const outcome = runSingleElimination(combatants, rng, 15);
+  const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
+  const rng = createRng(seedKey);
+  const outcome = simulateTournament(combatants, rng, { poolSize: POOL_SIZE });
 
   const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
+  const seedByPlayer = new Map(outcome.ranking.map((r) => [r.playerId, r.seedRank]));
+  const poolByPlayer = new Map(outcome.pools.map((p) => [p.playerId, p]));
   const nextDate = addDays(gs.currentDate, 1);
-  const tournamentName = `${identity.ageCategory} Açık Turnuva`;
+  const tournamentName = `${identity.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
 
   const tournamentId = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
-      data: { name: tournamentName, categoryId, level: "OPEN", date: gs.currentDate, status: "FINISHED" },
+      data: { name: tournamentName, categoryId, level, date: gs.currentDate, status: "FINISHED" },
     });
 
     for (const c of combatants) {
+      const pool = poolByPlayer.get(c.id);
       await tx.tournamentParticipant.create({
         data: {
           tournamentId: tournament.id,
           playerId: c.id,
-          seed: 0,
+          seed: seedByPlayer.get(c.id) ?? 0,
+          seedRank: seedByPlayer.get(c.id) ?? null,
           finalPosition: positionByPlayer.get(c.id) ?? null,
+          poolNumber: pool?.poolNumber ?? null,
+          wins: pool?.wins ?? null,
+          losses: pool?.losses ?? null,
+          touchesScored: pool?.touchesScored ?? null,
+          touchesReceived: pool?.touchesReceived ?? null,
+          indicator: pool?.indicator ?? null,
         },
       });
     }
@@ -447,6 +513,7 @@ export async function runTournament(): Promise<TournamentResultDTO> {
       await tx.match.create({
         data: {
           tournamentId: tournament.id,
+          phase: m.phase,
           round: m.round,
           orderIndex: i,
           playerAId: m.aId,
@@ -454,7 +521,7 @@ export async function runTournament(): Promise<TournamentResultDTO> {
           scoreA: m.scoreA,
           scoreB: m.scoreB,
           winnerId: m.winnerId,
-          seed: `${gs.seed}:tournament:${dateKey}`,
+          seed: seedKey,
           log: m.log.join("\n"),
         },
       });
@@ -468,9 +535,10 @@ export async function runTournament(): Promise<TournamentResultDTO> {
       });
     }
 
-    // Ranking puanı ekle (Ranking Engine) ve pozisyonları yeniden hesapla (GDD 19.29).
+    // Ranking puanı (seviyeye göre) ekle ve pozisyonları yeniden hesapla (GDD 19.29).
     for (const s of outcome.standings) {
-      const pts = rankingPointsForPosition(s.position);
+      const pts = rankingPointsForPosition(s.position, level);
+      if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
       await tx.ranking.upsert({
         where: { playerId_categoryId: { playerId: s.playerId, categoryId } },
         create: { playerId: s.playerId, categoryId, points: pts },
@@ -490,21 +558,32 @@ export async function runTournament(): Promise<TournamentResultDTO> {
     return tournament.id;
   });
 
-  const yourPosition = positionByPlayer.get(human.id) ?? FIELD_SIZE;
-  const championName = nameById.get(outcome.championId) ?? "?";
-
   return {
     tournamentId,
     name: tournamentName,
+    level,
     categoryId,
-    yourPosition,
-    championName,
+    yourPosition: positionByPlayer.get(human.id) ?? combatants.length,
+    yourSeedRank: seedByPlayer.get(human.id) ?? null,
+    championName: nameById.get(outcome.championId) ?? "?",
+    pools: buildPoolsView(
+      outcome.pools.map((p) => ({
+        playerId: p.playerId,
+        poolNumber: p.poolNumber,
+        wins: p.wins,
+        losses: p.losses,
+        indicator: p.indicator,
+      })),
+      nameById,
+      human.id,
+    ),
     standings: outcome.standings.map((s) => ({
       position: s.position,
       name: nameById.get(s.playerId) ?? formatPlayerCode(s.playerId),
       isHuman: s.playerId === human.id,
     })),
     matches: outcome.matches.map((m) => ({
+      phase: m.phase,
       round: m.round,
       aName: m.aName,
       bName: m.bName,

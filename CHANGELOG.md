@@ -7,6 +7,19 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **M3 — Tam turnuva sistemi (gerçek FIE yapısı):**
+  - Turnuva motoru yeniden yazıldı (`simulateTournament`): **Havuz** (6 kişi round-robin, 5 tuş)
+    → **Turnuva Ranking** (FIE tie-break: galibiyet oranı → indicator → toplam tuş → kura)
+    → **Eleme** (seed'li, standart tablo 16/32/…, üst seed'lere **bye**) → dereceler.
+  - Seviye bazlı **puan tabloları** (İl/Open/Türkiye/Satellite/GP/Avrupa/Dünya — GDD 17.82–88);
+    prestij katsayıları. Ranking puanı seviyeye göre hesaplanır.
+  - Kalıcılık: `TournamentParticipant`'a havuz istatistikleri (poolNumber/wins/losses/tuşlar/
+    indicator/seedRank), `Match`'e `phase` (POOL/DE) eklendi (migration `m3_tournament`).
+    Alan 24 kişi (insan + 23 AI).
+  - UI: turnuva seviyesi seçimi (İl/Open/Türkiye); sonuç sayfasında havuzlar, eleme turları
+    (dinamik), FIE sıralaması ve dereceler. Uçtan uca tarayıcıda doğrulandı.
+  - Tasarım kararı (GDD 2.25): GDD 17.54↔17.62 çelişkisi — bye tabanlı (kesmesiz) yaklaşım seçildi.
+  - 45 test (turnuva yardımcıları + havuz/tie-break/bye + seviye puanları).
 - **M2 — Combat + Probability derinleştirme:**
   - Güç/olasılık modeli Probability Engine'e taşındı (`src/engine/probability/strength.ts`):
     silaha göre belirgin ağırlıklar (Flöre/Epe/Kılıç), effective strength = yetenek + modifier
@@ -50,6 +63,7 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 - `CHANGELOG.md` oluşturuldu; README + CHANGELOG'u her işte güncel tutma kuralı benimsendi.
 
 ### Değişti
+- Ranking puanı artık **turnuva seviyesine** göre hesaplanır (`rankingPointsForPosition(pos, level)`).
 - Combat artık güç/olasılığı Probability Engine'den alır (`effectiveStrength`/olasılık matematiği
   `src/engine/probability`'ye taşındı).
 - Paket adı `project-engarde` olarak ayarlandı.

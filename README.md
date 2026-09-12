@@ -64,8 +64,9 @@ oyuncu oluştur → antren yap (gün ilerler) → 8 kişilik turnuvaya katıl �
 metinle izle → kategori ranking'inde yerini gör. Kariyer veritabanında saklanır (kaldığın
 yerden devam). `npm run dev` → http://localhost:3000.
 
-✅ **M2 — Combat + Probability** tamam (silaha göre ağırlıklar, effective strength + yorgunluk
-modifier'ı, momentum, açıklanabilir maç analizi).
+✅ **M2 — Combat + Probability** ve ✅ **M3 — Tam turnuva sistemi** tamam. Turnuvalar artık
+gerçek FIE yapısında: havuz (6 kişi round-robin) → FIE sıralaması → seed'li eleme tablosu
+(bye'lı) → dereceler; İl/Open/Türkiye seviyeleri farklı puan verir.
 
-Sıradaki adım: **M3 — Tam turnuva sistemi** (havuz sistemi 6 kişi, FIE tie-break, standart
-eleme tabloları 16/32/…, bye, turnuva puanları, kategoriler).
+Sıradaki adım: **M4 — Quarter Ranking + uluslararası turnuvalar + milli takım** (quarter
+takvimi, kategori bazlı Quarter Ranking, Satellite/Grand Prix davetleri, milli takım ilk 4).

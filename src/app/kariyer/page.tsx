@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { resetCareerAction, runTournamentAction, trainAction } from "@/app/actions";
 import {
   GENDER_LABEL_TR,
+  TOURNAMENT_LABEL_TR,
   WEAPON_LABEL_TR,
   type Gender,
   type SkillCategory,
@@ -96,14 +97,22 @@ export default async function KariyerPage() {
 
       {/* Turnuva */}
       <section className="mt-8 rounded-xl border border-black/10 p-4 dark:border-white/15">
-        <h2 className="text-lg font-semibold">Turnuva</h2>
+        <h2 className="text-lg font-semibold">Turnuvaya Katıl</h2>
         <p className="text-sm opacity-70">
-          Kategorindeki 8 kişilik tek eleme turnuvasına katıl. Maçlar otomatik simüle edilir.
+          Havuz (round-robin) → FIE sıralaması → eleme tablosu. Prestij arttıkça ranking puanı artar.
+          Maçlar otomatik simüle edilir.
         </p>
-        <form action={runTournamentAction} className="mt-3">
-          <button className="rounded-lg bg-emerald-600 px-4 py-2.5 font-medium text-white transition hover:bg-emerald-500">
-            Turnuvaya Katıl
-          </button>
+        <form action={runTournamentAction} className="mt-3 flex flex-wrap gap-2">
+          {(["IL", "OPEN", "TURKIYE"] as const).map((lvl) => (
+            <button
+              key={lvl}
+              name="level"
+              value={lvl}
+              className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500"
+            >
+              {TOURNAMENT_LABEL_TR[lvl]}
+            </button>
+          ))}
         </form>
       </section>
 
