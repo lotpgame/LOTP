@@ -3,49 +3,50 @@
 Eskrim temalı, metin-tabanlı kariyer ve yönetim simülasyonu (Hattrick / Championship
 Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yönetir.
 
-Detaylı çalışma kuralları ve mimari için: [`CLAUDE.md`](CLAUDE.md)
-Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/)
+- Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)
+- Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
+- Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/)
 
 ---
 
 ## Teknoloji
 
-TypeScript · Next.js (React) · Tailwind CSS · Prisma · SQLite (dev) → PostgreSQL (multiplayer)
+TypeScript · Next.js 16 (React 19, App Router) · Tailwind CSS · ESLint
+Veritabanı: SQLite (geliştirme) → PostgreSQL (multiplayer fazı), Prisma ORM ile *(sıradaki adım)*.
 
-## Başlamadan önce — Node.js kurulumu (tek önkoşul)
+## Kurulum ve çalıştırma
 
-Bu proje **Node.js** gerektirir; henüz kurulu değil.
-
-1. https://nodejs.org adresinden **LTS** sürümünü indir (Windows Installer .msi).
-2. Kurulumu tamamla (varsayılan ayarlar yeterli), bilgisayarı yeniden başlat veya
-   terminali kapatıp aç.
-3. Kontrol:
-   ```bash
-   node --version
-   npm --version
-   ```
-   İkisi de sürüm yazdırıyorsa hazırız.
-
-SQLite, Prisma ile birlikte gelir — ayrı bir veritabanı sunucusu kurmana **gerek yok**.
-
-## Sonraki adımlar (Node kurulunca Claude yapacak)
+Önkoşul: **Node.js** (kuruldu — v24.19.0). Yeni bir terminalde `node --version` sürüm
+yazdırmalı. (Not: Node winget ile kurulduğu için, kurulumdan önce açılmış terminaller
+PATH'i görmez — terminali/Claude Code'u bir kez yeniden başlatmak yeterli.)
 
 ```bash
-# 1. Next.js iskeleti kurulur
-# 2. Prisma + SQLite yapılandırılır
-# 3. Player Engine temeli + oyuncu oluşturma ekranı
-npm install
-npm run dev   # http://localhost:3000
+npm install     # bağımlılıkları kur (ilk sefer / yeni makinede)
+npm run dev     # geliştirme sunucusu → http://localhost:3000
+npm run build   # production build
+npm run lint    # ESLint
 ```
 
-## Proje yapısı (kurulum sonrası)
+## Proje yapısı
+
+Şu an standart Next.js iskeleti (`src/app/`). Engine'ler eklendikçe hedeflenen yapı:
 
 ```
-src/engine/   # saf simülasyon mantığı (I/O yok)
-src/db/       # veritabanı erişimi (Prisma)
-src/server/   # engine ↔ DB orkestrasyonu
-src/app/      # Next.js arayüzü
+src/
+  engine/     # saf simülasyon mantığı (I/O yok) — Player, Skill, Combat, Ranking...
+  db/         # veritabanı erişimi (Prisma)
+  server/     # engine ↔ DB orkestrasyonu (API, günlük döngü)
+  app/        # Next.js arayüzü (React ekranları)  ← şu an burada
 scripts/      # başsız dengeleme simülasyonları
 tests/        # Vitest testleri
-docs/gdd/     # tasarım dokümanları
+docs/gdd/     # tasarım dokümanları (26 bölüm)
 ```
+
+## Yol haritası (özet)
+
+GDD'nin engine öncelik sırasıyla ilerlenir: **Player → Skill → Trait → Psychology →
+Coach → Club → Training → Equipment → Tournament → Combat → Probability → Ranking →
+Economy → Memory → AI.** V1 hedefi: uçtan uca çalışan kariyer döngüsü.
+
+Sıradaki adım: **Prisma + SQLite yapılandırması**, ardından **Player Engine + oyuncu
+oluşturma ekranı**.

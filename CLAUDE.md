@@ -39,6 +39,14 @@ Buna göre davranırım:
 - Kullanıcı "wipe/vibe coding" yapmak istiyor: **ben yazarım, o yönlendirir.** Kod
   kalitesi, güvenlik ve güncel pratiklerden ben sorumluyum.
 
+### ⭐ Zorunlu kural: README + CHANGELOG her zaman güncel
+
+**Yaptığımız her iş sonunda `README.md` ve `CHANGELOG.md` güncellenir.** (Kullanıcı kuralı.)
+- `CHANGELOG.md`: [Keep a Changelog](https://keepachangelog.com/tr/) formatı. Her anlamlı
+  değişiklik `## [Unreleased]` altına Eklendi/Değişti/Düzeltildi/Kaldırıldı başlığıyla yazılır.
+- `README.md`: kurulum/çalıştırma adımları, proje durumu güncel tutulur.
+- Bu güncelleme, işi bitiren commit'in **parçasıdır** — ayrı bırakılmaz, unutulmaz.
+
 ---
 
 ## 3. Teknoloji Seçimi ve Gerekçesi
@@ -49,7 +57,7 @@ erken yakalayan tip güvenliği, GDD'nin kendi önerisiyle uyumlu.
 | Katman | Seçim | Neden |
 |---|---|---|
 | Dil | **TypeScript** | Frontend + backend tek dil; tip güvenliği karmaşık engine'lerde hata önler |
-| Framework | **Next.js (App Router)** | UI + sunucu API'si tek projede; web + ileride mobil tarayıcı |
+| Framework | **Next.js 16 (App Router)** | UI + sunucu API'si tek projede; web + ileride mobil tarayıcı |
 | UI | **React + Tailwind CSS** | Metin-ağırlıklı arayüz için hızlı, sade |
 | Veritabanı (geliştirme) | **SQLite** | Ayrı sunucu kurmak gerekmez — yeni başlayan için en kolay |
 | Veritabanı (multiplayer fazı) | **PostgreSQL** | GDD'nin hedefi; Prisma sayesinde geçiş neredeyse kodsuz |
@@ -127,14 +135,26 @@ Bir engine'e başlamadan önce kendisinden önce gelen bağımlılıkları çal�
    fonksiyonlar sabit tohumla (seed) test edilir → tekrar edilebilir sonuç.
 5. **Milestone yedeği (GDD 4.46):** Her ana bölüm bitince git commit + etiket.
 
-### Komutlar (kurulum sonrası eklenecek)
+### Komutlar
 ```bash
-npm run dev        # geliştirme sunucusu
+npm run dev        # geliştirme sunucusu (http://localhost:3000)
+npm run build      # production build (kurulum doğrulaması)
+npm run lint       # ESLint
+# --- ileride eklenecek ---
 npm run test       # Vitest testleri
 npm run sim        # başsız dengeleme simülasyonu (scripts/)
 npx prisma studio  # veritabanını görsel incele
 npx prisma migrate dev  # şema değişikliğini uygula
 ```
+
+> ⚠️ **Next.js 16 uyarısı:** Bu sürüm eğitim verimden yeni; API'ler değişmiş olabilir.
+> Next-özel kod yazmadan önce `node_modules/next/dist/docs/` altındaki ilgili kılavuzu
+> oku (kök `AGENTS.md` de bunu hatırlatır, `next dev` tarafından yeniden üretilir).
+
+> ⚠️ **PATH notu:** Node.js winget ile user-scope kuruldu. Yeni açılan terminaller
+> yeni PATH'i alır; ama mevcut Claude Code oturumu almazsa komutlara şu ön ek eklenir:
+> `export PATH="/c/Users/yusuf/AppData/Local/Microsoft/WinGet/Packages/OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe/node-v24.19.0-win-x64:$PATH"`
+> Kalıcı çözüm: Claude Code / terminali bir kez yeniden başlat.
 
 ---
 
@@ -184,9 +204,11 @@ npx prisma migrate dev  # şema değişikliğini uygula
 - [x] GDD alındı, okundu, `docs/gdd/`'ye çıkarıldı
 - [x] Teknoloji seçildi, `CLAUDE.md` hazırlandı
 - [x] Git deposu başlatıldı
-- [ ] **Node.js LTS kurulumu (kullanıcı yapacak — sıradaki adım)**
-- [ ] Next.js + TypeScript + Prisma iskeleti
-- [ ] Aşama 3: Player Engine temeli
-- [ ] Aşama 4: Oyuncu oluşturma
+- [x] Node.js LTS kuruldu (winget, v24.19.0 / npm 11.17.0)
+- [x] Next.js 16 + TypeScript + Tailwind iskeleti kuruldu, `build` doğrulandı
+- [ ] Prisma + SQLite yapılandırması (Database katmanı)
+- [ ] Vitest kurulumu + ilk test
+- [ ] Aşama 3: Player Engine temeli (`src/engine/player/`)
+- [ ] Aşama 4: Oyuncu oluşturma ekranı
 
 > Bir adım tamamlandığında bu listeyi güncelle.
