@@ -50,14 +50,124 @@ model Player {
   nationalityId Int
   nationality   Country @relation(fields: [nationalityId], references: [id])
 
+  profile String @default("BALANCED") // başlangıç profili arketipi (GDD 7.20)
+
   // Değişebilen durum (GDD 8.16)
-  status String  @default("ACTIVE") // ACTIVE | INJURED | RETIRED | INACTIVE
-  isAI   Boolean @default(false) // insan mı AI mı — aynı yapı (GDD 8.53)
+  status  String  @default("ACTIVE") // ACTIVE | INJURED | RETIRED | INACTIVE
+  isAI    Boolean @default(false) // insan mı AI mı — aynı yapı (GDD 8.53)
+  fatigue Float   @default(0) // 0–100, günlük döngüde değişir (GDD 6.12)
 
   careerStartDate DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  skills         PlayerSkill[]
+  rankings       Ranking[]
+  tournamentEntries TournamentParticipant[]
+
   @@index([nationalityId])
   @@index([gender, weapon]) // kategori/ranking sorguları için
+}
+
+/// Oyuncunun güncel skill değerleri (GDD 22.11). Sahip: Skill Engine (tek kaynak).
+/// Skill başına bir satır → esnek; skill listesi büyüdükçe şema değişmez.
+model PlayerSkill {
+  id       Int    @id @default(autoincrement())
+  playerId Int
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  key      String // örn. "attack" (SKILL_KEYS)
+  category String // TECHNICAL | PHYSICAL | MENTAL | TACTICAL
+
+  current   Float
+  potential Float
+  floor     Float
+  ceiling   Float
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([playerId, key])
+  @@index([playerId])
+}
+
+/// Kayıt/kariyer çapası (save). M1: aynı anda tek aktif kariyer. Oyun tarihi + seed burada.
+model GameState {
+  id            Int      @id @default(autoincrement())
+  humanPlayerId Int      @unique
+  seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
+  currentDate   DateTime // oyun-içi tarih (Daily Loop ilerletir)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+/// Turnuva (GDD 17, 22.24). M1: tek kategori, "OPEN" seviyesi, 8 kişilik tek eleme.
+model Tournament {
+  id         Int      @id @default(autoincrement())
+  name       String
+  categoryId String // örn. "U17-M-FL"
+  level      String   @default("OPEN")
+  date       DateTime
+  status     String   @default("FINISHED") // M1: turnuva anında simüle edilir
+
+  participants TournamentParticipant[]
+  matches      Match[]
+
+  createdAt DateTime @default(now())
+
+  @@index([categoryId])
+}
+
+/// Turnuva katılımcısı ve nihai derecesi (GDD 22.26).
+model TournamentParticipant {
+  id           Int    @id @default(autoincrement())
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  playerId     Int
+  player       Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  seed          Int
+  finalPosition Int? // turnuva bitince kesinleşir (1 = şampiyon)
+
+  @@unique([tournamentId, playerId])
+  @@index([tournamentId])
+  @@index([playerId])
+}
+
+/// Maç kaydı (GDD 22.29). Silinmez (GDD 22.30). Combat Engine üretir; burada saklanır.
+model Match {
+  id           Int    @id @default(autoincrement())
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  round      String // "Çeyrek Final" | "Yarı Final" | "Final"
+  orderIndex Int // turnuva içindeki sıra (gösterim için)
+
+  playerAId Int
+  playerBId Int
+  scoreA    Int
+  scoreB    Int
+  winnerId  Int
+
+  seed String // bu maçın tohumu (replay/debug, GDD 20.29)
+  log  String // metin anlatım (satırlar \n ile)
+
+  createdAt DateTime @default(now())
+
+  @@index([tournamentId])
+}
+
+/// Kategori bazlı sıralama puanı (GDD 19, 22.32). Sahip: Ranking Engine.
+model Ranking {
+  id         Int    @id @default(autoincrement())
+  playerId   Int
+  player     Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  categoryId String
+
+  points   Float @default(0)
+  position Int? // sıralamada yer (güncellemede hesaplanır)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([playerId, categoryId])
+  @@index([categoryId])
 }

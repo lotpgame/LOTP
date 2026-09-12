@@ -1,0 +1,517 @@
+/**
+ * Career Service — Data Service katmanı (GDD 22.64: Engine → Data Service → Database).
+ *
+ * Saf engine'leri (src/engine/*) veritabanına bağlar: veriyi yükler, engine fonksiyonunu
+ * düz veriyle çağırır, sonucu kalıcılaştırır. Kritik hesap sunucuda (güvenlik). M1 dikey
+ * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
+ */
+import { prisma } from "@/db";
+import {
+  clamp,
+  computeAge,
+  formatPlayerCode,
+  makeCategoryId,
+  roundSkill,
+  type Gender,
+  type Weapon,
+} from "@/engine/domain";
+import { createRng } from "@/engine/probability";
+import {
+  SKILLS,
+  generateStartingSkills,
+  overall,
+  type PlayerSkills,
+  type SkillValue,
+} from "@/engine/skill";
+import {
+  applyTraining,
+  TRAINING_LABEL_TR,
+  type TrainingType,
+} from "@/engine/training";
+import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
+import type { Combatant } from "@/engine/combat";
+import { runSingleElimination } from "@/engine/tournament";
+import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
+
+/** Oyun başlangıç tarihi (deterministik referans). */
+const GAME_START = new Date("2026-01-01T00:00:00.000Z");
+const AI_DAILY_RECOVERY = 12;
+const FIELD_SIZE = 8;
+
+// ---------- yardımcılar ----------
+
+interface SkillRow {
+  key: string;
+  current: number;
+  potential: number;
+  floor: number;
+  ceiling: number;
+}
+
+function rowsToSkills(rows: readonly SkillRow[]): PlayerSkills {
+  const map = {} as PlayerSkills;
+  for (const r of rows) {
+    (map as Record<string, SkillValue>)[r.key] = {
+      current: r.current,
+      potential: r.potential,
+      floor: r.floor,
+      ceiling: r.ceiling,
+    };
+  }
+  return map;
+}
+
+function skillCreateData(skills: PlayerSkills) {
+  return SKILLS.map((def) => ({
+    key: def.key,
+    category: def.category,
+    current: skills[def.key].current,
+    potential: skills[def.key].potential,
+    floor: skills[def.key].floor,
+    ceiling: skills[def.key].ceiling,
+  }));
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+async function ensureCountry(code: string, name: string): Promise<number> {
+  const existing = await prisma.country.findUnique({ where: { code } });
+  if (existing) return existing.id;
+  const created = await prisma.country.create({ data: { code, name } });
+  return created.id;
+}
+
+// ---------- DTO'lar ----------
+
+export interface CareerDTO {
+  humanPlayerId: number;
+  code: string;
+  name: string;
+  gender: string;
+  weapon: string;
+  age: number;
+  categoryId: string;
+  status: string;
+  fatigue: number;
+  currentDate: string;
+  overall: number;
+  skills: { key: string; label: string; category: string; current: number; potential: number }[];
+  ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
+}
+
+// ---------- işlemler ----------
+
+/** Aktif kariyer var mı? (M1: tek kariyer) */
+export async function hasCareer(): Promise<boolean> {
+  return (await prisma.gameState.count()) > 0;
+}
+
+/**
+ * Yeni kariyer oluşturur: insan oyuncu + skill'leri + kategoriyi dolduran AI havuzu + GameState.
+ * Girdi Zod ile doğrulanır (GDD 7.27). Tümü tek transaction (GDD 22.50).
+ */
+export async function createCareer(input: unknown): Promise<{ humanPlayerId: number }> {
+  const data = createPlayerSchema.parse(input); // geçersizse fırlatır
+  const identity = deriveIdentity(data, GAME_START);
+  const seed = globalThis.crypto.randomUUID();
+  const countryId = await ensureCountry("TR", "Türkiye");
+
+  const humanSkills = generateStartingSkills(createRng(`${seed}:human`), {
+    age: identity.age,
+    profile: data.profile,
+  });
+
+  const aiSpecs = generateAiOpponents(createRng(`${seed}:world`), {
+    count: FIELD_SIZE - 1,
+    gender: data.gender,
+    weapon: data.weapon,
+    ageCategory: identity.ageCategory,
+    gameDate: GAME_START,
+  });
+
+  const humanPlayerId = await prisma.$transaction(async (tx) => {
+    const human = await tx.player.create({
+      data: {
+        code: "P-TEMP",
+        firstName: data.firstName,
+        lastName: data.lastName,
+        gender: data.gender,
+        birthDate: data.birthDate,
+        weapon: data.weapon,
+        profile: data.profile,
+        nationalityId: countryId,
+        isAI: false,
+        careerStartDate: GAME_START,
+        skills: { create: skillCreateData(humanSkills) },
+      },
+    });
+    // Player ID kodunu gerçek id'den üret (GDD 7.4).
+    await tx.player.update({
+      where: { id: human.id },
+      data: { code: formatPlayerCode(human.id) },
+    });
+
+    for (const spec of aiSpecs) {
+      const ai = await tx.player.create({
+        data: {
+          code: "P-TEMP",
+          firstName: spec.firstName,
+          lastName: spec.lastName,
+          gender: spec.gender,
+          birthDate: spec.birthDate,
+          weapon: spec.weapon,
+          profile: spec.profile,
+          nationalityId: countryId,
+          isAI: true,
+          careerStartDate: GAME_START,
+          skills: { create: skillCreateData(spec.skills) },
+        },
+      });
+      await tx.player.update({
+        where: { id: ai.id },
+        data: { code: formatPlayerCode(ai.id) },
+      });
+    }
+
+    await tx.gameState.create({
+      data: { humanPlayerId: human.id, seed, currentDate: GAME_START },
+    });
+    return human.id;
+  });
+
+  return { humanPlayerId };
+}
+
+async function loadState() {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) return null;
+  const human = await prisma.player.findUnique({
+    where: { id: gs.humanPlayerId },
+    include: { skills: true },
+  });
+  if (!human) return null;
+  return { gs, human };
+}
+
+/** Aktif kariyerin tam durumunu döndürür (UI için). */
+export async function getCareer(): Promise<CareerDTO | null> {
+  const state = await loadState();
+  if (!state) return null;
+  const { gs, human } = state;
+
+  const skills = rowsToSkills(human.skills);
+  const age = computeAge(human.birthDate, gs.currentDate);
+  const categoryId = makeCategoryId(
+    // yaş kategorisi türetimi deriveIdentity ile aynı mantık
+    deriveIdentity(
+      { gender: human.gender as Gender, weapon: human.weapon as Weapon, birthDate: human.birthDate },
+      gs.currentDate,
+    ).ageCategory,
+    human.gender as Gender,
+    human.weapon as Weapon,
+  );
+
+  const ranking = await buildRankingView(categoryId, human.id);
+
+  return {
+    humanPlayerId: human.id,
+    code: human.code,
+    name: `${human.firstName} ${human.lastName}`,
+    gender: human.gender,
+    weapon: human.weapon,
+    age,
+    categoryId,
+    status: human.status,
+    fatigue: roundSkill(human.fatigue),
+    currentDate: gs.currentDate.toISOString(),
+    overall: roundSkill(overall(skills)),
+    skills: SKILLS.map((def) => ({
+      key: def.key,
+      label: def.label,
+      category: def.category,
+      current: roundSkill(skills[def.key].current),
+      potential: roundSkill(skills[def.key].potential),
+    })),
+    ranking,
+  };
+}
+
+async function buildRankingView(categoryId: string, humanId: number) {
+  const rows = await prisma.ranking.findMany({
+    where: { categoryId },
+    orderBy: [{ points: "desc" }, { playerId: "asc" }],
+  });
+  const players = await prisma.player.findMany({
+    where: { id: { in: rows.map((r) => r.playerId) } },
+  });
+  const nameById = new Map(players.map((p) => [p.id, `${p.firstName} ${p.lastName}`]));
+  return rows.map((r, i) => ({
+    playerId: r.playerId,
+    name: nameById.get(r.playerId) ?? formatPlayerCode(r.playerId),
+    points: roundSkill(r.points),
+    position: r.position ?? i + 1,
+    isHuman: r.playerId === humanId,
+  }));
+}
+
+export interface TrainingSummaryDTO {
+  type: TrainingType;
+  label: string;
+  gains: { label: string; delta: number }[];
+  fatigue: number;
+  currentDate: string;
+}
+
+/** Bir günlük antrenman uygular ve günü ilerletir (Daily Loop — M1 basit). */
+export async function trainOneDay(type: TrainingType): Promise<TrainingSummaryDTO> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
+
+  const skills = rowsToSkills(human.skills);
+  const age = computeAge(human.birthDate, gs.currentDate);
+  const result = applyTraining(skills, { type, age, currentFatigue: human.fatigue });
+  const newFatigue = clamp(human.fatigue + result.fatigueDelta, 0, 100);
+  const nextDate = addDays(gs.currentDate, 1);
+
+  const labelByKey = new Map<string, string>(SKILLS.map((s) => [s.key, s.label]));
+
+  await prisma.$transaction(async (tx) => {
+    for (const key of Object.keys(result.gains)) {
+      await tx.playerSkill.update({
+        where: { playerId_key: { playerId: human.id, key } },
+        data: { current: result.skills[key as keyof PlayerSkills].current },
+      });
+    }
+    await tx.player.update({ where: { id: human.id }, data: { fatigue: newFatigue } });
+    // AI dünyası pasif toparlanır (tam dünya simülasyonu M7).
+    await tx.player.updateMany({
+      where: { isAI: true, fatigue: { gt: 0 } },
+      data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
+    });
+    await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
+    await tx.gameState.update({ where: { id: gs.id }, data: { currentDate: nextDate } });
+  });
+
+  return {
+    type,
+    label: TRAINING_LABEL_TR[type],
+    gains: Object.entries(result.gains).map(([key, delta]) => ({
+      label: labelByKey.get(key) ?? key,
+      delta: delta ?? 0,
+    })),
+    fatigue: roundSkill(newFatigue),
+    currentDate: nextDate.toISOString(),
+  };
+}
+
+/** Kaydedilmiş bir turnuvayı id ile yükler (sonuç ekranı için). */
+export async function getTournament(id: number): Promise<TournamentResultDTO | null> {
+  const t = await prisma.tournament.findUnique({
+    where: { id },
+    include: {
+      participants: { include: { player: true } },
+      matches: { orderBy: { orderIndex: "asc" } },
+    },
+  });
+  if (!t) return null;
+  const gs = await prisma.gameState.findFirst();
+  const humanId = gs?.humanPlayerId ?? -1;
+
+  const nameById = new Map(
+    t.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
+  );
+  const sortedParticipants = [...t.participants].sort(
+    (a, b) => (a.finalPosition ?? 999) - (b.finalPosition ?? 999),
+  );
+  const champion = sortedParticipants.find((p) => p.finalPosition === 1);
+  const you = t.participants.find((p) => p.playerId === humanId);
+
+  return {
+    tournamentId: t.id,
+    name: t.name,
+    categoryId: t.categoryId,
+    yourPosition: you?.finalPosition ?? FIELD_SIZE,
+    championName: champion ? (nameById.get(champion.playerId) ?? "?") : "?",
+    standings: sortedParticipants.map((p) => ({
+      position: p.finalPosition ?? FIELD_SIZE,
+      name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
+      isHuman: p.playerId === humanId,
+    })),
+    matches: t.matches.map((m) => ({
+      round: m.round,
+      aName: nameById.get(m.playerAId) ?? formatPlayerCode(m.playerAId),
+      bName: nameById.get(m.playerBId) ?? formatPlayerCode(m.playerBId),
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+      log: m.log.split("\n"),
+    })),
+    currentDate: (gs?.currentDate ?? t.date).toISOString(),
+  };
+}
+
+/** Mevcut kariyeri ve tüm dünya verisini siler (yeni kariyer için). M1: tek kariyer. */
+export async function resetCareer(): Promise<void> {
+  await prisma.$transaction([
+    prisma.match.deleteMany(),
+    prisma.tournamentParticipant.deleteMany(),
+    prisma.tournament.deleteMany(),
+    prisma.ranking.deleteMany(),
+    prisma.playerSkill.deleteMany(),
+    prisma.gameState.deleteMany(),
+    prisma.player.deleteMany(),
+  ]);
+}
+
+export interface TournamentResultDTO {
+  tournamentId: number;
+  name: string;
+  categoryId: string;
+  yourPosition: number;
+  championName: string;
+  standings: { position: number; name: string; isHuman: boolean }[];
+  matches: { round: string; aName: string; bName: string; scoreA: number; scoreB: number; log: string[] }[];
+  currentDate: string;
+}
+
+/** Kategori turnuvasını çalıştırır (8 kişilik tek eleme), sonuçları ve ranking'i kalıcılaştırır. */
+export async function runTournament(): Promise<TournamentResultDTO> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
+
+  const identity = deriveIdentity(
+    { gender: human.gender as Gender, weapon: human.weapon as Weapon, birthDate: human.birthDate },
+    gs.currentDate,
+  );
+  const categoryId = identity.categoryId;
+
+  const aiPlayers = await prisma.player.findMany({
+    where: { isAI: true, gender: human.gender, weapon: human.weapon },
+    include: { skills: true },
+    take: FIELD_SIZE - 1,
+  });
+  if (aiPlayers.length < FIELD_SIZE - 1) {
+    throw new Error("Turnuva için yeterli rakip yok.");
+  }
+
+  const nameById = new Map<number, string>();
+  const toCombatant = (p: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    weapon: string;
+    fatigue: number;
+    skills: SkillRow[];
+  }): Combatant => {
+    const name = `${p.firstName} ${p.lastName}`;
+    nameById.set(p.id, name);
+    return { id: p.id, name, weapon: p.weapon as Weapon, skills: rowsToSkills(p.skills), fatigue: p.fatigue };
+  };
+
+  const combatants: Combatant[] = [
+    toCombatant(human),
+    ...aiPlayers.map(toCombatant),
+  ];
+
+  const dateKey = gs.currentDate.toISOString().slice(0, 10);
+  const rng = createRng(`${gs.seed}:tournament:${dateKey}`);
+  const outcome = runSingleElimination(combatants, rng, 15);
+
+  const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
+  const nextDate = addDays(gs.currentDate, 1);
+  const tournamentName = `${identity.ageCategory} Açık Turnuva`;
+
+  const tournamentId = await prisma.$transaction(async (tx) => {
+    const tournament = await tx.tournament.create({
+      data: { name: tournamentName, categoryId, level: "OPEN", date: gs.currentDate, status: "FINISHED" },
+    });
+
+    for (const c of combatants) {
+      await tx.tournamentParticipant.create({
+        data: {
+          tournamentId: tournament.id,
+          playerId: c.id,
+          seed: 0,
+          finalPosition: positionByPlayer.get(c.id) ?? null,
+        },
+      });
+    }
+
+    for (let i = 0; i < outcome.matches.length; i++) {
+      const m = outcome.matches[i];
+      await tx.match.create({
+        data: {
+          tournamentId: tournament.id,
+          round: m.round,
+          orderIndex: i,
+          playerAId: m.aId,
+          playerBId: m.bId,
+          scoreA: m.scoreA,
+          scoreB: m.scoreB,
+          winnerId: m.winnerId,
+          seed: `${gs.seed}:tournament:${dateKey}`,
+          log: m.log.join("\n"),
+        },
+      });
+    }
+
+    // Yorgunlukları kalıcılaştır (turlar arası birikim, GDD 18.37).
+    for (const c of combatants) {
+      await tx.player.update({
+        where: { id: c.id },
+        data: { fatigue: clamp(outcome.finalFatigue[c.id] ?? c.fatigue, 0, 100) },
+      });
+    }
+
+    // Ranking puanı ekle (Ranking Engine) ve pozisyonları yeniden hesapla (GDD 19.29).
+    for (const s of outcome.standings) {
+      const pts = rankingPointsForPosition(s.position);
+      await tx.ranking.upsert({
+        where: { playerId_categoryId: { playerId: s.playerId, categoryId } },
+        create: { playerId: s.playerId, categoryId, points: pts },
+        update: { points: { increment: pts } },
+      });
+    }
+    const rankRows = await tx.ranking.findMany({ where: { categoryId } });
+    const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
+    for (const r of ranked) {
+      await tx.ranking.update({
+        where: { playerId_categoryId: { playerId: r.playerId, categoryId } },
+        data: { position: r.position },
+      });
+    }
+
+    await tx.gameState.update({ where: { id: gs.id }, data: { currentDate: nextDate } });
+    return tournament.id;
+  });
+
+  const yourPosition = positionByPlayer.get(human.id) ?? FIELD_SIZE;
+  const championName = nameById.get(outcome.championId) ?? "?";
+
+  return {
+    tournamentId,
+    name: tournamentName,
+    categoryId,
+    yourPosition,
+    championName,
+    standings: outcome.standings.map((s) => ({
+      position: s.position,
+      name: nameById.get(s.playerId) ?? formatPlayerCode(s.playerId),
+      isHuman: s.playerId === human.id,
+    })),
+    matches: outcome.matches.map((m) => ({
+      round: m.round,
+      aName: m.aName,
+      bName: m.bName,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+      log: m.log,
+    })),
+    currentDate: nextDate.toISOString(),
+  };
+}

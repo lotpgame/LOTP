@@ -220,9 +220,9 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 - [x] Teknik uygulama planı hazırlandı → [`docs/ROADMAP.md`](docs/ROADMAP.md) (M0–M8)
 - [x] **M0 — Altyapı:** Prisma 7+SQLite (better-sqlite3 adapter), Vitest, seeded RNG,
       events, `src/db` + Data Service iskeleti. build+lint+test yeşil.
-- [ ] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren →
-      turnuva → sonuç → ranking → save/load) ← sıradaki
-- [ ] M2+ : bkz. `docs/ROADMAP.md` §B (aşama detayları ve canlı durum §F)
+- [x] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren → turnuva
+      → sonuç → ranking → save/load). 7 engine + 38 test; Next 16 Server Actions ile ekranlar.
+- [ ] **M2 — Combat + Probability derinleştirme** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

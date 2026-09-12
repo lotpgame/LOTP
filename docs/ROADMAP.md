@@ -175,8 +175,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 ## F. Aşama Durumu (canlı takip)
 
 - [x] **M0** — Altyapı (Prisma 7+SQLite, Vitest, seeded RNG, events, Data Service iskeleti) ✅
-- [ ] **M1** — Dikey dilim (oynanabilir minimal kariyer) ← sıradaki
-- [ ] **M2** — Combat + Probability derinleştirme
+- [x] **M1** — Dikey dilim (oynanabilir minimal kariyer: oluştur→antren→turnuva→sonuç→ranking) ✅
+- [ ] **M2** — Combat + Probability derinleştirme ← sıradaki
 - [ ] **M3** — Tam turnuva sistemi
 - [ ] **M4** — Quarter Ranking + uluslararası + milli takım
 - [ ] **M5** — Günlük/haftalık/sezon döngüsü

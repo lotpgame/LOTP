@@ -59,7 +59,10 @@ Economy → Memory → AI.** V1 hedefi: uçtan uca çalışan kariyer döngüsü
 
 Ayrıntılı aşamalar ve güncel durum: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
-✅ **M0 — Altyapı** tamam (Prisma 7+SQLite, Vitest, tohumlanabilir RNG, Data Service iskeleti).
+✅ **M0 — Altyapı** ve ✅ **M1 — Dikey dilim** tamam. Oyun artık uçtan uca oynanabilir:
+oyuncu oluştur → antren yap (gün ilerler) → 8 kişilik turnuvaya katıl → maç sonuçlarını
+metinle izle → kategori ranking'inde yerini gör. Kariyer veritabanında saklanır (kaldığın
+yerden devam). `npm run dev` → http://localhost:3000.
 
-Sıradaki adım: **M1 — Dikey dilim**: oyuncu oluştur → antren → turnuva → sonuç → ranking
-(uçtan uca oynanabilir minimal kariyer).
+Sıradaki adım: **M2 — Combat + Probability derinleştirme** (silaha göre ayrıntılı simülasyon,
+effective/permanent skill, modifier kayıtları).

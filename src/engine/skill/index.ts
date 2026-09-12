@@ -8,7 +8,7 @@
  */
 import { clamp, type PlayerProfile, type SkillCategory } from "../domain";
 import type { SeededRng } from "../probability";
-import { SKILL_KEYS, SKILLS, SKILLS_BY_KEY, type SkillKey } from "./skills";
+import { SKILLS, type SkillKey } from "./skills";
 
 export { SKILL_KEYS, SKILLS, SKILLS_BY_KEY, skillKeysOf } from "./skills";
 export type { SkillKey, SkillDef } from "./skills";
