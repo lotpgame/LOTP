@@ -11,9 +11,10 @@ import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
   createCareer,
   hasCareer,
+  playWeek,
+  restWeek,
   resetCareer,
   runTournament,
-  trainWeek,
 } from "@/server/careerService";
 
 // M3'te oyuncunun serbestçe katılabileceği yurt içi seviyeler (davet/ranking şartı yok).
@@ -32,10 +33,18 @@ export async function createCareerAction(formData: FormData): Promise<void> {
   redirect("/kariyer");
 }
 
-export async function trainAction(formData: FormData): Promise<void> {
-  const type = String(formData.get("type") ?? "") as TrainingType;
-  if (!TRAINING_TYPES.includes(type)) throw new Error("Geçersiz antrenman türü");
-  await trainWeek(type);
+export async function playWeekAction(formData: FormData): Promise<void> {
+  // Haftalık plan: 3 seans (boş/geçersiz olanlar atlanır).
+  const slots = ["slot1", "slot2", "slot3"]
+    .map((s) => String(formData.get(s) ?? ""))
+    .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
+  if (slots.length === 0) throw new Error("En az bir seans seç");
+  await playWeek(slots);
+  revalidatePath("/kariyer");
+}
+
+export async function restWeekAction(): Promise<void> {
+  await restWeek();
   revalidatePath("/kariyer");
 }
 

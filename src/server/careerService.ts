@@ -21,6 +21,7 @@ import {
   generateStartingSkills,
   overall,
   type PlayerSkills,
+  type SkillKey,
   type SkillValue,
 } from "@/engine/skill";
 import {
@@ -39,6 +40,12 @@ import {
   quarterOf,
   weekInQuarter,
 } from "@/engine/season";
+import {
+  COMPETITION_SHARPNESS_GAIN,
+  applySharpness,
+  rollInjury,
+  sessionSharpnessDelta,
+} from "@/engine/conditioning";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
@@ -124,6 +131,9 @@ export interface CareerDTO {
   categoryId: string;
   status: string;
   fatigue: number;
+  sharpness: number;
+  injured: boolean;
+  injuryWeeksRemaining: number;
   currentDate: string;
   quarter: number;
   week: number; // quarter içindeki hafta (1..12)
@@ -244,12 +254,13 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const ranking = await buildRankingView(categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   const nationalTeam = humanRank != null && humanRank <= 4;
+  const injured = human.injuryWeeksRemaining > 0;
   const weekEvents = eventsForWeek(week).map(
     (e): WeekEventDTO => ({
       level: e.level,
       label: TOURNAMENT_LABEL_TR[e.level],
-      qualified: qualifies(e.qualification, humanRank),
-      requirement: qualificationLabel(e.qualification),
+      qualified: !injured && qualifies(e.qualification, humanRank),
+      requirement: injured ? "Sakat — dinlen" : qualificationLabel(e.qualification),
     }),
   );
 
@@ -263,6 +274,9 @@ export async function getCareer(): Promise<CareerDTO | null> {
     categoryId,
     status: human.status,
     fatigue: roundSkill(human.fatigue),
+    sharpness: roundSkill(human.sharpness),
+    injured,
+    injuryWeeksRemaining: human.injuryWeeksRemaining,
     currentDate: gs.currentDate.toISOString(),
     quarter,
     week,
@@ -298,58 +312,135 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
   }));
 }
 
-export interface TrainingSummaryDTO {
-  type: TrainingType;
-  label: string;
+export interface WeekSummaryDTO {
+  sessions: string[]; // seansların etiketleri
   gains: { label: string; delta: number }[];
   fatigue: number;
+  sharpness: number;
+  injured: boolean;
+  injuryWeeksRemaining: number;
   currentDate: string;
 }
 
-/** Bir haftalık antrenman uygular ve haftayı ilerletir (GDD 17: hafta temelli zaman). */
-export async function trainWeek(type: TrainingType): Promise<TrainingSummaryDTO> {
+const REST_RECOVERY = 30; // dinlenme haftası yorgunluk azalışı
+
+/** AI dünyasını + günü ilerleten ortak hafta-sonu işlemleri (tx içinde). */
+async function advanceWeekTx(
+  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  gs: { id: number; currentDate: Date; weekIndex: number },
+) {
+  await tx.player.updateMany({
+    where: { isAI: true, fatigue: { gt: 0 } },
+    data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
+  });
+  await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
+  await tx.gameState.update({
+    where: { id: gs.id },
+    data: { currentDate: addDays(gs.currentDate, 7), weekIndex: gs.weekIndex + 1 },
+  });
+}
+
+/**
+ * Haftalık antrenman planını uygular (GDD 6: sabah/öğlen/akşam → haftalık 3 seans). Seanslar
+ * sırayla işlenir; yorgunluk biriktikçe verim düşer (GDD 14.33). Keskinlik güncellenir, hafta
+ * sonunda sakatlık kontrolü yapılır (GDD 14.37). Sakat oyuncu antrenman yapamaz (restWeek).
+ */
+export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
+  if (human.injuryWeeksRemaining > 0) throw new Error("Sakatsın — bu hafta dinlenmelisin.");
+  if (slots.length === 0) throw new Error("En az bir seans seç.");
 
   const quarter = quarterOf(gs.weekIndex);
-  const skills = rowsToSkills(human.skills);
   const age = baseIdentity(human).age + (quarter - 1);
-  const result = applyTraining(skills, { type, age, currentFatigue: human.fatigue });
-  const newFatigue = clamp(human.fatigue + result.fatigueDelta, 0, 100);
-  const nextDate = addDays(gs.currentDate, 7);
+
+  let skills = rowsToSkills(human.skills);
+  let fatigue = human.fatigue;
+  let sharpness = human.sharpness;
+  const totalGains: Partial<Record<SkillKey, number>> = {};
+  const sessions: string[] = [];
+
+  for (const type of slots) {
+    const res = applyTraining(skills, { type, age, currentFatigue: fatigue });
+    skills = res.skills;
+    fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
+    sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
+    sessions.push(TRAINING_LABEL_TR[type]);
+    for (const [k, d] of Object.entries(res.gains)) {
+      totalGains[k as SkillKey] = (totalGains[k as SkillKey] ?? 0) + (d ?? 0);
+    }
+  }
+
+  // Hafta sonu sakatlık kontrolü (deterministik: seed + hafta).
+  const injuryRng = createRng(`${gs.seed}:injury:${gs.weekIndex}`);
+  const injury = rollInjury(injuryRng, fatigue, age);
 
   const labelByKey = new Map<string, string>(SKILLS.map((s) => [s.key, s.label]));
 
   await prisma.$transaction(async (tx) => {
-    for (const key of Object.keys(result.gains)) {
+    for (const key of Object.keys(totalGains)) {
       await tx.playerSkill.update({
         where: { playerId_key: { playerId: human.id, key } },
-        data: { current: result.skills[key as keyof PlayerSkills].current },
+        data: { current: skills[key as SkillKey].current },
       });
     }
-    await tx.player.update({ where: { id: human.id }, data: { fatigue: newFatigue } });
-    // AI dünyası pasif toparlanır (tam dünya simülasyonu M7).
-    await tx.player.updateMany({
-      where: { isAI: true, fatigue: { gt: 0 } },
-      data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
+    await tx.player.update({
+      where: { id: human.id },
+      data: {
+        fatigue,
+        sharpness,
+        status: injury.injured ? "INJURED" : human.status,
+        injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
+      },
     });
-    await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
-    await tx.gameState.update({
-      where: { id: gs.id },
-      data: { currentDate: nextDate, weekIndex: gs.weekIndex + 1 },
-    });
+    await advanceWeekTx(tx, gs);
   });
 
   return {
-    type,
-    label: TRAINING_LABEL_TR[type],
-    gains: Object.entries(result.gains).map(([key, delta]) => ({
+    sessions,
+    gains: Object.entries(totalGains).map(([key, delta]) => ({
       label: labelByKey.get(key) ?? key,
-      delta: delta ?? 0,
+      delta: Math.round((delta ?? 0) * 100) / 100,
     })),
-    fatigue: roundSkill(newFatigue),
-    currentDate: nextDate.toISOString(),
+    fatigue: roundSkill(fatigue),
+    sharpness: roundSkill(sharpness),
+    injured: injury.injured,
+    injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
+    currentDate: addDays(gs.currentDate, 7).toISOString(),
+  };
+}
+
+/**
+ * Bir hafta dinlenir: yorgunluk azalır, keskinlik biraz düşer (detraining, GDD 14.81),
+ * sakatlık varsa bir hafta iyileşir. Her durumda hafta ilerler.
+ */
+export async function restWeek(): Promise<WeekSummaryDTO> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
+
+  const fatigue = clamp(human.fatigue - REST_RECOVERY, 0, 100);
+  const sharpness = applySharpness(human.sharpness, -3);
+  const injuryWeeksRemaining = Math.max(0, human.injuryWeeksRemaining - 1);
+  const status = injuryWeeksRemaining > 0 ? "INJURED" : "ACTIVE";
+
+  await prisma.$transaction(async (tx) => {
+    await tx.player.update({
+      where: { id: human.id },
+      data: { fatigue, sharpness, status, injuryWeeksRemaining },
+    });
+    await advanceWeekTx(tx, gs);
+  });
+
+  return {
+    sessions: ["Dinlenme"],
+    gains: [],
+    fatigue: roundSkill(fatigue),
+    sharpness: roundSkill(sharpness),
+    injured: injuryWeeksRemaining > 0,
+    injuryWeeksRemaining,
+    currentDate: addDays(gs.currentDate, 7).toISOString(),
   };
 }
 
@@ -484,6 +575,7 @@ export async function runTournament(
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
+  if (human.injuryWeeksRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
 
   const quarter = quarterOf(gs.weekIndex);
   const week = weekInQuarter(gs.weekIndex);
@@ -512,11 +604,19 @@ export async function runTournament(
     lastName: string;
     weapon: string;
     fatigue: number;
+    sharpness: number;
     skills: SkillRow[];
   }): Combatant => {
     const name = `${p.firstName} ${p.lastName}`;
     nameById.set(p.id, name);
-    return { id: p.id, name, weapon: p.weapon as Weapon, skills: rowsToSkills(p.skills), fatigue: p.fatigue };
+    return {
+      id: p.id,
+      name,
+      weapon: p.weapon as Weapon,
+      skills: rowsToSkills(p.skills),
+      fatigue: p.fatigue,
+      sharpness: p.sharpness,
+    };
   };
 
   const combatants: Combatant[] = [toCombatant(human), ...aiPlayers.map(toCombatant)];
@@ -532,6 +632,11 @@ export async function runTournament(
   const poolByPlayer = new Map(outcome.pools.map((p) => [p.playerId, p]));
   const nextDate = addDays(gs.currentDate, 7);
   const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
+
+  // İnsan oyuncu: yarışma keskinlik kazancı (GDD 14.80) + hafta sonu sakatlık kontrolü.
+  const humanFinalFatigue = clamp(outcome.finalFatigue[human.id] ?? human.fatigue, 0, 100);
+  const humanSharpness = applySharpness(human.sharpness, COMPETITION_SHARPNESS_GAIN);
+  const injury = rollInjury(createRng(`${seedKey}:injury`), humanFinalFatigue, base.age + (quarter - 1));
 
   const tournamentId = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
@@ -583,6 +688,15 @@ export async function runTournament(
         data: { fatigue: clamp(outcome.finalFatigue[c.id] ?? c.fatigue, 0, 100) },
       });
     }
+    // İnsan oyuncu: keskinlik + sakatlık durumu.
+    await tx.player.update({
+      where: { id: human.id },
+      data: {
+        sharpness: humanSharpness,
+        status: injury.injured ? "INJURED" : human.status,
+        injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
+      },
+    });
 
     // Ranking puanı (seviyeye göre) ekle ve pozisyonları yeniden hesapla (GDD 19.29).
     for (const s of outcome.standings) {

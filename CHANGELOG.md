@@ -7,6 +7,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **M5 — Haftalık döngü + kondisyon:**
+  - Haftalık plan: her hafta **3 seans** (Teknik/Fiziksel/Mental/Taktik/Dinlenme); seanslar
+    sırayla işlenir, yorgunluk biriktikçe verim düşer (GDD 14.33). `playWeek`/`restWeek`.
+  - **Keskinlik (sharpness)** (`src/engine/conditioning.ts`): antrenman/maç artırır, dinlenme
+    düşürür; Combat effective strength'e modifier (GDD 14.81) — Probability Engine'e eklendi.
+  - **Sakatlık**: hafta sonu yorgunluk+yaş riskiyle (GDD 14.38); INJURED oyuncu antrenman/turnuva
+    yapamaz (GDD 8.19), dinlenerek iyileşir. `Player.sharpness`, `Player.injuryWeeksRemaining`
+    (migration `m5_conditioning`).
+  - UI: keskinlik stat'ı, "Haftalık Plan" (3 seans seçici), sakatlık bandı + dinlenme akışı.
+  - 53 test (conditioning + sharpness). Uçtan uca tarayıcıda doğrulandı.
 - **M4 — Quarter Ranking + uluslararası + milli takım:**
   - Hafta/quarter zaman modeli (`src/engine/season.ts`): 12 hafta = 1 Quarter = 1 oyun yılı;
     haftalık takvim (İl/Open her hafta, Türkiye çift haftalarda, Satellite/GP/Avrupa/Dünya özel

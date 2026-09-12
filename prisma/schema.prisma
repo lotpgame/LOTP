@@ -55,7 +55,9 @@ model Player {
   // Değişebilen durum (GDD 8.16)
   status  String  @default("ACTIVE") // ACTIVE | INJURED | RETIRED | INACTIVE
   isAI    Boolean @default(false) // insan mı AI mı — aynı yapı (GDD 8.53)
-  fatigue Float   @default(0) // 0–100, günlük döngüde değişir (GDD 6.12)
+  fatigue Float   @default(0) // 0–100, döngüde değişir (GDD 6.12)
+  sharpness            Float @default(50) // 0–100 keskinlik (GDD 14.81)
+  injuryWeeksRemaining Int   @default(0) // >0 ise INJURED; her hafta azalır (GDD 8.18)
 
   careerStartDate DateTime @default(now())
   createdAt       DateTime @default(now())

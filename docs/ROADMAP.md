@@ -179,8 +179,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M2** — Combat + Probability derinleştirme (silah ağırlıkları, effective strength, momentum, açıklanabilirlik) ✅
 - [x] **M3** — Tam turnuva sistemi (havuz 6 + FIE tie-break + seed'li eleme + bye + seviye puanları) ✅
 - [x] **M4** — Quarter Ranking + uluslararası + milli takım (hafta/quarter takvimi, davet/uygunluk) ✅
-- [ ] **M5** — Günlük/haftalık/sezon döngüsü ← sıradaki
-- [ ] **M6** — Gelişim çevresi engine'leri
+- [x] **M5** — Haftalık döngü + kondisyon (3 seanslık plan, sharpness, sakatlık, overtraining) ✅
+- [ ] **M6** — Gelişim çevresi engine'leri ← sıradaki
 - [ ] **M7** — Dünya simülasyonu + AI + Memory
 - [ ] **M8** — Cila & denge
 

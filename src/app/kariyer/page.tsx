@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
-import { resetCareerAction, runTournamentAction, trainAction } from "@/app/actions";
+import {
+  playWeekAction,
+  resetCareerAction,
+  restWeekAction,
+  runTournamentAction,
+} from "@/app/actions";
 import {
   GENDER_LABEL_TR,
   WEAPON_LABEL_TR,
@@ -48,36 +53,68 @@ export default async function KariyerPage() {
       </header>
 
       {/* Durum özeti */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Sezon" value={`Q${c.quarter} · Hafta ${c.week}/12`} />
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <Stat label="Sezon" value={`Q${c.quarter} · H${c.week}/12`} />
         <Stat label="Genel" value={c.overall.toFixed(1)} />
-        <Stat label="Yorgunluk" value={`${c.fatigue.toFixed(0)} / 100`} />
-        <Stat
-          label="Milli Takım"
-          value={c.nationalTeam ? "✔ Kadroda" : "—"}
-        />
+        <Stat label="Yorgunluk" value={`${c.fatigue.toFixed(0)}/100`} />
+        <Stat label="Keskinlik" value={`${c.sharpness.toFixed(0)}/100`} />
+        <Stat label="Milli Takım" value={c.nationalTeam ? "✔" : "—"} />
       </section>
       <p className="mt-2 text-xs opacity-50">{date}</p>
 
-      {/* Antrenman */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Haftalık Antrenman</h2>
-        <p className="text-sm opacity-70">
-          Bir çalışma seç — hafta ilerler, ilgili skill&apos;ler gelişir, yorgunluk değişir.
-        </p>
-        <form action={trainAction} className="mt-3 flex flex-wrap gap-2">
-          {TRAINING_TYPES.map((t) => (
-            <button
-              key={t}
-              name="type"
-              value={t}
-              className="rounded-lg border border-black/15 px-3 py-2 text-sm transition hover:border-emerald-500 hover:text-emerald-600 dark:border-white/20"
-            >
-              {TRAINING_LABEL_TR[t]}
+      {c.injured ? (
+        /* Sakatlık: yalnız dinlenme */
+        <section className="mt-8 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <h2 className="text-lg font-semibold">🩹 Sakatsın</h2>
+          <p className="mt-1 text-sm opacity-80">
+            {c.injuryWeeksRemaining} hafta sahalardan uzak kalacaksın. Bu sürede antrenman ve
+            turnuva yok — dinlenerek iyileş.
+          </p>
+          <form action={restWeekAction} className="mt-3">
+            <button className="rounded-lg bg-amber-600 px-4 py-2.5 font-medium text-white transition hover:bg-amber-500">
+              Bu Haftayı Dinlen ({c.injuryWeeksRemaining} hafta kaldı)
             </button>
-          ))}
-        </form>
-      </section>
+          </form>
+        </section>
+      ) : (
+        <>
+          {/* Haftalık plan */}
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold">Haftalık Plan</h2>
+            <p className="text-sm opacity-70">
+              Haftanın 3 seansını planla (GDD: sabah/öğlen/akşam). Dinlenme seansı yorgunluğu
+              düşürür ama keskinliği azaltır. Çok yüklenme sakatlık riskini artırır.
+            </p>
+            <form action={playWeekAction} className="mt-3 space-y-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {[
+                  { name: "slot1", label: "1. Seans", def: "TECHNICAL" },
+                  { name: "slot2", label: "2. Seans", def: "PHYSICAL" },
+                  { name: "slot3", label: "3. Seans", def: "REST" },
+                ].map((slot) => (
+                  <label key={slot.name} className="block">
+                    <span className="mb-1 block text-xs opacity-60">{slot.label}</span>
+                    <select
+                      name={slot.name}
+                      defaultValue={slot.def}
+                      className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
+                    >
+                      {TRAINING_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {TRAINING_LABEL_TR[t]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+              <button className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
+                Haftayı Tamamla →
+              </button>
+            </form>
+          </section>
+        </>
+      )}
 
       {/* Skill'ler */}
       <section className="mt-8">

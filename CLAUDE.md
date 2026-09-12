@@ -228,7 +228,9 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
       puan tabloları (İl/Open/Türkiye…); 24 kişilik alan. 45 test.
 - [x] **M4 — Quarter Ranking + uluslararası + milli takım:** hafta/quarter takvimi (12 hafta=1
       oyun yılı), Quarter Ranking (quarter sonu sıfırlanır), davet/uygunluk (ilk 16 / ilk 4). 48 test.
-- [ ] **M5 — Günlük/haftalık/sezon döngüsü** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
+- [x] **M5 — Haftalık döngü + kondisyon:** 3 seanslık haftalık plan, keskinlik (sharpness,
+      combat'a etki), sakatlık (yorgunluk+yaş riski → INJURED), overtraining. 53 test.
+- [ ] **M6 — Gelişim çevresi engine'leri** ← sıradaki (Trait/Psychology/Coach/Club/Equipment/Economy; bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

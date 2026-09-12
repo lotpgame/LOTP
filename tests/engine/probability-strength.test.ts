@@ -37,4 +37,15 @@ describe("Probability Engine — güç & olasılık", () => {
     const epee = computeEffectiveStrength(physical, "EPEE", { fatigue: 0 });
     expect(sabre.total).toBeGreaterThan(epee.total); // Kılıç fiziksele daha çok ağırlık verir
   });
+
+  it("keskinlik (sharpness) güce etki eder; verilmezse modifier yok", () => {
+    const skills = skillsByCategory({ TECHNICAL: 70, PHYSICAL: 70, MENTAL: 70, TACTICAL: 70 });
+    const sharp = computeEffectiveStrength(skills, "EPEE", { fatigue: 0, sharpness: 100 });
+    const flat = computeEffectiveStrength(skills, "EPEE", { fatigue: 0, sharpness: 50 });
+    const dull = computeEffectiveStrength(skills, "EPEE", { fatigue: 0, sharpness: 0 });
+    const none = computeEffectiveStrength(skills, "EPEE", { fatigue: 0 });
+    expect(sharp.total).toBeGreaterThan(flat.total);
+    expect(dull.total).toBeLessThan(flat.total);
+    expect(none.modifiers.some((m) => m.label === "Keskinlik")).toBe(false);
+  });
 });

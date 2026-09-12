@@ -37,7 +37,7 @@ export interface EffectiveStrength {
 export function computeEffectiveStrength(
   skills: PlayerSkills,
   weapon: Weapon,
-  opts: { fatigue: number },
+  opts: { fatigue: number; sharpness?: number },
 ): EffectiveStrength {
   const w = WEAPON_WEIGHTS[weapon];
   let base = 0;
@@ -48,6 +48,11 @@ export function computeEffectiveStrength(
   const fatiguePenalty = opts.fatigue * 0.08; // yorgunluk 100 → ~8 puan düşüş
   if (fatiguePenalty > 0.05) {
     modifiers.push({ label: "Yorgunluk", value: -round1(fatiguePenalty) });
+  }
+  // Keskinlik (sharpness): 50 nötr; yüksek keskinlik küçük artı, düşük keskinlik eksi (GDD 14.81).
+  if (opts.sharpness != null) {
+    const s = (opts.sharpness - 50) * 0.06; // 100 → +3, 0 → −3
+    if (Math.abs(s) > 0.05) modifiers.push({ label: "Keskinlik", value: round1(s) });
   }
   const total = base + modifiers.reduce((acc, m) => acc + m.value, 0);
   return { base: round1(base), modifiers, total: round1(total) };
