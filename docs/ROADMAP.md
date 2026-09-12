@@ -176,8 +176,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 
 - [x] **M0** — Altyapı (Prisma 7+SQLite, Vitest, seeded RNG, events, Data Service iskeleti) ✅
 - [x] **M1** — Dikey dilim (oynanabilir minimal kariyer: oluştur→antren→turnuva→sonuç→ranking) ✅
-- [ ] **M2** — Combat + Probability derinleştirme ← sıradaki
-- [ ] **M3** — Tam turnuva sistemi
+- [x] **M2** — Combat + Probability derinleştirme (silah ağırlıkları, effective strength, momentum, açıklanabilirlik) ✅
+- [ ] **M3** — Tam turnuva sistemi ← sıradaki
 - [ ] **M4** — Quarter Ranking + uluslararası + milli takım
 - [ ] **M5** — Günlük/haftalık/sezon döngüsü
 - [ ] **M6** — Gelişim çevresi engine'leri

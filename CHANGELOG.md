@@ -7,6 +7,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **M2 — Combat + Probability derinleştirme:**
+  - Güç/olasılık modeli Probability Engine'e taşındı (`src/engine/probability/strength.ts`):
+    silaha göre belirgin ağırlıklar (Flöre/Epe/Kılıç), effective strength = yetenek + modifier
+    (yorgunluk), olasılık eğrisi + soft-cap.
+  - Combat aksiyon-bazlı yeniden yazıldı: küçük **momentum** (üst üste sayılar), silaha özgü
+    metin anlatım, ve **açıklanabilir analiz** satırı ("Güç — A: X · B: Y, kazanma ihtimali %Z").
+  - Maç formatı (havuz 5 / eleme 15 tuş) parametreleştirildi (`MATCH_FORMATS`).
+  - 42 test (yeni: probability-strength; combat davranışları güncellendi).
 - **M1 — Dikey dilim tamamlandı (ilk oynanabilir kariyer):**
   - Saf simülasyon engine'leri: `domain`, `skill` (10 alt-skill, azalan verimli gelişim),
     `training`, `combat` (silaha göre olasılık, tuş-tuş, metin log), `tournament`
@@ -42,6 +50,8 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 - `CHANGELOG.md` oluşturuldu; README + CHANGELOG'u her işte güncel tutma kuralı benimsendi.
 
 ### Değişti
+- Combat artık güç/olasılığı Probability Engine'den alır (`effectiveStrength`/olasılık matematiği
+  `src/engine/probability`'ye taşındı).
 - Paket adı `project-engarde` olarak ayarlandı.
 - Next.js anonim telemetrisi kapatıldı (gizlilik).
 

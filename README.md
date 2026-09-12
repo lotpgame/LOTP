@@ -64,5 +64,8 @@ oyuncu oluştur → antren yap (gün ilerler) → 8 kişilik turnuvaya katıl �
 metinle izle → kategori ranking'inde yerini gör. Kariyer veritabanında saklanır (kaldığın
 yerden devam). `npm run dev` → http://localhost:3000.
 
-Sıradaki adım: **M2 — Combat + Probability derinleştirme** (silaha göre ayrıntılı simülasyon,
-effective/permanent skill, modifier kayıtları).
+✅ **M2 — Combat + Probability** tamam (silaha göre ağırlıklar, effective strength + yorgunluk
+modifier'ı, momentum, açıklanabilir maç analizi).
+
+Sıradaki adım: **M3 — Tam turnuva sistemi** (havuz sistemi 6 kişi, FIE tie-break, standart
+eleme tabloları 16/32/…, bye, turnuva puanları, kategoriler).

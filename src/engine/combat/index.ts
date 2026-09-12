@@ -1,14 +1,19 @@
 /**
- * Combat Engine — maçı simüle eder (GDD 18). Kontrollü belirsizlik: skill farkı avantaj
- * verir ama kazancı garanti etmez (GDD 18.31–18.32, 20.5). Sonuç RNG'den okunur.
+ * Combat Engine — maçı simüle eder (GDD 18). Güç/olasılık hesabını Probability Engine'e
+ * bırakır (GDD 20.4); burada maç akışı, momentum, aksiyon anlatımı ve sonuç üretilir.
  *
- * Sorumluluk sınırı (GDD 18.4): maç sonucu/istatistik/log üretir; skill/ranking/para/bracket
- * HESAPLAMAZ. M1: tuş-tuş olasılık simülasyonu + kısa metin anlatım. Silaha göre ağırlıklar
- * ve derinlik M2'de artacak.
+ * Sorumluluk sınırı (GDD 18.4): skill/ranking/para/bracket HESAPLAMAZ. M2: effective strength
+ * (yorgunluk etkili) + tuş olasılığı + küçük momentum (GDD 18.33–18.34) + silaha göre anlatım
+ * + açıklanabilir analiz. Deterministik (aynı seed → aynı sonuç, GDD 20.30).
  */
-import { clamp, type SkillCategory, type Weapon } from "../domain";
-import { categoryAverage, type PlayerSkills } from "../skill";
-import type { SeededRng } from "../probability";
+import { clamp, type Weapon } from "../domain";
+import {
+  computeEffectiveStrength,
+  winProbability,
+  type SeededRng,
+  type StrengthModifier,
+} from "../probability";
+import type { PlayerSkills } from "../skill";
 
 export interface Combatant {
   id: number;
@@ -16,6 +21,17 @@ export interface Combatant {
   weapon: Weapon;
   skills: PlayerSkills;
   fatigue: number; // 0–100
+}
+
+/** Maç formatları (GDD 18.8): havuz 5 tuş, eleme 15 tuş. */
+export const MATCH_FORMATS = { POOL: 5, DE: 15 } as const;
+
+export interface MatchAnalysis {
+  effA: number;
+  effB: number;
+  winProbA: number;
+  modsA: StrengthModifier[];
+  modsB: StrengthModifier[];
 }
 
 export interface MatchResult {
@@ -26,94 +42,102 @@ export interface MatchResult {
   winnerId: number;
   loserId: number;
   log: string[];
-  /** Maçta biriken yorgunluk (her iki oyuncuya uygulanır — GDD 18.37). */
   fatigueGain: number;
+  analysis: MatchAnalysis;
 }
 
-/** Silaha göre kategori ağırlıkları (GDD 9.13, 20.8). M1 basit varyantlar; M2'de detaylanır. */
-const WEAPON_WEIGHTS: Record<Weapon, Record<SkillCategory, number>> = {
-  FOIL: { TECHNICAL: 0.35, PHYSICAL: 0.25, TACTICAL: 0.22, MENTAL: 0.18 },
-  EPEE: { TACTICAL: 0.32, TECHNICAL: 0.28, MENTAL: 0.22, PHYSICAL: 0.18 },
-  SABRE: { PHYSICAL: 0.38, TECHNICAL: 0.27, TACTICAL: 0.2, MENTAL: 0.15 },
+/** Silaha göre aksiyon anlatım kalıpları (metin renk katmanı). */
+const ACTION_LINES: Record<Weapon, string[]> = {
+  FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
+  EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
+  SABRE: ["patlayıcı bir hücum başlattı", "hızlı bir baş kesme denedi", "reaksiyonla öne atıldı"],
 };
 
-/**
- * Effective strength: silaha göre ağırlıklı yetenek − yorgunluk cezası (GDD 20.10, 9.31).
- * Permanent skill değişmez; bu yalnız o anki performans için türetilir (GDD 9.32).
- */
-export function effectiveStrength(
-  skills: PlayerSkills,
-  weapon: Weapon,
-  fatigue: number,
-): number {
-  const w = WEAPON_WEIGHTS[weapon];
-  let base = 0;
-  for (const cat of Object.keys(w) as SkillCategory[]) {
-    base += categoryAverage(skills, cat) * w[cat];
-  }
-  const fatiguePenalty = fatigue * 0.08; // yorgunluk 100 → ~8 puan düşüş
-  return base - fatiguePenalty;
-}
+const MOMENTUM_STEP = 0.02;
+const MOMENTUM_CAP = 3; // en çok ±0.06
 
-/** Güç farkını tek tuş kazanma olasılığına çevirir; soft-cap ile %0/%100'den kaçınılır (GDD 20.21–20.22). */
-export function touchWinProbability(diff: number): number {
-  const p = 1 / (1 + Math.pow(10, -diff / 18));
-  return clamp(p, 0.06, 0.94);
-}
-
-/**
- * Bir maçı hedef tuşa kadar simüle eder (varsayılan 15 — eleme formatı, GDD 18.8).
- * Saf: aynı combatant + aynı rng durumu → aynı sonuç (GDD 20.30).
- */
 export function simulateMatch(
   a: Combatant,
   b: Combatant,
   rng: SeededRng,
-  targetTouches = 15,
+  targetTouches: number = MATCH_FORMATS.DE,
 ): MatchResult {
-  const effA = effectiveStrength(a.skills, a.weapon, a.fatigue);
-  const effB = effectiveStrength(b.skills, b.weapon, b.fatigue);
-  const pA = touchWinProbability(effA - effB);
+  const esA = computeEffectiveStrength(a.skills, a.weapon, { fatigue: a.fatigue });
+  const esB = computeEffectiveStrength(b.skills, b.weapon, { fatigue: b.fatigue });
+  const baseP = winProbability(esA.total - esB.total);
+
+  const log: string[] = [];
+  log.push(
+    `Güç — ${a.name}: ${esA.total} · ${b.name}: ${esB.total} (${a.name} kazanma ihtimali %${Math.round(baseP * 100)}).`,
+  );
 
   let scoreA = 0;
   let scoreB = 0;
-  const maxExchanges = targetTouches * 3;
+  let lastScorer: 0 | 1 | 2 = 0; // 0 yok, 1 A, 2 B
+  let run = 0;
+  let momentum = 0; // + A lehine, − B lehine (GDD 18.34: küçük etki)
   let midLogged = false;
-  const log: string[] = [];
-  log.push(`${a.name} ile ${b.name} pistte karşı karşıya.`);
+  let runLogged = false;
 
+  const maxExchanges = targetTouches * 4;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
-    if (rng.bool(pA)) scoreA++;
-    else scoreB++;
+    const p = clamp(baseP + momentum, 0.03, 0.97);
+    const aScores = rng.bool(p);
+
+    if (aScores) {
+      scoreA++;
+      run = lastScorer === 1 ? run + 1 : 1;
+      lastScorer = 1;
+      momentum = Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
+    } else {
+      scoreB++;
+      run = lastScorer === 2 ? run + 1 : 1;
+      lastScorer = 2;
+      momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
+    }
+
+    if (!runLogged && run >= 3) {
+      runLogged = true;
+      const who = lastScorer === 1 ? a : b;
+      log.push(`${who.name} üst üste sayılarla baskı kuruyor.`);
+    }
 
     if (!midLogged && scoreA + scoreB >= targetTouches) {
       midLogged = true;
-      const [lead, trail, ls, ts] =
-        scoreA >= scoreB ? [a.name, b.name, scoreA, scoreB] : [b.name, a.name, scoreB, scoreA];
+      const leaderIsA = scoreA >= scoreB;
+      const leader = leaderIsA ? a : b;
+      const [ls, ts] = leaderIsA ? [scoreA, scoreB] : [scoreB, scoreA];
+      const action = rng.pick(ACTION_LINES[leader.weapon]);
       log.push(
         ls === ts
           ? `Mücadele başa baş: ${ls}-${ts}.`
-          : `${lead}, ${trail} karşısında ${ls}-${ts} önde.`,
+          : `${leader.name} ${action}; ${ls}-${ts} önde.`,
       );
     }
   }
 
   const winnerIsA = scoreA >= scoreB;
-  const winnerId = winnerIsA ? a.id : b.id;
-  const loserId = winnerIsA ? b.id : a.id;
-  const [wName, wScore, lScore] = winnerIsA
-    ? [a.name, scoreA, scoreB]
-    : [b.name, scoreB, scoreA];
-  log.push(`${wName} maçı ${wScore}-${lScore} kazandı.`);
+  const winner = winnerIsA ? a : b;
+  const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
+  log.push(
+    `${winner.name} ${rng.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`,
+  );
 
   return {
     aId: a.id,
     bId: b.id,
     scoreA,
     scoreB,
-    winnerId,
-    loserId,
+    winnerId: winnerIsA ? a.id : b.id,
+    loserId: winnerIsA ? b.id : a.id,
     log,
-    fatigueGain: 8,
+    fatigueGain: Math.max(3, Math.round(targetTouches * 0.55)),
+    analysis: {
+      effA: esA.total,
+      effB: esB.total,
+      winProbA: baseP,
+      modsA: esA.modifiers,
+      modsB: esB.modifiers,
+    },
   };
 }

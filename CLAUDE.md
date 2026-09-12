@@ -221,8 +221,10 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 - [x] **M0 — Altyapı:** Prisma 7+SQLite (better-sqlite3 adapter), Vitest, seeded RNG,
       events, `src/db` + Data Service iskeleti. build+lint+test yeşil.
 - [x] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren → turnuva
-      → sonuç → ranking → save/load). 7 engine + 38 test; Next 16 Server Actions ile ekranlar.
-- [ ] **M2 — Combat + Probability derinleştirme** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
+      → sonuç → ranking → save/load). 7 engine + testler; Next 16 Server Actions ile ekranlar.
+- [x] **M2 — Combat + Probability:** silaha göre ağırlıklar, effective strength + modifier,
+      momentum, açıklanabilir analiz, maç formatı. 42 test.
+- [ ] **M3 — Tam turnuva sistemi** ← sıradaki (havuz 6, FIE tie-break, knockout; bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.
