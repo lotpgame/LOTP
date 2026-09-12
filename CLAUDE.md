@@ -190,9 +190,13 @@ npx prisma migrate dev  # şema değişikliğini uygula
 
 ## 8. Referanslar
 
-- Tasarım dokümanları: `docs/gdd/` (26 dosya, `.docx`)
-- Okuma: `.docx` dosyaları pandoc/python yoksa unzip edilip `word/document.xml`'den
-  metin çıkarılarak okunur.
+- ⭐ **Teknik uygulama planı: [`docs/ROADMAP.md`](docs/ROADMAP.md)** — NASIL ve hangi
+  sırayla inşa edileceğimizin kalıcı kaynağı (mimari kararlar, M0–M8 aşamaları, veri
+  sahipliği, test stratejisi). Kod yazmadan önce ilgili aşama buradan okunur.
+- Tasarım dokümanları: `docs/gdd/` (26 dosya, `.docx`) — NE yapılacağı.
+- Okuma: pandoc/python bu makinede YOK. `.docx` şöyle okunur (çalıştığı doğrulandı):
+  `unzip -p dosya.docx word/document.xml | node -e '...'` ile `<w:p>`→satır, taglar
+  temizlenerek metin çıkarılır (node PATH'i için CLAUDE.md §5 PATH notuna bak).
 - MVP özeti: `docs/gdd/Project_Engarde_MVP_Ozet.docx` — en hızlı genel bakış.
 - Engine ilişkileri: `Project_Engarde_05_Engine_Map.docx`
 - Geliştirme sırası: `Project_Engarde_04_Roadmap.docx`
@@ -206,9 +210,11 @@ npx prisma migrate dev  # şema değişikliğini uygula
 - [x] Git deposu başlatıldı
 - [x] Node.js LTS kuruldu (winget, v24.19.0 / npm 11.17.0)
 - [x] Next.js 16 + TypeScript + Tailwind iskeleti kuruldu, `build` doğrulandı
-- [ ] Prisma + SQLite yapılandırması (Database katmanı)
-- [ ] Vitest kurulumu + ilk test
-- [ ] Aşama 3: Player Engine temeli (`src/engine/player/`)
-- [ ] Aşama 4: Oyuncu oluşturma ekranı
+- [x] Teknik uygulama planı hazırlandı → [`docs/ROADMAP.md`](docs/ROADMAP.md) (M0–M8)
+- [ ] **M0 — Altyapı:** Prisma+SQLite, Vitest, seeded RNG, events, Data Service iskeleti
+- [ ] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren →
+      turnuva → sonuç → ranking → save/load)
+- [ ] M2+ : bkz. `docs/ROADMAP.md` §B (aşama detayları ve canlı durum §F)
 
-> Bir adım tamamlandığında bu listeyi güncelle.
+> Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
+> de güncellenir.

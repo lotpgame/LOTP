@@ -7,6 +7,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **`docs/ROADMAP.md`**: projenin teknik uygulama planı — mimari kararlar (saf engine'ler,
+  seeded RNG, tek kaynaklı veri, Data Service katmanı), M0–M8 aşamaları, veri sahipliği
+  tablosu, test stratejisi ve süreç kuralları. GDD'nin "NASIL/hangi sırayla" karşılığı.
+  `CLAUDE.md` ve `README.md` buna referans verecek şekilde güncellendi.
 - Proje temeli: 26 bölümlük GDD `docs/gdd/` altına çıkarıldı.
 - `CLAUDE.md`: teknoloji kararı, engine=modül mimarisi, güvenlik ve çalışma kuralları.
 - Git deposu başlatıldı; `.gitignore` (sırlar, node_modules, DB dosyaları hariç tutuldu).

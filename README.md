@@ -3,9 +3,11 @@
 Eskrim temalı, metin-tabanlı kariyer ve yönetim simülasyonu (Hattrick / Championship
 Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yönetir.
 
+- **Yol haritası / teknik plan:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — nasıl ve hangi
+  sırayla inşa ediliyor (mimari kararlar + M0–M8 aşamaları).
 - Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)
 - Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
-- Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/)
+- Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/) (GDD, 26 bölüm)
 
 ---
 
@@ -48,5 +50,7 @@ GDD'nin engine öncelik sırasıyla ilerlenir: **Player → Skill → Trait → 
 Coach → Club → Training → Equipment → Tournament → Combat → Probability → Ranking →
 Economy → Memory → AI.** V1 hedefi: uçtan uca çalışan kariyer döngüsü.
 
-Sıradaki adım: **Prisma + SQLite yapılandırması**, ardından **Player Engine + oyuncu
-oluşturma ekranı**.
+Ayrıntılı aşamalar ve güncel durum: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+Sıradaki adım: **M0 — Altyapı** (Prisma+SQLite, Vitest, tohumlanabilir RNG), ardından
+**M1 — Dikey dilim**: oyuncu oluştur → antren → turnuva → sonuç → ranking (oynanabilir).
