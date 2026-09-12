@@ -15,6 +15,7 @@ import {
   restWeek,
   resetCareer,
   runTournament,
+  upgradeEquipment,
 } from "@/server/careerService";
 
 // M3'te oyuncunun serbestçe katılabileceği yurt içi seviyeler (davet/ranking şartı yok).
@@ -45,6 +46,11 @@ export async function playWeekAction(formData: FormData): Promise<void> {
 
 export async function restWeekAction(): Promise<void> {
   await restWeek();
+  revalidatePath("/kariyer");
+}
+
+export async function upgradeEquipmentAction(): Promise<void> {
+  await upgradeEquipment();
   revalidatePath("/kariyer");
 }
 

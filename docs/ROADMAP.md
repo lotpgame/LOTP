@@ -180,8 +180,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M3** — Tam turnuva sistemi (havuz 6 + FIE tie-break + seed'li eleme + bye + seviye puanları) ✅
 - [x] **M4** — Quarter Ranking + uluslararası + milli takım (hafta/quarter takvimi, davet/uygunluk) ✅
 - [x] **M5** — Haftalık döngü + kondisyon (3 seanslık plan, sharpness, sakatlık, overtraining) ✅
-- [ ] **M6** — Gelişim çevresi engine'leri ← sıradaki
-- [ ] **M7** — Dünya simülasyonu + AI + Memory
+- [x] **M6** — Gelişim çevresi (Trait, Psychology, Coach/Club, Equipment, Economy → modifier'lar) ✅
+- [ ] **M7** — Dünya simülasyonu + AI + Memory ← sıradaki
 - [ ] **M8** — Cila & denge
 
 > Bir aşama tamamlandığında burada işaretlenir ve `CHANGELOG.md`'ye yazılır.
@@ -203,6 +203,9 @@ bağlanan derinlik maddeleri. Buraya yazılır ki hiçbiri kaybolmasın.
   sığ; moral/motivasyon/özgüven/stres **Psychology Engine**'e ait. **Yeri:** M6. (GDD 11.)
 - **Combat log seviyeleri** (Basit/Normal/Ayrıntılı, GDD 18.53): şu an tek düzey anlatım var;
   seçici için yapılandırılmış maç olayları (Combat Event, GDD 22.31) gerekir. **Yeri:** M-sonrası cila.
+- **AI çevre derinliği** (2026-09-13): M6'da AI oyuncuların psikoloji/trait/ekipman'ı combat'a
+  **nötr** girer (yalnız insan oyuncunun çevresi etkili). AI'ların da gerçek trait/psikoloji/
+  gelişimi + koç/kulüp transferleri ve ekipman dükkânı derinliği **M7** (dünya simülasyonu).
 - **Yaş kategorisi ilerlemesi** (2026-09-13): M4'te rekabet kategorisi kariyer boyunca **sabit**
   (yaş her quarter +1 gösterilir ama U17→U21 geçişi yok). Gerçek kategori ilerlemesi, kategori
   boşaldıkça yeni AI üretimi (dünya yeniden-üretimi) gerektirir. **Yeri:** M7 (AI dünya simülasyonu).

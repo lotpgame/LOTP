@@ -22,6 +22,7 @@ export interface Combatant {
   skills: PlayerSkills;
   fatigue: number; // 0–100
   sharpness?: number; // 0–100 (keskinlik); verilmezse combat modifier uygulanmaz
+  conditionBonus?: number; // psikoloji+trait+ekipman birleşik katkısı (puan)
 }
 
 /** Maç formatları (GDD 18.8): havuz 5 tuş, eleme 15 tuş. */
@@ -63,8 +64,16 @@ export function simulateMatch(
   rng: SeededRng,
   targetTouches: number = MATCH_FORMATS.DE,
 ): MatchResult {
-  const esA = computeEffectiveStrength(a.skills, a.weapon, { fatigue: a.fatigue, sharpness: a.sharpness });
-  const esB = computeEffectiveStrength(b.skills, b.weapon, { fatigue: b.fatigue, sharpness: b.sharpness });
+  const esA = computeEffectiveStrength(a.skills, a.weapon, {
+    fatigue: a.fatigue,
+    sharpness: a.sharpness,
+    conditionBonus: a.conditionBonus,
+  });
+  const esB = computeEffectiveStrength(b.skills, b.weapon, {
+    fatigue: b.fatigue,
+    sharpness: b.sharpness,
+    conditionBonus: b.conditionBonus,
+  });
   const baseP = winProbability(esA.total - esB.total);
 
   const log: string[] = [];

@@ -59,6 +59,17 @@ model Player {
   sharpness            Float @default(50) // 0–100 keskinlik (GDD 14.81)
   injuryWeeksRemaining Int   @default(0) // >0 ise INJURED; her hafta azalır (GDD 8.18)
 
+  // Gelişim çevresi (M6)
+  traits     String @default("") // virgülle ayrık trait anahtarları (GDD 10)
+  morale     Float  @default(60) // Psychology (GDD 11)
+  motivation Float  @default(65)
+  confidence Float  @default(50)
+  stress     Float  @default(20)
+  equipmentLevel Int   @default(1) // 1–5 (GDD 15)
+  balance        Float @default(0) // para (GDD 16)
+  clubId Int?
+  club   Club? @relation(fields: [clubId], references: [id])
+
   careerStartDate DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -69,6 +80,19 @@ model Player {
 
   @@index([nationalityId])
   @@index([gender, weapon]) // kategori/ranking sorguları için
+}
+
+/// Kulüp — oyuncunun gelişim ortamı + koç (GDD 12, 13). M6: kariyer başına bir kulüp.
+model Club {
+  id             Int      @id @default(autoincrement())
+  name           String
+  city           String
+  facility       Int      @default(60) // tesis seviyesi 0–100 (antrenman kalitesi)
+  coachName      String
+  coachSkill     Int      @default(60) // koç yeteneği 0–100
+  coachSpecialty String // TECHNICAL | PHYSICAL | MENTAL | TACTICAL (uzmanlık)
+  players        Player[]
+  createdAt      DateTime @default(now())
 }
 
 /// Oyuncunun güncel skill değerleri (GDD 22.11). Sahip: Skill Engine (tek kaynak).

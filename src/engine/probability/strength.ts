@@ -37,7 +37,7 @@ export interface EffectiveStrength {
 export function computeEffectiveStrength(
   skills: PlayerSkills,
   weapon: Weapon,
-  opts: { fatigue: number; sharpness?: number },
+  opts: { fatigue: number; sharpness?: number; conditionBonus?: number },
 ): EffectiveStrength {
   const w = WEAPON_WEIGHTS[weapon];
   let base = 0;
@@ -53,6 +53,10 @@ export function computeEffectiveStrength(
   if (opts.sharpness != null) {
     const s = (opts.sharpness - 50) * 0.06; // 100 → +3, 0 → −3
     if (Math.abs(s) > 0.05) modifiers.push({ label: "Keskinlik", value: round1(s) });
+  }
+  // Form: psikoloji + trait + ekipman birleşik katkısı (GDD 20.10, 20.34).
+  if (opts.conditionBonus != null && Math.abs(opts.conditionBonus) > 0.05) {
+    modifiers.push({ label: "Form", value: round1(opts.conditionBonus) });
   }
   const total = base + modifiers.reduce((acc, m) => acc + m.value, 0);
   return { base: round1(base), modifiers, total: round1(total) };

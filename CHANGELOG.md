@@ -7,6 +7,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 ## [Unreleased]
 
 ### Eklendi
+- **M6 — Gelişim çevresi engine'leri:**
+  - **Trait** (`src/engine/trait.ts`): karakter özellikleri (Çalışkan/Tembel/Agresif…) → antrenman
+    verimi + combat katkısı. **Psychology** (`src/engine/psychology.ts`): moral/motivasyon/özgüven/
+    stres; olaylardan değişir (antrenman, turnuva); antrenman ve combat'a etki.
+  - **Coach/Club** (`src/engine/environment.ts`): kulüp tesisi + koç uzmanlığı antrenman verimini
+    artırır. **Equipment**: seviye 1–5, küçük antrenman/combat bonusu. **Economy**
+    (`src/engine/economy.ts`): turnuva ödülleri (seviye×derece), para, ekipman yükseltme maliyeti.
+  - Entegrasyon: `applyTraining` çevre çarpanı (trait×psikoloji×kulüp×koç×ekipman);
+    Combat effective strength'e "Form" modifier'ı (psikoloji+trait+ekipman). Turnuva sonrası
+    ödül + psikoloji güncellemesi.
+  - Şema: Player'a trait/psikoloji/ekipman/para; `Club` modeli (migration `m6_environment`).
+    Kariyer başında kulüp/koç/trait atanır, başlangıç parası verilir.
+  - UI: "Psikoloji" barları + trait rozetleri + "Kulüp & Ekipman" kartı (para, ekipman yükselt).
+  - 66 test. Uçtan uca tarayıcıda doğrulandı. (AI çevresi nötr — M7'de derinleşir.)
 - **M5 — Haftalık döngü + kondisyon:**
   - Haftalık plan: her hafta **3 seans** (Teknik/Fiziksel/Mental/Taktik/Dinlenme); seanslar
     sırayla işlenir, yorgunluk biriktikçe verim düşer (GDD 14.33). `playWeek`/`restWeek`.

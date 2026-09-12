@@ -4,6 +4,7 @@ import {
   resetCareerAction,
   restWeekAction,
   runTournamentAction,
+  upgradeEquipmentAction,
 } from "@/app/actions";
 import {
   GENDER_LABEL_TR,
@@ -61,6 +62,56 @@ export default async function KariyerPage() {
         <Stat label="Milli Takım" value={c.nationalTeam ? "✔" : "—"} />
       </section>
       <p className="mt-2 text-xs opacity-50">{date}</p>
+
+      {/* Çevre & Durum */}
+      <section className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <h3 className="mb-3 text-sm font-semibold opacity-80">Psikoloji</h3>
+          <div className="space-y-2">
+            <StatBar label="Moral" value={c.psychology.morale} />
+            <StatBar label="Motivasyon" value={c.psychology.motivation} />
+            <StatBar label="Özgüven" value={c.psychology.confidence} />
+            <StatBar label="Stres" value={c.psychology.stress} tone="warn" />
+          </div>
+          {c.traits.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {c.traits.map((t) => (
+                <span key={t} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <h3 className="mb-3 text-sm font-semibold opacity-80">Kulüp & Ekipman</h3>
+          {c.club && (
+            <p className="text-sm">
+              <span className="font-medium">{c.club.name}</span>
+              <br />
+              <span className="opacity-70">
+                Tesis {c.club.facility} · Koç {c.club.coachName} ({c.club.coachSkill},{" "}
+                {CATEGORY_LABEL_TR[c.club.coachSpecialty as SkillCategory]})
+              </span>
+            </p>
+          )}
+          <div className="mt-3 flex items-center justify-between text-sm">
+            <span>💰 {c.balance.toFixed(0)} ₺</span>
+            <span className="opacity-70">Ekipman sv. {c.equipmentLevel}/5</span>
+          </div>
+          <form action={upgradeEquipmentAction} className="mt-2">
+            <button
+              disabled={!c.canUpgradeEquipment}
+              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm transition enabled:hover:border-emerald-500 enabled:hover:text-emerald-600 disabled:opacity-40 dark:border-white/20"
+            >
+              {c.equipmentLevel >= 5
+                ? "Ekipman en üst seviyede"
+                : `Ekipman Yükselt (${c.equipmentUpgradeCost.toFixed(0)} ₺)`}
+            </button>
+          </form>
+        </div>
+      </section>
 
       {c.injured ? (
         /* Sakatlık: yalnız dinlenme */
@@ -178,6 +229,31 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/15">
       <div className="text-xs opacity-60">{label}</div>
       <div className="font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function StatBar({
+  label,
+  value,
+  tone = "ok",
+}: {
+  label: string;
+  value: number;
+  tone?: "ok" | "warn";
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span>{label}</span>
+        <span className="tabular-nums opacity-70">{value.toFixed(0)}</span>
+      </div>
+      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+        <div
+          className={`h-full rounded-full ${tone === "warn" ? "bg-amber-500" : "bg-emerald-500"}`}
+          style={{ width: `${value}%` }}
+        />
+      </div>
     </div>
   );
 }

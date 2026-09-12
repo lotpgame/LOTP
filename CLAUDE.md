@@ -230,7 +230,10 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
       oyun yılı), Quarter Ranking (quarter sonu sıfırlanır), davet/uygunluk (ilk 16 / ilk 4). 48 test.
 - [x] **M5 — Haftalık döngü + kondisyon:** 3 seanslık haftalık plan, keskinlik (sharpness,
       combat'a etki), sakatlık (yorgunluk+yaş riski → INJURED), overtraining. 53 test.
-- [ ] **M6 — Gelişim çevresi engine'leri** ← sıradaki (Trait/Psychology/Coach/Club/Equipment/Economy; bkz. `docs/ROADMAP.md` §B)
+- [x] **M6 — Gelişim çevresi:** Trait, Psychology (moral/motivasyon/özgüven/stres),
+      Coach/Club (antrenman kalitesi), Equipment, Economy (ödül/para) — training/combat
+      modifier'ları. 66 test.
+- [ ] **M7 — Dünya simülasyonu + AI + Memory** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

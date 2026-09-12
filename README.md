@@ -69,9 +69,10 @@ yerden devam). `npm run dev` → http://localhost:3000.
 haftalarda Türkiye) turnuvaları; Satellite/Grand Prix ilk 16'ya, Avrupa/Dünya Kupası
 **milli takıma (ilk 4)** davetli. Quarter Ranking quarter sonunda sıfırlanır, yaş +1 ilerler.
 
-✅ **M5 — Haftalık döngü + kondisyon** tamam: her hafta 3 seanslık plan (Teknik/Fiziksel/
-Mental/Taktik/Dinlenme), **keskinlik** (maç performansına etki), **sakatlık** (aşırı yüklenme →
-birkaç hafta ara), overtraining.
+✅ M5 ve ✅ **M6 — Gelişim çevresi** tamam: **Trait** (karakter), **Psychology** (moral/
+motivasyon/özgüven/stres), **Coach/Club** (antrenman kalitesi + koç uzmanlığı), **Equipment**
+(ekipman seviyesi), **Economy** (turnuva ödülü, para, ekipman yükseltme) — hepsi antrenman
+verimine ve maç gücüne modifier olarak bağlı.
 
-Sıradaki adım: **M6 — Gelişim çevresi engine'leri** (Trait, Psychology, Coach, Club, Equipment,
-Economy — antrenman/combat'a modifier olarak bağlanır).
+Sıradaki adım: **M7 — Dünya simülasyonu + AI + Memory** (AI oyuncular offline iken de yaşar/
+gelişir, kategori dünyası, kariyer hafızası & rakiplikler).

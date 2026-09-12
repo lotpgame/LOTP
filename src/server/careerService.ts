@@ -12,6 +12,7 @@ import {
   roundSkill,
   TOURNAMENT_LABEL_TR,
   type Gender,
+  type SkillCategory,
   type TournamentLevel,
   type Weapon,
 } from "@/engine/domain";
@@ -46,6 +47,32 @@ import {
   rollInjury,
   sessionSharpnessDelta,
 } from "@/engine/conditioning";
+import {
+  generateTraits,
+  traitCombatModifier,
+  traitLabels,
+  traitTrainingMultiplier,
+  type TraitKey,
+} from "@/engine/trait";
+import {
+  afterTournament as psychAfterTournament,
+  afterTrainingWeek as psychAfterTrainingWeek,
+  psychologyCombatModifier,
+  psychologyTrainingMultiplier,
+  type Psychology,
+} from "@/engine/psychology";
+import {
+  MAX_EQUIPMENT_LEVEL,
+  STARTING_BALANCE,
+  equipmentUpgradeCost,
+  prizeFor,
+} from "@/engine/economy";
+import {
+  clubTrainingMultiplier,
+  coachTrainingMultiplier,
+  equipmentCombatModifier,
+  equipmentTrainingMultiplier,
+} from "@/engine/environment";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
@@ -139,6 +166,14 @@ export interface CareerDTO {
   week: number; // quarter içindeki hafta (1..12)
   nationalTeam: boolean; // Quarter Ranking ilk 4 (GDD 17.32)
   overall: number;
+  // Gelişim çevresi (M6)
+  traits: string[]; // Türkçe etiketler
+  psychology: { morale: number; motivation: number; confidence: number; stress: number };
+  club: { name: string; city: string; facility: number; coachName: string; coachSkill: number; coachSpecialty: string } | null;
+  equipmentLevel: number;
+  balance: number;
+  equipmentUpgradeCost: number;
+  canUpgradeEquipment: boolean;
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
   weekEvents: WeekEventDTO[];
@@ -174,7 +209,23 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     gameDate: GAME_START,
   });
 
+  // Trait + kulüp/koç (GDD 10, 12, 13) — deterministik.
+  const traits = generateTraits(createRng(`${seed}:traits`), 2);
+  const clubRng = createRng(`${seed}:club`);
+  const cities = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya"];
+  const specialties: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
+  const city = clubRng.pick(cities);
+  const clubData = {
+    name: `${city} Eskrim Kulübü`,
+    city,
+    facility: clubRng.int(45, 85),
+    coachName: `${clubRng.pick(["Ahmet", "Kemal", "Selim", "Hasan", "Murat"])} Hoca`,
+    coachSkill: clubRng.int(45, 85),
+    coachSpecialty: clubRng.pick(specialties),
+  };
+
   const humanPlayerId = await prisma.$transaction(async (tx) => {
+    const club = await tx.club.create({ data: clubData });
     const human = await tx.player.create({
       data: {
         code: "P-TEMP",
@@ -187,6 +238,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         nationalityId: countryId,
         isAI: false,
         careerStartDate: GAME_START,
+        traits: traits.join(","),
+        balance: STARTING_BALANCE,
+        clubId: club.id,
         skills: { create: skillCreateData(humanSkills) },
       },
     });
@@ -232,10 +286,23 @@ async function loadState() {
   if (!gs) return null;
   const human = await prisma.player.findUnique({
     where: { id: gs.humanPlayerId },
-    include: { skills: true },
+    include: { skills: true, club: true },
   });
   if (!human) return null;
   return { gs, human };
+}
+
+function parseTraits(csv: string): TraitKey[] {
+  return csv ? (csv.split(",").filter(Boolean) as TraitKey[]) : [];
+}
+
+function psychologyOf(p: {
+  morale: number;
+  motivation: number;
+  confidence: number;
+  stress: number;
+}): Psychology {
+  return { morale: p.morale, motivation: p.motivation, confidence: p.confidence, stress: p.stress };
 }
 
 /** Aktif kariyerin tam durumunu döndürür (UI için). */
@@ -282,6 +349,29 @@ export async function getCareer(): Promise<CareerDTO | null> {
     week,
     nationalTeam,
     overall: roundSkill(overall(skills)),
+    traits: traitLabels(parseTraits(human.traits)),
+    psychology: {
+      morale: roundSkill(human.morale),
+      motivation: roundSkill(human.motivation),
+      confidence: roundSkill(human.confidence),
+      stress: roundSkill(human.stress),
+    },
+    club: human.club
+      ? {
+          name: human.club.name,
+          city: human.club.city,
+          facility: human.club.facility,
+          coachName: human.club.coachName,
+          coachSkill: human.club.coachSkill,
+          coachSpecialty: human.club.coachSpecialty,
+        }
+      : null,
+    equipmentLevel: human.equipmentLevel,
+    balance: roundSkill(human.balance),
+    equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
+    canUpgradeEquipment:
+      human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
+      human.balance >= equipmentUpgradeCost(human.equipmentLevel),
     skills: SKILLS.map((def) => ({
       key: def.key,
       label: def.label,
@@ -355,22 +445,47 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
   const quarter = quarterOf(gs.weekIndex);
   const age = baseIdentity(human).age + (quarter - 1);
 
+  // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman (koç seansa özel).
+  const psych = psychologyOf(human);
+  const envMult =
+    traitTrainingMultiplier(parseTraits(human.traits)) *
+    psychologyTrainingMultiplier(psych) *
+    (human.club ? clubTrainingMultiplier(human.club.facility) : 1) *
+    equipmentTrainingMultiplier(human.equipmentLevel);
+
   let skills = rowsToSkills(human.skills);
   let fatigue = human.fatigue;
   let sharpness = human.sharpness;
+  let restSessions = 0;
   const totalGains: Partial<Record<SkillKey, number>> = {};
   const sessions: string[] = [];
 
   for (const type of slots) {
-    const res = applyTraining(skills, { type, age, currentFatigue: fatigue });
+    const coachMult = human.club
+      ? coachTrainingMultiplier(
+          human.club.coachSkill,
+          human.club.coachSpecialty as SkillCategory,
+          type,
+        )
+      : 1;
+    const res = applyTraining(skills, {
+      type,
+      age,
+      currentFatigue: fatigue,
+      efficiencyMultiplier: envMult * coachMult,
+    });
     skills = res.skills;
     fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
+    if (type === "REST") restSessions++;
     sessions.push(TRAINING_LABEL_TR[type]);
     for (const [k, d] of Object.entries(res.gains)) {
       totalGains[k as SkillKey] = (totalGains[k as SkillKey] ?? 0) + (d ?? 0);
     }
   }
+
+  // Psikoloji haftalık güncelleme (GDD 6.13).
+  const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
   // Hafta sonu sakatlık kontrolü (deterministik: seed + hafta).
   const injuryRng = createRng(`${gs.seed}:injury:${gs.weekIndex}`);
@@ -390,6 +505,10 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
       data: {
         fatigue,
         sharpness,
+        morale: nextPsych.morale,
+        motivation: nextPsych.motivation,
+        confidence: nextPsych.confidence,
+        stress: nextPsych.stress,
         status: injury.injured ? "INJURED" : human.status,
         injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
       },
@@ -442,6 +561,20 @@ export async function restWeek(): Promise<WeekSummaryDTO> {
     injuryWeeksRemaining,
     currentDate: addDays(gs.currentDate, 7).toISOString(),
   };
+}
+
+/** Ekipmanı bir seviye yükseltir (Economy: parayla, GDD 15/16). Hafta ilerletmez. */
+export async function upgradeEquipment(): Promise<void> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { human } = state;
+  if (human.equipmentLevel >= MAX_EQUIPMENT_LEVEL) throw new Error("Ekipman zaten en üst seviyede.");
+  const cost = equipmentUpgradeCost(human.equipmentLevel);
+  if (human.balance < cost) throw new Error("Yeterli paran yok.");
+  await prisma.player.update({
+    where: { id: human.id },
+    data: { equipmentLevel: human.equipmentLevel + 1, balance: { decrement: cost } },
+  });
 }
 
 /** Kaydedilmiş bir turnuvayı id ile yükler (sonuç ekranı için). */
@@ -619,7 +752,18 @@ export async function runTournament(
     };
   };
 
-  const combatants: Combatant[] = [toCombatant(human), ...aiPlayers.map(toCombatant)];
+  // İnsan oyuncunun combat kondisyonu = psikoloji + trait + ekipman (GDD 20.10). AI nötr.
+  const humanPsych = psychologyOf(human);
+  const humanConditionBonus =
+    psychologyCombatModifier(humanPsych) +
+    traitCombatModifier(parseTraits(human.traits)) +
+    equipmentCombatModifier(human.equipmentLevel);
+  const humanCombatant: Combatant = {
+    ...toCombatant(human),
+    conditionBonus: humanConditionBonus,
+  };
+
+  const combatants: Combatant[] = [humanCombatant, ...aiPlayers.map(toCombatant)];
   if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
@@ -637,6 +781,11 @@ export async function runTournament(
   const humanFinalFatigue = clamp(outcome.finalFatigue[human.id] ?? human.fatigue, 0, 100);
   const humanSharpness = applySharpness(human.sharpness, COMPETITION_SHARPNESS_GAIN);
   const injury = rollInjury(createRng(`${seedKey}:injury`), humanFinalFatigue, base.age + (quarter - 1));
+
+  // Ödül (Economy, GDD 5.14) + turnuva sonrası psikoloji (GDD 18.59).
+  const humanPosition = positionByPlayer.get(human.id) ?? combatants.length;
+  const prize = prizeFor(level, humanPosition);
+  const postPsych = psychAfterTournament(humanPsych, humanPosition, combatants.length);
 
   const tournamentId = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
@@ -688,11 +837,16 @@ export async function runTournament(
         data: { fatigue: clamp(outcome.finalFatigue[c.id] ?? c.fatigue, 0, 100) },
       });
     }
-    // İnsan oyuncu: keskinlik + sakatlık durumu.
+    // İnsan oyuncu: keskinlik + ödül + psikoloji + sakatlık durumu.
     await tx.player.update({
       where: { id: human.id },
       data: {
         sharpness: humanSharpness,
+        balance: { increment: prize },
+        morale: postPsych.morale,
+        motivation: postPsych.motivation,
+        confidence: postPsych.confidence,
+        stress: postPsych.stress,
         status: injury.injured ? "INJURED" : human.status,
         injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
       },

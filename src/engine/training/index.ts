@@ -60,7 +60,13 @@ function fatigueEfficiency(currentFatigue: number): number {
  */
 export function applyTraining(
   skills: PlayerSkills,
-  opts: { type: TrainingType; age: number; currentFatigue: number },
+  opts: {
+    type: TrainingType;
+    age: number;
+    currentFatigue: number;
+    /** Çevre çarpanı (trait × psikoloji × kulüp × koç × ekipman). Varsayılan 1. */
+    efficiencyMultiplier?: number;
+  },
 ): TrainingResult {
   const { type, age, currentFatigue } = opts;
   const fatigueDelta = BASE_FATIGUE[type];
@@ -71,7 +77,7 @@ export function applyTraining(
 
   const factor = ageFactor(age);
   const efficiency = fatigueEfficiency(currentFatigue);
-  const stimulus = PRIMARY_STIMULUS * efficiency;
+  const stimulus = PRIMARY_STIMULUS * efficiency * (opts.efficiencyMultiplier ?? 1);
 
   const next: PlayerSkills = { ...skills };
   const gains: Partial<Record<SkillKey, number>> = {};
