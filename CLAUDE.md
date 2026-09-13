@@ -200,6 +200,8 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 - ⭐ **Teknik uygulama planı: [`docs/ROADMAP.md`](docs/ROADMAP.md)** — NASIL ve hangi
   sırayla inşa edileceğimizin kalıcı kaynağı (mimari kararlar, M0–M8 aşamaları, veri
   sahipliği, test stratejisi). Kod yazmadan önce ilgili aşama buradan okunur.
+- Playtest değişiklik notları: [`docs/NOTLAR.md`](docs/NOTLAR.md) — kullanıcının oynarken
+  "değişmeli" dedikleri; verildikçe eklenir, hallolunca ✅ işaretlenir.
 - Tasarım dokümanları: `docs/gdd/` (26 dosya, `.docx`) — NE yapılacağı.
 - Okuma: pandoc/python bu makinede YOK. `.docx` şöyle okunur (çalıştığı doğrulandı):
   `unzip -p dosya.docx word/document.xml | node -e '...'` ile `<w:p>`→satır, taglar
