@@ -14,7 +14,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   if (h.liveTournamentActive) redirect("/turnuva/canli");
 
   const meta = `${h.code} · ${GENDER_LABEL_TR[h.gender as Gender]} · ${WEAPON_LABEL_TR[h.weapon as Weapon]} · ${h.age} yaş · ${h.categoryId}`;
-  const dateLabel = `Q${h.quarter} · h${h.month} · ${h.dayName}`;
+  const dateLabel = `Q${h.quarter} · H${h.month} · ${h.dayName}`;
 
   // Bugün katılabileceğin bir turnuva mı? (sağlıklı + uygun) → Katıl/Geç; değilse İlerle.
   const canAttend = !h.injured && h.today.kind === "TOURNAMENT" && h.today.qualified === true;

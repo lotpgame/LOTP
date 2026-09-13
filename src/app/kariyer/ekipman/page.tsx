@@ -51,8 +51,9 @@ export default async function EkipmanPage() {
       </section>
 
       {/* İleride: mağaza (kordon, maske, silah markaları…) */}
-      <section className="mt-4 rounded-xl border border-dashed border-black/15 p-4 text-center text-sm opacity-50 dark:border-white/20">
-        🛒 Mağaza yakında — farklı markalar ve ekipman parçaları burada olacak.
+      <section className="mt-4 rounded-xl border border-dashed border-black/15 p-4 text-center text-sm opacity-60 dark:border-white/20">
+        🛒 Şu an kulübünün sana tahsis ettiği standart ekipmanlarla oynuyorsun. Yakında marketten
+        istediğin ürünleri (kordon, maske, silah markaları…) seçebileceksin.
       </section>
     </main>
   );

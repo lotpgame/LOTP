@@ -91,16 +91,17 @@ export function RankingTable({ ranking, quarter }: { ranking: CareerDTO["ranking
         {ranking.map((r) => (
           <li
             key={r.playerId}
-            className={`flex items-center justify-between px-3 py-2 text-sm ${
+            className={`flex items-center justify-between gap-2 px-3 py-2 text-sm ${
               r.isHuman ? "bg-emerald-500/10 font-medium" : ""
             }`}
           >
-            <span>
+            <span className="min-w-0">
               <span className="inline-block w-6 tabular-nums opacity-60">{r.position}.</span>
               {r.name}
               {r.isHuman ? " (sen)" : ""}
+              {r.clubName ? <span className="ml-1 text-xs opacity-50">· {r.clubName}</span> : null}
             </span>
-            <span className="tabular-nums opacity-70">{r.points.toFixed(1)} p</span>
+            <span className="shrink-0 tabular-nums opacity-70">{r.points.toFixed(1)} p</span>
           </li>
         ))}
       </ol>

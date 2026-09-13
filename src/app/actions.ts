@@ -13,6 +13,7 @@ import {
   attendTournament,
   createCareer,
   enterBracket,
+  getCategoryRanking,
   hasCareer,
   leaveLiveTournament,
   playLiveMatch,
@@ -91,6 +92,12 @@ export async function enterBracketAction(): Promise<void> {
 export async function leaveLiveTournamentAction(): Promise<void> {
   await leaveLiveTournament();
   redirect("/kariyer");
+}
+
+/** Klasman filtresi: seçilen kategorinin sıralamasını döndürür (çok oyunculuda dolu, V1'de çoğu boş). */
+export async function getCategoryRankingAction(categoryId: string) {
+  if (!/^[A-Z0-9]+-[MF]-(FL|EPE|KIL)$/.test(categoryId)) throw new Error("Geçersiz kategori");
+  return getCategoryRanking(categoryId);
 }
 
 export async function resetCareerAction(): Promise<void> {

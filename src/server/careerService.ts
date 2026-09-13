@@ -12,6 +12,7 @@ import {
   formatPlayerCode,
   roundSkill,
   TOURNAMENT_LABEL_TR,
+  TR_CITIES,
   type Gender,
   type SkillCategory,
   type TournamentLevel,
@@ -213,6 +214,16 @@ export interface TodayDTO {
   requirement?: string;
 }
 
+/** Klasman satırı (sıralama tablosu). */
+export interface RankingRowDTO {
+  playerId: number;
+  name: string;
+  clubName: string;
+  points: number;
+  position: number;
+  isHuman: boolean;
+}
+
 export interface CareerDTO {
   humanPlayerId: number;
   code: string;
@@ -235,7 +246,16 @@ export interface CareerDTO {
   // Gelişim çevresi (M6)
   traits: string[]; // Türkçe etiketler
   psychology: { morale: number; motivation: number; confidence: number; stress: number };
-  club: { name: string; city: string; facility: number; coachName: string; coachSkill: number; coachSpecialty: string } | null;
+  club: {
+    name: string;
+    city: string;
+    facility: number;
+    coachName: string;
+    coachSkill: number;
+    coachSpecialty: string;
+    coach2Name: string;
+    coach2Specialty: string;
+  } | null;
   equipmentLevel: number;
   balance: number;
   equipmentUpgradeCost: number;
@@ -244,7 +264,7 @@ export interface CareerDTO {
   trainingPlan: string[]; // haftalık plan: 4 antrenman günü (Pzt/Çrş/Cuma/Pazar)
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
-  ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
+  ranking: RankingRowDTO[];
   today: TodayDTO; // bugünün etkinliği (İlerle/Katıl/Geç için)
   seasonCalendar: SeasonEventDTO[]; // bu yılın turnuva takvimi (h1..h12)
 }
@@ -283,19 +303,36 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   const traits = generateTraits(createRng(`${seed}:traits`), 2);
   const humanGenetics = generateGenetics(createRng(`${seed}:phys:human`), data.gender);
   const clubRng = createRng(`${seed}:club`);
-  const specialties: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
-  const city = data.city; // oyuncunun seçtiği şehir → kulübü belirler (GDD 13)
-  const clubData = {
-    name: `${city} Eskrim Kulübü`,
-    city,
-    facility: clubRng.int(45, 85),
-    coachName: `${clubRng.pick(["Ahmet", "Kemal", "Selim", "Hasan", "Murat"])} Hoca`,
-    coachSkill: clubRng.int(45, 85),
-    coachSpecialty: clubRng.pick(specialties),
+  const SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
+  const COACH_NAMES = ["Ahmet", "Kemal", "Selim", "Hasan", "Murat", "Emre", "Cem", "Okan", "Tuna", "Barış"];
+  // Bir kulüp: 2 antrenör (eşit yetenek, farklı uzmanlık — 4 antrenman türünden 2'si, GDD 13).
+  const makeClubData = (city: string) => {
+    const specs = clubRng.shuffle(SPECIALTIES);
+    const skill = clubRng.int(45, 85);
+    return {
+      name: `${city} Eskrim Kulübü`,
+      city,
+      facility: clubRng.int(45, 85),
+      coachName: `${clubRng.pick(COACH_NAMES)} Hoca`,
+      coachSkill: skill,
+      coachSpecialty: specs[0],
+      coach2Name: `${clubRng.pick(COACH_NAMES)} Hoca`,
+      coach2Specialty: specs[1],
+    };
   };
+  // Kulüp havuzu: oyuncunun şehri + birkaç farklı şehir (AI'lar bunlara dağıtılır → klasmanda kulüp).
+  const otherCities = clubRng.shuffle(TR_CITIES.filter((c) => c !== data.city)).slice(0, 5);
+  const clubCities = [data.city, ...otherCities];
 
   const humanPlayerId = await prisma.$transaction(async (tx) => {
-    const club = await tx.club.create({ data: clubData });
+    // Kulüp havuzunu oluştur; oyuncu kendi şehrinin kulübüne bağlanır, AI'lar rastgele dağılır.
+    const clubIds: number[] = [];
+    let humanClubId = 0;
+    for (const city of clubCities) {
+      const cl = await tx.club.create({ data: makeClubData(city) });
+      clubIds.push(cl.id);
+      if (city === data.city) humanClubId = cl.id;
+    }
     const human = await tx.player.create({
       data: {
         code: "P-TEMP",
@@ -310,7 +347,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         careerStartDate: GAME_START,
         traits: traits.join(","),
         balance: STARTING_BALANCE,
-        clubId: club.id,
+        clubId: humanClubId,
         ...geneticsData(humanGenetics),
         skills: { create: skillCreateData(humanSkills) },
       },
@@ -336,6 +373,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
           nationalityId: countryId,
           isAI: true,
           careerStartDate: GAME_START,
+          clubId: clubRng.pick(clubIds),
           ...geneticsData(aiGenetics),
           skills: { create: skillCreateData(spec.skills) },
         },
@@ -487,6 +525,8 @@ export async function getCareer(): Promise<CareerDTO | null> {
           coachName: human.club.coachName,
           coachSkill: human.club.coachSkill,
           coachSpecialty: human.club.coachSpecialty,
+          coach2Name: human.club.coach2Name,
+          coach2Specialty: human.club.coach2Specialty,
         }
       : null,
     equipmentLevel: human.equipmentLevel,
@@ -600,20 +640,33 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
   });
   const players = await prisma.player.findMany({
     where: { id: { in: rows.map((r) => r.playerId) } },
+    include: { club: true },
   });
-  const nameById = new Map(players.map((p) => [p.id, `${p.firstName} ${p.lastName}`]));
-  return rows.map((r, i) => ({
-    playerId: r.playerId,
-    name: nameById.get(r.playerId) ?? formatPlayerCode(r.playerId),
-    points: roundSkill(r.points),
-    position: r.position ?? i + 1,
-    isHuman: r.playerId === humanId,
-  }));
+  const byId = new Map(players.map((p) => [p.id, p]));
+  return rows.map((r, i) => {
+    const p = byId.get(r.playerId);
+    return {
+      playerId: r.playerId,
+      name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
+      clubName: p?.club?.name ?? "",
+      points: roundSkill(r.points),
+      position: r.position ?? i + 1,
+      isHuman: r.playerId === humanId,
+    };
+  });
+}
+
+/** Herhangi bir kategorinin bu quarter'daki sıralaması (Klasman filtresi). */
+export async function getCategoryRanking(categoryId: string): Promise<RankingRowDTO[]> {
+  const state = await loadState();
+  if (!state) return [];
+  const { gs, human } = state;
+  return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id);
 }
 
 const DAY_REST_RECOVERY = 12; // dinlenme (antrenman) gününde yorgunluk azalışı
 const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
-const INJURY_DAYS_PER_WEEK = 4; // rollInjury hafta → gün (gün-bazlı süre)
+const INJURY_DAYS_PER_WEEK = 3; // rollInjury hafta → OYUN günü (3–9 gün; birkaç turnuva kaçırır)
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -715,8 +768,13 @@ export async function advanceDay(): Promise<AdvanceResult> {
       fatigue = clamp(fatigue - DAY_REST_RECOVERY, 0, 100);
       restSessions++;
     } else {
+      // İki antrenör: hangisi bu türde uzmansa onun bonusu uygulanır (yoksa temel koçluk).
+      const coachSpec =
+        human.club && (human.club.coachSpecialty === type || human.club.coach2Specialty === type)
+          ? (type as SkillCategory)
+          : null;
       const coachMult = human.club
-        ? coachTrainingMultiplier(human.club.coachSkill, human.club.coachSpecialty as SkillCategory, type)
+        ? coachTrainingMultiplier(human.club.coachSkill, coachSpec, type)
         : 1;
       const res = applyTraining(skills, {
         type,

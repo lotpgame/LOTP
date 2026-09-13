@@ -69,6 +69,19 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - Panelde baş harfli **avatar** (#5); oluşturmada varsayılan **8 yaş** (#2).
 
 ### Değişti
+- **Arayüz cilası (playtest):** Profil'de sezon **"Q1 / H4"** (büyük H), **"Genel Güç"** etiketi,
+  fizik notu kaldırıldı, el **Sağ/Sol** (Sağlak/Solak yerine). Ekipman'da market/tahsis açıklaması.
+  Tüm ay göstergeleri büyük **H**.
+- **Turnuvalar → aylık takvim:** H1–H12 kartları (bu ay vurgulu, geçmiş aylar soluk); her ayın
+  turnuva günleri (İl Salı · Türkiye Perşembe · Open Cmt) + o ayın uluslararası organizasyonu.
+- **Klasman sekmesi zenginleşti:** "Türkiye Erkek Epe U10 klasmanında X. sıradasın" cümlesi;
+  sıralama tablosunda **kulüp** adları; **yaş/cinsiyet/silah filtresiyle** başka kategorilerin
+  klasmanına bakma (çok oyunculuda dolu, `getCategoryRanking`). AI oyunculara da kulüp atanıyor.
+- **Kulüpte 2 antrenör:** her kulüpte eşit yetenekli, farklı uzmanlıkta 2 antrenör (GDD 13);
+  antrenman gününde uzmanlığı türle uyuşan antrenörün bonusu uygulanır. Birden çok kulüp havuzu
+  (şehirler) → AI'lar dağıtılıyor. `Club.coach2Name/coach2Specialty` (migration `two_coaches`).
+- **Sakatlık gün-bazlı ölçek:** süre 3–9 **oyun günü** (turnuvadan da gelebilir); İlerle ile
+  dinlenerek geçilir.
 - **Turnuvaya girmediğin gün artık antrenman yapılır:** "Geç" (bir turnuvayı atlamak) o günü boşa
   harcamıyor — planın 1. seansıyla antrenman uygulanır (skill gelişimi + yorgunluk/sakatlık riski).
   Böylece denge: Katıl = ranking + keskinlik + tecrübe (ama yorgunluk); Geç = antrenman (ranking yok).

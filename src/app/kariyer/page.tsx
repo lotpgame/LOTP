@@ -19,13 +19,13 @@ export default async function ProfilPage() {
     <main>
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-        <Stat label="Sezon" value={`Q${c.quarter} · h${c.month} · ${c.dayName}`} />
-        <Stat label="Genel" value={c.overall.toFixed(1)} />
+        <Stat label="Sezon" value={`Q${c.quarter} / H${c.month}`} />
+        <Stat label="Genel Güç" value={c.overall.toFixed(1)} />
         <Stat label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
         <Stat label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
         <Stat label="Milli Takım" value={c.nationalTeam ? "✔" : "—"} />
       </section>
-      <p className="mt-2 text-xs opacity-50">{date}</p>
+      <p className="mt-2 text-xs opacity-50">{c.dayName} · {date}</p>
 
       {c.injured && (
         <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
@@ -42,9 +42,8 @@ export default async function ProfilPage() {
             <li className="flex justify-between"><span>Kulaç (erişim)</span><span className="tabular-nums opacity-70">{c.physique.reachCm.toFixed(0)} cm</span></li>
             <li className="flex justify-between"><span>Bacak</span><span className="tabular-nums opacity-70">{c.physique.legLengthCm.toFixed(0)} cm</span></li>
             <li className="flex justify-between"><span>Kilo</span><span className="tabular-nums opacity-70">{c.physique.weightKg.toFixed(0)} kg</span></li>
-            <li className="flex justify-between"><span>El</span><span className="opacity-70">{c.physique.leftHanded ? "Solak" : "Sağlak"}</span></li>
+            <li className="flex justify-between"><span>El</span><span className="opacity-70">{c.physique.leftHanded ? "Sol" : "Sağ"}</span></li>
           </ul>
-          <p className="mt-2 text-xs opacity-50">Boy/kilo yaşla gelişir. Kulaç Epe&apos;de avantaj.</p>
         </div>
 
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">

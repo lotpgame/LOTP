@@ -98,9 +98,12 @@ model Club {
   name           String
   city           String
   facility       Int      @default(60) // tesis seviyesi 0–100 (antrenman kalitesi)
+  // İki antrenör; ikisi de aynı yetenekte (coachSkill), farklı uzmanlıkta (GDD 13).
   coachName      String
-  coachSkill     Int      @default(60) // koç yeteneği 0–100
-  coachSpecialty String // TECHNICAL | PHYSICAL | MENTAL | TACTICAL (uzmanlık)
+  coachSkill     Int      @default(60) // her iki koçun ortak yeteneği 0–100
+  coachSpecialty String // 1. koç uzmanlığı: TECHNICAL | PHYSICAL | MENTAL | TACTICAL
+  coach2Name     String   @default("")
+  coach2Specialty String  @default("") // 2. koç uzmanlığı (1.'den farklı)
   players        Player[]
   createdAt      DateTime @default(now())
 }

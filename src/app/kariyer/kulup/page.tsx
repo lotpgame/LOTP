@@ -26,24 +26,32 @@ export default async function KulupPage() {
               <div className="h-full rounded-full bg-emerald-500" style={{ width: `${c.club.facility}%` }} />
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <span>Koç</span>
-              <span className="opacity-70">
-                {c.club.coachName} · {CATEGORY_LABEL_TR[c.club.coachSpecialty as SkillCategory]}
-              </span>
+          </div>
+
+          {/* İki antrenör — eşit yetenek, farklı uzmanlık (GDD 13). */}
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-medium opacity-80">Antrenörler</span>
+              <span className="text-xs opacity-60">Yetenek {c.club.coachSkill}/100</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span>Koç yeteneği</span>
-              <span className="tabular-nums opacity-70">{c.club.coachSkill}/100</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
-              <div className="h-full rounded-full bg-emerald-500" style={{ width: `${c.club.coachSkill}%` }} />
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                { name: c.club.coachName, spec: c.club.coachSpecialty },
+                { name: c.club.coach2Name, spec: c.club.coach2Specialty },
+              ].map((co, i) => (
+                <div key={i} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
+                  <div className="text-sm font-medium">{co.name}</div>
+                  <div className="mt-0.5 text-xs opacity-60">
+                    Uzmanlık: {CATEGORY_LABEL_TR[co.spec as SkillCategory] ?? "—"}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           <p className="mt-4 text-xs opacity-50">
-            Tesis ve koç, antrenman verimini güçlendirir; koç uzmanlığı ilgili yetenek grubunu daha çok
-            geliştirir. (Kulüp değiştirme/teklifler ileride.)
+            Tesis ve antrenörler antrenman verimini güçlendirir; bir antrenörün uzmanlığı o yetenek
+            grubunu daha çok geliştirir. (Kulüp değiştirme/teklifler ileride.)
           </p>
         </section>
       ) : (
