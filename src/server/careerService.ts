@@ -30,6 +30,7 @@ import {
 import {
   applyTraining,
   TRAINING_LABEL_TR,
+  TRAINING_TYPES,
   type TrainingType,
 } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
@@ -237,6 +238,7 @@ export interface CareerDTO {
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
+  trainingPlan: string[]; // kayıtlı haftalık plan (3 seans)
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
@@ -476,6 +478,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
     liveTournamentActive: gs.liveTournament != null,
+    trainingPlan: (gs.trainingPlan || "TECHNICAL,PHYSICAL,REST").split(","),
     physique: (() => {
       const p = computePhysique(geneticsOf(human), age);
       return {
@@ -500,7 +503,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
   };
 }
 
-/** Menü/başlık için hafif kimlik bilgisi (tüm kariyer sayfalarında ortak). */
+/** Menü/başlık + sabit "Haftayı İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
 export interface CareerHeaderDTO {
   name: string;
   code: string;
@@ -509,6 +512,11 @@ export interface CareerHeaderDTO {
   age: number;
   categoryId: string;
   liveTournamentActive: boolean;
+  quarter: number;
+  week: number;
+  injured: boolean;
+  injuryWeeksRemaining: number;
+  dueThisWeek: boolean; // kayıtlı turnuva bu hafta → çubuk turnuvaya götürür
 }
 
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
@@ -525,7 +533,21 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     age: base.age + (quarter - 1),
     categoryId: base.categoryId,
     liveTournamentActive: gs.liveTournament != null,
+    quarter,
+    week: weekInQuarter(gs.weekIndex),
+    injured: human.injuryWeeksRemaining > 0,
+    injuryWeeksRemaining: human.injuryWeeksRemaining,
+    dueThisWeek: gs.pendingLevel != null && gs.pendingWeekIndex === gs.weekIndex,
   };
+}
+
+/** Haftalık antrenman planını kaydeder (sabit "Haftayı İlerle" çubuğu bunu uygular). */
+export async function setTrainingPlan(slots: TrainingType[]): Promise<void> {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) throw new Error("Aktif kariyer yok.");
+  const valid = slots.filter((s) => TRAINING_TYPES.includes(s));
+  if (valid.length === 0) throw new Error("En az bir seans seç.");
+  await prisma.gameState.update({ where: { id: gs.id }, data: { trainingPlan: valid.join(",") } });
 }
 
 async function buildRankingView(categoryId: string, quarter: number, humanId: number) {
@@ -1037,6 +1059,8 @@ interface LiveState {
   standings: { playerId: number; position: number }[];
   championId?: number;
   finalTournamentId?: number;
+  earnedPoints?: number; // bu turnuvadan kazanılan ranking puanı
+  newRank?: number | null; // turnuva sonrası Quarter Ranking sırası
 }
 
 async function loadLive(): Promise<{
@@ -1489,7 +1513,10 @@ async function finalizeLive(
     championId: ls.championId ?? ls.humanId,
     finalFatigue: ls.fatigue,
   };
-  ls.finalTournamentId = await finalizeTournament(gs, human, ls.level, base, outcome, ls.seedKey);
+  const fin = await finalizeTournament(gs, human, ls.level, base, outcome, ls.seedKey);
+  ls.finalTournamentId = fin.id;
+  ls.earnedPoints = fin.earnedPoints;
+  ls.newRank = fin.newRank;
 }
 
 /** Canlı turnuva görünümü (etkileşimli ekran). */
@@ -1521,6 +1548,8 @@ export interface LiveTournamentDTO {
   championName?: string;
   finalPosition?: number;
   finalTournamentId?: number;
+  earnedPoints?: number; // kazanılan ranking puanı (klasman)
+  newRank?: number | null; // turnuva sonrası Quarter Ranking sırası
 }
 
 function clockLabel(ls: LiveState, offsetMin: number): string {
@@ -1603,6 +1632,8 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     dto.championName = ls.championId != null ? nameOf(ls, ls.championId) : "?";
     dto.finalPosition = ls.standings.find((s) => s.playerId === ls.humanId)?.position;
     dto.finalTournamentId = ls.finalTournamentId;
+    dto.earnedPoints = ls.earnedPoints;
+    dto.newRank = ls.newRank;
   }
   return dto;
 }
@@ -1615,7 +1646,7 @@ async function finalizeTournament(
   base: ReturnType<typeof baseIdentity>,
   outcome: TournamentOutcome,
   seedKey: string,
-): Promise<number> {
+): Promise<{ id: number; earnedPoints: number; newRank: number | null }> {
   const quarter = quarterOf(gs.weekIndex);
   const week = weekInQuarter(gs.weekIndex);
   const categoryId = base.categoryId;
@@ -1634,7 +1665,7 @@ async function finalizeTournament(
   const prize = prizeFor(level, humanPosition);
   const postPsych = psychAfterTournament(humanPsych, humanPosition, outcome.pools.length);
 
-  const tournamentId = await prisma.$transaction(async (tx) => {
+  const txResult = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
       data: { name: tournamentName, categoryId, level, quarter, week, date: gs.currentDate, status: "FINISHED" },
     });
@@ -1755,10 +1786,14 @@ async function finalizeTournament(
       where: { id: gs.id },
       data: { pendingLevel: null, pendingWeekIndex: null },
     });
-    return tournament.id;
+    return { id: tournament.id, humanNewRank };
   });
 
-  return tournamentId;
+  return {
+    id: txResult.id,
+    earnedPoints: rankingPointsForPosition(humanPosition, level),
+    newRank: txResult.humanNewRank,
+  };
 }
 
 /** GAME_START + N hafta (currentDate ile tutarlı). */
@@ -1823,7 +1858,7 @@ export interface AdvanceResult {
  * kayıtlı turnuvanın haftası geldiyse CANLI turnuvayı başlatır (maç-maç oynanır); aksi halde
  * haftalık antrenman planını uygular. Devam eden canlı turnuva varken haftayı ilerletmez.
  */
-export async function advanceWeek(plan: TrainingType[]): Promise<AdvanceResult> {
+export async function advanceWeek(): Promise<AdvanceResult> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
@@ -1846,6 +1881,10 @@ export async function advanceWeek(plan: TrainingType[]): Promise<AdvanceResult> 
     }
   }
 
-  await playWeek(plan);
+  // Kayıtlı haftalık planı uygula (sabit "Haftayı İlerle" çubuğu argüman göndermez).
+  const plan = (gs.trainingPlan || "TECHNICAL,PHYSICAL,REST")
+    .split(",")
+    .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
+  await playWeek(plan.length ? plan : (["TECHNICAL", "PHYSICAL", "REST"] as TrainingType[]));
   return {};
 }

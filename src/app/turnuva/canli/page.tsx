@@ -171,14 +171,31 @@ export default async function CanliTurnuvaPage() {
         </section>
       )}
 
-      {/* Turnuva bitti */}
+      {/* Turnuva bitti — sonuç + klasman */}
       {t.phase === "DONE" && (
         <section className="mt-8">
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-            <div className="text-sm opacity-70">Turnuva bitti — senin sonucun</div>
-            <div className="text-xl font-semibold">{positionLabel(t.finalPosition)}</div>
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+            <div className="text-sm opacity-70">🏁 Turnuva bitti — senin sonucun</div>
+            <div className="mt-1 text-3xl font-bold">{positionLabel(t.finalPosition)}</div>
             <div className="mt-1 text-sm opacity-70">Şampiyon: {t.championName}</div>
           </div>
+
+          {/* Klasman (genel puanlama) */}
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
+              <div className="text-xs opacity-60">Kazanılan puan</div>
+              <div className="font-semibold text-emerald-600">
+                {t.earnedPoints != null && t.earnedPoints > 0 ? `+${t.earnedPoints}` : "0"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
+              <div className="text-xs opacity-60">Klasman sıran</div>
+              <div className="font-semibold">{t.newRank != null ? `#${t.newRank}` : "—"}</div>
+            </div>
+          </div>
+          <p className="mt-1 text-center text-xs opacity-50">
+            Quarter Ranking puanı (quarter sonunda sıfırlanır).
+          </p>
 
           {t.standings && (
             <ol className="mt-4 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
@@ -199,16 +216,16 @@ export default async function CanliTurnuvaPage() {
             </ol>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap items-center gap-2">
             <form action={leaveLiveTournamentAction}>
-              <button className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
-                Kariyere Dön →
+              <button className="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+                🏠 Eve Dön
               </button>
             </form>
             {t.finalTournamentId != null && (
               <Link
                 href={`/turnuva/${t.finalTournamentId}`}
-                className="rounded-lg border border-black/15 px-4 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
+                className="rounded-lg border border-black/15 px-4 py-3 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
               >
                 Tüm tabloyu gör
               </Link>

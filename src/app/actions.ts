@@ -20,6 +20,7 @@ import {
   registerTournament,
   restWeek,
   resetCareer,
+  setTrainingPlan,
   upgradeEquipment,
 } from "@/server/careerService";
 
@@ -40,15 +41,21 @@ export async function createCareerAction(formData: FormData): Promise<void> {
 }
 
 /**
- * "Haftayı İlerle" — tek-oyuncu zaman sürücüsü (CM "Next" mantığı, GDD 6 döngüsü).
- * Kayıtlı turnuvanın haftası geldiyse turnuvaya götürür; yoksa haftalık antrenman planını uygular.
+ * "Haftayı İlerle" — sabit çubuktan tek-oyuncu zaman sürücüsü (CM "Next"; online'da otomatik).
+ * Kayıtlı turnuvanın haftası geldiyse turnuvaya götürür; yoksa KAYITLI haftalık planı uygular.
  */
-export async function advanceWeekAction(formData: FormData): Promise<void> {
+export async function advanceWeekAction(): Promise<void> {
+  const result = await advanceWeek();
+  if (result.live) redirect("/turnuva/canli"); // canlı turnuva başladı
+  revalidatePath("/kariyer", "layout"); // başlık (hafta) + mevcut sayfa tazelensin
+}
+
+/** Haftalık antrenman planını kaydeder (Antrenman sayfasından). */
+export async function setTrainingPlanAction(formData: FormData): Promise<void> {
   const slots = ["slot1", "slot2", "slot3"]
     .map((s) => String(formData.get(s) ?? ""))
     .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
-  const result = await advanceWeek(slots);
-  if (result.live) redirect("/turnuva/canli"); // canlı turnuva başladı
+  await setTrainingPlan(slots);
   revalidatePath("/kariyer/antrenman");
 }
 
