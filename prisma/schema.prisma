@@ -67,6 +67,7 @@ model Player {
   stress     Float  @default(20)
   equipmentLevel Int   @default(1) // 1–5 (GDD 15)
   balance        Float @default(0) // para (GDD 16)
+  careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   clubId Int?
   club   Club? @relation(fields: [clubId], references: [id])
 
@@ -77,6 +78,7 @@ model Player {
   skills         PlayerSkill[]
   rankings       Ranking[]
   tournamentEntries TournamentParticipant[]
+  achievements      Achievement[]
 
   @@index([nationalityId])
   @@index([gender, weapon]) // kategori/ranking sorguları için
@@ -193,6 +195,22 @@ model Match {
   createdAt DateTime @default(now())
 
   @@index([tournamentId])
+}
+
+/// Kariyer başarısı / kilometre taşı (GDD 22.37). Memory Engine üretir; silinmez.
+model Achievement {
+  id         Int      @id @default(autoincrement())
+  playerId   Int
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  type       String
+  label      String
+  detail     String   @default("")
+  importance Int      @default(1)
+  quarter    Int      @default(1)
+  date       DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([playerId])
 }
 
 /// Kategori bazlı sıralama puanı (GDD 19, 22.32). Sahip: Ranking Engine.

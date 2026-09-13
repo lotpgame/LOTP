@@ -181,8 +181,8 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M4** — Quarter Ranking + uluslararası + milli takım (hafta/quarter takvimi, davet/uygunluk) ✅
 - [x] **M5** — Haftalık döngü + kondisyon (3 seanslık plan, sharpness, sakatlık, overtraining) ✅
 - [x] **M6** — Gelişim çevresi (Trait, Psychology, Coach/Club, Equipment, Economy → modifier'lar) ✅
-- [ ] **M7** — Dünya simülasyonu + AI + Memory ← sıradaki
-- [ ] **M8** — Cila & denge
+- [x] **M7** — Canlı dünya (AI haftalık gelişim) + Memory/Achievements + kariyer geçmişi ✅
+- [ ] **M8** — Cila & denge ← sıradaki
 
 > Bir aşama tamamlandığında burada işaretlenir ve `CHANGELOG.md`'ye yazılır.
 
@@ -203,9 +203,10 @@ bağlanan derinlik maddeleri. Buraya yazılır ki hiçbiri kaybolmasın.
   sığ; moral/motivasyon/özgüven/stres **Psychology Engine**'e ait. **Yeri:** M6. (GDD 11.)
 - **Combat log seviyeleri** (Basit/Normal/Ayrıntılı, GDD 18.53): şu an tek düzey anlatım var;
   seçici için yapılandırılmış maç olayları (Combat Event, GDD 22.31) gerekir. **Yeri:** M-sonrası cila.
-- **AI çevre derinliği** (2026-09-13): M6'da AI oyuncuların psikoloji/trait/ekipman'ı combat'a
-  **nötr** girer (yalnız insan oyuncunun çevresi etkili). AI'ların da gerçek trait/psikoloji/
-  gelişimi + koç/kulüp transferleri ve ekipman dükkânı derinliği **M7** (dünya simülasyonu).
-- **Yaş kategorisi ilerlemesi** (2026-09-13): M4'te rekabet kategorisi kariyer boyunca **sabit**
-  (yaş her quarter +1 gösterilir ama U17→U21 geçişi yok). Gerçek kategori ilerlemesi, kategori
-  boşaldıkça yeni AI üretimi (dünya yeniden-üretimi) gerektirir. **Yeri:** M7 (AI dünya simülasyonu).
+- **AI özerk turnuvalar + emeklilik/yeniden-üretim** (2026-09-13, M7 sonrası): M7'de AI'lar
+  haftalık **gelişiyor** ama kendi başlarına turnuvaya girmiyor (yalnız insanın girdiği
+  turnuvalarda). Tam Hattrick-vari dünya (AI'ların bağımsız turnuvaları, emeklilik, yeni genç
+  üretimi) + AI psikoloji/trait combat etkisi → **M8/Future**.
+- **Yaş kategorisi ilerlemesi** (2026-09-13): rekabet kategorisi hâlâ **sabit** (yaş +1 gösterilir
+  ama U17→U21 geçişi yok). Kategori ilerlemesi, kategori boşaldıkça yeni AI üretimi gerektirir;
+  yukarıdaki emeklilik/yeniden-üretim ile birlikte **M8/Future**.

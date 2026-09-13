@@ -20,6 +20,7 @@ import { createRng } from "@/engine/probability";
 import {
   SKILLS,
   generateStartingSkills,
+  growSkill,
   overall,
   type PlayerSkills,
   type SkillKey,
@@ -73,6 +74,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
+import { detectAchievements, type AchievementType } from "@/engine/memory";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
@@ -415,15 +417,38 @@ export interface WeekSummaryDTO {
 const REST_RECOVERY = 30; // dinlenme haftası yorgunluk azalışı
 
 /** AI dünyasını + günü ilerleten ortak hafta-sonu işlemleri (tx içinde). */
-async function advanceWeekTx(
-  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  gs: { id: number; currentDate: Date; weekIndex: number },
-) {
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * Hafta ilerletme + canlı dünya (GDD 2.17–2.18): AI oyuncular pasif toparlanır ve her hafta
+ * hafifçe gelişir (özerk antrenman) → rekabet zamanla sertleşir. Deterministik (seed).
+ */
+async function advanceWeekTx(tx: Tx, gs: { id: number; currentDate: Date; weekIndex: number }, seed: string) {
   await tx.player.updateMany({
     where: { isAI: true, fatigue: { gt: 0 } },
     data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
   });
   await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
+
+  // AI dünyası gelişir: her AI'nın rastgele bir skill'i azalan verimle biraz artar.
+  const ais = await tx.player.findMany({ where: { isAI: true }, include: { skills: true } });
+  for (const ai of ais) {
+    if (ai.skills.length === 0) continue;
+    const rng = createRng(`${seed}:aidev:${ai.id}:${gs.weekIndex}`);
+    const row = rng.pick(ai.skills);
+    const grown = growSkill(
+      { current: row.current, potential: row.potential, floor: row.floor, ceiling: row.ceiling },
+      0.4,
+      1,
+    );
+    if (grown.current !== row.current) {
+      await tx.playerSkill.update({
+        where: { playerId_key: { playerId: ai.id, key: row.key } },
+        data: { current: grown.current },
+      });
+    }
+  }
+
   await tx.gameState.update({
     where: { id: gs.id },
     data: { currentDate: addDays(gs.currentDate, 7), weekIndex: gs.weekIndex + 1 },
@@ -513,7 +538,7 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
         injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
       },
     });
-    await advanceWeekTx(tx, gs);
+    await advanceWeekTx(tx, gs, gs.seed);
   });
 
   return {
@@ -549,7 +574,7 @@ export async function restWeek(): Promise<WeekSummaryDTO> {
       where: { id: human.id },
       data: { fatigue, sharpness, status, injuryWeeksRemaining },
     });
-    await advanceWeekTx(tx, gs);
+    await advanceWeekTx(tx, gs, gs.seed);
   });
 
   return {
@@ -575,6 +600,90 @@ export async function upgradeEquipment(): Promise<void> {
     where: { id: human.id },
     data: { equipmentLevel: human.equipmentLevel + 1, balance: { decrement: cost } },
   });
+}
+
+export interface CareerHistoryDTO {
+  name: string;
+  achievements: { type: string; label: string; detail: string; importance: number; date: string }[];
+  stats: {
+    totalTournaments: number;
+    championships: number;
+    medals: number;
+    finals: number;
+    matchesPlayed: number;
+    matchWins: number;
+    careerBestRank: number | null;
+  };
+  rivals: { name: string; matches: number; wins: number; losses: number }[];
+}
+
+/** Kariyer geçmişi: başarılar, istatistikler ve rakiplikler (GDD 21, 22.36–22.37). */
+export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) return null;
+  const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId } });
+  if (!human) return null;
+  const hid = human.id;
+
+  const [achievements, entries, matches] = await Promise.all([
+    prisma.achievement.findMany({
+      where: { playerId: hid },
+      orderBy: [{ importance: "desc" }, { date: "desc" }],
+      take: 40,
+    }),
+    prisma.tournamentParticipant.findMany({ where: { playerId: hid } }),
+    prisma.match.findMany({ where: { OR: [{ playerAId: hid }, { playerBId: hid }] } }),
+  ]);
+
+  const championships = entries.filter((e) => e.finalPosition === 1).length;
+  const medals = entries.filter((e) => e.finalPosition != null && e.finalPosition <= 3).length;
+  const finals = entries.filter((e) => e.finalPosition != null && e.finalPosition <= 2).length;
+  const matchWins = matches.filter((m) => m.winnerId === hid).length;
+
+  // Rakiplikler: en çok karşılaşılan rakipler (GDD 22.36).
+  const byOpponent = new Map<number, { matches: number; wins: number; losses: number }>();
+  for (const m of matches) {
+    const oppId = m.playerAId === hid ? m.playerBId : m.playerAId;
+    const r = byOpponent.get(oppId) ?? { matches: 0, wins: 0, losses: 0 };
+    r.matches++;
+    if (m.winnerId === hid) r.wins++;
+    else r.losses++;
+    byOpponent.set(oppId, r);
+  }
+  const topOppIds = [...byOpponent.entries()]
+    .sort((a, b) => b[1].matches - a[1].matches || a[0] - b[0])
+    .slice(0, 5);
+  const oppPlayers = await prisma.player.findMany({
+    where: { id: { in: topOppIds.map(([id]) => id) } },
+  });
+  const oppName = new Map(oppPlayers.map((p) => [p.id, `${p.firstName} ${p.lastName}`]));
+  const rivals = topOppIds.map(([id, r]) => ({
+    name: oppName.get(id) ?? formatPlayerCode(id),
+    matches: r.matches,
+    wins: r.wins,
+    losses: r.losses,
+  }));
+
+  return {
+    name: `${human.firstName} ${human.lastName}`,
+    achievements: achievements.map((a) => ({
+      type: a.type,
+      label: a.label,
+      detail: a.detail,
+      importance: a.importance,
+      date: a.date.toISOString(),
+    })),
+    stats: {
+      totalTournaments: entries.length,
+      championships,
+      medals,
+      finals,
+      matchesPlayed: matches.length,
+      matchWins,
+      careerBestRank: human.careerBestRank ?? null,
+    },
+    rivals,
+  };
 }
 
 /** Kaydedilmiş bir turnuvayı id ile yükler (sonuç ekranı için). */
@@ -630,6 +739,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
 /** Mevcut kariyeri ve tüm dünya verisini siler (yeni kariyer için). M1: tek kariyer. */
 export async function resetCareer(): Promise<void> {
   await prisma.$transaction([
+    prisma.achievement.deleteMany(),
     prisma.match.deleteMany(),
     prisma.tournamentParticipant.deleteMany(),
     prisma.tournament.deleteMany(),
@@ -637,6 +747,7 @@ export async function resetCareer(): Promise<void> {
     prisma.playerSkill.deleteMany(),
     prisma.gameState.deleteMany(),
     prisma.player.deleteMany(),
+    prisma.club.deleteMany(),
   ]);
 }
 
@@ -870,11 +981,40 @@ export async function runTournament(
         data: { position: r.position },
       });
     }
+    const humanNewRank = ranked.find((r) => r.playerId === human.id)?.position ?? null;
 
-    await tx.gameState.update({
-      where: { id: gs.id },
-      data: { currentDate: nextDate, weekIndex: gs.weekIndex + 1 },
+    // Kariyer en iyi ranking (GDD 19.36).
+    if (humanNewRank != null && (human.careerBestRank == null || humanNewRank < human.careerBestRank)) {
+      await tx.player.update({ where: { id: human.id }, data: { careerBestRank: humanNewRank } });
+    }
+
+    // Başarılar (Memory Engine, GDD 21/22.37).
+    const earnedRows = await tx.achievement.findMany({
+      where: { playerId: human.id },
+      select: { type: true },
     });
+    const earnedUnique = new Set(earnedRows.map((a) => a.type as AchievementType));
+    for (const a of detectAchievements({
+      level,
+      tournamentName,
+      position: humanPosition,
+      postRank: humanNewRank,
+      earnedUnique,
+    })) {
+      await tx.achievement.create({
+        data: {
+          playerId: human.id,
+          type: a.type,
+          label: a.label,
+          detail: a.detail,
+          importance: a.importance,
+          quarter,
+          date: gs.currentDate,
+        },
+      });
+    }
+
+    await advanceWeekTx(tx, gs, gs.seed);
     return tournament.id;
   });
 

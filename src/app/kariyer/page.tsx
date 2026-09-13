@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   playWeekAction,
@@ -46,11 +47,19 @@ export default async function KariyerPage() {
             {WEAPON_LABEL_TR[c.weapon as Weapon]} · {c.age} yaş · {c.categoryId}
           </p>
         </div>
-        <form action={resetCareerAction}>
-          <button className="rounded-md border border-black/15 px-3 py-1.5 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20">
-            Yeni Kariyer
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/kariyer/gecmis"
+            className="rounded-md border border-black/15 px-3 py-1.5 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
+          >
+            Kariyer Geçmişi
+          </Link>
+          <form action={resetCareerAction}>
+            <button className="rounded-md border border-black/15 px-3 py-1.5 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20">
+              Yeni Kariyer
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Durum özeti */}

@@ -74,5 +74,9 @@ motivasyon/özgüven/stres), **Coach/Club** (antrenman kalitesi + koç uzmanlı�
 (ekipman seviyesi), **Economy** (turnuva ödülü, para, ekipman yükseltme) — hepsi antrenman
 verimine ve maç gücüne modifier olarak bağlı.
 
-Sıradaki adım: **M7 — Dünya simülasyonu + AI + Memory** (AI oyuncular offline iken de yaşar/
-gelişir, kategori dünyası, kariyer hafızası & rakiplikler).
+✅ **M7 — Canlı dünya + Memory** tamam: AI oyuncular her hafta özerk gelişir (dünya zamanla
+sertleşir); **Achievements** (şampiyonluk, madalya, milli takım, kariyer-en-iyi-ranking),
+rakiplikler ve **Kariyer Geçmişi** sayfası.
+
+Sıradaki adım: **M8 — Cila & denge** (başsız denge simülasyonları, katsayı dengeleme, UI/UX
+iyileştirme, save yedekleme). V1'in son aşaması.

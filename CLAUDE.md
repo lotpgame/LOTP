@@ -233,7 +233,10 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 - [x] **M6 — Gelişim çevresi:** Trait, Psychology (moral/motivasyon/özgüven/stres),
       Coach/Club (antrenman kalitesi), Equipment, Economy (ödül/para) — training/combat
       modifier'ları. 66 test.
-- [ ] **M7 — Dünya simülasyonu + AI + Memory** ← sıradaki (bkz. `docs/ROADMAP.md` §B)
+- [x] **M7 — Canlı dünya + Memory:** AI oyuncular her hafta özerk gelişir; Achievements
+      (şampiyonluk/madalya/milli takım/ranking) + rakiplikler + kariyer geçmişi sayfası. 70 test.
+- [ ] **M8 — Cila & denge** ← sıradaki (başsız denge simülasyonları, katsayı dengeleme,
+      UI/UX geçişi, save backup; bkz. `docs/ROADMAP.md` §B)
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.
