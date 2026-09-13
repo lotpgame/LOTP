@@ -6,6 +6,7 @@
  */
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { TACTICS, type Tactic } from "@/engine/combat";
 import { TOURNAMENT_LABEL_TR, type TournamentLevel } from "@/engine/domain";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
@@ -16,6 +17,7 @@ import {
   registerTournament,
   restWeek,
   resetCareer,
+  setTactic,
   upgradeEquipment,
 } from "@/server/careerService";
 
@@ -71,6 +73,14 @@ export async function registerAction(formData: FormData): Promise<void> {
 /** Bekleyen turnuva kaydını iptal eder. */
 export async function cancelRegistrationAction(): Promise<void> {
   await cancelRegistration();
+  revalidatePath("/kariyer");
+}
+
+/** Maç öncesi taktik tercihini kaydeder (GDD 18.22). */
+export async function setTacticAction(formData: FormData): Promise<void> {
+  const tactic = String(formData.get("tactic") ?? "") as Tactic;
+  if (!TACTICS.includes(tactic)) throw new Error("Geçersiz taktik");
+  await setTactic(tactic);
   revalidatePath("/kariyer");
 }
 

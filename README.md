@@ -84,9 +84,9 @@ koç/ekipman/ekonomi) → canlı AI dünyası + başarılar & kariyer geçmişi.
 şehir seçimi → kulüp; fiziksel yapı (boy/kulaç/bacak/kilo/el); **canlı maç izleme** (CM tarzı);
 **turnuva kayıt → bekle → oyna akışı** — "Katıl" ile kaydolursun, tek **"Haftayı İlerle"**
 düğmesi zamanı sürer ve turnuva haftası gelince seni turnuva ekranına götürür (online'da bunu
-sunucu saati yapar); panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim
-**"pul"** (poule).
+sunucu saati yapar); **maç taktiği** (ofansif/dengeli/defansif — skill+trait ile etkileşir);
+panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim **"pul"** (poule).
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
-§B "Sonra"). Öne çıkanlar: basit taktik (ofansif/defansif), AI'ların bağımsız turnuvaları +
-emeklilik/yeni nesil, yaş kategorisi ilerlemesi (U17→U21), multiplayer (PostgreSQL).
+§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi
+ilerlemesi (U10→U12→…), gelişmiş taktik (counter/pressure, maç-arası değişim), multiplayer (PostgreSQL).

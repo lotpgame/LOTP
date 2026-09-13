@@ -14,7 +14,18 @@ import {
   type StrengthModifier,
 } from "../probability";
 import type { PlayerSkills } from "../skill";
+import type { TraitKey } from "../trait";
 import { physiqueCombatEdge, type PhysicalProfile } from "../physique";
+import { tacticChaos, tacticStrengthMod, TACTIC_LABEL_TR, type Tactic } from "./tactics";
+
+export {
+  TACTICS,
+  TACTIC_LABEL_TR,
+  TACTIC_DESC_TR,
+  tacticStrengthMod,
+  tacticChaos,
+  type Tactic,
+} from "./tactics";
 
 export interface Combatant {
   id: number;
@@ -26,6 +37,8 @@ export interface Combatant {
   conditionBonus?: number; // psikoloji+trait+ekipman birleşik katkısı (puan)
   physical?: PhysicalProfile; // boy/kulaç/bacak/yapı/el — verilirse fiziksel erişim avantajı
   ageCategory?: AgeCategory; // el tercihi avantajının kategoriye bağlılığı için
+  tactic?: Tactic; // maç öncesi taktik tercihi (GDD 18.22); verilmezse "BALANCED" (nötr)
+  traits?: readonly TraitKey[]; // taktik-trait sinerjisi için (Agresif/Soğukkanlı…)
 }
 
 /** Maç formatları (GDD 18.8): havuz 5 tuş, eleme 15 tuş. */
@@ -90,12 +103,31 @@ export function simulateMatch(
     }
   }
 
+  // Taktik (GDD 18.22): effective strength'e küçük matchup+trait modifier'ı + tuş-başı kaos.
+  const tacticA = a.tactic ?? "BALANCED";
+  const tacticB = b.tactic ?? "BALANCED";
+  const tmodA = tacticStrengthMod(tacticA, a.skills, b.skills, a.traits ?? []);
+  const tmodB = tacticStrengthMod(tacticB, b.skills, a.skills, b.traits ?? []);
+  if (Math.abs(tmodA) > 0.05) {
+    esA.modifiers.push({ label: "Taktik", value: tmodA });
+    esA.total = Math.round((esA.total + tmodA) * 10) / 10;
+  }
+  if (Math.abs(tmodB) > 0.05) {
+    esB.modifiers.push({ label: "Taktik", value: tmodB });
+    esB.total = Math.round((esB.total + tmodB) * 10) / 10;
+  }
+  // Kaos: ofansif salınımı artırır, defansif azaltır (0–0.45). BALANCED→0 → RNG dizisi değişmez.
+  const chaos = clamp(tacticChaos(tacticA) + tacticChaos(tacticB), 0, 0.45);
+
   const baseP = winProbability(esA.total - esB.total);
 
   const log: string[] = [];
   log.push(
     `Maç gücü — ${a.name}: ${esA.total} · ${b.name}: ${esB.total} (${a.name} kazanma ihtimali %${Math.round(baseP * 100)}).`,
   );
+  if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
+    log.push(`Taktik — ${a.name}: ${TACTIC_LABEL_TR[tacticA]}, ${b.name}: ${TACTIC_LABEL_TR[tacticB]}.`);
+  }
 
   let scoreA = 0;
   let scoreB = 0;
@@ -108,7 +140,9 @@ export function simulateMatch(
   const maxExchanges = targetTouches * 4;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
     const p = clamp(baseP + momentum, 0.03, 0.97);
-    const aScores = rng.bool(p);
+    // Kaos: bazı tuşlar "risk"le yazı-tura belirlenir (ofansif ↑ sürpriz, defansif ↓ salınım).
+    // BALANCED maçlarda chaos=0 → rng.bool(chaos) hiç çağrılmaz, dizinin sırası korunur.
+    const aScores = chaos > 0 && rng.bool(chaos) ? rng.bool(0.5) : rng.bool(p);
 
     if (aScores) {
       scoreA++;

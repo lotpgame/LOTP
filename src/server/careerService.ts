@@ -33,7 +33,7 @@ import {
   type TrainingType,
 } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
-import type { Combatant } from "@/engine/combat";
+import { type Combatant, type Tactic } from "@/engine/combat";
 import { simulateTournament } from "@/engine/tournament";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
 import {
@@ -229,6 +229,7 @@ export interface CareerDTO {
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
+  tactic: Tactic; // maç öncesi taktik tercihi (GDD 18.22)
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
@@ -359,6 +360,13 @@ function parseTraits(csv: string): TraitKey[] {
   return csv ? (csv.split(",").filter(Boolean) as TraitKey[]) : [];
 }
 
+/** AI'nın maç taktiğini karakterinden türetir (GDD 18.63: AI stile sahip olabilir). */
+function tacticFromTraits(traits: readonly TraitKey[]): Tactic {
+  if (traits.includes("AGGRESSIVE")) return "OFFENSIVE";
+  if (traits.includes("CALM")) return "DEFENSIVE";
+  return "BALANCED";
+}
+
 function psychologyOf(p: {
   morale: number;
   motivation: number;
@@ -460,6 +468,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     canUpgradeEquipment:
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
+    tactic: (human.tactic as Tactic) ?? "BALANCED",
     physique: (() => {
       const p = computePhysique(geneticsOf(human), age);
       return {
@@ -701,6 +710,13 @@ export async function upgradeEquipment(): Promise<void> {
     where: { id: human.id },
     data: { equipmentLevel: human.equipmentLevel + 1, balance: { decrement: cost } },
   });
+}
+
+/** Maç öncesi taktik tercihini kaydeder (GDD 18.22). Sonraki turnuvanın maçlarında kullanılır. */
+export async function setTactic(tactic: Tactic): Promise<void> {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) throw new Error("Aktif kariyer yok.");
+  await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { tactic } });
 }
 
 export interface CareerHistoryDTO {
@@ -948,6 +964,7 @@ async function playTournament(
     reachBiasCm: number;
     buildFactor: number;
     leftHanded: boolean;
+    traits: string;
     skills: SkillRow[];
   }): Combatant => {
     const name = `${p.firstName} ${p.lastName}`;
@@ -959,6 +976,7 @@ async function playTournament(
       buildFactor: p.buildFactor,
       leftHanded: p.leftHanded,
     };
+    const traits = parseTraits(p.traits);
     return {
       id: p.id,
       name,
@@ -968,6 +986,8 @@ async function playTournament(
       sharpness: p.sharpness,
       physical,
       ageCategory: base.ageCategory,
+      traits,
+      tactic: tacticFromTraits(traits), // AI: karakterine göre stil (GDD 18.63); insan altta override
     };
   };
 
@@ -980,6 +1000,7 @@ async function playTournament(
   const humanCombatant: Combatant = {
     ...toCombatant(human),
     conditionBonus: humanConditionBonus,
+    tactic: (human.tactic as Tactic) ?? "BALANCED", // insan: seçtiği taktik
   };
 
   const combatants: Combatant[] = [humanCombatant, ...aiPlayers.map(toCombatant)];
