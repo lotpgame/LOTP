@@ -19,7 +19,7 @@ export default async function ProfilPage() {
     <main>
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-        <Stat label="Sezon" value={`Q${c.quarter} · H${c.week}/12`} />
+        <Stat label="Sezon" value={`Q${c.quarter} · h${c.month} · ${c.dayName}`} />
         <Stat label="Genel" value={c.overall.toFixed(1)} />
         <Stat label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
         <Stat label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
@@ -29,7 +29,7 @@ export default async function ProfilPage() {
 
       {c.injured && (
         <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-          🩹 Sakatsın — {c.injuryWeeksRemaining} hafta pistlerden uzaksın. (Antrenman sekmesinden dinlen.)
+          🩹 Sakatsın — {c.injuryDaysRemaining} gün pistlerden uzaksın. (Alttaki İlerle ile iyileşirsin.)
         </div>
       )}
 

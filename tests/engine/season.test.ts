@@ -1,35 +1,56 @@
 import { describe, expect, it } from "vitest";
 import {
-  WEEKS_PER_QUARTER,
-  eventsForWeek,
+  DAYS_PER_MONTH,
+  DAYS_PER_QUARTER,
+  activityForDay,
+  dayOfWeek,
+  monthOfQuarter,
   qualifies,
   quarterOf,
-  weekInQuarter,
 } from "@/engine/season";
 
-describe("Season/zaman modeli", () => {
-  it("12 hafta = 1 quarter", () => {
-    expect(WEEKS_PER_QUARTER).toBe(12);
+describe("Season/zaman modeli (gün-bazlı)", () => {
+  it("Q = 12 ay × 7 gün = 84 gün", () => {
+    expect(DAYS_PER_MONTH).toBe(7);
+    expect(DAYS_PER_QUARTER).toBe(84);
     expect(quarterOf(0)).toBe(1);
-    expect(quarterOf(11)).toBe(1);
-    expect(quarterOf(12)).toBe(2);
-    expect(quarterOf(24)).toBe(3);
-    expect(weekInQuarter(0)).toBe(1);
-    expect(weekInQuarter(11)).toBe(12);
-    expect(weekInQuarter(12)).toBe(1);
+    expect(quarterOf(83)).toBe(1);
+    expect(quarterOf(84)).toBe(2);
+    expect(monthOfQuarter(0)).toBe(1); // h1
+    expect(monthOfQuarter(6)).toBe(1);
+    expect(monthOfQuarter(7)).toBe(2); // h2
+    expect(monthOfQuarter(83)).toBe(12);
+    expect(dayOfWeek(0)).toBe(0); // Pazartesi
+    expect(dayOfWeek(6)).toBe(6); // Pazar
+    expect(dayOfWeek(7)).toBe(0); // sonraki ayın Pazartesi'si
   });
 
-  it("haftalık takvim: yurt içi her hafta, Türkiye çift, uluslararası özel haftalar", () => {
-    const w1 = eventsForWeek(1).map((e) => e.level);
-    expect(w1).toContain("IL");
-    expect(w1).toContain("OPEN");
-    expect(w1).not.toContain("TURKIYE");
+  it("günlük program: Pzt/Çrş/Cuma/Pazar antrenman; Salı İl, Perşembe Türkiye, Cmt Open", () => {
+    expect(activityForDay(0).kind).toBe("TRAINING"); // Pazartesi
+    expect(activityForDay(2).kind).toBe("TRAINING"); // Çarşamba
+    expect(activityForDay(4).kind).toBe("TRAINING"); // Cuma
+    const sali = activityForDay(1);
+    expect(sali).toEqual({ kind: "TOURNAMENT", level: "IL", qualification: "OPEN" });
+    const persembe = activityForDay(3);
+    expect(persembe.kind).toBe("TOURNAMENT");
+    if (persembe.kind === "TOURNAMENT") expect(persembe.level).toBe("TURKIYE");
+    const cmt = activityForDay(5);
+    if (cmt.kind === "TOURNAMENT") expect(cmt.level).toBe("OPEN");
+  });
 
-    expect(eventsForWeek(2).map((e) => e.level)).toContain("TURKIYE");
-    expect(eventsForWeek(4).map((e) => e.level)).toContain("SATELLITE");
-    expect(eventsForWeek(8).map((e) => e.level)).toContain("GRAND_PRIX");
-    expect(eventsForWeek(10).map((e) => e.level)).toContain("EUROPEAN");
-    expect(eventsForWeek(12).map((e) => e.level)).toContain("WORLD_CUP");
+  it("uluslararası yılda 1 kez, doğru ayların Pazar günü", () => {
+    const sundayOf = (month: number) => (month - 1) * DAYS_PER_MONTH + 6;
+    const lvl = (d: number) => {
+      const a = activityForDay(d);
+      return a.kind === "TOURNAMENT" ? a.level : null;
+    };
+    expect(lvl(sundayOf(4))).toBe("SATELLITE");
+    expect(lvl(sundayOf(6))).toBe("EUROPEAN");
+    expect(lvl(sundayOf(8))).toBe("GRAND_PRIX");
+    expect(lvl(sundayOf(10))).toBe("WORLD_CUP");
+    // Normal ayın Pazar'ı antrenman
+    expect(activityForDay(sundayOf(1)).kind).toBe("TRAINING");
+    expect(activityForDay(sundayOf(2)).kind).toBe("TRAINING");
   });
 
   it("uygunluk: OPEN serbest, TOP16/TOP4 sıralamaya bağlı", () => {

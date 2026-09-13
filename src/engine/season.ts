@@ -1,27 +1,50 @@
 /**
- * Sezon/zaman modeli — hafta ve Quarter (GDD 17.5–17.10).
+ * Sezon/zaman modeli — GÜN bazlı (GDD 17.5–17.10, kullanıcı takvimi q1-gunluk).
  *
- * 12 hafta = 1 Quarter = 1 oyun yılı. Quarter sonunda yaş +1 ve Quarter Ranking sıfırlanır
- * (GDD 17.90). Haftalık takvim hangi turnuvaların açık olduğunu belirler (GDD 17.7–17.8);
- * uluslararası organizasyonlar Quarter Ranking'e göre davetle (GDD 17.25–17.36).
- *
- * Saf ve deterministik: yalnız hafta indeksinden türetir.
+ * Q = 1 oyun yılı. İçinde 12 "ay" (h1–h12). Her ay 7 günlük SABİT program (Pazartesi→Pazar),
+ * her ay aynı döner. Gün = oyunun temel birimi. Aynı güne asla iki turnuva gelmez.
+ *   Pzt: Antrenman · Salı: İl · Çrş: Antrenman · Prş: Türkiye · Cuma: Antrenman · Cmt: Open
+ *   Pazar: Antrenman — ama h4 Satellite · h6 Avrupa · h8 Grand Prix · h10 World Cup (yılda 1'er)
+ * Quarter (yıl) sonunda yaş +1 ve kategori ranking'i sıfırlanır. Saf ve deterministik.
  */
 import type { TournamentLevel } from "./domain";
 
-export const WEEKS_PER_QUARTER = 12;
+export const DAYS_PER_MONTH = 7;
+export const MONTHS_PER_QUARTER = 12; // 12 ay = 1 oyun yılı = 1 Quarter
+export const DAYS_PER_QUARTER = DAYS_PER_MONTH * MONTHS_PER_QUARTER; // 84
 
-/** 0-tabanlı global hafta indeksinden quarter numarası (1'den başlar). */
-export function quarterOf(weekIndex: number): number {
-  return Math.floor(weekIndex / WEEKS_PER_QUARTER) + 1;
+/** Haftanın günleri (0 = Pazartesi). */
+export const DAY_NAMES_TR = [
+  "Pazartesi",
+  "Salı",
+  "Çarşamba",
+  "Perşembe",
+  "Cuma",
+  "Cumartesi",
+  "Pazar",
+] as const;
+
+/** 0-tabanlı global gün indeksinden Quarter (oyun yılı) numarası (1'den başlar). */
+export function quarterOf(dayIndex: number): number {
+  return Math.floor(dayIndex / DAYS_PER_QUARTER) + 1;
 }
 
-/** Quarter içindeki hafta (1..12). */
-export function weekInQuarter(weekIndex: number): number {
-  return (weekIndex % WEEKS_PER_QUARTER) + 1;
+/** Quarter içindeki ay (1..12) — "h1..h12". */
+export function monthOfQuarter(dayIndex: number): number {
+  return Math.floor((dayIndex % DAYS_PER_QUARTER) / DAYS_PER_MONTH) + 1;
 }
 
-/** Katılım kuralı: serbest / Quarter Ranking ilk 16 / milli takım ilk 4. */
+/** Ay içindeki gün (0 = Pazartesi … 6 = Pazar). */
+export function dayOfWeek(dayIndex: number): number {
+  return dayIndex % DAYS_PER_MONTH;
+}
+
+/** Gün adı (Türkçe). */
+export function dayNameTR(dayIndex: number): string {
+  return DAY_NAMES_TR[dayOfWeek(dayIndex)];
+}
+
+/** Katılım kuralı: serbest / kategori sıralaması ilk 16 / milli takım ilk 4. */
 export type Qualification = "OPEN" | "TOP16" | "TOP4";
 
 export interface ScheduledEvent {
@@ -29,24 +52,44 @@ export interface ScheduledEvent {
   qualification: Qualification;
 }
 
-/**
- * Verilen quarter-içi haftada (1..12) düzenlenen organizasyonlar (GDD 17.7–17.8).
- * Yurt içi (İl/Open) her hafta; Türkiye çift haftalarda; uluslararası quarter'da bir kez.
- */
-export function eventsForWeek(week: number): ScheduledEvent[] {
-  const events: ScheduledEvent[] = [
-    { level: "IL", qualification: "OPEN" },
-    { level: "OPEN", qualification: "OPEN" },
-  ];
-  if (week % 2 === 0) events.push({ level: "TURKIYE", qualification: "OPEN" });
-  if (week === 4) events.push({ level: "SATELLITE", qualification: "TOP16" });
-  if (week === 8) events.push({ level: "GRAND_PRIX", qualification: "TOP16" });
-  if (week === 10) events.push({ level: "EUROPEAN", qualification: "TOP4" });
-  if (week === 12) events.push({ level: "WORLD_CUP", qualification: "TOP4" });
-  return events;
+/** Bir günün etkinliği: antrenman (plan seansı), dinlenme veya turnuva. */
+export type DayActivity =
+  | { kind: "TRAINING"; slot: number } // slot: hangi plan seansı (Pzt=0, Çrş=1, Cuma=2, Pazar=3)
+  | { kind: "TOURNAMENT"; level: TournamentLevel; qualification: Qualification };
+
+/** Uluslararası organizasyonun düzenlendiği ay (Pazar günü), yılda bir kez. */
+const INTERNATIONAL_BY_MONTH: Record<number, ScheduledEvent> = {
+  4: { level: "SATELLITE", qualification: "TOP16" },
+  6: { level: "EUROPEAN", qualification: "TOP4" },
+  8: { level: "GRAND_PRIX", qualification: "TOP16" },
+  10: { level: "WORLD_CUP", qualification: "TOP4" },
+};
+
+/** Verilen global günün etkinliği (sabit haftalık program). */
+export function activityForDay(dayIndex: number): DayActivity {
+  const dow = dayOfWeek(dayIndex);
+  switch (dow) {
+    case 0: // Pazartesi
+      return { kind: "TRAINING", slot: 0 };
+    case 1: // Salı
+      return { kind: "TOURNAMENT", level: "IL", qualification: "OPEN" };
+    case 2: // Çarşamba
+      return { kind: "TRAINING", slot: 1 };
+    case 3: // Perşembe
+      return { kind: "TOURNAMENT", level: "TURKIYE", qualification: "OPEN" };
+    case 4: // Cuma
+      return { kind: "TRAINING", slot: 2 };
+    case 5: // Cumartesi
+      return { kind: "TOURNAMENT", level: "OPEN", qualification: "OPEN" };
+    default: {
+      // Pazar: uluslararası varsa turnuva, yoksa antrenman (4. seans)
+      const intl = INTERNATIONAL_BY_MONTH[monthOfQuarter(dayIndex)];
+      return intl ? { kind: "TOURNAMENT", ...intl } : { kind: "TRAINING", slot: 3 };
+    }
+  }
 }
 
-/** Quarter Ranking pozisyonuna göre katılım hakkı (GDD 17.29–17.34). */
+/** Kategori sıralaması pozisyonuna göre katılım hakkı (GDD 17.29–17.34). */
 export function qualifies(qualification: Qualification, rankingPosition: number | null): boolean {
   if (qualification === "OPEN") return true;
   if (rankingPosition == null) return false;
@@ -60,7 +103,7 @@ export function qualificationLabel(qualification: Qualification): string {
     case "OPEN":
       return "Herkese açık";
     case "TOP16":
-      return "Quarter Ranking ilk 16";
+      return "Klasman ilk 16";
     case "TOP4":
       return "Milli takım (ilk 4)";
   }

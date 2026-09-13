@@ -19,6 +19,7 @@ const ITEMS: NavItem[] = [
   { href: "/kariyer", label: "Profil", icon: "👤" },
   { href: "/kariyer/antrenman", label: "Antrenman", icon: "🏋️" },
   { href: "/kariyer/turnuvalar", label: "Turnuvalar", icon: "🏆" },
+  { href: "/kariyer/klasman", label: "Klasman", icon: "📊" },
   { href: "/kariyer/kulup", label: "Kulüp", icon: "🏛️" },
   { href: "/kariyer/ekipman", label: "Ekipman", icon: "🗡️" },
   { href: "/kariyer/gecmis", label: "Kariyer Geçmişi", icon: "📜" },

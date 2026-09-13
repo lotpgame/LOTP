@@ -57,7 +57,7 @@ model Player {
   isAI    Boolean @default(false) // insan mı AI mı — aynı yapı (GDD 8.53)
   fatigue Float   @default(0) // 0–100, döngüde değişir (GDD 6.12)
   sharpness            Float @default(50) // 0–100 keskinlik (GDD 14.81)
-  injuryWeeksRemaining Int   @default(0) // >0 ise INJURED; her hafta azalır (GDD 8.18)
+  injuryDaysRemaining Int   @default(0) // >0 ise INJURED; her gün azalır (GDD 8.18)
 
   // Gelişim çevresi (M6)
   traits     String @default("") // virgülle ayrık trait anahtarları (GDD 10)
@@ -132,11 +132,7 @@ model GameState {
   humanPlayerId Int      @unique
   seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
   currentDate   DateTime // oyun-içi tarih (gösterim)
-  weekIndex     Int      @default(0) // 0-tabanlı global hafta; quarter/hafta buradan türetilir
-  // Bekleyen turnuva kaydı (GDD 17.20 "Katıl"). Online'da sunucu saatiyle otomatik oynanır;
-  // tek-oyuncuda "Haftayı İlerle" bu haftaya gelince oynatır.
-  pendingLevel     String? // kayıtlı turnuva seviyesi (IL/OPEN/...)
-  pendingWeekIndex Int? // turnuvanın oynanacağı global hafta
+  dayIndex      Int      @default(0) // 0-tabanlı global GÜN; quarter/ay/gün buradan türetilir
   // Canlı (devam eden) turnuva durumu (GDD 18.54): maç-maç oynanır, her maçın kendi taktiği.
   // JSON blob (combatant anlık görüntüsü + pul/eleme ilerlemesi + oynanan maçlar). Bitince temizlenir.
   liveTournament String?

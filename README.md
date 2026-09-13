@@ -89,7 +89,9 @@ teker teker açılır, **her maçın kendi taktiği** (ofansif/dengeli/defansif,
 etkileşir), eleme tur tur; turnuva-içi gerçekçi saat, kariyer saati turnuva boyunca durur;
 panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim **"pul"** (poule);
 **mobil öncelikli arayüz** — üstte ad + avatar, gizli/açılır **☰ menü** (Profil / Antrenman /
-Turnuvalar / Kulüp / Ekipman / Geçmiş sayfaları).
+Turnuvalar / Klasman / Kulüp / Ekipman / Geçmiş sayfaları); **gün-bazlı zaman** — Q=1 oyun yılı,
+12 ay (h1–h12), her ay 7 günlük sabit program (Salı İl · Perşembe Türkiye · Cmt Open · uluslararası
+yılda 1); alt çubuktan **İlerle** (antrenmanları uygular, turnuva gününde durur) → **Katıl / Geç**.
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
 §B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi

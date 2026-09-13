@@ -24,7 +24,6 @@ import {
   growSkill,
   overall,
   type PlayerSkills,
-  type SkillKey,
   type SkillValue,
 } from "@/engine/skill";
 import {
@@ -46,12 +45,15 @@ import {
 } from "@/engine/tournament";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
 import {
-  WEEKS_PER_QUARTER,
-  eventsForWeek,
+  DAYS_PER_MONTH,
+  DAYS_PER_QUARTER,
+  MONTHS_PER_QUARTER,
+  activityForDay,
+  dayNameTR,
+  monthOfQuarter,
   qualificationLabel,
   qualifies,
   quarterOf,
-  weekInQuarter,
 } from "@/engine/season";
 import {
   COMPETITION_SHARPNESS_GAIN,
@@ -95,9 +97,11 @@ import {
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
-const AI_DAILY_RECOVERY = 12;
+const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı)
 const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
+// Varsayılan haftalık plan: 4 antrenman günü (Pazartesi / Çarşamba / Cuma / Pazar).
+const DEFAULT_PLAN = "TECHNICAL,PHYSICAL,TACTICAL,REST";
 
 // ---------- yardımcılar ----------
 
@@ -188,27 +192,25 @@ function baseIdentity(human: { gender: string; weapon: string; birthDate: Date }
 
 // ---------- DTO'lar ----------
 
-/** Bu quarter'da yaklaşan bir turnuva (kayıt için) (GDD 17.19–17.34). */
-export interface UpcomingTournamentDTO {
+/** Sezon takviminde bir turnuva (gün-bazlı program, gösterim). */
+export interface SeasonEventDTO {
   level: TournamentLevel;
   label: string;
-  weekIndex: number; // global hafta
-  weekInQuarter: number; // 1..12
-  dateLabel: string; // "13 Nis 2026"
+  month: number; // h1..h12
+  dayName: string; // Salı / Perşembe / Cumartesi / Pazar
   qualified: boolean;
-  requirement: string; // katılım kuralı (kilit sebebi)
-  registered: boolean; // bu turnuvaya kayıtlı mıyım?
-  past: boolean; // bu hafta geçti mi (bu quarter'da tekrar oynanmaz)
+  requirement: string;
 }
 
-/** Bekleyen turnuva kaydı (GDD 17.20). */
-export interface RegistrationDTO {
-  level: TournamentLevel;
-  label: string;
-  weekIndex: number;
-  weekInQuarter: number;
-  dateLabel: string;
-  weeksAway: number; // kaç hafta sonra (0 = bu hafta)
+/** Bugünün etkinliği (gün-bazlı akış: antrenman ya da turnuva). */
+export interface TodayDTO {
+  dayName: string;
+  kind: "TRAINING" | "TOURNAMENT";
+  trainingLabel?: string; // antrenman günü: o seansın etiketi
+  level?: TournamentLevel; // turnuva günü
+  label?: string;
+  qualified?: boolean;
+  requirement?: string;
 }
 
 export interface CareerDTO {
@@ -223,11 +225,12 @@ export interface CareerDTO {
   fatigue: number;
   sharpness: number;
   injured: boolean;
-  injuryWeeksRemaining: number;
+  injuryDaysRemaining: number;
   currentDate: string;
-  quarter: number;
-  week: number; // quarter içindeki hafta (1..12)
-  nationalTeam: boolean; // Quarter Ranking ilk 4 (GDD 17.32)
+  quarter: number; // oyun yılı
+  month: number; // h1..h12 (oyun ayı)
+  dayName: string; // Pazartesi..Pazar
+  nationalTeam: boolean; // kategori sıralaması ilk 4 (GDD 17.32)
   overall: number;
   // Gelişim çevresi (M6)
   traits: string[]; // Türkçe etiketler
@@ -238,14 +241,12 @@ export interface CareerDTO {
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
-  trainingPlan: string[]; // kayıtlı haftalık plan (3 seans)
+  trainingPlan: string[]; // haftalık plan: 4 antrenman günü (Pzt/Çrş/Cuma/Pazar)
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
-  // Turnuva akışı (GDD 17.20): bu quarter'daki turnuvalar + bekleyen kayıt.
-  upcomingTournaments: UpcomingTournamentDTO[];
-  registration: RegistrationDTO | null;
-  dueThisWeek: boolean; // kayıtlı turnuva bu hafta → "Haftayı İlerle" turnuvaya götürür
+  today: TodayDTO; // bugünün etkinliği (İlerle/Katıl/Geç için)
+  seasonCalendar: SeasonEventDTO[]; // bu yılın turnuva takvimi (h1..h12)
 }
 
 // ---------- işlemler ----------
@@ -392,8 +393,8 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const { gs, human } = state;
 
   const skills = rowsToSkills(human.skills);
-  const quarter = quarterOf(gs.weekIndex);
-  const week = weekInQuarter(gs.weekIndex);
+  const quarter = quarterOf(gs.dayIndex);
+  const month = monthOfQuarter(gs.dayIndex);
   const base = baseIdentity(human);
   const categoryId = base.categoryId;
   const age = base.age + (quarter - 1); // 1 quarter = 1 oyun yılı (GDD 17.5)
@@ -401,40 +402,56 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const ranking = await buildRankingView(categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   const nationalTeam = humanRank != null && humanRank <= 4;
-  const injured = human.injuryWeeksRemaining > 0;
+  const injured = human.injuryDaysRemaining > 0;
+  const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
 
-  // Bu quarter'da (bu haftadan quarter sonuna) düzenlenen tüm turnuvalar — kayıt için (GDD 17.19).
-  const qEnd = quarterEndWeekIndex(gs.weekIndex);
-  const upcomingTournaments: UpcomingTournamentDTO[] = [];
-  for (let wi = Math.floor(gs.weekIndex / WEEKS_PER_QUARTER) * WEEKS_PER_QUARTER; wi <= qEnd; wi++) {
-    const wq = weekInQuarter(wi);
-    for (const e of eventsForWeek(wq)) {
-      upcomingTournaments.push({
-        level: e.level,
-        label: TOURNAMENT_LABEL_TR[e.level],
-        weekIndex: wi,
-        weekInQuarter: wq,
-        dateLabel: trDateLabel(weekDate(wi)),
-        qualified: !injured && qualifies(e.qualification, humanRank),
-        requirement: qualificationLabel(e.qualification),
-        registered: gs.pendingLevel === e.level && gs.pendingWeekIndex === wi,
-        past: wi < gs.weekIndex,
+  // Bugünün etkinliği (gün-bazlı program).
+  const act = activityForDay(gs.dayIndex);
+  const today: TodayDTO =
+    act.kind === "TRAINING"
+      ? {
+          dayName: dayNameTR(gs.dayIndex),
+          kind: "TRAINING",
+          trainingLabel: TRAINING_LABEL_TR[(planArr[act.slot] ?? "REST") as TrainingType],
+        }
+      : {
+          dayName: dayNameTR(gs.dayIndex),
+          kind: "TOURNAMENT",
+          level: act.level,
+          label: TOURNAMENT_LABEL_TR[act.level],
+          qualified: !injured && qualifies(act.qualification, humanRank),
+          requirement: qualificationLabel(act.qualification),
+        };
+
+  // Bu yılın turnuva takvimi: haftalık (her ay) + uluslararası (yılda 1). GDD 17.7.
+  const yearStart = Math.floor(gs.dayIndex / DAYS_PER_QUARTER) * DAYS_PER_QUARTER;
+  const seasonCalendar: SeasonEventDTO[] = [];
+  for (const dow of [1, 3, 5]) {
+    const a = activityForDay(yearStart + dow);
+    if (a.kind === "TOURNAMENT") {
+      seasonCalendar.push({
+        level: a.level,
+        label: TOURNAMENT_LABEL_TR[a.level],
+        month: 0, // 0 = her ay
+        dayName: dayNameTR(yearStart + dow),
+        qualified: qualifies(a.qualification, humanRank),
+        requirement: qualificationLabel(a.qualification),
       });
     }
   }
-
-  let registration: RegistrationDTO | null = null;
-  if (gs.pendingLevel != null && gs.pendingWeekIndex != null) {
-    registration = {
-      level: gs.pendingLevel as TournamentLevel,
-      label: TOURNAMENT_LABEL_TR[gs.pendingLevel as TournamentLevel],
-      weekIndex: gs.pendingWeekIndex,
-      weekInQuarter: weekInQuarter(gs.pendingWeekIndex),
-      dateLabel: trDateLabel(weekDate(gs.pendingWeekIndex)),
-      weeksAway: gs.pendingWeekIndex - gs.weekIndex,
-    };
+  for (let m = 1; m <= MONTHS_PER_QUARTER; m++) {
+    const a = activityForDay(yearStart + (m - 1) * DAYS_PER_MONTH + 6); // ayın Pazar'ı
+    if (a.kind === "TOURNAMENT") {
+      seasonCalendar.push({
+        level: a.level,
+        label: TOURNAMENT_LABEL_TR[a.level],
+        month: m,
+        dayName: "Pazar",
+        qualified: qualifies(a.qualification, humanRank),
+        requirement: qualificationLabel(a.qualification),
+      });
+    }
   }
-  const dueThisWeek = registration != null && registration.weekIndex === gs.weekIndex;
 
   return {
     humanPlayerId: human.id,
@@ -448,10 +465,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
     fatigue: roundSkill(human.fatigue),
     sharpness: roundSkill(human.sharpness),
     injured,
-    injuryWeeksRemaining: human.injuryWeeksRemaining,
+    injuryDaysRemaining: human.injuryDaysRemaining,
     currentDate: gs.currentDate.toISOString(),
     quarter,
-    week,
+    month,
+    dayName: dayNameTR(gs.dayIndex),
     nationalTeam,
     overall: roundSkill(overall(skills)),
     traits: traitLabels(parseTraits(human.traits)),
@@ -478,7 +496,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
     liveTournamentActive: gs.liveTournament != null,
-    trainingPlan: (gs.trainingPlan || "TECHNICAL,PHYSICAL,REST").split(","),
+    trainingPlan: (gs.trainingPlan || DEFAULT_PLAN).split(","),
     physique: (() => {
       const p = computePhysique(geneticsOf(human), age);
       return {
@@ -497,13 +515,12 @@ export async function getCareer(): Promise<CareerDTO | null> {
       potential: roundSkill(skills[def.key].potential),
     })),
     ranking,
-    upcomingTournaments,
-    registration,
-    dueThisWeek,
+    today,
+    seasonCalendar,
   };
 }
 
-/** Menü/başlık + sabit "Haftayı İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
+/** Menü/başlık + sabit "İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
 export interface CareerHeaderDTO {
   name: string;
   code: string;
@@ -513,10 +530,11 @@ export interface CareerHeaderDTO {
   categoryId: string;
   liveTournamentActive: boolean;
   quarter: number;
-  week: number;
+  month: number; // h1..h12
+  dayName: string; // Pazartesi..Pazar
   injured: boolean;
-  injuryWeeksRemaining: number;
-  dueThisWeek: boolean; // kayıtlı turnuva bu hafta → çubuk turnuvaya götürür
+  injuryDaysRemaining: number;
+  today: TodayDTO; // bugünün etkinliği (çubuk İlerle/Katıl/Geç için)
 }
 
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
@@ -524,7 +542,31 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   if (!state) return null;
   const { gs, human } = state;
   const base = baseIdentity(human);
-  const quarter = quarterOf(gs.weekIndex);
+  const quarter = quarterOf(gs.dayIndex);
+  const injured = human.injuryDaysRemaining > 0;
+  const act = activityForDay(gs.dayIndex);
+
+  let today: TodayDTO;
+  if (act.kind === "TRAINING") {
+    const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
+    today = {
+      dayName: dayNameTR(gs.dayIndex),
+      kind: "TRAINING",
+      trainingLabel: TRAINING_LABEL_TR[(planArr[act.slot] ?? "REST") as TrainingType],
+    };
+  } else {
+    const ranking = await buildRankingView(base.categoryId, quarter, human.id);
+    const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+    today = {
+      dayName: dayNameTR(gs.dayIndex),
+      kind: "TOURNAMENT",
+      level: act.level,
+      label: TOURNAMENT_LABEL_TR[act.level],
+      qualified: !injured && qualifies(act.qualification, humanRank),
+      requirement: qualificationLabel(act.qualification),
+    };
+  }
+
   return {
     name: `${human.firstName} ${human.lastName}`,
     code: human.code,
@@ -534,14 +576,15 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     categoryId: base.categoryId,
     liveTournamentActive: gs.liveTournament != null,
     quarter,
-    week: weekInQuarter(gs.weekIndex),
-    injured: human.injuryWeeksRemaining > 0,
-    injuryWeeksRemaining: human.injuryWeeksRemaining,
-    dueThisWeek: gs.pendingLevel != null && gs.pendingWeekIndex === gs.weekIndex,
+    month: monthOfQuarter(gs.dayIndex),
+    dayName: dayNameTR(gs.dayIndex),
+    injured,
+    injuryDaysRemaining: human.injuryDaysRemaining,
+    today,
   };
 }
 
-/** Haftalık antrenman planını kaydeder (sabit "Haftayı İlerle" çubuğu bunu uygular). */
+/** Haftalık antrenman planını kaydeder (sabit "İlerle" çubuğu bunu uygular). */
 export async function setTrainingPlan(slots: TrainingType[]): Promise<void> {
   const gs = await prisma.gameState.findFirst();
   if (!gs) throw new Error("Aktif kariyer yok.");
@@ -568,128 +611,158 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
   }));
 }
 
-export interface WeekSummaryDTO {
-  sessions: string[]; // seansların etiketleri
-  gains: { label: string; delta: number }[];
-  fatigue: number;
-  sharpness: number;
-  injured: boolean;
-  injuryWeeksRemaining: number;
-  currentDate: string;
-}
+const DAY_REST_RECOVERY = 12; // dinlenme (antrenman) gününde yorgunluk azalışı
+const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
+const INJURY_DAYS_PER_WEEK = 4; // rollInjury hafta → gün (gün-bazlı süre)
 
-const REST_RECOVERY = 30; // dinlenme haftası yorgunluk azalışı
-
-/** AI dünyasını + günü ilerleten ortak hafta-sonu işlemleri (tx içinde). */
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
-/**
- * Hafta ilerletme + canlı dünya (GDD 2.17–2.18): AI oyuncular pasif toparlanır ve her hafta
- * hafifçe gelişir (özerk antrenman) → rekabet zamanla sertleşir. Deterministik (seed).
- */
-async function advanceWeekTx(tx: Tx, gs: { id: number; currentDate: Date; weekIndex: number }, seed: string) {
-  await tx.player.updateMany({
-    where: { isAI: true, fatigue: { gt: 0 } },
-    data: { fatigue: { decrement: AI_DAILY_RECOVERY } },
-  });
-  await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
+/** GAME_START + N gün. */
+function dayDate(dayIndex: number): Date {
+  return addDays(GAME_START, dayIndex);
+}
 
-  // AI dünyası gelişir: her AI'nın rastgele bir skill'i azalan verimle biraz artar.
-  const ais = await tx.player.findMany({ where: { isAI: true }, include: { skills: true } });
-  for (const ai of ais) {
-    if (ai.skills.length === 0) continue;
-    const rng = createRng(`${seed}:aidev:${ai.id}:${gs.weekIndex}`);
-    const row = rng.pick(ai.skills);
-    const grown = growSkill(
-      { current: row.current, potential: row.potential, floor: row.floor, ceiling: row.ceiling },
-      0.4,
-      1,
-    );
-    if (grown.current !== row.current) {
-      await tx.playerSkill.update({
-        where: { playerId_key: { playerId: ai.id, key: row.key } },
-        data: { current: grown.current },
-      });
+/**
+ * Canlı dünyayı `toDay` gününe taşır (GDD 2.17–2.18): AI'lar geçen gün kadar pasif toparlanır ve
+ * geçilen her AY'da hafifçe gelişir (özerk antrenman). Deterministik (seed). tx içinde.
+ */
+async function worldAdvanceTx(
+  tx: Tx,
+  gs: { id: number; dayIndex: number },
+  toDay: number,
+  seed: string,
+) {
+  const days = Math.max(0, toDay - gs.dayIndex);
+  if (days > 0) {
+    await tx.player.updateMany({
+      where: { isAI: true, fatigue: { gt: 0 } },
+      data: { fatigue: { decrement: AI_DAILY_RECOVERY * days } },
+    });
+    await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
+  }
+  const fromMonth = Math.floor(gs.dayIndex / DAYS_PER_MONTH);
+  const monthsCrossed = Math.floor(toDay / DAYS_PER_MONTH) - fromMonth;
+  if (monthsCrossed > 0) {
+    const ais = await tx.player.findMany({ where: { isAI: true }, include: { skills: true } });
+    for (const ai of ais) {
+      if (ai.skills.length === 0) continue;
+      for (let m = 0; m < monthsCrossed; m++) {
+        const rng = createRng(`${seed}:aidev:${ai.id}:${fromMonth + m}`);
+        const row = rng.pick(ai.skills);
+        const grown = growSkill(
+          { current: row.current, potential: row.potential, floor: row.floor, ceiling: row.ceiling },
+          0.4,
+          1,
+        );
+        if (grown.current !== row.current) {
+          row.current = grown.current; // aynı AI'da sonraki ay için tutarlı
+          await tx.playerSkill.update({
+            where: { playerId_key: { playerId: ai.id, key: row.key } },
+            data: { current: grown.current },
+          });
+        }
+      }
     }
   }
-
   await tx.gameState.update({
     where: { id: gs.id },
-    data: { currentDate: addDays(gs.currentDate, 7), weekIndex: gs.weekIndex + 1 },
+    data: { dayIndex: toDay, currentDate: dayDate(toDay) },
   });
 }
 
 /**
- * Haftalık antrenman planını uygular (GDD 6: sabah/öğlen/akşam → haftalık 3 seans). Seanslar
- * sırayla işlenir; yorgunluk biriktikçe verim düşer (GDD 14.33). Keskinlik güncellenir, hafta
- * sonunda sakatlık kontrolü yapılır (GDD 14.37). Sakat oyuncu antrenman yapamaz (restWeek).
+ * "İlerle / Geç" — gün-bazlı zaman sürücüsü (GDD 6 + kullanıcı takvimi). Bir sonraki
+ * KATILABİLECEĞİN turnuva gününe kadar ilerler; antrenman günlerini kayıtlı plana göre uygular,
+ * dinlenme/sakatlık günlerinde toparlanır ve turnuva gününde DURUR (Katıl/Geç için). Antrenmanda
+ * sakatlanırsa orada durur. Online'da bu akış sunucu saatiyle otomatik olur.
  */
-export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
+export async function advanceDay(): Promise<AdvanceResult> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
-  if (human.injuryWeeksRemaining > 0) throw new Error("Sakatsın — bu hafta dinlenmelisin.");
-  if (slots.length === 0) throw new Error("En az bir seans seç.");
+  if (gs.liveTournament) return { live: true };
 
-  const quarter = quarterOf(gs.weekIndex);
-  const age = baseIdentity(human).age + (quarter - 1);
+  const base = baseIdentity(human);
+  const startQuarter = quarterOf(gs.dayIndex);
+  const age = base.age + (startQuarter - 1);
+  const ranking = await buildRankingView(base.categoryId, startQuarter, human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean) as TrainingType[];
 
-  // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman (koç seansa özel).
+  // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
   const psych = psychologyOf(human);
   const envMult =
     traitTrainingMultiplier(parseTraits(human.traits)) *
     psychologyTrainingMultiplier(psych) *
     (human.club ? clubTrainingMultiplier(human.club.facility) : 1) *
     equipmentTrainingMultiplier(human.equipmentLevel);
-  // Vücut ağırlığı/yapısı → hız gelişimine etki (ağır yavaş, hafif hızlı).
   const speedMult = speedTrainingMultiplier(human.buildFactor);
 
   let skills = rowsToSkills(human.skills);
   let fatigue = human.fatigue;
   let sharpness = human.sharpness;
+  let injuryDays = human.injuryDaysRemaining;
+  let d = gs.dayIndex;
   let restSessions = 0;
-  const totalGains: Partial<Record<SkillKey, number>> = {};
-  const sessions: string[] = [];
+  let injuredNow = false;
 
-  for (const type of slots) {
-    const coachMult = human.club
-      ? coachTrainingMultiplier(
-          human.club.coachSkill,
-          human.club.coachSpecialty as SkillCategory,
-          type,
-        )
-      : 1;
-    const res = applyTraining(skills, {
-      type,
-      age,
-      currentFatigue: fatigue,
-      efficiencyMultiplier: envMult * coachMult,
-      skillMultipliers: { speed: speedMult },
-    });
-    skills = res.skills;
-    fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
+  // (1) Bulunduğun gün turnuva ise (sağlıklıysan): İlerle = onu GEÇ.
+  if (injuryDays === 0 && activityForDay(d).kind === "TOURNAMENT") d++;
+
+  // (2) Sonraki katılabilir turnuvaya kadar günleri tüket.
+  for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
+    if (injuryDays > 0) {
+      fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
+      injuryDays--;
+      d++;
+      continue;
+    }
+    const act = activityForDay(d);
+    if (act.kind === "TOURNAMENT") {
+      if (qualifies(act.qualification, humanRank)) break; // burada dur → Katıl/Geç
+      d++; // uygun değil (uluslararası) → geç
+      continue;
+    }
+    // Antrenman günü (plan seansı)
+    const type = planArr[act.slot] ?? "REST";
+    if (type === "REST") {
+      fatigue = clamp(fatigue - DAY_REST_RECOVERY, 0, 100);
+      restSessions++;
+    } else {
+      const coachMult = human.club
+        ? coachTrainingMultiplier(human.club.coachSkill, human.club.coachSpecialty as SkillCategory, type)
+        : 1;
+      const res = applyTraining(skills, {
+        type,
+        age,
+        currentFatigue: fatigue,
+        efficiencyMultiplier: envMult * coachMult,
+        skillMultipliers: { speed: speedMult },
+      });
+      skills = res.skills;
+      fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
+    }
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
-    if (type === "REST") restSessions++;
-    sessions.push(TRAINING_LABEL_TR[type]);
-    for (const [k, d] of Object.entries(res.gains)) {
-      totalGains[k as SkillKey] = (totalGains[k as SkillKey] ?? 0) + (d ?? 0);
+    d++;
+
+    // Sakatlık kontrolü: yalnız gerçek antrenmanda, advance başına en çok bir kez (GDD 14.37).
+    if (type !== "REST" && !injuredNow) {
+      const inj = rollInjury(createRng(`${gs.seed}:injury:${d}`), fatigue, age);
+      if (inj.injured) {
+        injuryDays = inj.weeks * INJURY_DAYS_PER_WEEK;
+        injuredNow = true;
+        break;
+      }
     }
   }
 
-  // Psikoloji haftalık güncelleme (GDD 6.13).
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
-  // Hafta sonu sakatlık kontrolü (deterministik: seed + hafta).
-  const injuryRng = createRng(`${gs.seed}:injury:${gs.weekIndex}`);
-  const injury = rollInjury(injuryRng, fatigue, age);
-
-  const labelByKey = new Map<string, string>(SKILLS.map((s) => [s.key, s.label]));
-
   await prisma.$transaction(async (tx) => {
-    for (const key of Object.keys(totalGains)) {
+    for (const def of SKILLS) {
       await tx.playerSkill.update({
-        where: { playerId_key: { playerId: human.id, key } },
-        data: { current: skills[key as SkillKey].current },
+        where: { playerId_key: { playerId: human.id, key: def.key } },
+        data: { current: skills[def.key].current },
       });
     }
     await tx.player.update({
@@ -701,58 +774,35 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
         motivation: nextPsych.motivation,
         confidence: nextPsych.confidence,
         stress: nextPsych.stress,
-        status: injury.injured ? "INJURED" : human.status,
-        injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
+        status: injuryDays > 0 ? "INJURED" : "ACTIVE",
+        injuryDaysRemaining: injuryDays,
       },
     });
-    await advanceWeekTx(tx, gs, gs.seed);
+    await worldAdvanceTx(tx, gs, d, gs.seed);
   });
 
-  return {
-    sessions,
-    gains: Object.entries(totalGains).map(([key, delta]) => ({
-      label: labelByKey.get(key) ?? key,
-      delta: Math.round((delta ?? 0) * 100) / 100,
-    })),
-    fatigue: roundSkill(fatigue),
-    sharpness: roundSkill(sharpness),
-    injured: injury.injured,
-    injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
-    currentDate: addDays(gs.currentDate, 7).toISOString(),
-  };
+  return {};
 }
 
 /**
- * Bir hafta dinlenir: yorgunluk azalır, keskinlik biraz düşer (detraining, GDD 14.81),
- * sakatlık varsa bir hafta iyileşir. Her durumda hafta ilerler.
+ * Bugünkü turnuvaya KATILIR: canlı turnuvayı başlatır (maç-maç oynanır). Uygunluk + sakatlık
+ * kontrolü burada. Turnuva bitince (finalizeLive) bir gün ilerler.
  */
-export async function restWeek(): Promise<WeekSummaryDTO> {
+export async function attendTournament(): Promise<AdvanceResult> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
-
-  const fatigue = clamp(human.fatigue - REST_RECOVERY, 0, 100);
-  const sharpness = applySharpness(human.sharpness, -3);
-  const injuryWeeksRemaining = Math.max(0, human.injuryWeeksRemaining - 1);
-  const status = injuryWeeksRemaining > 0 ? "INJURED" : "ACTIVE";
-
-  await prisma.$transaction(async (tx) => {
-    await tx.player.update({
-      where: { id: human.id },
-      data: { fatigue, sharpness, status, injuryWeeksRemaining },
-    });
-    await advanceWeekTx(tx, gs, gs.seed);
-  });
-
-  return {
-    sessions: ["Dinlenme"],
-    gains: [],
-    fatigue: roundSkill(fatigue),
-    sharpness: roundSkill(sharpness),
-    injured: injuryWeeksRemaining > 0,
-    injuryWeeksRemaining,
-    currentDate: addDays(gs.currentDate, 7).toISOString(),
-  };
+  if (gs.liveTournament) return { live: true };
+  if (human.injuryDaysRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
+  const act = activityForDay(gs.dayIndex);
+  if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
+  const ranking = await buildRankingView(baseIdentity(human).categoryId, quarterOf(gs.dayIndex), human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  if (!qualifies(act.qualification, humanRank)) {
+    throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
+  }
+  await startLiveTournament(gs, human, act.level);
+  return { live: true };
 }
 
 /** Ekipmanı bir seviye yükseltir (Economy: parayla, GDD 15/16). Hafta ilerletmez. */
@@ -1301,12 +1351,12 @@ function finishBracketBulk(ls: LiveState): void {
  * sırayla oynanır. Kayıt tüketilir; hafta turnuva bitince ilerler (finalize).
  */
 export async function startLiveTournament(
-  gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
 ): Promise<void> {
-  const quarter = quarterOf(gs.weekIndex);
-  const week = weekInQuarter(gs.weekIndex);
+  const quarter = quarterOf(gs.dayIndex);
+  const week = monthOfQuarter(gs.dayIndex); // "hafta" alanı artık ayı (h1..h12) saklar
   const base = baseIdentity(human);
 
   const aiPlayers = await prisma.player.findMany({
@@ -1411,7 +1461,7 @@ export async function startLiveTournament(
 
   await prisma.gameState.update({
     where: { id: gs.id },
-    data: { liveTournament: JSON.stringify(ls), pendingLevel: null, pendingWeekIndex: null },
+    data: { liveTournament: JSON.stringify(ls) },
   });
 }
 
@@ -1484,7 +1534,7 @@ export async function leaveLiveTournament(): Promise<void> {
 
 /** Canlı turnuva bitince kalıcılaştırır (permanent tablolar + ekonomi/ranking/başarı + hafta ilerler). */
 async function finalizeLive(
-  gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   ls: LiveState,
 ): Promise<void> {
@@ -1640,15 +1690,15 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
 
 /** Canlı turnuva bitince kalıcılaştırır: permanent tablolar + ekonomi/ranking/başarı + hafta ilerler. */
 async function finalizeTournament(
-  gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
   base: ReturnType<typeof baseIdentity>,
   outcome: TournamentOutcome,
   seedKey: string,
 ): Promise<{ id: number; earnedPoints: number; newRank: number | null }> {
-  const quarter = quarterOf(gs.weekIndex);
-  const week = weekInQuarter(gs.weekIndex);
+  const quarter = quarterOf(gs.dayIndex);
+  const week = monthOfQuarter(gs.dayIndex); // Tournament.week alanı artık ayı saklar
   const categoryId = base.categoryId;
   const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
   const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
@@ -1725,7 +1775,7 @@ async function finalizeTournament(
         confidence: postPsych.confidence,
         stress: postPsych.stress,
         status: injury.injured ? "INJURED" : human.status,
-        injuryWeeksRemaining: injury.injured ? injury.weeks : 0,
+        injuryDaysRemaining: injury.injured ? injury.weeks * INJURY_DAYS_PER_WEEK : 0,
       },
     });
 
@@ -1780,12 +1830,8 @@ async function finalizeTournament(
       });
     }
 
-    await advanceWeekTx(tx, gs, gs.seed);
-    // Bekleyen kaydı temizle (turnuva oynandı).
-    await tx.gameState.update({
-      where: { id: gs.id },
-      data: { pendingLevel: null, pendingWeekIndex: null },
-    });
+    // Turnuva gününden bir sonraki güne geç (dünya + gün ilerler).
+    await worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed);
     return { id: tournament.id, humanNewRank };
   });
 
@@ -1796,95 +1842,6 @@ async function finalizeTournament(
   };
 }
 
-/** GAME_START + N hafta (currentDate ile tutarlı). */
-function weekDate(weekIndex: number): Date {
-  return addDays(GAME_START, weekIndex * 7);
-}
-
-const TR_MONTHS = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
-/** "13 Nis 2026" — sunucuda deterministik Türkçe tarih etiketi. */
-function trDateLabel(d: Date): string {
-  return `${d.getUTCDate()} ${TR_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
-
-function quarterEndWeekIndex(weekIndex: number): number {
-  return Math.floor(weekIndex / WEEKS_PER_QUARTER) * WEEKS_PER_QUARTER + (WEEKS_PER_QUARTER - 1);
-}
-
-/**
- * Bir turnuvaya kaydolur (GDD 17.20 "Katıl"). Uygunluk şimdi kontrol edilir; turnuva vakti
- * gelince `advanceWeek` oynatır. Online'da sunucu saati oynatır — kayıt aynı kalır.
- */
-export async function registerTournament(level: TournamentLevel, weekIndex: number): Promise<void> {
-  const state = await loadState();
-  if (!state) throw new Error("Aktif kariyer yok.");
-  const { gs, human } = state;
-  if (human.injuryWeeksRemaining > 0) throw new Error("Sakatsın — kayıt olamazsın.");
-  if (weekIndex < gs.weekIndex) throw new Error("Geçmiş bir haftaya kayıt olunamaz.");
-  if (quarterOf(weekIndex) !== quarterOf(gs.weekIndex)) throw new Error("Yalnız bu quarter'a kayıt olunabilir.");
-
-  const scheduled = eventsForWeek(weekInQuarter(weekIndex)).find((e) => e.level === level);
-  if (!scheduled) throw new Error("O hafta bu turnuva yok.");
-
-  const base = baseIdentity(human);
-  const ranking = await buildRankingView(base.categoryId, quarterOf(gs.weekIndex), human.id);
-  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  if (!qualifies(scheduled.qualification, humanRank)) {
-    throw new Error(`Katılım hakkın yok — ${qualificationLabel(scheduled.qualification)}.`);
-  }
-
-  await prisma.gameState.update({
-    where: { id: gs.id },
-    data: { pendingLevel: level, pendingWeekIndex: weekIndex },
-  });
-}
-
-/** Bekleyen turnuva kaydını iptal eder. */
-export async function cancelRegistration(): Promise<void> {
-  const gs = await prisma.gameState.findFirst();
-  if (!gs) return;
-  await prisma.gameState.update({
-    where: { id: gs.id },
-    data: { pendingLevel: null, pendingWeekIndex: null },
-  });
-}
-
 export interface AdvanceResult {
   live?: boolean; // canlı turnuva başladıysa → turnuva ekranına yönlendir
-}
-
-/**
- * Haftayı ilerletir (tek-oyuncu zaman sürücüsü; online'da sunucu saati). Sakatsa dinlenir;
- * kayıtlı turnuvanın haftası geldiyse CANLI turnuvayı başlatır (maç-maç oynanır); aksi halde
- * haftalık antrenman planını uygular. Devam eden canlı turnuva varken haftayı ilerletmez.
- */
-export async function advanceWeek(): Promise<AdvanceResult> {
-  const state = await loadState();
-  if (!state) throw new Error("Aktif kariyer yok.");
-  const { gs, human } = state;
-
-  if (gs.liveTournament) return { live: true }; // zaten turnuvadasın
-
-  if (human.injuryWeeksRemaining > 0) {
-    await restWeek();
-    return {};
-  }
-
-  // Kayıtlı turnuvanın haftası mı? (geçmişte kaldıysa temizle)
-  if (gs.pendingLevel != null && gs.pendingWeekIndex != null) {
-    if (gs.pendingWeekIndex === gs.weekIndex) {
-      await startLiveTournament(gs, human, gs.pendingLevel as TournamentLevel);
-      return { live: true };
-    }
-    if (gs.pendingWeekIndex < gs.weekIndex) {
-      await cancelRegistration(); // kaçırılmış kayıt
-    }
-  }
-
-  // Kayıtlı haftalık planı uygula (sabit "Haftayı İlerle" çubuğu argüman göndermez).
-  const plan = (gs.trainingPlan || "TECHNICAL,PHYSICAL,REST")
-    .split(",")
-    .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
-  await playWeek(plan.length ? plan : (["TECHNICAL", "PHYSICAL", "REST"] as TrainingType[]));
-  return {};
 }
