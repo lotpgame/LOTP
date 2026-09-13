@@ -17,6 +17,7 @@ import {
   leaveLiveTournament,
   playLiveMatch,
   resetCareer,
+  revealPool,
   setTrainingPlan,
   upgradeEquipment,
 } from "@/server/careerService";
@@ -71,6 +72,12 @@ export async function playLiveMatchAction(formData: FormData): Promise<void> {
   const tactic = String(formData.get("tactic") ?? "") as Tactic;
   if (!TACTICS.includes(tactic)) throw new Error("Geçersiz taktik");
   await playLiveMatch(tactic);
+  revalidatePath("/turnuva/canli");
+}
+
+/** Son pul maçı izlendikten sonra pul sonucunu açar. */
+export async function revealPoolAction(): Promise<void> {
+  await revealPool();
   revalidatePath("/turnuva/canli");
 }
 

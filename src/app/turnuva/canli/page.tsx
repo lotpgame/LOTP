@@ -4,6 +4,7 @@ import {
   enterBracketAction,
   leaveLiveTournamentAction,
   playLiveMatchAction,
+  revealPoolAction,
 } from "@/app/actions";
 import { TACTICS, TACTIC_DESC_TR, TACTIC_LABEL_TR } from "@/engine/combat";
 import { getLiveTournament } from "@/server/careerService";
@@ -104,8 +105,23 @@ export default async function CanliTurnuvaPage() {
         </section>
       )}
 
+      {/* Pul maçları bitti — son maçı izledikten sonra sonucu aç */}
+      {t.poolAwaitingResult && (
+        <section className="mt-6 rounded-xl border border-sky-500/40 bg-sky-500/10 p-4 text-center">
+          <h2 className="text-lg font-semibold">Pul maçların bitti</h2>
+          <p className="mt-1 text-sm opacity-80">
+            Son maçını izledikten sonra pul sıralamanı ve elemeye kaçıncı sıradan gireceğini gör.
+          </p>
+          <form action={revealPoolAction} className="mt-3">
+            <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
+              Pul sonuçlarını gör →
+            </button>
+          </form>
+        </section>
+      )}
+
       {/* Pul aşamasında kilitli sıradaki maçlar */}
-      {t.phase === "POOL" && t.upcoming.length > 0 && (
+      {t.phase === "POOL" && !t.poolAwaitingResult && t.upcoming.length > 0 && (
         <section className="mt-4">
           <h3 className="text-sm font-semibold opacity-70">Sıradaki pul maçların (kilitli)</h3>
           <ul className="mt-2 space-y-1">

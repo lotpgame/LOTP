@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { leaveLiveTournamentAction } from "@/app/actions";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 
@@ -173,6 +174,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       {/* Nihai sıralama */}
       <FinalStandings standings={t.standings} />
+
+      {/* Alt çıkış — uzun tablodan sonra tekrar kariyere dön */}
+      <div className="mt-8 flex justify-center">
+        <form action={leaveLiveTournamentAction}>
+          <button className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+            🏠 Kariyere Dön
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

@@ -1476,7 +1476,8 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     if (oppId == null) throw new Error("Sıradaki pul maçı yok.");
     simulateOne(ls, ls.humanId, oppId, POOL_TOUCHES, "POOL", `Pul ${humanPoolNumber(ls)}`, tactic, (ls.humanPoolIndex + 1) * 2);
     ls.humanPoolIndex++;
-    if (ls.humanPoolIndex >= ls.humanPoolOppOrder.length) finishPool(ls);
+    // NOT: son maçta pul sonucunu HEMEN hesaplama — kullanıcı maçı izleyip "Sonuçları gör"e basınca
+    // (revealPool) açıklanır. Böylece son maç bitmeden pul aşaması sonucu ekrana düşmez.
     await saveLive(gs.id, ls);
     return;
   }
@@ -1522,6 +1523,16 @@ export async function enterBracket(): Promise<void> {
   ls.deStep = 0;
   openDeRound(ls);
   if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
+  await saveLive(gs.id, ls);
+}
+
+/** Pul maçları bitince (son maç izlendikten sonra) pul sonucunu açar (GDD 17.44). */
+export async function revealPool(): Promise<void> {
+  const live = await loadLive();
+  if (!live) throw new Error("Aktif turnuva yok.");
+  const { gs, ls } = live;
+  if (ls.phase !== "POOL" || ls.humanPoolIndex < ls.humanPoolOppOrder.length) return;
+  finishPool(ls);
   await saveLive(gs.id, ls);
 }
 
@@ -1588,6 +1599,7 @@ export interface LiveTournamentDTO {
   phase: LiveState["phase"];
   poolPlayed: number;
   poolTotal: number;
+  poolAwaitingResult: boolean; // tüm pul maçları oynandı, sonuç henüz açıklanmadı
   played: LiveMatchView[];
   byes: { round: string; timeLabel: string }[];
   pending: { round: string; phase: "POOL" | "DE"; oppName: string; timeLabel: string } | null;
@@ -1654,6 +1666,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     categoryId: ls.categoryId,
     phase: ls.phase,
     poolPlayed: ls.humanPoolIndex,
+    poolAwaitingResult: ls.phase === "POOL" && ls.humanPoolIndex >= ls.humanPoolOppOrder.length,
     poolTotal: ls.humanPoolOppOrder.length,
     played,
     byes,
