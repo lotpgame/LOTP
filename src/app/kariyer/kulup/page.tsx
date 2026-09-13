@@ -42,7 +42,12 @@ export default async function KulupPage() {
                 <div key={i} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
                   <div className="text-sm font-medium">{co.name}</div>
                   <div className="mt-0.5 text-xs opacity-60">
-                    Uzmanlık: {CATEGORY_LABEL_TR[co.spec as SkillCategory] ?? "—"}
+                    Uzmanlık:{" "}
+                    {co.spec
+                      .split(",")
+                      .filter(Boolean)
+                      .map((s) => CATEGORY_LABEL_TR[s as SkillCategory] ?? s)
+                      .join(", ") || "—"}
                   </div>
                 </div>
               ))}

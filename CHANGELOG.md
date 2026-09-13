@@ -78,9 +78,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Klasman sekmesi zenginleşti:** "Türkiye Erkek Epe U10 klasmanında X. sıradasın" cümlesi;
   sıralama tablosunda **kulüp** adları; **yaş/cinsiyet/silah filtresiyle** başka kategorilerin
   klasmanına bakma (çok oyunculuda dolu, `getCategoryRanking`). AI oyunculara da kulüp atanıyor.
-- **Kulüpte 2 antrenör:** her kulüpte eşit yetenekli, farklı uzmanlıkta 2 antrenör (GDD 13);
-  antrenman gününde uzmanlığı türle uyuşan antrenörün bonusu uygulanır. Birden çok kulüp havuzu
-  (şehirler) → AI'lar dağıtılıyor. `Club.coach2Name/coach2Specialty` (migration `two_coaches`).
+- **Kulüpte 2 antrenör, her biri 2 uzmanlık:** her kulüpte eşit yetenekli 2 antrenör; her hocaya
+  4 antrenman türünden 2'si düşer → ikisi birlikte **4 türü de kapsar** (dengeli kulüp portresi, her
+  şehir için). Uzmanlık CSV (`Club.coach2Name/coach2Specialty`, migration `two_coaches`). Birden çok
+  kulüp havuzu (şehirler) → AI'lar dağıtılıyor.
+- **Ekipman sayfasından "Yükselt" kaldırıldı:** şimdilik kulübün tahsis ettiği standart ekipman;
+  seçim/market ileride (sayfada açıklama notu).
 - **Sakatlık gün-bazlı ölçek:** süre 3–9 **oyun günü** (turnuvadan da gelebilir); İlerle ile
   dinlenerek geçilir.
 - **Turnuvaya girmediğin gün artık antrenman yapılır:** "Geç" (bir turnuvayı atlamak) o günü boşa

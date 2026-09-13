@@ -305,9 +305,10 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   const clubRng = createRng(`${seed}:club`);
   const SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
   const COACH_NAMES = ["Ahmet", "Kemal", "Selim", "Hasan", "Murat", "Emre", "Cem", "Okan", "Tuna", "Barış"];
-  // Bir kulüp: 2 antrenör (eşit yetenek, farklı uzmanlık — 4 antrenman türünden 2'si, GDD 13).
+  // Bir kulüp: 2 antrenör (eşit yetenek). Her hocaya 4 antrenman türünden 2'si düşer → ikisi
+  // birlikte 4 türü de kapsar (dengeli kulüp portresi, GDD 13). Uzmanlıklar CSV saklanır.
   const makeClubData = (city: string) => {
-    const specs = clubRng.shuffle(SPECIALTIES);
+    const specs = clubRng.shuffle(SPECIALTIES); // 4 türü karıştır, 2+2 böl
     const skill = clubRng.int(45, 85);
     return {
       name: `${city} Eskrim Kulübü`,
@@ -315,9 +316,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
       facility: clubRng.int(45, 85),
       coachName: `${clubRng.pick(COACH_NAMES)} Hoca`,
       coachSkill: skill,
-      coachSpecialty: specs[0],
+      coachSpecialty: `${specs[0]},${specs[1]}`,
       coach2Name: `${clubRng.pick(COACH_NAMES)} Hoca`,
-      coach2Specialty: specs[1],
+      coach2Specialty: `${specs[2]},${specs[3]}`,
     };
   };
   // Kulüp havuzu: oyuncunun şehri + birkaç farklı şehir (AI'lar bunlara dağıtılır → klasmanda kulüp).
@@ -768,11 +769,12 @@ export async function advanceDay(): Promise<AdvanceResult> {
       fatigue = clamp(fatigue - DAY_REST_RECOVERY, 0, 100);
       restSessions++;
     } else {
-      // İki antrenör: hangisi bu türde uzmansa onun bonusu uygulanır (yoksa temel koçluk).
-      const coachSpec =
-        human.club && (human.club.coachSpecialty === type || human.club.coach2Specialty === type)
-          ? (type as SkillCategory)
-          : null;
+      // İki antrenörün uzmanlıkları (her biri 2 tür) birlikte 4 türü kapsar → bu türde uzman
+      // hoca varsa bonus uygulanır (yoksa temel koçluk).
+      const clubSpecs = human.club
+        ? `${human.club.coachSpecialty},${human.club.coach2Specialty}`.split(",")
+        : [];
+      const coachSpec = clubSpecs.includes(type) ? (type as SkillCategory) : null;
       const coachMult = human.club
         ? coachTrainingMultiplier(human.club.coachSkill, coachSpec, type)
         : 1;
