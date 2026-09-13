@@ -66,6 +66,8 @@ export function applyTraining(
     currentFatigue: number;
     /** Çevre çarpanı (trait × psikoloji × kulüp × koç × ekipman). Varsayılan 1. */
     efficiencyMultiplier?: number;
+    /** Skill'e özel çarpan (ör. ağırlık → hız gelişimi). Varsayılan 1. */
+    skillMultipliers?: Partial<Record<SkillKey, number>>;
   },
 ): TrainingResult {
   const { type, age, currentFatigue } = opts;
@@ -84,7 +86,8 @@ export function applyTraining(
   for (const def of SKILLS) {
     if (def.category !== type) continue;
     const before = next[def.key].current;
-    next[def.key] = growSkill(next[def.key], stimulus, factor);
+    const skillMult = opts.skillMultipliers?.[def.key] ?? 1;
+    next[def.key] = growSkill(next[def.key], stimulus * skillMult, factor);
     const delta = next[def.key].current - before;
     if (delta > 0) gains[def.key] = Math.round(delta * 100) / 100;
   }

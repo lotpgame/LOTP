@@ -88,7 +88,7 @@ export default async function KariyerPage() {
       <p className="mt-2 text-xs opacity-50">{date}</p>
 
       {/* Çevre & Durum */}
-      <section className="mt-6 grid gap-4 sm:grid-cols-2">
+      <section className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
           <h3 className="mb-3 text-sm font-semibold opacity-80">Psikoloji</h3>
           <div className="space-y-2">
@@ -134,6 +134,18 @@ export default async function KariyerPage() {
                 : `Ekipman Yükselt (${c.equipmentUpgradeCost.toFixed(0)} ₺)`}
             </button>
           </form>
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <h3 className="mb-3 text-sm font-semibold opacity-80">Fizik</h3>
+          <ul className="space-y-1 text-sm">
+            <li className="flex justify-between"><span>Boy</span><span className="tabular-nums opacity-70">{c.physique.heightCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>Kulaç (erişim)</span><span className="tabular-nums opacity-70">{c.physique.reachCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>Bacak</span><span className="tabular-nums opacity-70">{c.physique.legLengthCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>Kilo</span><span className="tabular-nums opacity-70">{c.physique.weightKg.toFixed(0)} kg</span></li>
+            <li className="flex justify-between"><span>El</span><span className="opacity-70">{c.physique.leftHanded ? "Solak" : "Sağlak"}</span></li>
+          </ul>
+          <p className="mt-2 text-xs opacity-50">Boy/kilo yaşla gelişir. Kulaç Epe&apos;de avantaj.</p>
         </div>
       </section>
 

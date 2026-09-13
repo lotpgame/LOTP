@@ -6,7 +6,7 @@
  * (yorgunluk etkili) + tuş olasılığı + küçük momentum (GDD 18.33–18.34) + silaha göre anlatım
  * + açıklanabilir analiz. Deterministik (aynı seed → aynı sonuç, GDD 20.30).
  */
-import { clamp, type Weapon } from "../domain";
+import { clamp, type AgeCategory, type Weapon } from "../domain";
 import {
   computeEffectiveStrength,
   winProbability,
@@ -14,6 +14,7 @@ import {
   type StrengthModifier,
 } from "../probability";
 import type { PlayerSkills } from "../skill";
+import { physiqueCombatEdge, type PhysicalProfile } from "../physique";
 
 export interface Combatant {
   id: number;
@@ -23,6 +24,8 @@ export interface Combatant {
   fatigue: number; // 0–100
   sharpness?: number; // 0–100 (keskinlik); verilmezse combat modifier uygulanmaz
   conditionBonus?: number; // psikoloji+trait+ekipman birleşik katkısı (puan)
+  physical?: PhysicalProfile; // boy/kulaç/bacak/yapı/el — verilirse fiziksel erişim avantajı
+  ageCategory?: AgeCategory; // el tercihi avantajının kategoriye bağlılığı için
 }
 
 /** Maç formatları (GDD 18.8): havuz 5 tuş, eleme 15 tuş. */
@@ -74,6 +77,19 @@ export function simulateMatch(
     sharpness: b.sharpness,
     conditionBonus: b.conditionBonus,
   });
+
+  // Fiziksel erişim avantajı (relatif, küçük): kulaç/bacak/yapı/el (GDD 2.7–2.8).
+  if (a.physical && b.physical && a.ageCategory) {
+    const edge = physiqueCombatEdge(a.physical, b.physical, a.weapon, a.ageCategory);
+    if (Math.abs(edge) > 0.05) {
+      const half = Math.round((edge / 2) * 10) / 10;
+      esA.modifiers.push({ label: "Fizik", value: half });
+      esB.modifiers.push({ label: "Fizik", value: -half });
+      esA.total = Math.round((esA.total + half) * 10) / 10;
+      esB.total = Math.round((esB.total - half) * 10) / 10;
+    }
+  }
+
   const baseP = winProbability(esA.total - esB.total);
 
   const log: string[] = [];

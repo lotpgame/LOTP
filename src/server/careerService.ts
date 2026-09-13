@@ -8,6 +8,7 @@
 import { prisma } from "@/db";
 import {
   clamp,
+  computeAge,
   formatPlayerCode,
   roundSkill,
   TOURNAMENT_LABEL_TR,
@@ -75,6 +76,13 @@ import {
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
+import {
+  computePhysique,
+  generateGenetics,
+  speedTrainingMultiplier,
+  type Genetics,
+  type PhysicalProfile,
+} from "@/engine/physique";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
@@ -120,6 +128,34 @@ function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
+}
+
+function geneticsData(g: Genetics) {
+  return {
+    adultHeightCm: g.adultHeightCm,
+    reachBiasCm: g.reachBiasCm,
+    buildFactor: g.buildFactor,
+    leftHanded: g.leftHanded,
+  };
+}
+
+function geneticsOf(p: {
+  adultHeightCm: number;
+  reachBiasCm: number;
+  buildFactor: number;
+  leftHanded: boolean;
+}): Genetics {
+  return {
+    adultHeightCm: p.adultHeightCm,
+    reachBiasCm: p.reachBiasCm,
+    buildFactor: p.buildFactor,
+    leftHanded: p.leftHanded,
+  };
+}
+
+/** Oyuncunun o quarter'daki yaşı (1 quarter = 1 oyun yılı, GDD 17.5). */
+function currentAge(birthDate: Date, quarter: number): number {
+  return computeAge(birthDate, GAME_START) + (quarter - 1);
 }
 
 async function ensureCountry(code: string, name: string): Promise<number> {
@@ -176,6 +212,7 @@ export interface CareerDTO {
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
+  physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
   weekEvents: WeekEventDTO[];
@@ -211,8 +248,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     gameDate: GAME_START,
   });
 
-  // Trait + kulüp/koç (GDD 10, 12, 13) — deterministik.
+  // Trait + kulüp/koç (GDD 10, 12, 13) + fiziksel genetik (GDD 2.7) — deterministik.
   const traits = generateTraits(createRng(`${seed}:traits`), 2);
+  const humanGenetics = generateGenetics(createRng(`${seed}:phys:human`), data.gender);
   const clubRng = createRng(`${seed}:club`);
   const specialties: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
   const city = data.city; // oyuncunun seçtiği şehir → kulübü belirler (GDD 13)
@@ -242,6 +280,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         traits: traits.join(","),
         balance: STARTING_BALANCE,
         clubId: club.id,
+        ...geneticsData(humanGenetics),
         skills: { create: skillCreateData(humanSkills) },
       },
     });
@@ -251,7 +290,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
       data: { code: formatPlayerCode(human.id) },
     });
 
-    for (const spec of aiSpecs) {
+    for (let i = 0; i < aiSpecs.length; i++) {
+      const spec = aiSpecs[i];
+      const aiGenetics = generateGenetics(createRng(`${seed}:phys:ai:${i}`), spec.gender);
       const ai = await tx.player.create({
         data: {
           code: "P-TEMP",
@@ -264,6 +305,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
           nationalityId: countryId,
           isAI: true,
           careerStartDate: GAME_START,
+          ...geneticsData(aiGenetics),
           skills: { create: skillCreateData(spec.skills) },
         },
       });
@@ -373,6 +415,16 @@ export async function getCareer(): Promise<CareerDTO | null> {
     canUpgradeEquipment:
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
+    physique: (() => {
+      const p = computePhysique(geneticsOf(human), age);
+      return {
+        heightCm: p.heightCm,
+        reachCm: p.reachCm,
+        legLengthCm: p.legLengthCm,
+        weightKg: p.weightKg,
+        leftHanded: human.leftHanded,
+      };
+    })(),
     skills: SKILLS.map((def) => ({
       key: def.key,
       label: def.label,
@@ -476,6 +528,8 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
     psychologyTrainingMultiplier(psych) *
     (human.club ? clubTrainingMultiplier(human.club.facility) : 1) *
     equipmentTrainingMultiplier(human.equipmentLevel);
+  // Vücut ağırlığı/yapısı → hız gelişimine etki (ağır yavaş, hafif hızlı).
+  const speedMult = speedTrainingMultiplier(human.buildFactor);
 
   let skills = rowsToSkills(human.skills);
   let fatigue = human.fatigue;
@@ -497,6 +551,7 @@ export async function playWeek(slots: TrainingType[]): Promise<WeekSummaryDTO> {
       age,
       currentFatigue: fatigue,
       efficiencyMultiplier: envMult * coachMult,
+      skillMultipliers: { speed: speedMult },
     });
     skills = res.skills;
     fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
@@ -848,10 +903,22 @@ export async function runTournament(
     weapon: string;
     fatigue: number;
     sharpness: number;
+    birthDate: Date;
+    adultHeightCm: number;
+    reachBiasCm: number;
+    buildFactor: number;
+    leftHanded: boolean;
     skills: SkillRow[];
   }): Combatant => {
     const name = `${p.firstName} ${p.lastName}`;
     nameById.set(p.id, name);
+    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
+    const physical: PhysicalProfile = {
+      reachCm: ph.reachCm,
+      legLengthCm: ph.legLengthCm,
+      buildFactor: p.buildFactor,
+      leftHanded: p.leftHanded,
+    };
     return {
       id: p.id,
       name,
@@ -859,6 +926,8 @@ export async function runTournament(
       skills: rowsToSkills(p.skills),
       fatigue: p.fatigue,
       sharpness: p.sharpness,
+      physical,
+      ageCategory: base.ageCategory,
     };
   };
 
