@@ -77,9 +77,16 @@ verimine ve maç gücüne modifier olarak bağlı.
 
 🎉 **V1 TAMAMLANDI (sürüm 1.0.0)** — M0'dan M8'e uçtan uca çalışan kariyer döngüsü:
 oyuncu oluştur → haftalık antrenman planı (kondisyon/sakatlık) → gerçek FIE turnuvaları
-(havuz + eleme) → Quarter Ranking + milli takım → gelişim çevresi (trait/psikoloji/kulüp/
-koç/ekipman/ekonomi) → canlı AI dünyası + başarılar & kariyer geçmişi. **70 test.**
+(pul + eleme) → Quarter Ranking + milli takım → gelişim çevresi (trait/psikoloji/kulüp/
+koç/ekipman/ekonomi) → canlı AI dünyası + başarılar & kariyer geçmişi. **76 test.**
+
+🛠️ **V1 sonrası oynanış iyileştirmeleri** (playtest, bkz. [`docs/NOTLAR.md`](docs/NOTLAR.md)):
+şehir seçimi → kulüp; fiziksel yapı (boy/kulaç/bacak/kilo/el); **canlı maç izleme** (CM tarzı);
+**turnuva kayıt → bekle → oyna akışı** — "Katıl" ile kaydolursun, tek **"Haftayı İlerle"**
+düğmesi zamanı sürer ve turnuva haftası gelince seni turnuva ekranına götürür (online'da bunu
+sunucu saati yapar); panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim
+**"pul"** (poule).
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
-§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi
-ilerlemesi (U17→U21), fiziksel yapı (boy/kol erimi), multiplayer (PostgreSQL).
+§B "Sonra"). Öne çıkanlar: basit taktik (ofansif/defansif), AI'ların bağımsız turnuvaları +
+emeklilik/yeni nesil, yaş kategorisi ilerlemesi (U17→U21), multiplayer (PostgreSQL).

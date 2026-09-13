@@ -152,7 +152,7 @@ export function simulateTournament(
         const a = { ...pool[i], fatigue: fatigue[pool[i].id] };
         const b = { ...pool[j], fatigue: fatigue[pool[j].id] };
         const r = simulateMatch(a, b, rng, poolTouches);
-        matches.push({ ...r, phase: "POOL", round: `Havuz ${pi + 1}`, aName: a.name, bName: b.name });
+        matches.push({ ...r, phase: "POOL", round: `Pul ${pi + 1}`, aName: a.name, bName: b.name });
         fatigue[a.id] += r.fatigueGain;
         fatigue[b.id] += r.fatigueGain;
 

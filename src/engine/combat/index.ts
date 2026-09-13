@@ -94,7 +94,7 @@ export function simulateMatch(
 
   const log: string[] = [];
   log.push(
-    `Güç — ${a.name}: ${esA.total} · ${b.name}: ${esB.total} (${a.name} kazanma ihtimali %${Math.round(baseP * 100)}).`,
+    `Maç gücü — ${a.name}: ${esA.total} · ${b.name}: ${esB.total} (${a.name} kazanma ihtimali %${Math.round(baseP * 100)}).`,
   );
 
   let scoreA = 0;

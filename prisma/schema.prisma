@@ -132,6 +132,10 @@ model GameState {
   seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
   currentDate   DateTime // oyun-içi tarih (gösterim)
   weekIndex     Int      @default(0) // 0-tabanlı global hafta; quarter/hafta buradan türetilir
+  // Bekleyen turnuva kaydı (GDD 17.20 "Katıl"). Online'da sunucu saatiyle otomatik oynanır;
+  // tek-oyuncuda "Haftayı İlerle" bu haftaya gelince oynatır.
+  pendingLevel     String? // kayıtlı turnuva seviyesi (IL/OPEN/...)
+  pendingWeekIndex Int? // turnuvanın oynanacağı global hafta
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

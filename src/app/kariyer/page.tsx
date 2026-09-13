@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  playWeekAction,
+  advanceWeekAction,
+  cancelRegistrationAction,
+  registerAction,
   resetCareerAction,
   restWeekAction,
-  runTournamentAction,
   upgradeEquipmentAction,
 } from "@/app/actions";
 import {
@@ -77,12 +78,12 @@ export default async function KariyerPage() {
         </div>
       </header>
 
-      {/* Durum özeti */}
+      {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Sezon" value={`Q${c.quarter} · H${c.week}/12`} />
         <Stat label="Genel" value={c.overall.toFixed(1)} />
-        <Stat label="Yorgunluk" value={`${c.fatigue.toFixed(0)}/100`} />
-        <Stat label="Keskinlik" value={`${c.sharpness.toFixed(0)}/100`} />
+        <Stat label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
+        <Stat label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
         <Stat label="Milli Takım" value={c.nationalTeam ? "✔" : "—"} />
       </section>
       <p className="mt-2 text-xs opacity-50">{date}</p>
@@ -164,43 +165,94 @@ export default async function KariyerPage() {
           </form>
         </section>
       ) : (
-        <>
-          {/* Haftalık plan */}
-          <section className="mt-8">
-            <h2 className="text-lg font-semibold">Haftalık Plan</h2>
-            <p className="text-sm opacity-70">
-              Haftanın 3 seansını planla (GDD: sabah/öğlen/akşam). Dinlenme seansı yorgunluğu
-              düşürür ama keskinliği azaltır. Çok yüklenme sakatlık riskini artırır.
-            </p>
-            <form action={playWeekAction} className="mt-3 space-y-3">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {[
-                  { name: "slot1", label: "1. Seans", def: "TECHNICAL" },
-                  { name: "slot2", label: "2. Seans", def: "PHYSICAL" },
-                  { name: "slot3", label: "3. Seans", def: "REST" },
-                ].map((slot) => (
-                  <label key={slot.name} className="block">
-                    <span className="mb-1 block text-xs opacity-60">{slot.label}</span>
-                    <select
-                      name={slot.name}
-                      defaultValue={slot.def}
-                      className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
-                    >
-                      {TRAINING_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {TRAINING_LABEL_TR[t]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                ))}
+        /* Zaman & antrenman — tek "Haftayı İlerle" akışı (CM "Next"). Turnuva haftası gelince
+           ilerlemek seni turnuva ekranına götürür (GDD 6 döngüsü + 17.20). */
+        <section className="mt-8">
+          <h2 className="text-lg font-semibold">Zaman & Antrenman</h2>
+
+          {c.registration && (
+            <div
+              className={`mt-3 flex items-center justify-between gap-3 rounded-xl border p-3 ${
+                c.dueThisWeek
+                  ? "border-emerald-500/50 bg-emerald-500/15"
+                  : "border-sky-500/40 bg-sky-500/10"
+              }`}
+            >
+              <div className="text-sm">
+                {c.dueThisWeek ? (
+                  <>
+                    <span className="font-semibold">🏆 Turnuva bu hafta: {c.registration.label}</span>
+                    <br />
+                    <span className="opacity-70">
+                      İlerle&apos;ye bas → turnuva ekranına geç, pul ve eleme maçlarını izle.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">📅 Kayıtlısın: {c.registration.label}</span>
+                    <br />
+                    <span className="opacity-70">
+                      {c.registration.dateLabel} · {c.registration.weeksAway} hafta sonra (H
+                      {c.registration.weekInQuarter}/12). O haftaya dek antrenman yapabilirsin.
+                    </span>
+                  </>
+                )}
               </div>
-              <button className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
-                Haftayı Tamamla →
-              </button>
-            </form>
-          </section>
-        </>
+              <form action={cancelRegistrationAction}>
+                <button className="shrink-0 rounded-md border border-black/15 px-2.5 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20">
+                  Kaydı iptal
+                </button>
+              </form>
+            </div>
+          )}
+
+          <form action={advanceWeekAction} className="mt-3 space-y-3">
+            {c.dueThisWeek ? (
+              <p className="text-sm opacity-70">
+                Bu hafta yarışma haftan — antrenman yok. &quot;Haftayı İlerle&quot; seni doğrudan
+                turnuvaya götürür.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm opacity-70">
+                  Haftanın 3 seansını planla (GDD: sabah/öğlen/akşam). Dinlenme seansı yorgunluğu
+                  düşürür ama keskinliği azaltır. Çok yüklenme sakatlık riskini artırır.
+                </p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {[
+                    { name: "slot1", label: "1. Seans", def: "TECHNICAL" },
+                    { name: "slot2", label: "2. Seans", def: "PHYSICAL" },
+                    { name: "slot3", label: "3. Seans", def: "REST" },
+                  ].map((slot) => (
+                    <label key={slot.name} className="block">
+                      <span className="mb-1 block text-xs opacity-60">{slot.label}</span>
+                      <select
+                        name={slot.name}
+                        defaultValue={slot.def}
+                        className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
+                      >
+                        {TRAINING_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {TRAINING_LABEL_TR[t]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+            <button
+              className={`rounded-lg px-4 py-2.5 text-sm font-medium text-white transition ${
+                c.dueThisWeek
+                  ? "bg-emerald-600 hover:bg-emerald-500"
+                  : "bg-emerald-600 hover:bg-emerald-500"
+              }`}
+            >
+              {c.dueThisWeek ? "Haftayı İlerle → Turnuvaya Git 🏆" : "Haftayı İlerle →"}
+            </button>
+          </form>
+        </section>
       )}
 
       {/* Skill'ler */}
@@ -222,36 +274,68 @@ export default async function KariyerPage() {
         </div>
       </section>
 
-      {/* Bu haftanın turnuvaları */}
+      {/* Yaklaşan turnuvalar — kayıt (GDD 17.20). Katıl → kayıt olur; o hafta "Haftayı İlerle"
+          seni turnuvaya götürür. Pul → FIE sıralaması → eleme. */}
       <section className="mt-8 rounded-xl border border-black/10 p-4 dark:border-white/15">
-        <h2 className="text-lg font-semibold">Bu Hafta — Turnuvalar</h2>
+        <h2 className="text-lg font-semibold">Yaklaşan Turnuvalar (Q{c.quarter})</h2>
         <p className="text-sm opacity-70">
-          Havuz → FIE sıralaması → eleme. Uluslararası organizasyonlar Quarter Ranking&apos;e göre
-          davetlidir. Katılınca hafta ilerler.
+          Katıl&apos;a bas → turnuvaya kaydolursun. O hafta gelince &quot;Haftayı İlerle&quot; seni
+          turnuva ekranına götürür. Uluslararası organizasyonlar Quarter Ranking&apos;e göre davetlidir.
         </p>
-        <form action={runTournamentAction} className="mt-3 flex flex-col gap-2">
-          {c.weekEvents.map((e) =>
-            e.qualified ? (
-              <button
-                key={e.level}
-                name="level"
-                value={e.level}
-                className="flex items-center justify-between rounded-lg bg-emerald-600 px-4 py-2.5 text-left text-sm font-medium text-white transition hover:bg-emerald-500"
-              >
-                <span>{e.label}</span>
-                <span className="text-xs opacity-80">Katıl →</span>
-              </button>
-            ) : (
-              <div
-                key={e.level}
-                className="flex items-center justify-between rounded-lg border border-black/10 px-4 py-2.5 text-sm opacity-60 dark:border-white/15"
-              >
-                <span>{e.label}</span>
-                <span className="text-xs">🔒 {e.requirement}</span>
-              </div>
-            ),
-          )}
-        </form>
+        <ul className="mt-3 flex flex-col gap-2">
+          {c.upcomingTournaments.map((e) => {
+            const key = `${e.weekIndex}-${e.level}`;
+            const rowInfo = (
+              <span className="min-w-0">
+                <span className="font-medium">{e.label}</span>
+                <span className="ml-2 text-xs opacity-60">
+                  {e.dateLabel} · H{e.weekInQuarter}/12
+                </span>
+              </span>
+            );
+            if (e.registered) {
+              return (
+                <li key={key} className="flex items-center justify-between rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm">
+                  {rowInfo}
+                  <span className="shrink-0 text-xs font-medium text-emerald-600">✓ Kayıtlısın</span>
+                </li>
+              );
+            }
+            if (e.past) {
+              return (
+                <li key={key} className="flex items-center justify-between rounded-lg border border-black/10 px-4 py-2.5 text-sm opacity-40 dark:border-white/15">
+                  {rowInfo}
+                  <span className="shrink-0 text-xs">geçti</span>
+                </li>
+              );
+            }
+            if (!e.qualified) {
+              return (
+                <li key={key} className="flex items-center justify-between rounded-lg border border-black/10 px-4 py-2.5 text-sm opacity-60 dark:border-white/15">
+                  {rowInfo}
+                  <span className="shrink-0 text-xs">🔒 {e.requirement}</span>
+                </li>
+              );
+            }
+            // Kayıtlanabilir: ama tek seferde tek kayıt — mevcut kayıt varsa önce iptal.
+            return (
+              <li key={key} className="flex items-center justify-between gap-2 rounded-lg border border-black/10 px-4 py-2.5 text-sm dark:border-white/15">
+                {rowInfo}
+                {c.registration ? (
+                  <span className="shrink-0 text-xs opacity-50">önce mevcut kaydı iptal et</span>
+                ) : (
+                  <form action={registerAction} className="shrink-0">
+                    <input type="hidden" name="level" value={e.level} />
+                    <input type="hidden" name="weekIndex" value={e.weekIndex} />
+                    <button className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-500">
+                      Katıl →
+                    </button>
+                  </form>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       {/* Quarter Ranking */}
@@ -260,11 +344,19 @@ export default async function KariyerPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, gauge }: { label: string; value: string; gauge?: number }) {
+  // gauge: 0–100, "dolu = iyi" (yüksekken yeşil, düşünce amber/kırmızı) — kondisyon/keskinlik için.
+  const gaugeColor =
+    gauge == null ? "" : gauge >= 50 ? "bg-emerald-500" : gauge >= 25 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/15">
       <div className="text-xs opacity-60">{label}</div>
       <div className="font-semibold">{value}</div>
+      {gauge != null && (
+        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+          <div className={`h-full rounded-full ${gaugeColor}`} style={{ width: `${gauge}%` }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -282,7 +374,7 @@ function StatBar({
     <div>
       <div className="flex items-baseline justify-between text-sm">
         <span>{label}</span>
-        <span className="tabular-nums opacity-70">{value.toFixed(0)}</span>
+        <span className="tabular-nums opacity-70">%{value.toFixed(0)}</span>
       </div>
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
         <div

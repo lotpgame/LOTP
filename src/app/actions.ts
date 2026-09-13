@@ -6,20 +6,20 @@
  */
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { TournamentLevel } from "@/engine/domain";
+import { TOURNAMENT_LABEL_TR, type TournamentLevel } from "@/engine/domain";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
+  advanceWeek,
+  cancelRegistration,
   createCareer,
   hasCareer,
-  playWeek,
+  registerTournament,
   restWeek,
   resetCareer,
-  runTournament,
   upgradeEquipment,
 } from "@/server/careerService";
 
-// M3'te oyuncunun serbestçe katılabileceği yurt içi seviyeler (davet/ranking şartı yok).
-const PLAYABLE_LEVELS: readonly TournamentLevel[] = ["IL", "OPEN", "TURKIYE"];
+const KNOWN_LEVELS = new Set(Object.keys(TOURNAMENT_LABEL_TR));
 
 export async function createCareerAction(formData: FormData): Promise<void> {
   if (await hasCareer()) redirect("/kariyer");
@@ -35,13 +35,16 @@ export async function createCareerAction(formData: FormData): Promise<void> {
   redirect("/kariyer");
 }
 
-export async function playWeekAction(formData: FormData): Promise<void> {
-  // Haftalık plan: 3 seans (boş/geçersiz olanlar atlanır).
+/**
+ * "Haftayı İlerle" — tek-oyuncu zaman sürücüsü (CM "Next" mantığı, GDD 6 döngüsü).
+ * Kayıtlı turnuvanın haftası geldiyse turnuvaya götürür; yoksa haftalık antrenman planını uygular.
+ */
+export async function advanceWeekAction(formData: FormData): Promise<void> {
   const slots = ["slot1", "slot2", "slot3"]
     .map((s) => String(formData.get(s) ?? ""))
     .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
-  if (slots.length === 0) throw new Error("En az bir seans seç");
-  await playWeek(slots);
+  const result = await advanceWeek(slots);
+  if (result.tournamentId != null) redirect(`/turnuva/${result.tournamentId}`);
   revalidatePath("/kariyer");
 }
 
@@ -55,11 +58,20 @@ export async function upgradeEquipmentAction(): Promise<void> {
   revalidatePath("/kariyer");
 }
 
-export async function runTournamentAction(formData: FormData): Promise<void> {
-  const level = String(formData.get("level") ?? "OPEN") as TournamentLevel;
-  if (!PLAYABLE_LEVELS.includes(level)) throw new Error("Geçersiz turnuva seviyesi");
-  const result = await runTournament(level);
-  redirect(`/turnuva/${result.tournamentId}`);
+/** Turnuvaya "Katıl" — kayıt olur; oynanacağı hafta gelince "Haftayı İlerle" oynatır (GDD 17.20). */
+export async function registerAction(formData: FormData): Promise<void> {
+  const level = String(formData.get("level") ?? "") as TournamentLevel;
+  const weekIndex = Number(formData.get("weekIndex"));
+  if (!KNOWN_LEVELS.has(level)) throw new Error("Geçersiz turnuva seviyesi");
+  if (!Number.isInteger(weekIndex) || weekIndex < 0) throw new Error("Geçersiz hafta");
+  await registerTournament(level, weekIndex);
+  revalidatePath("/kariyer");
+}
+
+/** Bekleyen turnuva kaydını iptal eder. */
+export async function cancelRegistrationAction(): Promise<void> {
+  await cancelRegistration();
+  revalidatePath("/kariyer");
 }
 
 export async function resetCareerAction(): Promise<void> {

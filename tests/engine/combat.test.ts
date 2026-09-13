@@ -23,7 +23,7 @@ describe("Combat Engine", () => {
     expect(r1.analysis.winProbA).toBeGreaterThan(0);
     expect(r1.analysis.winProbA).toBeLessThan(1);
     expect(r1.analysis.effA).toBeGreaterThan(r1.analysis.effB); // A daha güçlü
-    expect(r1.log[0]).toContain("Güç"); // açıklanabilir giriş satırı
+    expect(r1.log[0]).toContain("Maç gücü"); // açıklanabilir giriş satırı
   });
 
   it("havuz formatı (5 tuş) daha kısa maç", () => {

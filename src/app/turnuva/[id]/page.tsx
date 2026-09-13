@@ -28,6 +28,11 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
     if (m.phase === "DE" && !deRounds.includes(m.round)) deRounds.push(m.round);
   }
   const yourMatches = t.matches.filter((m) => m.aIsHuman || m.bIsHuman);
+  const yourPool = yourMatches.filter((m) => m.phase === "POOL");
+  const yourDE = yourMatches.filter((m) => m.phase === "DE");
+  // Bay (bye): pul sıralaman yüksekse ilk eleme tur(lar)ını oynamadan geçersin (GDD 17.55).
+  const firstDeRound = yourDE[0]?.round;
+  const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-8">
@@ -38,47 +43,76 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <h1 className="mt-2 text-2xl font-bold">{t.name}</h1>
       <p className="text-sm opacity-70">{t.categoryId}</p>
 
-      {/* Senin maçların — havuz + eleme, sırayla, canlı izlenebilir */}
+      {/* Senin maçların — önce pul, sonra pul sıralaman, sonra eleme; canlı izlenebilir */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Senin Maçların</h2>
         <p className="text-sm opacity-70">
-          Havuz maçlarından başla; elemeye kalırsan o maçları da izle. Sonucu görmeden canlı
-          takip edebilirsin.
+          Önce pul (grup) maçların; pul bitince sıralamanı görürsün, elemeye kalırsan o maçları da
+          izlersin. Sonucu görmeden canlı takip edebilirsin.
         </p>
-        <div className="mt-3 space-y-3">
-          {yourMatches.map((m, i) => (
-            <div key={i}>
-              <div className="mb-1 text-xs font-medium opacity-60">
-                {m.phase === "POOL" ? m.round : `Eleme · ${m.round}`}
-              </div>
-              <CanliMac
-                aName={m.aName}
-                bName={m.bName}
-                scoreA={m.scoreA}
-                scoreB={m.scoreB}
-                log={m.log}
-              />
+
+        {yourPool.length > 0 && (
+          <>
+            <h3 className="mt-4 text-sm font-semibold opacity-70">1) Pul maçların</h3>
+            <div className="mt-2 space-y-3">
+              {yourPool.map((m, i) => (
+                <div key={i}>
+                  <div className="mb-1 text-xs font-medium opacity-60">{m.round}</div>
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
+
+        {/* Pul sonrası sıralama — elemeye hangi seed'den girdiğini gösterir */}
+        {t.yourSeedRank != null && (
+          <div className="mt-4 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3 text-sm">
+            <span className="font-medium">2) Pul sonucu:</span> Pul aşamasını{" "}
+            <span className="font-semibold">{t.yourSeedRank}. sıradan</span> tamamladın → eleme
+            tablosuna bu sıralamayla girdin.
+            {hadBye && (
+              <>
+                {" "}
+                Sıralaman yüksek olduğu için <span className="font-semibold">{deRounds[0]}</span> turunu{" "}
+                <span className="font-semibold">bay (bye)</span> geçtin; ilk maçın{" "}
+                <span className="font-semibold">{firstDeRound}</span>.
+              </>
+            )}
+          </div>
+        )}
+
+        {yourDE.length > 0 && (
+          <>
+            <h3 className="mt-4 text-sm font-semibold opacity-70">3) Eleme maçların</h3>
+            <div className="mt-2 space-y-3">
+              {yourDE.map((m, i) => (
+                <div key={i}>
+                  <div className="mb-1 text-xs font-medium opacity-60">Eleme · {m.round}</div>
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} />
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
         <div className="text-sm opacity-70">Turnuva sonucun</div>
         <div className="text-xl font-semibold">{positionLabel(t.yourPosition)}</div>
         <div className="mt-1 text-sm opacity-70">
-          {t.yourSeedRank ? `Havuz sonrası ${t.yourSeedRank}. sıradan elemeye girdin. ` : ""}
+          {t.yourSeedRank ? `Pul sonrası ${t.yourSeedRank}. sıradan elemeye girdin. ` : ""}
           Şampiyon: {t.championName}
         </div>
       </div>
 
-      {/* Havuzlar */}
+      {/* Pul'lar (grup) */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Havuzlar</h2>
+        <h2 className="text-lg font-semibold">Pul&apos;lar (Grup)</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
           {t.pools.map((pool) => (
             <div key={pool.poolNumber} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
-              <h3 className="mb-2 text-sm font-medium opacity-80">Havuz {pool.poolNumber}</h3>
+              <h3 className="mb-2 text-sm font-medium opacity-80">Pul {pool.poolNumber}</h3>
               <ul className="space-y-1 text-sm">
                 {pool.players.map((p, i) => (
                   <li
