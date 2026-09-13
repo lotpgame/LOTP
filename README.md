@@ -84,7 +84,9 @@ koç/ekipman/ekonomi) → canlı AI dünyası + başarılar & kariyer geçmişi.
 şehir seçimi → kulüp; fiziksel yapı (boy/kulaç/bacak/kilo/el); **canlı maç izleme** (CM tarzı);
 **turnuva kayıt → bekle → oyna akışı** — "Katıl" ile kaydolursun, tek **"Haftayı İlerle"**
 düğmesi zamanı sürer ve turnuva haftası gelince seni turnuva ekranına götürür (online'da bunu
-sunucu saati yapar); **maç taktiği** (ofansif/dengeli/defansif — skill+trait ile etkileşir);
+sunucu saati yapar); **canlı turnuva** — gerçek zamanlı, **maç-maç sıralı** akış: pul maçları
+teker teker açılır, **her maçın kendi taktiği** (ofansif/dengeli/defansif, skill+trait ile
+etkileşir), eleme tur tur; turnuva-içi gerçekçi saat, kariyer saati turnuva boyunca durur;
 panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim **"pul"** (poule).
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,

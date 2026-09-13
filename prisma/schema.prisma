@@ -137,6 +137,9 @@ model GameState {
   // tek-oyuncuda "Haftayı İlerle" bu haftaya gelince oynatır.
   pendingLevel     String? // kayıtlı turnuva seviyesi (IL/OPEN/...)
   pendingWeekIndex Int? // turnuvanın oynanacağı global hafta
+  // Canlı (devam eden) turnuva durumu (GDD 18.54): maç-maç oynanır, her maçın kendi taktiği.
+  // JSON blob (combatant anlık görüntüsü + pul/eleme ilerlemesi + oynanan maçlar). Bitince temizlenir.
+  liveTournament String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

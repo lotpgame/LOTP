@@ -33,8 +33,16 @@ import {
   type TrainingType,
 } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
-import { type Combatant, type Tactic } from "@/engine/combat";
-import { simulateTournament } from "@/engine/tournament";
+import { MATCH_FORMATS, simulateMatch, type Combatant, type Tactic } from "@/engine/combat";
+import {
+  bracketSeedOrder,
+  bracketSize,
+  computePoolSizes,
+  roundLabel,
+  type PoolPlayerResult,
+  type TournamentMatch,
+  type TournamentOutcome,
+} from "@/engine/tournament";
 import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
 import {
   WEEKS_PER_QUARTER,
@@ -82,7 +90,6 @@ import {
   generateGenetics,
   speedTrainingMultiplier,
   type Genetics,
-  type PhysicalProfile,
 } from "@/engine/physique";
 
 /** Oyun başlangıç tarihi (deterministik referans). */
@@ -229,7 +236,7 @@ export interface CareerDTO {
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
-  tactic: Tactic; // maç öncesi taktik tercihi (GDD 18.22)
+  liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: { playerId: number; name: string; points: number; position: number; isHuman: boolean }[];
@@ -468,7 +475,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     canUpgradeEquipment:
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
-    tactic: (human.tactic as Tactic) ?? "BALANCED",
+    liveTournamentActive: gs.liveTournament != null,
     physique: (() => {
       const p = computePhysique(geneticsOf(human), age);
       return {
@@ -712,13 +719,6 @@ export async function upgradeEquipment(): Promise<void> {
   });
 }
 
-/** Maç öncesi taktik tercihini kaydeder (GDD 18.22). Sonraki turnuvanın maçlarında kullanılır. */
-export async function setTactic(tactic: Tactic): Promise<void> {
-  const gs = await prisma.gameState.findFirst();
-  if (!gs) throw new Error("Aktif kariyer yok.");
-  await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { tactic } });
-}
-
 export interface CareerHistoryDTO {
   name: string;
   achievements: { type: string; label: string; detail: string; importance: number; date: string }[];
@@ -930,20 +930,332 @@ function buildPoolsView(
   return pools;
 }
 
+// ===================== CANLI TURNUVA (maç-maç, her maçın kendi taktiği, GDD 18.54) =====================
+// Turnuva ekranında gerçek zamanlı akış: pul maçları sırayla açılır, her maç öncesi taktik seçilir;
+// eleme pul bitince, tur tur açılır. Kariyer/hafta saati turnuva boyunca DURUR; yalnız turnuva bitince
+// (finalizeTournament → advanceWeekTx) ilerler. İlerleme JSON blob'unda (GameState.liveTournament) tutulur
+// → sayfa yenilense de devam. AI maçları toplu simüle edilir (kullanıcı yalnız kendi maçlarını izler).
+
+const BYE = -1;
+const POOL_TOUCHES = MATCH_FORMATS.POOL;
+const DE_TOUCHES = MATCH_FORMATS.DE;
+
+interface LiveCombatant {
+  id: number;
+  name: string;
+  weapon: string;
+  skills: Record<string, number>; // yalnız current
+  sharpness: number;
+  reachCm: number;
+  legLengthCm: number;
+  buildFactor: number;
+  leftHanded: boolean;
+  traits: string[];
+  isHuman: boolean;
+  aiTactic: Tactic;
+  conditionBonus?: number; // yalnız insan
+}
+
+interface LivePlayedMatch {
+  phase: "POOL" | "DE";
+  round: string;
+  aId: number;
+  bId: number;
+  aName: string;
+  bName: string;
+  scoreA: number;
+  scoreB: number;
+  winnerId: number;
+  loserId: number;
+  log: string[];
+  involvesHuman: boolean;
+  humanTactic?: Tactic;
+  timeOffsetMin?: number; // insan maçları için turnuva-içi saat (14:00'dan dakika)
+}
+
+interface LiveDeRound {
+  label: string;
+  slots: number[];
+  winners: (number | null)[]; // pair başına kazanan; null = insanın maçı (bekliyor)
+  humanPairIndex: number;
+  oppId: number;
+  roundSize: number;
+}
+
+interface LiveState {
+  version: 1;
+  level: TournamentLevel;
+  categoryId: string;
+  ageCategory: string;
+  quarter: number;
+  week: number;
+  seedKey: string;
+  startTimeMs: number;
+  humanId: number;
+  combatants: LiveCombatant[];
+  fatigue: Record<number, number>;
+  pools: number[][];
+  humanPoolOppOrder: number[];
+  humanPoolIndex: number;
+  poolEndOffsetMin: number;
+  matches: LivePlayedMatch[];
+  phase: "POOL" | "POOL_DONE" | "DE" | "DONE";
+  ranking?: { playerId: number; seedRank: number }[];
+  poolResults?: PoolPlayerResult[];
+  deSlots?: number[];
+  deRound?: LiveDeRound;
+  deStep: number;
+  byes: { round: string; timeOffsetMin: number }[];
+  standings: { playerId: number; position: number }[];
+  championId?: number;
+  finalTournamentId?: number;
+}
+
+async function loadLive(): Promise<{
+  gs: NonNullable<Awaited<ReturnType<typeof loadState>>>["gs"];
+  human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"];
+  ls: LiveState;
+} | null> {
+  const state = await loadState();
+  if (!state || !state.gs.liveTournament) return null;
+  return { gs: state.gs, human: state.human, ls: JSON.parse(state.gs.liveTournament) as LiveState };
+}
+
+async function saveLive(gsId: number, ls: LiveState): Promise<void> {
+  await prisma.gameState.update({ where: { id: gsId }, data: { liveTournament: JSON.stringify(ls) } });
+}
+
+function nameOf(ls: LiveState, id: number): string {
+  return ls.combatants.find((c) => c.id === id)?.name ?? formatPlayerCode(id);
+}
+
+function humanPoolNumber(ls: LiveState): number {
+  return ls.pools.findIndex((p) => p.includes(ls.humanId)) + 1;
+}
+
+/** Snapshot'tan Combatant kurar (combat için; skills yalnız current kullanılır). */
+function liveCombatant(ls: LiveState, id: number, tacticOverride?: Tactic): Combatant {
+  const lc = ls.combatants.find((c) => c.id === id)!;
+  const skills = {} as PlayerSkills;
+  for (const def of SKILLS) {
+    const cur = lc.skills[def.key] ?? 50;
+    skills[def.key] = { current: cur, potential: cur, floor: 0, ceiling: 100 };
+  }
+  return {
+    id: lc.id,
+    name: lc.name,
+    weapon: lc.weapon as Weapon,
+    skills,
+    fatigue: ls.fatigue[id] ?? 0,
+    sharpness: lc.sharpness,
+    conditionBonus: lc.conditionBonus,
+    physical: { reachCm: lc.reachCm, legLengthCm: lc.legLengthCm, buildFactor: lc.buildFactor, leftHanded: lc.leftHanded },
+    ageCategory: ls.ageCategory as Combatant["ageCategory"],
+    traits: lc.traits as Combatant["traits"],
+    tactic: tacticOverride ?? (lc.isHuman ? "BALANCED" : lc.aiTactic),
+  };
+}
+
+/** Tek maçı simüle eder + state'i günceller (yorgunluk birikimi + maç kaydı). Deterministik tohum. */
+function simulateOne(
+  ls: LiveState,
+  aId: number,
+  bId: number,
+  touches: number,
+  phase: "POOL" | "DE",
+  round: string,
+  humanTactic?: Tactic,
+  timeOffsetMin?: number,
+) {
+  const involvesHuman = aId === ls.humanId || bId === ls.humanId;
+  const a = liveCombatant(ls, aId, aId === ls.humanId ? humanTactic : undefined);
+  const b = liveCombatant(ls, bId, bId === ls.humanId ? humanTactic : undefined);
+  const tag = `${ls.seedKey}:${phase === "POOL" ? "pool" : "de"}:${round}:${Math.min(aId, bId)}-${Math.max(aId, bId)}`;
+  const r = simulateMatch(a, b, createRng(tag), touches);
+  ls.fatigue[aId] = clamp((ls.fatigue[aId] ?? 0) + r.fatigueGain, 0, 100);
+  ls.fatigue[bId] = clamp((ls.fatigue[bId] ?? 0) + r.fatigueGain, 0, 100);
+  ls.matches.push({
+    phase,
+    round,
+    aId,
+    bId,
+    aName: a.name,
+    bName: b.name,
+    scoreA: r.scoreA,
+    scoreB: r.scoreB,
+    winnerId: r.winnerId,
+    loserId: r.loserId,
+    log: r.log,
+    involvesHuman,
+    humanTactic: involvesHuman ? humanTactic : undefined,
+    timeOffsetMin: involvesHuman ? timeOffsetMin : undefined,
+  });
+  return r;
+}
+
+function setChampion(ls: LiveState, id: number): void {
+  ls.championId = id;
+  if (!ls.standings.some((s) => s.position === 1)) ls.standings.push({ playerId: id, position: 1 });
+  ls.phase = "DONE";
+}
+
+/** Pul biterken: kalan tüm pul maçlarını toplu simüle et → istatistik + FIE sıralaması (GDD 17.44). */
+function finishPool(ls: LiveState): void {
+  const played = new Set(
+    ls.matches.filter((m) => m.phase === "POOL").map((m) => `${Math.min(m.aId, m.bId)}-${Math.max(m.aId, m.bId)}`),
+  );
+  ls.pools.forEach((pool, pi) => {
+    for (let i = 0; i < pool.length; i++) {
+      for (let j = i + 1; j < pool.length; j++) {
+        const key = `${Math.min(pool[i], pool[j])}-${Math.max(pool[i], pool[j])}`;
+        if (!played.has(key)) simulateOne(ls, pool[i], pool[j], POOL_TOUCHES, "POOL", `Pul ${pi + 1}`);
+      }
+    }
+  });
+  const stat = new Map<number, PoolPlayerResult>();
+  ls.pools.forEach((pool, pi) => {
+    for (const id of pool)
+      stat.set(id, {
+        playerId: id,
+        name: nameOf(ls, id),
+        poolNumber: pi + 1,
+        matches: 0,
+        wins: 0,
+        losses: 0,
+        touchesScored: 0,
+        touchesReceived: 0,
+        indicator: 0,
+      });
+  });
+  for (const m of ls.matches) {
+    if (m.phase !== "POOL") continue;
+    const sa = stat.get(m.aId)!;
+    const sb = stat.get(m.bId)!;
+    sa.matches++;
+    sb.matches++;
+    sa.touchesScored += m.scoreA;
+    sa.touchesReceived += m.scoreB;
+    sb.touchesScored += m.scoreB;
+    sb.touchesReceived += m.scoreA;
+    if (m.winnerId === m.aId) {
+      sa.wins++;
+      sb.losses++;
+    } else {
+      sb.wins++;
+      sa.losses++;
+    }
+  }
+  const poolResults: PoolPlayerResult[] = [];
+  for (const s of stat.values()) {
+    s.indicator = s.touchesScored - s.touchesReceived;
+    poolResults.push(s);
+  }
+  const tb = new Map(poolResults.map((r) => [r.playerId, createRng(`${ls.seedKey}:tiebreak:${r.playerId}`).next()]));
+  const ranked = [...poolResults].sort((a, b) => {
+    const va = a.matches ? a.wins / a.matches : 0;
+    const vb = b.matches ? b.wins / b.matches : 0;
+    if (vb !== va) return vb - va;
+    if (b.indicator !== a.indicator) return b.indicator - a.indicator;
+    if (b.touchesScored !== a.touchesScored) return b.touchesScored - a.touchesScored;
+    return tb.get(a.playerId)! - tb.get(b.playerId)!;
+  });
+  ls.poolResults = poolResults;
+  ls.ranking = ranked.map((r, i) => ({ playerId: r.playerId, seedRank: i + 1 }));
+  ls.phase = "POOL_DONE";
+}
+
+/** Eleme turunu açar: insan-dışı maçları toplu oynar, insanın maçını "bekliyor" bırakır; bay'ları zincirler. */
+function openDeRound(ls: LiveState): void {
+  for (;;) {
+    const slots = ls.deSlots!;
+    if (slots.length <= 1) {
+      setChampion(ls, slots[0]);
+      ls.deRound = undefined;
+      return;
+    }
+    const label = roundLabel(slots.length);
+    const winners: (number | null)[] = [];
+    let humanPair = -1;
+    let oppId = -1;
+    for (let i = 0; i < slots.length; i += 2) {
+      const x = slots[i];
+      const y = slots[i + 1];
+      const pair = i / 2;
+      if (x === BYE && y === BYE) {
+        winners[pair] = BYE;
+        continue;
+      }
+      if (x === BYE) {
+        winners[pair] = y;
+        continue;
+      }
+      if (y === BYE) {
+        winners[pair] = x;
+        continue;
+      }
+      if (x === ls.humanId || y === ls.humanId) {
+        humanPair = pair;
+        oppId = x === ls.humanId ? y : x;
+        winners[pair] = null; // insan oynayınca dolacak
+        continue;
+      }
+      const r = simulateOne(ls, x, y, DE_TOUCHES, "DE", label);
+      winners[pair] = r.winnerId;
+      ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
+    }
+    if (humanPair >= 0) {
+      ls.deRound = { label, slots, winners, humanPairIndex: humanPair, oppId, roundSize: slots.length };
+      return;
+    }
+    // İnsan bu turda bay geçti → sonraki tura taşı, döngü devam.
+    if (slots.includes(ls.humanId)) {
+      ls.byes.push({ round: label, timeOffsetMin: ls.poolEndOffsetMin + ls.deStep * 5 });
+      ls.deStep++;
+    }
+    ls.deSlots = winners.filter((w): w is number => w !== null && w !== BYE);
+  }
+}
+
+/** İnsan elendikten sonra tablonun kalanını (yalnız AI) toplu tamamlar → şampiyon + dereceler. */
+function finishBracketBulk(ls: LiveState): void {
+  let slots = ls.deSlots!;
+  while (slots.length > 1) {
+    const label = roundLabel(slots.length);
+    const winners: number[] = [];
+    for (let i = 0; i < slots.length; i += 2) {
+      const x = slots[i];
+      const y = slots[i + 1];
+      if (x === BYE && y === BYE) continue;
+      if (x === BYE) {
+        winners.push(y);
+        continue;
+      }
+      if (y === BYE) {
+        winners.push(x);
+        continue;
+      }
+      const r = simulateOne(ls, x, y, DE_TOUCHES, "DE", label);
+      ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
+      winners.push(r.winnerId);
+    }
+    slots = winners;
+  }
+  ls.deSlots = slots;
+  setChampion(ls, slots[0]);
+}
+
 /**
- * Kayıtlı turnuvayı OYNAR (havuz + eleme) ve haftayı ilerletir. Kayıt/uygunluk kontrolü kayıt
- * anında (`registerTournament`) yapılır; burada oynama + kalıcılaştırma + bekleyen kaydı temizleme.
- * Online'da bu, sunucu saatiyle otomatik tetiklenir; tek-oyuncuda `advanceWeek` çağırır.
+ * Canlı turnuvayı başlatır: combatant snapshot'ları + pul çekimi. Hiçbir maç oynanmaz; ekranda
+ * sırayla oynanır. Kayıt tüketilir; hafta turnuva bitince ilerler (finalize).
  */
-async function playTournament(
+export async function startLiveTournament(
   gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
-): Promise<number> {
+): Promise<void> {
   const quarter = quarterOf(gs.weekIndex);
   const week = weekInQuarter(gs.weekIndex);
   const base = baseIdentity(human);
-  const categoryId = base.categoryId;
 
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
@@ -951,70 +1263,338 @@ async function playTournament(
     take: AI_COUNT,
   });
 
-  const nameById = new Map<number, string>();
-  const toCombatant = (p: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    weapon: string;
-    fatigue: number;
-    sharpness: number;
-    birthDate: Date;
-    adultHeightCm: number;
-    reachBiasCm: number;
-    buildFactor: number;
-    leftHanded: boolean;
-    traits: string;
-    skills: SkillRow[];
-  }): Combatant => {
-    const name = `${p.firstName} ${p.lastName}`;
-    nameById.set(p.id, name);
-    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
-    const physical: PhysicalProfile = {
-      reachCm: ph.reachCm,
-      legLengthCm: ph.legLengthCm,
-      buildFactor: p.buildFactor,
-      leftHanded: p.leftHanded,
-    };
-    const traits = parseTraits(p.traits);
-    return {
-      id: p.id,
-      name,
-      weapon: p.weapon as Weapon,
-      skills: rowsToSkills(p.skills),
-      fatigue: p.fatigue,
-      sharpness: p.sharpness,
-      physical,
-      ageCategory: base.ageCategory,
-      traits,
-      tactic: tacticFromTraits(traits), // AI: karakterine göre stil (GDD 18.63); insan altta override
-    };
-  };
-
-  // İnsan oyuncunun combat kondisyonu = psikoloji + trait + ekipman (GDD 20.10). AI nötr.
   const humanPsych = psychologyOf(human);
   const humanConditionBonus =
     psychologyCombatModifier(humanPsych) +
     traitCombatModifier(parseTraits(human.traits)) +
     equipmentCombatModifier(human.equipmentLevel);
-  const humanCombatant: Combatant = {
-    ...toCombatant(human),
-    conditionBonus: humanConditionBonus,
-    tactic: (human.tactic as Tactic) ?? "BALANCED", // insan: seçtiği taktik
+
+  const snapshot = (
+    p: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      weapon: string;
+      sharpness: number;
+      birthDate: Date;
+      adultHeightCm: number;
+      reachBiasCm: number;
+      buildFactor: number;
+      leftHanded: boolean;
+      traits: string;
+      skills: SkillRow[];
+    },
+    isHuman: boolean,
+  ): LiveCombatant => {
+    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
+    const sk = rowsToSkills(p.skills);
+    const skills: Record<string, number> = {};
+    for (const def of SKILLS) skills[def.key] = sk[def.key].current;
+    const traits = parseTraits(p.traits);
+    return {
+      id: p.id,
+      name: `${p.firstName} ${p.lastName}`,
+      weapon: p.weapon,
+      skills,
+      sharpness: p.sharpness,
+      reachCm: ph.reachCm,
+      legLengthCm: ph.legLengthCm,
+      buildFactor: p.buildFactor,
+      leftHanded: p.leftHanded,
+      traits,
+      isHuman,
+      aiTactic: tacticFromTraits(traits),
+      conditionBonus: isHuman ? humanConditionBonus : undefined,
+    };
   };
 
-  const combatants: Combatant[] = [humanCombatant, ...aiPlayers.map(toCombatant)];
+  const combatants: LiveCombatant[] = [snapshot(human, true), ...aiPlayers.map((p) => snapshot(p, false))];
   if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
   const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
-  const rng = createRng(seedKey);
-  const outcome = simulateTournament(combatants, rng, { poolSize: POOL_SIZE });
 
+  // Pul çekimi (deterministik, GDD 17.41).
+  const drawRng = createRng(`${seedKey}:draw`);
+  const shuffled = drawRng.shuffle(combatants.map((c) => c.id));
+  const sizes = computePoolSizes(shuffled.length, POOL_SIZE);
+  const pools: number[][] = [];
+  let cursor = 0;
+  for (const s of sizes) {
+    pools.push(shuffled.slice(cursor, cursor + s));
+    cursor += s;
+  }
+  const humanPool = pools.find((p) => p.includes(human.id))!;
+  const humanPoolOppOrder = humanPool.filter((id) => id !== human.id);
+
+  const fatigue: Record<number, number> = {};
+  fatigue[human.id] = human.fatigue;
+  for (const p of aiPlayers) fatigue[p.id] = p.fatigue;
+
+  const startTime = new Date(gs.currentDate);
+  startTime.setUTCHours(14, 0, 0, 0); // turnuva 14:00 başlar (immersion)
+
+  const ls: LiveState = {
+    version: 1,
+    level,
+    categoryId: base.categoryId,
+    ageCategory: base.ageCategory,
+    quarter,
+    week,
+    seedKey,
+    startTimeMs: startTime.getTime(),
+    humanId: human.id,
+    combatants,
+    fatigue,
+    pools,
+    humanPoolOppOrder,
+    humanPoolIndex: 0,
+    poolEndOffsetMin: humanPoolOppOrder.length * 2 + 5,
+    matches: [],
+    phase: "POOL",
+    deStep: 0,
+    byes: [],
+    standings: [],
+  };
+
+  await prisma.gameState.update({
+    where: { id: gs.id },
+    data: { liveTournament: JSON.stringify(ls), pendingLevel: null, pendingWeekIndex: null },
+  });
+}
+
+/** Sıradaki insan maçını seçilen taktikle oynar (pul veya eleme). Faz sonu geçişlerini yönetir. */
+export async function playLiveMatch(tactic: Tactic): Promise<void> {
+  const live = await loadLive();
+  if (!live) throw new Error("Aktif turnuva yok.");
+  const { gs, human, ls } = live;
+
+  if (ls.phase === "POOL") {
+    const oppId = ls.humanPoolOppOrder[ls.humanPoolIndex];
+    if (oppId == null) throw new Error("Sıradaki pul maçı yok.");
+    simulateOne(ls, ls.humanId, oppId, POOL_TOUCHES, "POOL", `Pul ${humanPoolNumber(ls)}`, tactic, (ls.humanPoolIndex + 1) * 2);
+    ls.humanPoolIndex++;
+    if (ls.humanPoolIndex >= ls.humanPoolOppOrder.length) finishPool(ls);
+    await saveLive(gs.id, ls);
+    return;
+  }
+
+  if (ls.phase === "DE") {
+    const rc = ls.deRound;
+    if (!rc) throw new Error("Sıradaki eleme maçı yok.");
+    const r = simulateOne(ls, ls.humanId, rc.oppId, DE_TOUCHES, "DE", rc.label, tactic, ls.poolEndOffsetMin + ls.deStep * 5);
+    rc.winners[rc.humanPairIndex] = r.winnerId;
+    ls.standings.push({ playerId: r.loserId, position: rc.roundSize / 2 + 1 });
+    ls.deStep++;
+    const next = rc.winners.filter((w): w is number => w !== null && w !== BYE);
+    ls.deRound = undefined;
+    if (r.winnerId !== ls.humanId) {
+      ls.deSlots = next;
+      if (next.length <= 1) setChampion(ls, next[0]);
+      else finishBracketBulk(ls);
+    } else if (next.length <= 1) {
+      setChampion(ls, ls.humanId);
+    } else {
+      ls.deSlots = next;
+      openDeRound(ls);
+    }
+    if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
+    await saveLive(gs.id, ls);
+    return;
+  }
+
+  throw new Error("Şu an oynanacak maç yok.");
+}
+
+/** Pul bitince elemeye geçer (kullanıcı "Elemeye Geç" der). */
+export async function enterBracket(): Promise<void> {
+  const live = await loadLive();
+  if (!live) throw new Error("Aktif turnuva yok.");
+  const { gs, human, ls } = live;
+  if (ls.phase !== "POOL_DONE") throw new Error("Pul aşaması bitmedi.");
+  const ranking = ls.ranking!;
+  const size = bracketSize(ranking.length);
+  const order = bracketSeedOrder(size);
+  ls.deSlots = order.map((seedNo) => (seedNo <= ranking.length ? ranking[seedNo - 1].playerId : BYE));
+  ls.phase = "DE";
+  ls.deStep = 0;
+  openDeRound(ls);
+  if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
+  await saveLive(gs.id, ls);
+}
+
+/** Biten canlı turnuvayı temizler (kullanıcı kariyere döner). */
+export async function leaveLiveTournament(): Promise<void> {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) return;
+  await prisma.gameState.update({ where: { id: gs.id }, data: { liveTournament: null } });
+}
+
+/** Canlı turnuva bitince kalıcılaştırır (permanent tablolar + ekonomi/ranking/başarı + hafta ilerler). */
+async function finalizeLive(
+  gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
+  human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
+  ls: LiveState,
+): Promise<void> {
+  const base = baseIdentity(human);
+  const outcome: TournamentOutcome = {
+    pools: ls.poolResults ?? [],
+    ranking: (ls.ranking ?? []).map((r) => ({ playerId: r.playerId, name: nameOf(ls, r.playerId), seedRank: r.seedRank })),
+    matches: ls.matches.map(
+      (m): TournamentMatch => ({
+        phase: m.phase,
+        round: m.round,
+        aName: m.aName,
+        bName: m.bName,
+        aId: m.aId,
+        bId: m.bId,
+        scoreA: m.scoreA,
+        scoreB: m.scoreB,
+        winnerId: m.winnerId,
+        loserId: m.loserId,
+        log: m.log,
+        fatigueGain: 0,
+        analysis: { effA: 0, effB: 0, winProbA: 0, modsA: [], modsB: [] },
+      }),
+    ),
+    standings: ls.standings,
+    championId: ls.championId ?? ls.humanId,
+    finalFatigue: ls.fatigue,
+  };
+  ls.finalTournamentId = await finalizeTournament(gs, human, ls.level, base, outcome, ls.seedKey);
+}
+
+/** Canlı turnuva görünümü (etkileşimli ekran). */
+export interface LiveMatchView {
+  round: string;
+  phase: "POOL" | "DE";
+  aName: string;
+  bName: string;
+  scoreA: number;
+  scoreB: number;
+  aIsHuman: boolean;
+  bIsHuman: boolean;
+  log: string[];
+  timeLabel: string;
+}
+export interface LiveTournamentDTO {
+  name: string;
+  categoryId: string;
+  phase: LiveState["phase"];
+  poolPlayed: number;
+  poolTotal: number;
+  played: LiveMatchView[];
+  byes: { round: string; timeLabel: string }[];
+  pending: { round: string; phase: "POOL" | "DE"; oppName: string; timeLabel: string } | null;
+  upcoming: { oppName: string; timeLabel: string }[];
+  pools?: PoolViewDTO[];
+  seedRank?: number | null;
+  standings?: { name: string; position: number; isHuman: boolean }[];
+  championName?: string;
+  finalPosition?: number;
+  finalTournamentId?: number;
+}
+
+function clockLabel(ls: LiveState, offsetMin: number): string {
+  const d = new Date(ls.startTimeMs + offsetMin * 60000);
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+}
+
+export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
+  const live = await loadLive();
+  if (!live) return null;
+  const ls = live.ls;
+  const played: LiveMatchView[] = ls.matches
+    .filter((m) => m.involvesHuman)
+    .map((m) => ({
+      round: m.round,
+      phase: m.phase,
+      aName: m.aName,
+      bName: m.bName,
+      scoreA: m.scoreA,
+      scoreB: m.scoreB,
+      aIsHuman: m.aId === ls.humanId,
+      bIsHuman: m.bId === ls.humanId,
+      log: m.log,
+      timeLabel: clockLabel(ls, m.timeOffsetMin ?? 0),
+    }));
+  const byes = ls.byes.map((b) => ({ round: b.round, timeLabel: clockLabel(ls, b.timeOffsetMin) }));
+
+  let pending: LiveTournamentDTO["pending"] = null;
+  const upcoming: { oppName: string; timeLabel: string }[] = [];
+  if (ls.phase === "POOL" && ls.humanPoolIndex < ls.humanPoolOppOrder.length) {
+    const idx = ls.humanPoolIndex;
+    pending = {
+      round: `Pul ${humanPoolNumber(ls)}`,
+      phase: "POOL",
+      oppName: nameOf(ls, ls.humanPoolOppOrder[idx]),
+      timeLabel: clockLabel(ls, (idx + 1) * 2),
+    };
+    for (let k = idx + 1; k < ls.humanPoolOppOrder.length; k++) {
+      upcoming.push({ oppName: nameOf(ls, ls.humanPoolOppOrder[k]), timeLabel: clockLabel(ls, (k + 1) * 2) });
+    }
+  } else if (ls.phase === "DE" && ls.deRound) {
+    pending = {
+      round: ls.deRound.label,
+      phase: "DE",
+      oppName: nameOf(ls, ls.deRound.oppId),
+      timeLabel: clockLabel(ls, ls.poolEndOffsetMin + ls.deStep * 5),
+    };
+  }
+
+  const dto: LiveTournamentDTO = {
+    name: `${ls.ageCategory} ${TOURNAMENT_LABEL_TR[ls.level]}`,
+    categoryId: ls.categoryId,
+    phase: ls.phase,
+    poolPlayed: ls.humanPoolIndex,
+    poolTotal: ls.humanPoolOppOrder.length,
+    played,
+    byes,
+    pending,
+    upcoming,
+  };
+
+  if (ls.phase !== "POOL") {
+    dto.pools = buildPoolsView(
+      (ls.poolResults ?? []).map((p) => ({
+        playerId: p.playerId,
+        poolNumber: p.poolNumber,
+        wins: p.wins,
+        losses: p.losses,
+        indicator: p.indicator,
+      })),
+      new Map(ls.combatants.map((c) => [c.id, c.name])),
+      ls.humanId,
+    );
+    dto.seedRank = ls.ranking?.find((r) => r.playerId === ls.humanId)?.seedRank ?? null;
+  }
+  if (ls.phase === "DONE") {
+    dto.standings = [...ls.standings]
+      .sort((a, b) => a.position - b.position)
+      .map((s) => ({ name: nameOf(ls, s.playerId), position: s.position, isHuman: s.playerId === ls.humanId }));
+    dto.championName = ls.championId != null ? nameOf(ls, ls.championId) : "?";
+    dto.finalPosition = ls.standings.find((s) => s.playerId === ls.humanId)?.position;
+    dto.finalTournamentId = ls.finalTournamentId;
+  }
+  return dto;
+}
+
+/** Canlı turnuva bitince kalıcılaştırır: permanent tablolar + ekonomi/ranking/başarı + hafta ilerler. */
+async function finalizeTournament(
+  gs: { id: number; seed: string; currentDate: Date; weekIndex: number },
+  human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
+  level: TournamentLevel,
+  base: ReturnType<typeof baseIdentity>,
+  outcome: TournamentOutcome,
+  seedKey: string,
+): Promise<number> {
+  const quarter = quarterOf(gs.weekIndex);
+  const week = weekInQuarter(gs.weekIndex);
+  const categoryId = base.categoryId;
+  const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
   const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
   const seedByPlayer = new Map(outcome.ranking.map((r) => [r.playerId, r.seedRank]));
-  const poolByPlayer = new Map(outcome.pools.map((p) => [p.playerId, p]));
-  const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
+  const humanPsych = psychologyOf(human);
 
   // İnsan oyuncu: yarışma keskinlik kazancı (GDD 14.80) + hafta sonu sakatlık kontrolü.
   const humanFinalFatigue = clamp(outcome.finalFatigue[human.id] ?? human.fatigue, 0, 100);
@@ -1022,30 +1602,29 @@ async function playTournament(
   const injury = rollInjury(createRng(`${seedKey}:injury`), humanFinalFatigue, base.age + (quarter - 1));
 
   // Ödül (Economy, GDD 5.14) + turnuva sonrası psikoloji (GDD 18.59).
-  const humanPosition = positionByPlayer.get(human.id) ?? combatants.length;
+  const humanPosition = positionByPlayer.get(human.id) ?? outcome.pools.length;
   const prize = prizeFor(level, humanPosition);
-  const postPsych = psychAfterTournament(humanPsych, humanPosition, combatants.length);
+  const postPsych = psychAfterTournament(humanPsych, humanPosition, outcome.pools.length);
 
   const tournamentId = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
       data: { name: tournamentName, categoryId, level, quarter, week, date: gs.currentDate, status: "FINISHED" },
     });
 
-    for (const c of combatants) {
-      const pool = poolByPlayer.get(c.id);
+    for (const c of outcome.pools) {
       await tx.tournamentParticipant.create({
         data: {
           tournamentId: tournament.id,
-          playerId: c.id,
-          seed: seedByPlayer.get(c.id) ?? 0,
-          seedRank: seedByPlayer.get(c.id) ?? null,
-          finalPosition: positionByPlayer.get(c.id) ?? null,
-          poolNumber: pool?.poolNumber ?? null,
-          wins: pool?.wins ?? null,
-          losses: pool?.losses ?? null,
-          touchesScored: pool?.touchesScored ?? null,
-          touchesReceived: pool?.touchesReceived ?? null,
-          indicator: pool?.indicator ?? null,
+          playerId: c.playerId,
+          seed: seedByPlayer.get(c.playerId) ?? 0,
+          seedRank: seedByPlayer.get(c.playerId) ?? null,
+          finalPosition: positionByPlayer.get(c.playerId) ?? null,
+          poolNumber: c.poolNumber,
+          wins: c.wins,
+          losses: c.losses,
+          touchesScored: c.touchesScored,
+          touchesReceived: c.touchesReceived,
+          indicator: c.indicator,
         },
       });
     }
@@ -1070,10 +1649,10 @@ async function playTournament(
     }
 
     // Yorgunlukları kalıcılaştır (turlar arası birikim, GDD 18.37).
-    for (const c of combatants) {
+    for (const c of outcome.pools) {
       await tx.player.update({
-        where: { id: c.id },
-        data: { fatigue: clamp(outcome.finalFatigue[c.id] ?? c.fatigue, 0, 100) },
+        where: { id: c.playerId },
+        data: { fatigue: clamp(outcome.finalFatigue[c.playerId] ?? 0, 0, 100) },
       });
     }
     // İnsan oyuncu: keskinlik + ödül + psikoloji + sakatlık durumu.
@@ -1208,17 +1787,20 @@ export async function cancelRegistration(): Promise<void> {
 }
 
 export interface AdvanceResult {
-  tournamentId?: number; // turnuva oynandıysa → sonuç ekranına yönlendir
+  live?: boolean; // canlı turnuva başladıysa → turnuva ekranına yönlendir
 }
 
 /**
  * Haftayı ilerletir (tek-oyuncu zaman sürücüsü; online'da sunucu saati). Sakatsa dinlenir;
- * kayıtlı turnuvanın haftası geldiyse onu oynar; aksi halde haftalık antrenman planını uygular.
+ * kayıtlı turnuvanın haftası geldiyse CANLI turnuvayı başlatır (maç-maç oynanır); aksi halde
+ * haftalık antrenman planını uygular. Devam eden canlı turnuva varken haftayı ilerletmez.
  */
 export async function advanceWeek(plan: TrainingType[]): Promise<AdvanceResult> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
+
+  if (gs.liveTournament) return { live: true }; // zaten turnuvadasın
 
   if (human.injuryWeeksRemaining > 0) {
     await restWeek();
@@ -1228,8 +1810,8 @@ export async function advanceWeek(plan: TrainingType[]): Promise<AdvanceResult> 
   // Kayıtlı turnuvanın haftası mı? (geçmişte kaldıysa temizle)
   if (gs.pendingLevel != null && gs.pendingWeekIndex != null) {
     if (gs.pendingWeekIndex === gs.weekIndex) {
-      const id = await playTournament(gs, human, gs.pendingLevel as TournamentLevel);
-      return { tournamentId: id };
+      await startLiveTournament(gs, human, gs.pendingLevel as TournamentLevel);
+      return { live: true };
     }
     if (gs.pendingWeekIndex < gs.weekIndex) {
       await cancelRegistration(); // kaçırılmış kayıt

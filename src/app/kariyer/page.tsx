@@ -6,10 +6,8 @@ import {
   registerAction,
   resetCareerAction,
   restWeekAction,
-  setTacticAction,
   upgradeEquipmentAction,
 } from "@/app/actions";
-import { TACTICS, TACTIC_DESC_TR, TACTIC_LABEL_TR } from "@/engine/combat";
 import {
   GENDER_LABEL_TR,
   WEAPON_LABEL_TR,
@@ -43,6 +41,8 @@ function initials(name: string): string {
 export default async function KariyerPage() {
   const c = await getCareer();
   if (!c) redirect("/");
+  // Devam eden canlı turnuva varsa kullanıcı orada kalır (immersion) — turnuva ekranına götür.
+  if (c.liveTournamentActive) redirect("/turnuva/canli");
 
   const date = new Date(c.currentDate).toLocaleDateString("tr-TR", {
     day: "numeric",
@@ -150,38 +150,6 @@ export default async function KariyerPage() {
           </ul>
           <p className="mt-2 text-xs opacity-50">Boy/kilo yaşla gelişir. Kulaç Epe&apos;de avantaj.</p>
         </div>
-      </section>
-
-      {/* Maç taktiği (GDD 18.22) — turnuva maçlarında kullanılır; skill+trait'le etkileşir. */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Maç Taktiği</h2>
-        <p className="text-sm opacity-70">
-          Turnuva maçlarında bu stille oynarsın. Sonucu tek başına belirlemez — yeteneklerin ve
-          karakter özelliklerinle (trait) etkileşir; ofansif risk artırır, defansif temkinlidir.
-        </p>
-        <form action={setTacticAction} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {TACTICS.map((t) => {
-            const active = c.tactic === t;
-            return (
-              <button
-                key={t}
-                name="tactic"
-                value={t}
-                className={`rounded-lg border p-3 text-left transition ${
-                  active
-                    ? "border-emerald-500 bg-emerald-500/10"
-                    : "border-black/15 hover:border-emerald-500/60 dark:border-white/20"
-                }`}
-              >
-                <span className="text-sm font-medium">
-                  {TACTIC_LABEL_TR[t]}
-                  {active ? " ✓" : ""}
-                </span>
-                <span className="mt-1 block text-xs opacity-70">{TACTIC_DESC_TR[t]}</span>
-              </button>
-            );
-          })}
-        </form>
       </section>
 
       {c.injured ? (

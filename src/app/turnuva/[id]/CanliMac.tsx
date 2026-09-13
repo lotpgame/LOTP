@@ -12,11 +12,12 @@ export interface CanliMacProps {
   scoreA: number;
   scoreB: number;
   log: string[];
+  autoPlay?: boolean; // canlı ekranda yeni oynanan maç kendiliğinden akar
 }
 
-export function CanliMac({ aName, bName, scoreA, scoreB, log }: CanliMacProps) {
+export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false }: CanliMacProps) {
   const [shown, setShown] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
 
   const started = shown > 0 || playing;

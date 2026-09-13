@@ -91,7 +91,7 @@ export function bracketSeedOrder(size: number): number[] {
 }
 
 /** Kalan oyuncu sayısına göre eleme tur adı (GDD 17.61). */
-function roundLabel(size: number): string {
+export function roundLabel(size: number): string {
   switch (size) {
     case 2:
       return "Final";

@@ -13,11 +13,13 @@ import {
   advanceWeek,
   cancelRegistration,
   createCareer,
+  enterBracket,
   hasCareer,
+  leaveLiveTournament,
+  playLiveMatch,
   registerTournament,
   restWeek,
   resetCareer,
-  setTactic,
   upgradeEquipment,
 } from "@/server/careerService";
 
@@ -46,7 +48,7 @@ export async function advanceWeekAction(formData: FormData): Promise<void> {
     .map((s) => String(formData.get(s) ?? ""))
     .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
   const result = await advanceWeek(slots);
-  if (result.tournamentId != null) redirect(`/turnuva/${result.tournamentId}`);
+  if (result.live) redirect("/turnuva/canli"); // canlı turnuva başladı
   revalidatePath("/kariyer");
 }
 
@@ -76,12 +78,24 @@ export async function cancelRegistrationAction(): Promise<void> {
   revalidatePath("/kariyer");
 }
 
-/** Maç öncesi taktik tercihini kaydeder (GDD 18.22). */
-export async function setTacticAction(formData: FormData): Promise<void> {
+/** Canlı turnuvada sıradaki maçı seçilen taktikle oynar (GDD 18.22 — her maçın kendi taktiği). */
+export async function playLiveMatchAction(formData: FormData): Promise<void> {
   const tactic = String(formData.get("tactic") ?? "") as Tactic;
   if (!TACTICS.includes(tactic)) throw new Error("Geçersiz taktik");
-  await setTactic(tactic);
-  revalidatePath("/kariyer");
+  await playLiveMatch(tactic);
+  revalidatePath("/turnuva/canli");
+}
+
+/** Pul bitince elemeye geçer. */
+export async function enterBracketAction(): Promise<void> {
+  await enterBracket();
+  revalidatePath("/turnuva/canli");
+}
+
+/** Biten canlı turnuvadan kariyere döner (durum temizlenir). */
+export async function leaveLiveTournamentAction(): Promise<void> {
+  await leaveLiveTournament();
+  redirect("/kariyer");
 }
 
 export async function resetCareerAction(): Promise<void> {
