@@ -235,8 +235,11 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
       modifier'ları. 66 test.
 - [x] **M7 — Canlı dünya + Memory:** AI oyuncular her hafta özerk gelişir; Achievements
       (şampiyonluk/madalya/milli takım/ranking) + rakiplikler + kariyer geçmişi sayfası. 70 test.
-- [ ] **M8 — Cila & denge** ← sıradaki (başsız denge simülasyonları, katsayı dengeleme,
-      UI/UX geçişi, save backup; bkz. `docs/ROADMAP.md` §B)
+- [x] **M8 — Cila & denge:** başsız denge simülasyonu (`npm run sim`), db yedeği
+      (`npm run db:backup`), sürüm cilası.
+
+> 🎉 **V1 TAMAMLANDI (sürüm 1.0.0).** Sonraki derinlik: `docs/ROADMAP.md` §G (backlog) ve §B
+> "Sonra (V2/Future)". Yeni işlerde önce ilgili GDD bölümü + ROADMAP okunur.
 
 > Ayrıntılı aşama takibi `docs/ROADMAP.md` §F'de. Bir adım tamamlandığında her iki liste
 > de güncellenir.

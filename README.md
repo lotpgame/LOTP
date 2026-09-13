@@ -31,9 +31,10 @@ npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişi
 npm run dev       # geliştirme sunucusu → http://localhost:3000
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Vitest testleri
-npm run sim       # başsız simülasyon / smoke (RNG + DB bağlantı kontrolü)
+npm test          # Vitest testleri (70)
+npm run sim       # başsız denge raporu (combat/gelişim/turnuva/sakatlık)
 npm run db:studio # veritabanını görsel incele (Prisma Studio)
+npm run db:backup # veritabanının zaman damgalı yedeğini al
 ```
 
 ## Proje yapısı
@@ -74,9 +75,11 @@ motivasyon/özgüven/stres), **Coach/Club** (antrenman kalitesi + koç uzmanlı�
 (ekipman seviyesi), **Economy** (turnuva ödülü, para, ekipman yükseltme) — hepsi antrenman
 verimine ve maç gücüne modifier olarak bağlı.
 
-✅ **M7 — Canlı dünya + Memory** tamam: AI oyuncular her hafta özerk gelişir (dünya zamanla
-sertleşir); **Achievements** (şampiyonluk, madalya, milli takım, kariyer-en-iyi-ranking),
-rakiplikler ve **Kariyer Geçmişi** sayfası.
+🎉 **V1 TAMAMLANDI (sürüm 1.0.0)** — M0'dan M8'e uçtan uca çalışan kariyer döngüsü:
+oyuncu oluştur → haftalık antrenman planı (kondisyon/sakatlık) → gerçek FIE turnuvaları
+(havuz + eleme) → Quarter Ranking + milli takım → gelişim çevresi (trait/psikoloji/kulüp/
+koç/ekipman/ekonomi) → canlı AI dünyası + başarılar & kariyer geçmişi. **70 test.**
 
-Sıradaki adım: **M8 — Cila & denge** (başsız denge simülasyonları, katsayı dengeleme, UI/UX
-iyileştirme, save yedekleme). V1'in son aşaması.
+Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
+§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi
+ilerlemesi (U17→U21), fiziksel yapı (boy/kol erimi), multiplayer (PostgreSQL).

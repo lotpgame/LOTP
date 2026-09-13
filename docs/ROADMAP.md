@@ -182,7 +182,10 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M5** — Haftalık döngü + kondisyon (3 seanslık plan, sharpness, sakatlık, overtraining) ✅
 - [x] **M6** — Gelişim çevresi (Trait, Psychology, Coach/Club, Equipment, Economy → modifier'lar) ✅
 - [x] **M7** — Canlı dünya (AI haftalık gelişim) + Memory/Achievements + kariyer geçmişi ✅
-- [ ] **M8** — Cila & denge ← sıradaki
+- [x] **M8** — Cila & denge (başsız denge simülasyonu, db yedeği, sürüm cilası) ✅
+
+> 🎉 **V1 TAMAMLANDI (2026-09-13, sürüm 1.0.0):** uçtan uca çalışan kariyer döngüsü. Sonraki
+> derinlik maddeleri §G backlog'da; V2 hedefleri §B "Sonra" bölümünde.
 
 > Bir aşama tamamlandığında burada işaretlenir ve `CHANGELOG.md`'ye yazılır.
 

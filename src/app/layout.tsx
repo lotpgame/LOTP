@@ -23,7 +23,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="tr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="flex-1">{children}</div>
+        <footer className="border-t border-black/10 py-3 text-center text-xs opacity-40 dark:border-white/10">
+          Project Engarde · V1 — eskrim kariyer simülasyonu
+        </footer>
+      </body>
     </html>
   );
 }
