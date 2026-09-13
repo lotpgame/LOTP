@@ -706,25 +706,11 @@ export async function advanceDay(): Promise<AdvanceResult> {
   let restSessions = 0;
   let injuredNow = false;
 
-  // (1) Bulunduğun gün turnuva ise (sağlıklıysan): İlerle = onu GEÇ.
-  if (injuryDays === 0 && activityForDay(d).kind === "TOURNAMENT") d++;
+  // Turnuvaya girilmeyen günlerde uygulanacak "genel antrenman" (planın 1. seansı, GDD 6).
+  const skipTrainType = (planArr[0] ?? "TECHNICAL") as TrainingType;
 
-  // (2) Sonraki katılabilir turnuvaya kadar günleri tüket.
-  for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
-    if (injuryDays > 0) {
-      fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
-      injuryDays--;
-      d++;
-      continue;
-    }
-    const act = activityForDay(d);
-    if (act.kind === "TOURNAMENT") {
-      if (qualifies(act.qualification, humanRank)) break; // burada dur → Katıl/Geç
-      d++; // uygun değil (uluslararası) → geç
-      continue;
-    }
-    // Antrenman günü (plan seansı)
-    const type = planArr[act.slot] ?? "REST";
+  // Bir antrenman seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok bir kez.)
+  const applySession = (type: TrainingType): boolean => {
     if (type === "REST") {
       fatigue = clamp(fatigue - DAY_REST_RECOVERY, 0, 100);
       restSessions++;
@@ -743,17 +729,44 @@ export async function advanceDay(): Promise<AdvanceResult> {
       fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
     }
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
-    d++;
-
-    // Sakatlık kontrolü: yalnız gerçek antrenmanda, advance başına en çok bir kez (GDD 14.37).
     if (type !== "REST" && !injuredNow) {
       const inj = rollInjury(createRng(`${gs.seed}:injury:${d}`), fatigue, age);
       if (inj.injured) {
         injuryDays = inj.weeks * INJURY_DAYS_PER_WEEK;
         injuredNow = true;
-        break;
+        return true;
       }
     }
+    return false;
+  };
+
+  // Sonraki KATILABİLİR turnuva gününe kadar ilerle. İlk gün turnuvaysa "Geç" demektir → o gün
+  // antrenman yapılmış sayılır (turnuvaya girmedin ama boş geçmedin). Sonraki uygun turnuvada durur.
+  let firstDay = true;
+  for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
+    if (injuryDays > 0) {
+      fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
+      injuryDays--;
+      d++;
+      firstDay = false;
+      continue;
+    }
+    const act = activityForDay(d);
+    if (act.kind === "TOURNAMENT") {
+      const eligible = qualifies(act.qualification, humanRank);
+      if (eligible && !firstDay) break; // yeni bir uygun turnuva günü → dur (Katıl/Geç)
+      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün antrenman.
+      const injured = applySession(skipTrainType);
+      d++;
+      firstDay = false;
+      if (injured) break;
+      continue;
+    }
+    // Antrenman günü (plan seansı)
+    const injured = applySession(planArr[act.slot] ?? "REST");
+    d++;
+    firstDay = false;
+    if (injured) break;
   }
 
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);

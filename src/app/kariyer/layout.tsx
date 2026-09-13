@@ -41,8 +41,11 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           {canAttend ? (
             <div className="flex shrink-0 gap-2">
               <form action={advanceDayAction}>
-                <button className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
-                  Geç ⏭
+                <button
+                  title="Turnuvaya girme, bugün antrenman yap"
+                  className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
+                >
+                  Geç · antren ⏭
                 </button>
               </form>
               <form action={attendTournamentAction}>
