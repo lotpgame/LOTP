@@ -27,6 +27,16 @@ const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TACTICAL: "Taktik",
 };
 
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 export default async function KariyerPage() {
   const c = await getCareer();
   if (!c) redirect("/");
@@ -40,12 +50,17 @@ export default async function KariyerPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-8">
       <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{c.name}</h1>
-          <p className="text-sm opacity-70">
-            {c.code} · {GENDER_LABEL_TR[c.gender as Gender]} ·{" "}
-            {WEAPON_LABEL_TR[c.weapon as Weapon]} · {c.age} yaş · {c.categoryId}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white">
+            {initials(c.name)}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">{c.name}</h1>
+            <p className="text-sm opacity-70">
+              {c.code} · {GENDER_LABEL_TR[c.gender as Gender]} ·{" "}
+              {WEAPON_LABEL_TR[c.weapon as Weapon]} · {c.age} yaş · {c.categoryId}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -127,7 +142,7 @@ export default async function KariyerPage() {
         <section className="mt-8 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
           <h2 className="text-lg font-semibold">🩹 Sakatsın</h2>
           <p className="mt-1 text-sm opacity-80">
-            {c.injuryWeeksRemaining} hafta sahalardan uzak kalacaksın. Bu sürede antrenman ve
+            {c.injuryWeeksRemaining} hafta pistlerden uzak kalacaksın. Bu sürede antrenman ve
             turnuva yok — dinlenerek iyileş.
           </p>
           <form action={restWeekAction} className="mt-3">

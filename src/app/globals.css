@@ -19,8 +19,21 @@
   }
 }
 
+:root {
+  /* Form denetimlerinin (select açılır listesi dahil) tema ile uyumlu render edilmesi
+     için — aksi halde koyu temada beyaz-üstüne-beyaz okunmaz metin oluşuyordu. */
+  color-scheme: light dark;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Açılır liste (option) her temada okunur olsun — bazı tarayıcılarda native popup
+   sistem rengini kullanıp metni gizleyebiliyor. */
+select option {
+  background: var(--background);
+  color: var(--foreground);
 }

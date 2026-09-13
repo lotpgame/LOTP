@@ -44,8 +44,8 @@ export default async function Home() {
           </select>
         </Field>
 
-        <Field label="Doğum Tarihi" hint="Yaş kategorisi (U10…Senior) doğum tarihinden otomatik belirlenir.">
-          <input type="date" name="birthDate" required max="2018-01-01" defaultValue="2010-01-01" className={inputCls} />
+        <Field label="Doğum Tarihi" hint="Yaş kategorisi (U10…Senior) doğum tarihinden otomatik belirlenir. Oyun 2026'da başlar; varsayılan 8 yaş (erken kariyer).">
+          <input type="date" name="birthDate" required max="2018-01-01" defaultValue="2018-01-01" className={inputCls} />
         </Field>
 
         <Field label="Silah">
