@@ -79,4 +79,19 @@ describe("Player Engine", () => {
       expect(Object.keys(spec.skills).length).toBeGreaterThan(0);
     }
   });
+
+  it("generateAiOpponents: age verilince tüm AI aynı yaşta (kategoriyi birlikte atlar)", () => {
+    // Yaş kategorisi ilerlemesinde saha dolu kalsın diye AI'lar oyuncuyla aynı yaşta üretilir.
+    const specs = generateAiOpponents(createRng("gen"), {
+      count: 12,
+      gender: "MALE" as const,
+      weapon: "FOIL" as const,
+      ageCategory: "U10" as const,
+      gameDate: GAME_DATE,
+      age: 8,
+    });
+    for (const s of specs) {
+      expect(deriveIdentity(s, GAME_DATE).age).toBe(8); // hepsi 8 yaşında
+    }
+  });
 });

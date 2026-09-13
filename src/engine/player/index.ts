@@ -85,13 +85,18 @@ function randomBirthDate(rng: SeededRng, ageCategory: AgeCategory, gameDate: Dat
  */
 export function generateAiOpponents(
   rng: SeededRng,
-  opts: { count: number; gender: Gender; weapon: Weapon; ageCategory: AgeCategory; gameDate: Date },
+  opts: { count: number; gender: Gender; weapon: Weapon; ageCategory: AgeCategory; gameDate: Date; age?: number },
 ): AiPlayerSpec[] {
   const { count, gender, weapon, ageCategory, gameDate } = opts;
   const firsts = firstNamesFor(gender);
   const specs: AiPlayerSpec[] = [];
   for (let i = 0; i < count; i++) {
-    const birthDate = randomBirthDate(rng, ageCategory, gameDate);
+    // `age` verilirse tüm AI aynı yaşta (oyuncunun nesli) → yaş kategorisini birlikte atlar, saha
+    // hep dolu kalır (GDD 19.8). 1 Ocak doğumlu (GAME_START ile tam yaş). Yoksa kategoride rastgele.
+    const birthDate =
+      opts.age != null
+        ? new Date(Date.UTC(gameDate.getUTCFullYear() - opts.age, 0, 1))
+        : randomBirthDate(rng, ageCategory, gameDate);
     const age = computeAge(birthDate, gameDate);
     const profile = rng.pick(PROFILES);
     specs.push({
