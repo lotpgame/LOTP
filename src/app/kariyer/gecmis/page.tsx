@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCareerHistory } from "@/server/careerService";
 
@@ -9,14 +8,11 @@ export default async function GecmisPage() {
   if (!h) redirect("/");
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-8">
-      <Link href="/kariyer" className="text-sm text-emerald-600 hover:underline">
-        ← Kariyere dön
-      </Link>
-      <h1 className="mt-2 text-2xl font-bold">{h.name} — Kariyer Geçmişi</h1>
+    <main>
+      <h1 className="text-xl font-bold">Kariyer Geçmişi</h1>
 
       {/* İstatistikler */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <Stat label="Turnuva" value={h.stats.totalTournaments} />
         <Stat label="Şampiyonluk" value={h.stats.championships} />
         <Stat label="Madalya" value={h.stats.medals} />

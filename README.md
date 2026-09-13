@@ -87,7 +87,9 @@ düğmesi zamanı sürer ve turnuva haftası gelince seni turnuva ekranına göt
 sunucu saati yapar); **canlı turnuva** — gerçek zamanlı, **maç-maç sıralı** akış: pul maçları
 teker teker açılır, **her maçın kendi taktiği** (ofansif/dengeli/defansif, skill+trait ile
 etkileşir), eleme tur tur; turnuva-içi gerçekçi saat, kariyer saati turnuva boyunca durur;
-panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim **"pul"** (poule).
+panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim **"pul"** (poule);
+**mobil öncelikli arayüz** — üstte ad + avatar, gizli/açılır **☰ menü** (Profil / Antrenman /
+Turnuvalar / Kulüp / Ekipman / Geçmiş sayfaları).
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
 §B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi

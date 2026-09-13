@@ -500,6 +500,34 @@ export async function getCareer(): Promise<CareerDTO | null> {
   };
 }
 
+/** Menü/başlık için hafif kimlik bilgisi (tüm kariyer sayfalarında ortak). */
+export interface CareerHeaderDTO {
+  name: string;
+  code: string;
+  gender: string;
+  weapon: string;
+  age: number;
+  categoryId: string;
+  liveTournamentActive: boolean;
+}
+
+export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
+  const state = await loadState();
+  if (!state) return null;
+  const { gs, human } = state;
+  const base = baseIdentity(human);
+  const quarter = quarterOf(gs.weekIndex);
+  return {
+    name: `${human.firstName} ${human.lastName}`,
+    code: human.code,
+    gender: human.gender,
+    weapon: human.weapon,
+    age: base.age + (quarter - 1),
+    categoryId: base.categoryId,
+    liveTournamentActive: gs.liveTournament != null,
+  };
+}
+
 async function buildRankingView(categoryId: string, quarter: number, humanId: number) {
   const rows = await prisma.ranking.findMany({
     where: { categoryId, quarter },

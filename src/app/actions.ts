@@ -49,17 +49,17 @@ export async function advanceWeekAction(formData: FormData): Promise<void> {
     .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
   const result = await advanceWeek(slots);
   if (result.live) redirect("/turnuva/canli"); // canlı turnuva başladı
-  revalidatePath("/kariyer");
+  revalidatePath("/kariyer/antrenman");
 }
 
 export async function restWeekAction(): Promise<void> {
   await restWeek();
-  revalidatePath("/kariyer");
+  revalidatePath("/kariyer/antrenman");
 }
 
 export async function upgradeEquipmentAction(): Promise<void> {
   await upgradeEquipment();
-  revalidatePath("/kariyer");
+  revalidatePath("/kariyer/ekipman");
 }
 
 /** Turnuvaya "Katıl" — kayıt olur; oynanacağı hafta gelince "Haftayı İlerle" oynatır (GDD 17.20). */
@@ -69,13 +69,14 @@ export async function registerAction(formData: FormData): Promise<void> {
   if (!KNOWN_LEVELS.has(level)) throw new Error("Geçersiz turnuva seviyesi");
   if (!Number.isInteger(weekIndex) || weekIndex < 0) throw new Error("Geçersiz hafta");
   await registerTournament(level, weekIndex);
-  revalidatePath("/kariyer");
+  revalidatePath("/kariyer/turnuvalar");
 }
 
 /** Bekleyen turnuva kaydını iptal eder. */
 export async function cancelRegistrationAction(): Promise<void> {
   await cancelRegistration();
-  revalidatePath("/kariyer");
+  revalidatePath("/kariyer/antrenman");
+  revalidatePath("/kariyer/turnuvalar");
 }
 
 /** Canlı turnuvada sıradaki maçı seçilen taktikle oynar (GDD 18.22 — her maçın kendi taktiği). */

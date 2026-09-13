@@ -31,7 +31,7 @@ export default async function CanliTurnuvaPage() {
   if (!t) redirect("/kariyer"); // aktif turnuva yok
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-8">
+    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t.name}</h1>
