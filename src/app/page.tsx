@@ -6,6 +6,7 @@ import {
   GENDERS,
   PROFILE_LABEL_TR,
   PROFILES,
+  TR_CITIES,
   WEAPON_LABEL_TR,
   WEAPONS,
 } from "@/engine/domain";
@@ -43,6 +44,23 @@ export default async function Home() {
             ))}
           </select>
         </Field>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Ülke">
+            <select name="country" disabled defaultValue="TR" className={`${inputCls} opacity-70`}>
+              <option value="TR">Türkiye</option>
+            </select>
+          </Field>
+          <Field label="Şehir" hint="Kulübünü belirler.">
+            <select name="city" required defaultValue="İstanbul" className={inputCls}>
+              {TR_CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
 
         <Field label="Doğum Tarihi" hint="Yaş kategorisi (U10…Senior) doğum tarihinden otomatik belirlenir. Oyun 2026'da başlar; varsayılan 8 yaş (erken kariyer).">
           <input type="date" name="birthDate" required max="2018-01-01" defaultValue="2018-01-01" className={inputCls} />

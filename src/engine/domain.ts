@@ -52,6 +52,22 @@ export const TOURNAMENT_PRESTIGE: Record<TournamentLevel, number> = {
   WORLD_CUP: 7,
 };
 
+/** V1'de seçilebilir şehirler (Türkiye). Seçilen şehir oyuncunun kulübünü belirler. */
+export const TR_CITIES: readonly string[] = [
+  "İstanbul",
+  "Ankara",
+  "İzmir",
+  "Bursa",
+  "Antalya",
+  "Adana",
+  "Konya",
+  "Gaziantep",
+  "Kayseri",
+  "Eskişehir",
+  "Trabzon",
+  "Samsun",
+] as const;
+
 export const WEAPONS: readonly Weapon[] = ["FOIL", "EPEE", "SABRE"] as const;
 export const GENDERS: readonly Gender[] = ["MALE", "FEMALE"] as const;
 export const PROFILES: readonly PlayerProfile[] = [

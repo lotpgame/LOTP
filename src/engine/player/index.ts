@@ -28,6 +28,7 @@ export const createPlayerSchema = z.object({
   weapon: z.enum(["FOIL", "EPEE", "SABRE"]),
   profile: z.enum(["BALANCED", "TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"]),
   birthDate: z.coerce.date(),
+  city: z.string().trim().min(1, "Şehir zorunlu").max(30), // kulübün bulunduğu şehir (GDD 13)
 });
 
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;

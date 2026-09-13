@@ -214,9 +214,8 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   // Trait + kulüp/koç (GDD 10, 12, 13) — deterministik.
   const traits = generateTraits(createRng(`${seed}:traits`), 2);
   const clubRng = createRng(`${seed}:club`);
-  const cities = ["İstanbul", "Ankara", "İzmir", "Bursa", "Antalya"];
   const specialties: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
-  const city = clubRng.pick(cities);
+  const city = data.city; // oyuncunun seçtiği şehir → kulübü belirler (GDD 13)
   const clubData = {
     name: `${city} Eskrim Kulübü`,
     city,

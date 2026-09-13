@@ -17,6 +17,7 @@ describe("Player Engine", () => {
       weapon: "EPEE",
       profile: "BALANCED",
       birthDate: "2010-05-20",
+      city: "İstanbul",
     });
     expect(res.success).toBe(true);
     if (res.success) {
@@ -33,6 +34,7 @@ describe("Player Engine", () => {
       weapon: "EPEE",
       profile: "BALANCED",
       birthDate: "2010-05-20",
+      city: "İstanbul",
     }).success).toBe(false);
 
     expect(createPlayerSchema.safeParse({
@@ -42,6 +44,7 @@ describe("Player Engine", () => {
       weapon: "EPEE",
       profile: "BALANCED",
       birthDate: "2010-05-20",
+      city: "İstanbul",
     }).success).toBe(false);
   });
 

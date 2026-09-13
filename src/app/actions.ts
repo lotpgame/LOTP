@@ -30,6 +30,7 @@ export async function createCareerAction(formData: FormData): Promise<void> {
     weapon: String(formData.get("weapon") ?? ""),
     profile: String(formData.get("profile") ?? ""),
     birthDate: String(formData.get("birthDate") ?? ""),
+    city: String(formData.get("city") ?? ""),
   });
   redirect("/kariyer");
 }
