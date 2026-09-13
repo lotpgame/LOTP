@@ -785,6 +785,8 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       scoreA: m.scoreA,
       scoreB: m.scoreB,
       log: m.log.split("\n"),
+      aIsHuman: m.playerAId === humanId,
+      bIsHuman: m.playerBId === humanId,
     })),
     currentDate: (gs?.currentDate ?? t.date).toISOString(),
   };
@@ -828,6 +830,8 @@ export interface TournamentResultDTO {
     scoreA: number;
     scoreB: number;
     log: string[];
+    aIsHuman: boolean;
+    bIsHuman: boolean;
   }[];
   currentDate: string;
 }
@@ -1118,6 +1122,8 @@ export async function runTournament(
       scoreA: m.scoreA,
       scoreB: m.scoreB,
       log: m.log,
+      aIsHuman: m.aId === human.id,
+      bIsHuman: m.bId === human.id,
     })),
     currentDate: nextDate.toISOString(),
   };

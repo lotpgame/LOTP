@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
+import { CanliMac } from "./CanliMac";
 
 const POSITION_LABEL: Record<number, string> = {
   1: "🥇 Şampiyon",
@@ -26,6 +27,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   for (const m of t.matches) {
     if (m.phase === "DE" && !deRounds.includes(m.round)) deRounds.push(m.round);
   }
+  const yourMatches = t.matches.filter((m) => m.aIsHuman || m.bIsHuman);
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-8">
@@ -36,8 +38,33 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <h1 className="mt-2 text-2xl font-bold">{t.name}</h1>
       <p className="text-sm opacity-70">{t.categoryId}</p>
 
-      <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-        <div className="text-sm opacity-70">Senin sonucun</div>
+      {/* Senin maçların — havuz + eleme, sırayla, canlı izlenebilir */}
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold">Senin Maçların</h2>
+        <p className="text-sm opacity-70">
+          Havuz maçlarından başla; elemeye kalırsan o maçları da izle. Sonucu görmeden canlı
+          takip edebilirsin.
+        </p>
+        <div className="mt-3 space-y-3">
+          {yourMatches.map((m, i) => (
+            <div key={i}>
+              <div className="mb-1 text-xs font-medium opacity-60">
+                {m.phase === "POOL" ? m.round : `Eleme · ${m.round}`}
+              </div>
+              <CanliMac
+                aName={m.aName}
+                bName={m.bName}
+                scoreA={m.scoreA}
+                scoreB={m.scoreB}
+                log={m.log}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <div className="text-sm opacity-70">Turnuva sonucun</div>
         <div className="text-xl font-semibold">{positionLabel(t.yourPosition)}</div>
         <div className="mt-1 text-sm opacity-70">
           {t.yourSeedRank ? `Havuz sonrası ${t.yourSeedRank}. sıradan elemeye girdin. ` : ""}
@@ -83,29 +110,28 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           {deRounds.map((round) => (
             <div key={round}>
               <h3 className="mb-2 text-sm font-medium opacity-80">{round}</h3>
-              <div className="space-y-3">
+              <ul className="space-y-1">
                 {t.matches
                   .filter((m) => m.phase === "DE" && m.round === round)
                   .map((m, i) => {
                     const aWon = m.scoreA >= m.scoreB;
+                    const mine = m.aIsHuman || m.bIsHuman;
                     return (
-                      <div key={i} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className={aWon ? "font-semibold" : "opacity-70"}>{m.aName}</span>
-                          <span className="tabular-nums">
-                            {m.scoreA} – {m.scoreB}
-                          </span>
-                          <span className={!aWon ? "font-semibold" : "opacity-70"}>{m.bName}</span>
-                        </div>
-                        <ul className="mt-2 space-y-0.5 text-xs opacity-70">
-                          {m.log.map((line, j) => (
-                            <li key={j}>{line}</li>
-                          ))}
-                        </ul>
-                      </div>
+                      <li
+                        key={i}
+                        className={`flex items-center justify-between rounded px-2 py-1 text-sm ${
+                          mine ? "bg-emerald-500/10" : ""
+                        }`}
+                      >
+                        <span className={aWon ? "font-medium" : "opacity-70"}>{m.aName}</span>
+                        <span className="tabular-nums">
+                          {m.scoreA} – {m.scoreB}
+                        </span>
+                        <span className={!aWon ? "font-medium" : "opacity-70"}>{m.bName}</span>
+                      </li>
                     );
                   })}
-              </div>
+              </ul>
             </div>
           ))}
         </div>
