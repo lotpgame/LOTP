@@ -93,8 +93,12 @@ Turnuvalar / Klasman / Kulüp / Ekipman / Geçmiş sayfaları); **gün-bazlı za
 12 ay (H1–H12), her ay 7 günlük sabit program (Salı İl · Perşembe Türkiye · Cmt Open · uluslararası
 yılda 1); alt çubuktan **İlerle** (antrenmanları uygular, turnuva gününde durur) → **Katıl / Geç**
 (Geç = o gün antrenman); Turnuvalar **aylık takvim**; **Klasman** (kategori sıralaması + kulüpler +
-yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör** (farklı uzmanlık); sakatlık **gün** cinsinden.
+yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör** (farklı uzmanlık); sakatlık **gün** cinsinden;
+**yaş-kategori ilerlemesi** (U10→U12→…→Senior, saha rakip kadrosuyla birlikte atlar);
+**tuş-tuş maç anlatımı** — her sayı silaha uygun eskrim terimiyle ayrı satırda (15 tuşlukta detay);
+**geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
+kartlar) sürüyor.
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
-§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil, yaş kategorisi
-ilerlemesi (U10→U12→…), gelişmiş taktik (counter/pressure, maç-arası değişim), multiplayer (PostgreSQL).
+§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
+gelişmiş taktik (counter/pressure, maç-arası değişim), multiplayer (PostgreSQL).

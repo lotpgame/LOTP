@@ -1,7 +1,19 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCareerHistory } from "@/server/careerService";
 
 export const dynamic = "force-dynamic";
+
+const POSITION_BADGE: Record<number, string> = {
+  1: "🥇",
+  2: "🥈",
+  3: "🥉",
+};
+
+function placementLabel(pos: number): string {
+  if (pos === 0) return "—";
+  return POSITION_BADGE[pos] ? `${POSITION_BADGE[pos]} ${pos}.` : `${pos}.`;
+}
 
 export default async function GecmisPage() {
   const h = await getCareerHistory();
@@ -9,20 +21,64 @@ export default async function GecmisPage() {
 
   return (
     <main>
-      <h1 className="text-xl font-bold">Kariyer Geçmişi</h1>
+      <h1 className="text-xl font-bold">📜 Kariyer Geçmişi</h1>
 
       {/* İstatistikler */}
       <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat label="Turnuva" value={h.stats.totalTournaments} />
-        <Stat label="Şampiyonluk" value={h.stats.championships} />
-        <Stat label="Madalya" value={h.stats.medals} />
-        <Stat label="Final" value={h.stats.finals} />
-        <Stat label="Maç" value={h.stats.matchesPlayed} />
-        <Stat label="Galibiyet" value={h.stats.matchWins} />
+        <Stat icon="🏟" label="Turnuva" value={h.stats.totalTournaments} />
+        <Stat icon="🥇" label="Şampiyonluk" value={h.stats.championships} />
+        <Stat icon="🎖" label="Madalya" value={h.stats.medals} />
+        <Stat icon="🏅" label="Final" value={h.stats.finals} />
+        <Stat icon="🤺" label="Maç" value={h.stats.matchesPlayed} />
+        <Stat icon="✅" label="Galibiyet" value={h.stats.matchWins} />
         <Stat
+          icon="📈"
           label="En İyi Ranking"
           value={h.stats.careerBestRank != null ? `#${h.stats.careerBestRank}` : "—"}
         />
+      </section>
+
+      {/* Oynanan turnuvalar — maçları yeniden izlemek için tıkla */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold">🏟 Turnuvalarım</h2>
+        {h.tournaments.length === 0 ? (
+          <p className="mt-1 text-sm opacity-60">Henüz turnuva oynamadın.</p>
+        ) : (
+          <>
+            <p className="mt-1 text-sm opacity-60">
+              Bir turnuvaya dokun → pul ve eleme maçlarını yeniden izle.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {h.tournaments.map((t) => (
+                <li key={t.id}>
+                  <Link
+                    href={`/turnuva/${t.id}`}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-black/[0.015] px-3 py-2.5 text-sm transition hover:border-emerald-500/40 hover:bg-emerald-500/5 dark:border-white/15 dark:bg-white/[0.02]"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{t.name}</span>
+                      <span className="text-xs opacity-50">
+                        {t.level} · {new Date(t.date).toLocaleDateString("tr-TR")}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          t.position >= 1 && t.position <= 3
+                            ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                            : "bg-black/10 opacity-70 dark:bg-white/15"
+                        }`}
+                      >
+                        {placementLabel(t.position)}
+                      </span>
+                      <span className="opacity-40">›</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
 
       {/* Başarılar */}
@@ -73,11 +129,14 @@ export default async function GecmisPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value, icon }: { label: string; value: string | number; icon?: string }) {
   return (
-    <div className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/15">
-      <div className="text-xs opacity-60">{label}</div>
-      <div className="font-semibold">{value}</div>
+    <div className="rounded-xl border border-black/10 bg-black/[0.015] px-3 py-2 dark:border-white/15 dark:bg-white/[0.02]">
+      <div className="flex items-center gap-1 text-xs opacity-60">
+        {icon && <span className="text-sm">{icon}</span>}
+        {label}
+      </div>
+      <div className="mt-0.5 font-semibold">{value}</div>
     </div>
   );
 }

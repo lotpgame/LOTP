@@ -11,6 +11,13 @@ export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TACTICAL: "Taktik",
 };
 
+export const CATEGORY_ICON: Record<SkillCategory, string> = {
+  TECHNICAL: "🤺",
+  PHYSICAL: "💪",
+  MENTAL: "🧠",
+  TACTICAL: "♟️",
+};
+
 export function initials(name: string): string {
   return name
     .split(" ")
@@ -21,17 +28,30 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-/** Küçük durum kutusu (isteğe bağlı dolu-çubuk göstergesi). */
-export function Stat({ label, value, gauge }: { label: string; value: string; gauge?: number }) {
+/** Küçük durum kutusu (ikon + isteğe bağlı dolu-çubuk göstergesi). */
+export function Stat({
+  label,
+  value,
+  gauge,
+  icon,
+}: {
+  label: string;
+  value: string;
+  gauge?: number;
+  icon?: string;
+}) {
   const gaugeColor =
     gauge == null ? "" : gauge >= 50 ? "bg-emerald-500" : gauge >= 25 ? "bg-amber-500" : "bg-red-500";
   return (
-    <div className="rounded-lg border border-black/10 px-3 py-2 dark:border-white/15">
-      <div className="text-xs opacity-60">{label}</div>
-      <div className="font-semibold">{value}</div>
+    <div className="rounded-xl border border-black/10 bg-black/[0.015] px-3 py-2 dark:border-white/15 dark:bg-white/[0.02]">
+      <div className="flex items-center gap-1 text-xs opacity-60">
+        {icon && <span className="text-sm">{icon}</span>}
+        {label}
+      </div>
+      <div className="mt-0.5 font-semibold">{value}</div>
       {gauge != null && (
-        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
-          <div className={`h-full rounded-full ${gaugeColor}`} style={{ width: `${gauge}%` }} />
+        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+          <div className={`h-full rounded-full ${gaugeColor} transition-all`} style={{ width: `${gauge}%` }} />
         </div>
       )}
     </div>

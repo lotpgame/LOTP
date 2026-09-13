@@ -27,7 +27,7 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false }
   // Bir sonraki satırı gecikmeyle açar; bittiğinde durur (setState zamanlayıcı içinde → güvenli).
   useEffect(() => {
     if (!playing || shown >= log.length) return;
-    const id = setTimeout(() => setShown((s) => s + 1), fast ? 450 : 1300);
+    const id = setTimeout(() => setShown((s) => s + 1), fast ? 250 : 800);
     return () => clearTimeout(id);
   }, [playing, shown, fast, log.length]);
 

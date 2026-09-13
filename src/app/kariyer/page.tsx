@@ -1,9 +1,17 @@
 import { redirect } from "next/navigation";
-import { type SkillCategory } from "@/engine/domain";
+import {
+  type SkillCategory,
+  type Weapon,
+  type Gender,
+  WEAPON_LABEL_TR,
+  GENDER_LABEL_TR,
+} from "@/engine/domain";
 import { getCareer } from "@/server/careerService";
-import { CATEGORY_LABEL_TR, SkillBar, Stat, StatBar } from "./parts";
+import { CATEGORY_ICON, CATEGORY_LABEL_TR, SkillBar, Stat, StatBar, initials } from "./parts";
 
 export const dynamic = "force-dynamic";
+
+const WEAPON_EMOJI: Record<Weapon, string> = { FOIL: "🤺", EPEE: "⚔️", SABRE: "🗡️" };
 
 export default async function ProfilPage() {
   const c = await getCareer();
@@ -14,16 +22,47 @@ export default async function ProfilPage() {
     month: "long",
     year: "numeric",
   });
+  const ageCat = c.categoryId.split("-")[0]; // "U17-M-FL" → "U17"
+  const weaponLabel = WEAPON_LABEL_TR[c.weapon as Weapon] ?? c.weapon;
+  const genderLabel = GENDER_LABEL_TR[c.gender as Gender] ?? c.gender;
 
   return (
     <main>
+      {/* Kimlik afişi — avatar + isim + kategori rozeti (görsel çekicilik). */}
+      <section className="overflow-hidden rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 via-sky-500/10 to-transparent p-4 sm:p-5">
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-sky-600 text-2xl font-bold text-white shadow-lg shadow-emerald-500/30 sm:h-20 sm:w-20 sm:text-3xl">
+            {initials(c.name)}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">{c.name}</h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="rounded-full bg-black/10 px-2 py-0.5 font-medium dark:bg-white/15">
+                {WEAPON_EMOJI[c.weapon as Weapon]} {weaponLabel}
+              </span>
+              <span className="rounded-full bg-black/10 px-2 py-0.5 font-medium dark:bg-white/15">{genderLabel}</span>
+              <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
+                {ageCat} · {c.age} yaş
+              </span>
+              {c.club && (
+                <span className="rounded-full bg-black/10 px-2 py-0.5 dark:bg-white/15">🏛 {c.club.city}</span>
+              )}
+              {c.nationalTeam && (
+                <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-semibold text-red-700 dark:text-red-300">
+                  🇹🇷 Milli Takım
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
-      <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-5">
-        <Stat label="Sezon" value={`Q${c.quarter} / H${c.month}`} />
-        <Stat label="Genel Güç" value={c.overall.toFixed(1)} />
-        <Stat label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
-        <Stat label="Milli Takım" value={c.nationalTeam ? "✔" : "—"} />
+      <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <Stat icon="📅" label="Sezon" value={`Q${c.quarter} / H${c.month}`} />
+        <Stat icon="⭐" label="Genel Güç" value={c.overall.toFixed(1)} />
+        <Stat icon="🔋" label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
+        <Stat icon="🎯" label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
       <p className="mt-2 text-xs opacity-50">{c.dayName} · {date}</p>
 
@@ -36,7 +75,7 @@ export default async function ProfilPage() {
       {/* Fizik + Psikoloji */}
       <section className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h3 className="mb-3 text-sm font-semibold opacity-80">Fizik</h3>
+          <h3 className="mb-3 text-sm font-semibold opacity-80">📏 Fizik</h3>
           <ul className="space-y-1 text-sm">
             <li className="flex justify-between"><span>Boy</span><span className="tabular-nums opacity-70">{c.physique.heightCm.toFixed(0)} cm</span></li>
             <li className="flex justify-between"><span>Kulaç (erişim)</span><span className="tabular-nums opacity-70">{c.physique.reachCm.toFixed(0)} cm</span></li>
@@ -47,7 +86,7 @@ export default async function ProfilPage() {
         </div>
 
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h3 className="mb-3 text-sm font-semibold opacity-80">Psikoloji</h3>
+          <h3 className="mb-3 text-sm font-semibold opacity-80">🧠 Psikoloji</h3>
           <div className="space-y-2">
             <StatBar label="Moral" value={c.psychology.morale} />
             <StatBar label="Motivasyon" value={c.psychology.motivation} />
@@ -68,11 +107,13 @@ export default async function ProfilPage() {
 
       {/* Yetenekler */}
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">Yetenekler</h2>
+        <h2 className="text-lg font-semibold">🤺 Yetenekler</h2>
         <div className="mt-3 grid gap-x-6 gap-y-5 sm:grid-cols-2">
           {(Object.keys(CATEGORY_LABEL_TR) as SkillCategory[]).map((cat) => (
             <div key={cat}>
-              <h3 className="mb-2 text-sm font-medium opacity-80">{CATEGORY_LABEL_TR[cat]}</h3>
+              <h3 className="mb-2 text-sm font-medium opacity-80">
+                {CATEGORY_ICON[cat]} {CATEGORY_LABEL_TR[cat]}
+              </h3>
               <ul className="space-y-2">
                 {c.skills
                   .filter((s) => s.category === cat)

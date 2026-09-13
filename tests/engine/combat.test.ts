@@ -26,6 +26,17 @@ describe("Combat Engine", () => {
     expect(r1.log[0]).toContain("Maç gücü"); // açıklanabilir giriş satırı
   });
 
+  it("her tuş için anlatım satırı üretir (15 tuşluk elemede detay)", () => {
+    const r = simulateMatch(combatant(1, "A", 65), combatant(2, "B", 65), createRng("narr"), MATCH_FORMATS.DE);
+    // Toplam tuş = kazanan(15) + kaybeden skoru. Her tuş bir satır + kapanış satırı.
+    const totalTouches = r.scoreA + r.scoreB;
+    const touchLines = r.log.filter((l) => /\d+–\d+/.test(l)); // "3–2" içeren tuş satırları
+    // Son tuş kapanış satırıyla anlatılır → tuş satırı sayısı = toplam tuş − 1.
+    expect(touchLines.length).toBe(totalTouches - 1);
+    expect(r.log[r.log.length - 1]).toContain("kazandı");
+    expect(r.log.length).toBeGreaterThan(15); // düz özet değil, tuş-tuş detay
+  });
+
   it("havuz formatı (5 tuş) daha kısa maç", () => {
     const r = simulateMatch(combatant(1, "A", 60), combatant(2, "B", 60), createRng("p"), MATCH_FORMATS.POOL);
     expect(Math.max(r.scoreA, r.scoreB)).toBe(5);

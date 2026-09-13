@@ -915,6 +915,14 @@ export interface CareerHistoryDTO {
     careerBestRank: number | null;
   };
   rivals: { name: string; matches: number; wins: number; losses: number }[];
+  tournaments: {
+    id: number;
+    name: string;
+    level: string;
+    categoryId: string;
+    date: string;
+    position: number;
+  }[];
 }
 
 /** Kariyer geçmişi: başarılar, istatistikler ve rakiplikler (GDD 21, 22.36–22.37). */
@@ -931,7 +939,10 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       orderBy: [{ importance: "desc" }, { date: "desc" }],
       take: 40,
     }),
-    prisma.tournamentParticipant.findMany({ where: { playerId: hid } }),
+    prisma.tournamentParticipant.findMany({
+      where: { playerId: hid },
+      include: { tournament: true },
+    }),
     prisma.match.findMany({ where: { OR: [{ playerAId: hid }, { playerBId: hid }] } }),
   ]);
 
@@ -939,6 +950,18 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   const medals = entries.filter((e) => e.finalPosition != null && e.finalPosition <= 3).length;
   const finals = entries.filter((e) => e.finalPosition != null && e.finalPosition <= 2).length;
   const matchWins = matches.filter((m) => m.winnerId === hid).length;
+
+  // Oynanan turnuvalar (yeniden izlenebilir): en yeni önce.
+  const tournaments = [...entries]
+    .sort((a, b) => b.tournament.date.getTime() - a.tournament.date.getTime())
+    .map((e) => ({
+      id: e.tournamentId,
+      name: e.tournament.name,
+      level: TOURNAMENT_LABEL_TR[e.tournament.level as TournamentLevel] ?? e.tournament.level,
+      categoryId: e.tournament.categoryId,
+      date: e.tournament.date.toISOString(),
+      position: e.finalPosition ?? 0,
+    }));
 
   // Rakiplikler: en çok karşılaşılan rakipler (GDD 22.36).
   const byOpponent = new Map<number, { matches: number; wins: number; losses: number }>();
@@ -983,6 +1006,7 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       careerBestRank: human.careerBestRank ?? null,
     },
     rivals,
+    tournaments,
   };
 }
 

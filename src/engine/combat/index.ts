@@ -9,6 +9,7 @@
 import { clamp, type AgeCategory, type Weapon } from "../domain";
 import {
   computeEffectiveStrength,
+  createRng,
   winProbability,
   type SeededRng,
   type StrengthModifier,
@@ -64,11 +65,52 @@ export interface MatchResult {
   analysis: MatchAnalysis;
 }
 
-/** Silaha göre aksiyon anlatım kalıpları (metin renk katmanı). */
+/** Silaha göre aksiyon anlatım kalıpları (maç sonu özet satırı için). */
 const ACTION_LINES: Record<Weapon, string[]> = {
   FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
   EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
   SABRE: ["patlayıcı bir hücum başlattı", "hızlı bir baş kesme denedi", "reaksiyonla öne atıldı"],
+};
+
+/**
+ * Tuş-başı anlatım kalıpları (GDD 18.54): her sayının NASIL alındığını silaha uygun
+ * eskrim terimleriyle yazar. 15 tuşluk elemede oyuncular detay görebilsin diye zengin.
+ * Anlatım ayrı bir RNG akışından seçilir → maçın skor dizisini (determinizm/testler) BOZMAZ.
+ */
+const TOUCH_LINES: Record<Weapon, string[]> = {
+  // Flöre: hücum hakkı (right-of-way), hedef gövde.
+  FOIL: [
+    "hücum hakkını kullanıp gövdeye dokundu",
+    "parat-riposta ile sayıyı aldı",
+    "flèche ile öne atılıp tuşu buldu",
+    "beat (çelme) sonrası hücumu tamamladı",
+    "bağ değiştirip açığa net dokundu",
+    "kontratakta hakkı alıp vurdu",
+    "remise ile ikinci niyeti değerlendirdi",
+    "hazırlıkla mesafeyi ayarlayıp isabet buldu",
+  ],
+  // Epe: hak yok, tüm vücut hedef, çift tuş olur.
+  EPEE: [
+    "öne çıkan bileğe ani vuruş yaptı",
+    "el üstüne kısa dokunuşla sayı aldı",
+    "mesafeyi kapatıp gövdeye tuş buldu",
+    "karşı atakla dize/ayağa dokundu",
+    "açı vererek (angulation) kolu buldu",
+    "point-in-line'ı tutup rakibi üzerine çekti",
+    "sabırla bekleyip açığı cezalandırdı",
+    "çift tuşu göze alıp öne geçti",
+  ],
+  // Kılıç: hak var, kesme+dürtme, çok hızlı.
+  SABRE: [
+    "baş kesmeyle (tête) sayıyı aldı",
+    "yanağa (joue) hızlı kesişle dokundu",
+    "flank kesişiyle gövdeyi buldu",
+    "flèche'le patlayıp öne çıktı",
+    "beat (çelme) sonrası hücumu bitirdi",
+    "kontr-kesmeyle hakkı geri aldı",
+    "reaksiyon hızıyla ilk dokunan oldu",
+    "mesafeden ani hücumla vurdu",
+  ],
 };
 
 const MOMENTUM_STEP = 0.02;
@@ -129,13 +171,14 @@ export function simulateMatch(
     log.push(`Taktik — ${a.name}: ${TACTIC_LABEL_TR[tacticA]}, ${b.name}: ${TACTIC_LABEL_TR[tacticB]}.`);
   }
 
+  // Anlatım için AYRI RNG akışı: skoru belirleyen `rng`'yi tüketmez → determinizm korunur.
+  const narr = createRng(`${rng.seed}:narr`);
+
   let scoreA = 0;
   let scoreB = 0;
   let lastScorer: 0 | 1 | 2 = 0; // 0 yok, 1 A, 2 B
   let run = 0;
   let momentum = 0; // + A lehine, − B lehine (GDD 18.34: küçük etki)
-  let midLogged = false;
-  let runLogged = false;
 
   const maxExchanges = targetTouches * 4;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
@@ -144,6 +187,7 @@ export function simulateMatch(
     // BALANCED maçlarda chaos=0 → rng.bool(chaos) hiç çağrılmaz, dizinin sırası korunur.
     const aScores = chaos > 0 && rng.bool(chaos) ? rng.bool(0.5) : rng.bool(p);
 
+    const scorer = aScores ? a : b;
     if (aScores) {
       scoreA++;
       run = lastScorer === 1 ? run + 1 : 1;
@@ -156,31 +200,23 @@ export function simulateMatch(
       momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     }
 
-    if (!runLogged && run >= 3) {
-      runLogged = true;
-      const who = lastScorer === 1 ? a : b;
-      log.push(`${who.name} üst üste sayılarla baskı kuruyor.`);
-    }
+    const decisive = scoreA >= targetTouches || scoreB >= targetTouches;
+    if (decisive) break; // son tuşu kapanış satırı anlatır (tekrarı önler)
 
-    if (!midLogged && scoreA + scoreB >= targetTouches) {
-      midLogged = true;
-      const leaderIsA = scoreA >= scoreB;
-      const leader = leaderIsA ? a : b;
-      const [ls, ts] = leaderIsA ? [scoreA, scoreB] : [scoreB, scoreA];
-      const action = rng.pick(ACTION_LINES[leader.weapon]);
-      log.push(
-        ls === ts
-          ? `Mücadele başa baş: ${ls}-${ts}.`
-          : `${leader.name} ${action}; ${ls}-${ts} önde.`,
-      );
-    }
+    // Her tuş için bir satır: NASIL alındığı + güncel skor (A–B).
+    const matchPoint = scoreA === targetTouches - 1 || scoreB === targetTouches - 1;
+    let line = `${scorer.name} ${narr.pick(TOUCH_LINES[scorer.weapon])}. ${scoreA}–${scoreB}`;
+    if (run >= 3) line += ` — üst üste ${run}!`;
+    else if (scoreA === scoreB) line += " — eşitlik.";
+    else if (matchPoint) line += " — maç sayısı!";
+    log.push(line);
   }
 
   const winnerIsA = scoreA >= scoreB;
   const winner = winnerIsA ? a : b;
   const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
   log.push(
-    `${winner.name} ${rng.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`,
+    `🏁 ${winner.name} ${narr.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`,
   );
 
   return {
