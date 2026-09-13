@@ -1,8 +1,11 @@
 "use client";
 
 /**
- * Canlı maç izleme (GDD 18.54, 18.70) — CM 00/01 / Hattrick tarzı: maç anlatımı satır satır,
- * gecikmeyle akar; sonuç izlenene kadar gizli (spoiler yok). Kayıtlı combat log'unu oynatır.
+ * Maç gösterimi iki kipte:
+ * - Canlı (past=false): maç o an oynanıyor — anlatım satır satır gecikmeyle akar, sonuç
+ *   izlenene kadar gizli (GDD 18.54, 18.70). CM 00/01 / Hattrick tarzı.
+ * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "📋 Skor detayı" ile tuş-tuş
+ *   döküm açılıp kapanır (canlı izleme yerine, kullanıcı isteği).
  */
 import { useEffect, useState } from "react";
 
@@ -13,12 +16,14 @@ export interface CanliMacProps {
   scoreB: number;
   log: string[];
   autoPlay?: boolean; // canlı ekranda yeni oynanan maç kendiliğinden akar
+  past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
 }
 
-export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false }: CanliMacProps) {
+export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, past = false }: CanliMacProps) {
   const [shown, setShown] = useState(0);
   const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
+  const [open, setOpen] = useState(false); // geçmiş kipinde detay açık mı
 
   const started = shown > 0 || playing;
   const done = shown >= log.length && started;
@@ -26,10 +31,38 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false }
 
   // Bir sonraki satırı gecikmeyle açar; bittiğinde durur (setState zamanlayıcı içinde → güvenli).
   useEffect(() => {
-    if (!playing || shown >= log.length) return;
+    if (past || !playing || shown >= log.length) return;
     const id = setTimeout(() => setShown((s) => s + 1), fast ? 250 : 800);
     return () => clearTimeout(id);
-  }, [playing, shown, fast, log.length]);
+  }, [past, playing, shown, fast, log.length]);
+
+  // Geçmiş maç: skor açık, "Skor detayı" ile tuş-tuş döküm açılır.
+  if (past) {
+    return (
+      <div className="rounded-lg border border-black/10 dark:border-white/15">
+        <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+          <span className={`min-w-0 truncate ${aWon ? "font-semibold" : "opacity-80"}`}>{aName}</span>
+          <span className="shrink-0 tabular-nums font-semibold">
+            {scoreA} – {scoreB}
+          </span>
+          <span className={`min-w-0 truncate text-right ${!aWon ? "font-semibold" : "opacity-80"}`}>{bName}</span>
+        </div>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex w-full items-center justify-center gap-1 border-t border-black/5 px-3 py-1.5 text-xs opacity-60 transition hover:opacity-100 dark:border-white/10"
+        >
+          📋 Skor detayı {open ? "▴" : "▾"}
+        </button>
+        {open && (
+          <ul className="space-y-0.5 border-t border-black/5 px-3 py-2 text-xs opacity-80 dark:border-white/10">
+            {log.map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
 
   const start = () => {
     setShown(0);

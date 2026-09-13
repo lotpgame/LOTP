@@ -48,8 +48,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <section className="mt-6">
         <h2 className="text-lg font-semibold">Senin Maçların</h2>
         <p className="text-sm opacity-70">
-          Önce pul (grup) maçların; pul bitince sıralamanı görürsün, elemeye kalırsan o maçları da
-          izlersin. Sonucu görmeden canlı takip edebilirsin.
+          Önce pul (grup) maçların, sonra eleme maçların. Her maçta{" "}
+          <span className="font-medium">📋 Skor detayı</span> ile tuş-tuş dökümü açabilirsin.
         </p>
 
         {yourPool.length > 0 && (
@@ -59,7 +59,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
               {yourPool.map((m, i) => (
                 <div key={i}>
                   <div className="mb-1 text-xs font-medium opacity-60">{m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past />
                 </div>
               ))}
             </div>
@@ -90,7 +90,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
               {yourDE.map((m, i) => (
                 <div key={i}>
                   <div className="mb-1 text-xs font-medium opacity-60">Eleme · {m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past />
                 </div>
               ))}
             </div>
