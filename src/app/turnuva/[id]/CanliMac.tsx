@@ -7,7 +7,7 @@
  * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "📋 Skor detayı" ile tuş-tuş
  *   döküm açılıp kapanır (canlı izleme yerine, kullanıcı isteği).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export interface CanliMacProps {
   aName: string;
@@ -17,9 +17,10 @@ export interface CanliMacProps {
   log: string[];
   autoPlay?: boolean; // canlı ekranda yeni oynanan maç kendiliğinden akar
   past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
+  afterDone?: ReactNode; // animasyon bitince gösterilir (ör. "pul sonuçlarını gör" paneli — spoiler önler)
 }
 
-export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, past = false }: CanliMacProps) {
+export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, past = false, afterDone }: CanliMacProps) {
   const [shown, setShown] = useState(0);
   const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
@@ -132,6 +133,7 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, 
           </div>
         </>
       )}
+      {done && afterDone && <div className="mt-3">{afterDone}</div>}
     </div>
   );
 }

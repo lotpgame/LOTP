@@ -63,6 +63,21 @@ export default async function CanliTurnuvaPage() {
                   scoreB={m.scoreB}
                   log={m.log}
                   autoPlay={i === t.played.length - 1}
+                  afterDone={
+                    t.poolAwaitingResult && i === t.played.length - 1 ? (
+                      <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 p-4 text-center">
+                        <h2 className="text-base font-semibold">Pul maçların bitti</h2>
+                        <p className="mt-1 text-sm opacity-80">
+                          Şimdi pul sıralamanı ve elemeye kaçıncı sıradan gireceğini gör.
+                        </p>
+                        <form action={revealPoolAction} className="mt-3">
+                          <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
+                            Pul sonuçlarını gör →
+                          </button>
+                        </form>
+                      </div>
+                    ) : undefined
+                  }
                 />
               </div>
             ))}
@@ -94,28 +109,30 @@ export default async function CanliTurnuvaPage() {
             scoreOpp={t.liveMatch.scoreOpp}
             log={t.liveMatch.log}
             instantThrough={t.liveMatch.prevLen}
+            afterDone={
+              <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
+                <h2 className="text-lg font-semibold">
+                  🔄 Devre arası — {t.liveMatch.nextPeriod}. periyot ({t.liveMatch.scoreHuman}-{t.liveMatch.scoreOpp})
+                </h2>
+                <p className="mt-1 text-sm opacity-70">
+                  Sonraki periyot için taktiğini değiştirebilirsin. (Toplam {t.liveMatch.totalPeriods} periyot)
+                </p>
+                <form action={playLiveMatchAction} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {TACTICS.map((tac) => (
+                    <button
+                      key={tac}
+                      name="tactic"
+                      value={tac}
+                      className="rounded-lg border border-black/15 p-3 text-left transition hover:border-emerald-500 hover:bg-emerald-500/10 dark:border-white/20"
+                    >
+                      <span className="text-sm font-medium">{TACTIC_LABEL_TR[tac]}</span>
+                      <span className="mt-1 block text-xs opacity-70">{TACTIC_DESC_TR[tac]}</span>
+                    </button>
+                  ))}
+                </form>
+              </div>
+            }
           />
-          <div className="mt-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
-            <h2 className="text-lg font-semibold">
-              🔄 Devre arası — {t.liveMatch.nextPeriod}. periyot ({t.liveMatch.scoreHuman}-{t.liveMatch.scoreOpp})
-            </h2>
-            <p className="mt-1 text-sm opacity-70">
-              Sonraki periyot için taktiğini değiştirebilirsin. (Toplam {t.liveMatch.totalPeriods} periyot)
-            </p>
-            <form action={playLiveMatchAction} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {TACTICS.map((tac) => (
-                <button
-                  key={tac}
-                  name="tactic"
-                  value={tac}
-                  className="rounded-lg border border-black/15 p-3 text-left transition hover:border-emerald-500 hover:bg-emerald-500/10 dark:border-white/20"
-                >
-                  <span className="text-sm font-medium">{TACTIC_LABEL_TR[tac]}</span>
-                  <span className="mt-1 block text-xs opacity-70">{TACTIC_DESC_TR[tac]}</span>
-                </button>
-              ))}
-            </form>
-          </div>
         </section>
       )}
 
@@ -143,21 +160,6 @@ export default async function CanliTurnuvaPage() {
                 <span className="mt-1 block text-xs opacity-70">{TACTIC_DESC_TR[tac]}</span>
               </button>
             ))}
-          </form>
-        </section>
-      )}
-
-      {/* Pul maçları bitti — son maçı izledikten sonra sonucu aç */}
-      {t.poolAwaitingResult && (
-        <section className="mt-6 rounded-xl border border-sky-500/40 bg-sky-500/10 p-4 text-center">
-          <h2 className="text-lg font-semibold">Pul maçların bitti</h2>
-          <p className="mt-1 text-sm opacity-80">
-            Son maçını izledikten sonra pul sıralamanı ve elemeye kaçıncı sıradan gireceğini gör.
-          </p>
-          <form action={revealPoolAction} className="mt-3">
-            <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
-              Pul sonuçlarını gör →
-            </button>
           </form>
         </section>
       )}

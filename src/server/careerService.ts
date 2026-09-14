@@ -685,7 +685,11 @@ export async function getCategoryRanking(categoryId: string): Promise<RankingRow
   return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id);
 }
 
-const DAY_REST_RECOVERY = 12; // dinlenme (antrenman) gününde yorgunluk azalışı
+// Kondisyon modeli: her AKTİF günde doğal toparlanma (uyku/beslenme) uygulanır; antrenman bunun
+// üzerine yük biner. Böylece normal bir haftalık program kondisyonu hafif toparlar, ağır turnuvalar
+// düşürür. (Önceden doğal toparlanma yoktu → kondisyon çok hızlı tükeniyordu.)
+const DAY_BASE_RECOVERY = 10; // her aktif günde doğal günlük toparlanma
+const REST_EXTRA_RECOVERY = 8; // REST seansının ek toparlanması (doğal toparlanmaya eklenir)
 const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
 const INJURY_DAYS_PER_WEEK = 3; // rollInjury hafta → OYUN günü (3–9 gün; birkaç turnuva kaçırır)
 
@@ -785,8 +789,10 @@ export async function advanceDay(): Promise<AdvanceResult> {
 
   // Bir antrenman seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok bir kez.)
   const applySession = (type: TrainingType): boolean => {
+    // Doğal günlük toparlanma her aktif günde (antrenman + geçilen turnuva günü) uygulanır.
+    fatigue = clamp(fatigue - DAY_BASE_RECOVERY, 0, 100);
     if (type === "REST") {
-      fatigue = clamp(fatigue - DAY_REST_RECOVERY, 0, 100);
+      fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 0, 100);
       restSessions++;
     } else {
       // İki antrenörün uzmanlıkları (her biri 2 tür) birlikte 4 türü kapsar → bu türde uzman

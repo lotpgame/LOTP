@@ -5,7 +5,7 @@
  * Önceki periyotlar (instantThrough'a kadar) anında görünür; yalnız yeni periyot animasyonla akar.
  * Bileşen her yeni periyotta remount edilir (page'de key={log.length}) → shown doğru başlar.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export interface CanliPeriyotProps {
   aName: string;
@@ -14,9 +14,10 @@ export interface CanliPeriyotProps {
   scoreOpp: number;
   log: string[];
   instantThrough: number; // bu indeksten öncesi anında gösterilir
+  afterDone?: ReactNode; // periyot animasyonu bitince gösterilir (devre arası paneli — spoiler önler)
 }
 
-export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instantThrough }: CanliPeriyotProps) {
+export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instantThrough, afterDone }: CanliPeriyotProps) {
   const [shown, setShown] = useState(instantThrough);
   const [fast, setFast] = useState(false);
   const done = shown >= log.length;
@@ -31,9 +32,8 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{aName} (sen)</span>
-        <span className="tabular-nums font-semibold">
-          {scoreHuman} – {scoreOpp}
-        </span>
+        {/* Skor animasyon bitene kadar gizli (spoiler önler); tuş satırları zaten skoru gösterir. */}
+        <span className="tabular-nums font-semibold">{done ? `${scoreHuman} – ${scoreOpp}` : "• • •"}</span>
         <span className="opacity-80">{oppName}</span>
       </div>
       <ul className="mt-2 space-y-0.5 text-xs opacity-80">
@@ -59,6 +59,7 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
           </button>
         </div>
       )}
+      {done && afterDone && <div className="mt-4">{afterDone}</div>}
     </div>
   );
 }
