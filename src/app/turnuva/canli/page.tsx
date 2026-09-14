@@ -9,6 +9,7 @@ import {
 import { TACTICS, TACTIC_DESC_TR, TACTIC_LABEL_TR } from "@/engine/combat";
 import { getLiveTournament } from "@/server/careerService";
 import { CanliMac } from "../[id]/CanliMac";
+import { PulKagidi } from "../[id]/PulKagidi";
 import { CanliPeriyot } from "./CanliPeriyot";
 
 // Canlı turnuva: her istekte taze (DB durumuna bağlı).
@@ -46,15 +47,38 @@ export default async function CanliTurnuvaPage() {
         </div>
       </div>
 
+      {/* Oyuncu durumu — turnuva boyunca güncel (kondisyon maçlarla düşer). */}
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
+          <div className="text-xs opacity-60">🔋 Kondisyon</div>
+          <div className="font-semibold tabular-nums">%{t.player.condition}</div>
+        </div>
+        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
+          <div className="text-xs opacity-60">🎯 Keskinlik</div>
+          <div className="font-semibold tabular-nums">%{t.player.sharpness}</div>
+        </div>
+        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
+          <div className="text-xs opacity-60">⭐ Güç</div>
+          <div className="font-semibold tabular-nums">{t.player.overall.toFixed(1)}</div>
+        </div>
+      </div>
+
       {/* Oynanan maçların (canlı izlenebilir; en sonuncusu otomatik akar) */}
       {t.played.length > 0 && (
         <section className="mt-6">
           <h2 className="text-lg font-semibold">Maçların</h2>
           <div className="mt-3 space-y-3">
-            {t.played.map((m, i) => (
+            {t.played.map((m, i) => {
+              const isCurrent = i === t.played.length - 1;
+              // Pul maçının kaçıncısı olduğunu say (Pul 4 · 1. maç, 2. maç…).
+              const poolMatchNo =
+                m.phase === "POOL" ? t.played.slice(0, i + 1).filter((x) => x.phase === "POOL").length : 0;
+              const label =
+                m.phase === "POOL" ? `${m.round} · ${poolMatchNo}. maç` : `Eleme · ${m.round}`;
+              return (
               <div key={i}>
                 <div className="mb-1 text-xs font-medium opacity-60">
-                  {m.timeLabel} · {m.phase === "POOL" ? m.round : `Eleme · ${m.round}`}
+                  {m.timeLabel} · {label}
                 </div>
                 <CanliMac
                   aName={m.aName}
@@ -62,9 +86,10 @@ export default async function CanliTurnuvaPage() {
                   scoreA={m.scoreA}
                   scoreB={m.scoreB}
                   log={m.log}
-                  autoPlay={i === t.played.length - 1}
+                  autoPlay={isCurrent}
+                  past={!isCurrent}
                   afterDone={
-                    t.poolAwaitingResult && i === t.played.length - 1 ? (
+                    t.poolAwaitingResult && isCurrent ? (
                       <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 p-4 text-center">
                         <h2 className="text-base font-semibold">Pul maçların bitti</h2>
                         <p className="mt-1 text-sm opacity-80">
@@ -80,7 +105,8 @@ export default async function CanliTurnuvaPage() {
                   }
                 />
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -140,7 +166,10 @@ export default async function CanliTurnuvaPage() {
       {t.pending && (
         <section className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
           <div className="text-sm opacity-70">
-            {t.pending.timeLabel} · {t.pending.phase === "POOL" ? t.pending.round : `Eleme · ${t.pending.round}`}
+            {t.pending.timeLabel} ·{" "}
+            {t.pending.phase === "POOL"
+              ? `${t.pending.round}${t.pending.matchNo ? ` · ${t.pending.matchNo}. maç` : ""}`
+              : `Eleme · ${t.pending.round}`}
           </div>
           <h2 className="mt-1 text-lg font-semibold">Sıradaki maç: {t.pending.oppName}</h2>
           <p className="mt-1 text-sm opacity-70">
@@ -198,34 +227,14 @@ export default async function CanliTurnuvaPage() {
         </section>
       )}
 
-      {/* Pul tabloları (pul bitince görünür) */}
-      {t.pools && t.pools.length > 0 && (
+      {/* Pul kağıtları (poule) — pul bitince görünür */}
+      {t.poolSheets && t.poolSheets.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold">Pul&apos;lar (Grup)</h2>
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            {t.pools.map((pool) => (
-              <div key={pool.poolNumber} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
-                <h3 className="mb-2 text-sm font-medium opacity-80">Pul {pool.poolNumber}</h3>
-                <ul className="space-y-1 text-sm">
-                  {pool.players.map((p, i) => (
-                    <li
-                      key={i}
-                      className={`flex items-center justify-between rounded px-1 ${
-                        p.isHuman ? "bg-emerald-500/10 font-medium" : ""
-                      }`}
-                    >
-                      <span className="truncate">
-                        {p.name}
-                        {p.isHuman ? " (sen)" : ""}
-                      </span>
-                      <span className="ml-2 shrink-0 tabular-nums opacity-70">
-                        {p.wins}G-{p.losses}M · {p.indicator >= 0 ? "+" : ""}
-                        {p.indicator}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <h2 className="text-lg font-semibold">Pul Kağıtları</h2>
+          <p className="mt-1 text-xs opacity-60">V5 = galibiyet (attığın tuş) · sayı = mağlubiyette attığın tuş.</p>
+          <div className="mt-3 space-y-5">
+            {t.poolSheets.map((sheet) => (
+              <PulKagidi key={sheet.poolNumber} sheet={sheet} />
             ))}
           </div>
         </section>

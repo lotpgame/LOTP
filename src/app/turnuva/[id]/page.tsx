@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { leaveLiveTournamentAction } from "@/app/actions";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
+import { PulKagidi } from "./PulKagidi";
 
 const POSITION_LABEL: Record<number, string> = {
   1: "🥇 Şampiyon",
@@ -107,68 +108,56 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         </div>
       </div>
 
-      {/* Pul'lar (grup) */}
+      {/* Pul kağıtları (poule) */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Pul&apos;lar (Grup)</h2>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          {t.pools.map((pool) => (
-            <div key={pool.poolNumber} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
-              <h3 className="mb-2 text-sm font-medium opacity-80">Pul {pool.poolNumber}</h3>
-              <ul className="space-y-1 text-sm">
-                {pool.players.map((p, i) => (
-                  <li
-                    key={i}
-                    className={`flex items-center justify-between rounded px-1 ${
-                      p.isHuman ? "bg-emerald-500/10 font-medium" : ""
-                    }`}
-                  >
-                    <span className="truncate">
-                      {p.name}
-                      {p.isHuman ? " (sen)" : ""}
-                    </span>
-                    <span className="ml-2 shrink-0 tabular-nums opacity-70">
-                      {p.wins}G-{p.losses}M · {p.indicator >= 0 ? "+" : ""}
-                      {p.indicator}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <h2 className="text-lg font-semibold">Pul Kağıtları</h2>
+        <p className="mt-1 text-xs opacity-60">
+          V5 = galibiyet (attığın tuş) · sayı = mağlubiyette attığın tuş · V: galibiyet, TS/TR: atılan/yenen
+          tuş, Ind: averaj.
+        </p>
+        <div className="mt-3 space-y-5">
+          {t.poolSheets.map((sheet) => (
+            <PulKagidi key={sheet.poolNumber} sheet={sheet} />
           ))}
         </div>
       </section>
 
-      {/* Eleme */}
+      {/* Eleme çatalı (bracket) — turlar sütun sütun, sağa doğru finale gider */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Eleme Tablosu</h2>
-        <div className="mt-3 space-y-6">
-          {deRounds.map((round) => (
-            <div key={round}>
-              <h3 className="mb-2 text-sm font-medium opacity-80">{round}</h3>
-              <ul className="space-y-1">
+        <h2 className="text-lg font-semibold">Eleme Çatalı</h2>
+        <div className="mt-3 overflow-x-auto pb-2">
+          <div className="flex min-w-max gap-3">
+            {deRounds.map((round) => (
+              <div key={round} className="flex min-w-[170px] flex-col justify-around gap-3">
+                <h3 className="text-center text-xs font-medium opacity-70">{round}</h3>
                 {t.matches
                   .filter((m) => m.phase === "DE" && m.round === round)
                   .map((m, i) => {
                     const aWon = m.scoreA >= m.scoreB;
                     const mine = m.aIsHuman || m.bIsHuman;
                     return (
-                      <li
+                      <div
                         key={i}
-                        className={`flex items-center justify-between rounded px-2 py-1 text-sm ${
-                          mine ? "bg-emerald-500/10" : ""
+                        className={`rounded-lg border p-2 text-xs ${
+                          mine
+                            ? "border-emerald-500/50 bg-emerald-500/10"
+                            : "border-black/10 dark:border-white/15"
                         }`}
                       >
-                        <span className={aWon ? "font-medium" : "opacity-70"}>{m.aName}</span>
-                        <span className="tabular-nums">
-                          {m.scoreA} – {m.scoreB}
-                        </span>
-                        <span className={!aWon ? "font-medium" : "opacity-70"}>{m.bName}</span>
-                      </li>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`truncate ${aWon ? "font-semibold" : "opacity-60"}`}>{m.aName}</span>
+                          <span className="tabular-nums opacity-80">{m.scoreA}</span>
+                        </div>
+                        <div className="mt-0.5 flex items-center justify-between gap-2">
+                          <span className={`truncate ${!aWon ? "font-semibold" : "opacity-60"}`}>{m.bName}</span>
+                          <span className="tabular-nums opacity-80">{m.scoreB}</span>
+                        </div>
+                      </div>
                     );
                   })}
-              </ul>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

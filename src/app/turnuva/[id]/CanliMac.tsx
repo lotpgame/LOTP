@@ -9,6 +9,15 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 
+/** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
+function lastRevealedScore(lines: string[]): string | null {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/(\d+)\s*[–-]\s*(\d+)/);
+    if (m) return `${m[1]} – ${m[2]}`;
+  }
+  return null;
+}
+
 export interface CanliMacProps {
   aName: string;
   bName: string;
@@ -75,7 +84,11 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, 
       <div className="flex items-center justify-between text-sm">
         <span className={done && aWon ? "font-semibold" : "opacity-80"}>{aName}</span>
         <span className="tabular-nums">
-          {done ? `${scoreA} – ${scoreB}` : started ? "• • •" : "vs"}
+          {done
+            ? `${scoreA} – ${scoreB}`
+            : started
+              ? (lastRevealedScore(log.slice(0, shown)) ?? "• • •")
+              : "vs"}
         </span>
         <span className={done && !aWon ? "font-semibold" : "opacity-80"}>{bName}</span>
       </div>

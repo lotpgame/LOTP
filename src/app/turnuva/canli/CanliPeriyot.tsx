@@ -7,6 +7,15 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 
+/** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
+function lastRevealedScore(lines: string[]): string | null {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/(\d+)\s*[–-]\s*(\d+)/);
+    if (m) return `${m[1]} – ${m[2]}`;
+  }
+  return null;
+}
+
 export interface CanliPeriyotProps {
   aName: string;
   oppName: string;
@@ -32,8 +41,10 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{aName} (sen)</span>
-        {/* Skor animasyon bitene kadar gizli (spoiler önler); tuş satırları zaten skoru gösterir. */}
-        <span className="tabular-nums font-semibold">{done ? `${scoreHuman} – ${scoreOpp}` : "• • •"}</span>
+        {/* Skor, açıklanan son tuşa göre canlı güncellenir (event geçtikçe). */}
+        <span className="tabular-nums font-semibold">
+          {done ? `${scoreHuman} – ${scoreOpp}` : (lastRevealedScore(log.slice(0, shown)) ?? "• • •")}
+        </span>
         <span className="opacity-80">{oppName}</span>
       </div>
       <ul className="mt-2 space-y-0.5 text-xs opacity-80">

@@ -1058,6 +1058,14 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
     yourSeedRank: you?.seedRank ?? null,
     championName: champion ? (nameById.get(champion.playerId) ?? "?") : "?",
     pools: buildPoolsView(t.participants, nameById, humanId),
+    poolSheets: buildPoolSheets(
+      t.matches
+        .filter((m) => m.phase === "POOL")
+        .map((m) => ({ aId: m.playerAId, bId: m.playerBId, scoreA: m.scoreA, scoreB: m.scoreB })),
+      new Map(t.participants.filter((p) => p.poolNumber != null).map((p) => [p.playerId, p.poolNumber as number])),
+      nameById,
+      humanId,
+    ),
     standings: sortedParticipants.map((p) => ({
       position: p.finalPosition ?? fieldSize,
       name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
@@ -1107,6 +1115,7 @@ export interface TournamentResultDTO {
   yourSeedRank: number | null;
   championName: string;
   pools: PoolViewDTO[];
+  poolSheets: PoolSheetDTO[];
   standings: { position: number; name: string; isHuman: boolean }[];
   matches: {
     phase: string;
@@ -1151,6 +1160,73 @@ function buildPoolsView(
     pool.players.sort((a, b) => b.wins - a.wins || b.indicator - a.indicator);
   }
   return pools;
+}
+
+/** Klasik FIE pul kağıdı (poule): NxN sonuç ızgarası + V/TS/TR/Ind/Sıra. */
+export interface PoolSheetDTO {
+  poolNumber: number;
+  players: { name: string; isHuman: boolean; v: number; ts: number; tr: number; ind: number; place: number }[];
+  // cells[i][j]: i satırının j sütununa karşı sonucu (i'nin attığı tuş + kazandı mı); köşegen (i===j) null.
+  cells: ({ scored: number; won: boolean } | null)[][];
+}
+
+function buildPoolSheets(
+  poolMatches: readonly { aId: number; bId: number; scoreA: number; scoreB: number }[],
+  membership: ReadonlyMap<number, number>, // playerId -> poolNumber
+  nameById: Map<number, string>,
+  humanId: number,
+): PoolSheetDTO[] {
+  const byPool = new Map<number, number[]>();
+  for (const [pid, pool] of membership) {
+    if (!byPool.has(pool)) byPool.set(pool, []);
+    byPool.get(pool)!.push(pid);
+  }
+  const result = new Map<string, { sa: number; sb: number }>();
+  for (const m of poolMatches) result.set(`${m.aId}-${m.bId}`, { sa: m.scoreA, sb: m.scoreB });
+  const cell = (i: number, j: number): { scored: number; won: boolean } | null => {
+    const dir = result.get(`${i}-${j}`);
+    if (dir) return { scored: dir.sa, won: dir.sa > dir.sb };
+    const rev = result.get(`${j}-${i}`);
+    if (rev) return { scored: rev.sb, won: rev.sb > rev.sa };
+    return null;
+  };
+
+  const sheets: PoolSheetDTO[] = [];
+  for (const [poolNumber, ids] of [...byPool.entries()].sort((a, b) => a[0] - b[0])) {
+    const stat = new Map<number, { v: number; ts: number; tr: number }>();
+    for (const id of ids) stat.set(id, { v: 0, ts: 0, tr: 0 });
+    for (const i of ids)
+      for (const j of ids) {
+        if (i === j) continue;
+        const c = cell(i, j);
+        if (!c) continue;
+        const s = stat.get(i)!;
+        s.ts += c.scored;
+        const back = cell(j, i);
+        s.tr += back ? back.scored : 0;
+        if (c.won) s.v += 1;
+      }
+    const ordered = [...ids].sort((a, b) => {
+      const sa = stat.get(a)!;
+      const sb = stat.get(b)!;
+      return sb.v - sa.v || sb.ts - sb.tr - (sa.ts - sa.tr) || sb.ts - sa.ts;
+    });
+    const players = ordered.map((id, idx) => {
+      const s = stat.get(id)!;
+      return {
+        name: nameById.get(id) ?? formatPlayerCode(id),
+        isHuman: id === humanId,
+        v: s.v,
+        ts: s.ts,
+        tr: s.tr,
+        ind: s.ts - s.tr,
+        place: idx + 1,
+      };
+    });
+    const cells = ordered.map((ri) => ordered.map((cj) => (ri === cj ? null : cell(ri, cj))));
+    sheets.push({ poolNumber, players, cells });
+  }
+  return sheets;
 }
 
 // ===================== CANLI TURNUVA (maç-maç, her maçın kendi taktiği, GDD 18.54) =====================
@@ -1829,9 +1905,10 @@ export interface LiveTournamentDTO {
   poolPlayed: number;
   poolTotal: number;
   poolAwaitingResult: boolean; // tüm pul maçları oynandı, sonuç henüz açıklanmadı
+  player: { condition: number; sharpness: number; overall: number }; // üst bilgi çubuğu
   played: LiveMatchView[];
   byes: { round: string; timeLabel: string }[];
-  pending: { round: string; phase: "POOL" | "DE"; oppName: string; timeLabel: string } | null;
+  pending: { round: string; phase: "POOL" | "DE"; oppName: string; timeLabel: string; matchNo?: number } | null;
   upcoming: { oppName: string; timeLabel: string }[];
   liveMatch?: {
     round: string;
@@ -1845,6 +1922,7 @@ export interface LiveTournamentDTO {
     prevLen: number; // canlı akışta yalnız son periyodu animasyonla göster
   } | null;
   pools?: PoolViewDTO[];
+  poolSheets?: PoolSheetDTO[]; // pul kağıdı (poule) — pul bitince
   seedRank?: number | null;
   standings?: { name: string; position: number; isHuman: boolean }[];
   championName?: string;
@@ -1863,6 +1941,12 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
   const live = await loadLive();
   if (!live) return null;
   const ls = live.ls;
+  const humanFatigue = ls.fatigue[ls.humanId] ?? live.human.fatigue; // turnuva-içi güncel yorgunluk
+  const playerStats = {
+    condition: Math.round(100 - clamp(humanFatigue, 0, 100)),
+    sharpness: Math.round(live.human.sharpness),
+    overall: roundSkill(overall(rowsToSkills(live.human.skills))),
+  };
   const played: LiveMatchView[] = ls.matches
     .filter((m) => m.involvesHuman)
     .map((m) => ({
@@ -1888,6 +1972,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       phase: "POOL",
       oppName: nameOf(ls, ls.humanPoolOppOrder[idx]),
       timeLabel: clockLabel(ls, (idx + 1) * 2),
+      matchNo: idx + 1,
     };
     for (let k = idx + 1; k < ls.humanPoolOppOrder.length; k++) {
       upcoming.push({ oppName: nameOf(ls, ls.humanPoolOppOrder[k]), timeLabel: clockLabel(ls, (k + 1) * 2) });
@@ -1908,6 +1993,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     poolPlayed: ls.humanPoolIndex,
     poolAwaitingResult: ls.phase === "POOL" && ls.humanPoolIndex >= ls.humanPoolOppOrder.length,
     poolTotal: ls.humanPoolOppOrder.length,
+    player: playerStats,
     played,
     byes,
     pending,
@@ -1936,6 +2022,14 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
         losses: p.losses,
         indicator: p.indicator,
       })),
+      new Map(ls.combatants.map((c) => [c.id, c.name])),
+      ls.humanId,
+    );
+    const membership = new Map<number, number>();
+    ls.pools.forEach((pool, pi) => pool.forEach((id) => membership.set(id, pi + 1)));
+    dto.poolSheets = buildPoolSheets(
+      ls.matches.filter((m) => m.phase === "POOL").map((m) => ({ aId: m.aId, bId: m.bId, scoreA: m.scoreA, scoreB: m.scoreB })),
+      membership,
       new Map(ls.combatants.map((c) => [c.id, c.name])),
       ls.humanId,
     );
