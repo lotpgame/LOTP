@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "@/engine/probability";
 import { SKILL_KEYS, type PlayerSkills, type SkillValue } from "@/engine/skill";
-import { MATCH_FORMATS, simulateMatch, type Combatant } from "@/engine/combat";
+import type { AgeCategory } from "@/engine/domain";
+import {
+  MATCH_FORMATS,
+  PERIOD_SECONDS,
+  simulateLaBelle,
+  simulateMatch,
+  simulatePeriod,
+  type Combatant,
+} from "@/engine/combat";
 
 function flatSkills(current: number): PlayerSkills {
   const v: SkillValue = { current, potential: 100, floor: 0, ceiling: 100 };
@@ -10,6 +18,13 @@ function flatSkills(current: number): PlayerSkills {
 
 function combatant(id: number, name: string, current: number, fatigue = 0): Combatant {
   return { id, name, weapon: "EPEE", skills: flatSkills(current), fatigue };
+}
+
+// Çok-zamanlı (feint/parat/çelme…) aksiyonları işaret eden anahtar kelimeler.
+const MULTI_TEMPO = /feint|parat|çelme|degaje|angulation|prise|remise|kombinasyon|zinciriyle/i;
+
+function catCombatant(id: number, name: string, cat: AgeCategory, weapon: Combatant["weapon"] = "EPEE"): Combatant {
+  return { id, name, weapon, skills: flatSkills(60), fatigue: 0, ageCategory: cat };
 }
 
 describe("Combat Engine", () => {
@@ -57,6 +72,80 @@ describe("Combat Engine", () => {
       if (r.winnerId === 1) strongWins++;
     }
     expect(strongWins).toBeGreaterThan(n * 0.9);
+  });
+
+  it("U10 sadece tek zamanlı atak anlatır (çift/çok zamanlı yok)", () => {
+    // GDD 18.9 + kullanıcı kuralı: U10'da çift zamanlı atak yok.
+    for (let i = 0; i < 20; i++) {
+      const r = simulateMatch(catCombatant(1, "A", "U10"), catCombatant(2, "B", "U10"), createRng(`u10-${i}`), MATCH_FORMATS.DE);
+      const touchLines = r.log.filter((l) => /\d+–\d+/.test(l));
+      expect(touchLines.some((l) => MULTI_TEMPO.test(l))).toBe(false);
+    }
+  });
+
+  it("Senior maçlarında çok zamanlı ataklar görülür", () => {
+    let anyMulti = false;
+    for (let i = 0; i < 20 && !anyMulti; i++) {
+      const r = simulateMatch(catCombatant(1, "A", "SENIOR"), catCombatant(2, "B", "SENIOR"), createRng(`sr-${i}`), MATCH_FORMATS.DE);
+      if (r.log.some((l) => MULTI_TEMPO.test(l))) anyMulti = true;
+    }
+    expect(anyMulti).toBe(true);
+  });
+
+  it("simulatePeriod: kısa periyot maçı bitirmez, uzun periyot bitirir; deterministik", () => {
+    const a = catCombatant(1, "A", "SENIOR");
+    const b = catCombatant(2, "B", "SENIOR");
+    // 1 sn'lik periyot → hiç/az tuş, karar yok.
+    const short1 = simulatePeriod(a, b, createRng("p"), { target: 15, startA: 0, startB: 0, startClockSec: 0, periodEndSec: 1 });
+    const short2 = simulatePeriod(a, b, createRng("p"), { target: 15, startA: 0, startB: 0, startClockSec: 0, periodEndSec: 1 });
+    expect(short1).toEqual(short2); // deterministik
+    expect(short1.decided).toBe(false);
+    // Çok uzun periyot → hedefe ulaşır.
+    const full = simulatePeriod(a, b, createRng("p"), { target: 15, startA: 0, startB: 0, startClockSec: 0, periodEndSec: 100000 });
+    expect(full.decided).toBe(true);
+    expect(Math.max(full.scoreA, full.scoreB)).toBe(15);
+  });
+
+  // Bir maçı 3 periyot boyunca oynatır; kaç periyot kullanıldığını ve 15'e ulaşıp ulaşmadığını döndürür.
+  function playThreePeriods(a: Combatant, b: Combatant, seed: string) {
+    let sA = 0, sB = 0, clock = 0, decided = false, periods = 0;
+    for (let period = 1; period <= 3 && !decided; period++) {
+      const pr = simulatePeriod(a, b, createRng(`${seed}:p${period}`), {
+        target: 15, startA: sA, startB: sB, startClockSec: clock, periodEndSec: period * PERIOD_SECONDS,
+      });
+      sA = pr.scoreA; sB = pr.scoreB; clock = pr.clockSec; decided = pr.decided; periods = period;
+    }
+    return { reached15: decided, periods };
+  }
+
+  it("flöre maçları çoğunlukla 3 periyot içinde 15'e ulaşır", () => {
+    const a = catCombatant(1, "A", "U17", "FOIL");
+    const b = catCombatant(2, "B", "U17", "FOIL");
+    let reached = 0;
+    const n = 40;
+    for (let i = 0; i < n; i++) if (playThreePeriods(a, b, `fl${i}`).reached15) reached++;
+    expect(reached).toBeGreaterThan(n * 0.9);
+  });
+
+  it("epe maçları kılıçtan daha çok periyoda sarkar (GDD 18.12)", () => {
+    const n = 40;
+    let epeeP3 = 0, sabreP3 = 0;
+    for (let i = 0; i < n; i++) {
+      if (playThreePeriods(catCombatant(1, "A", "U17", "EPEE"), catCombatant(2, "B", "U17", "EPEE"), `e${i}`).periods === 3) epeeP3++;
+      if (playThreePeriods(catCombatant(1, "A", "U17", "SABRE"), catCombatant(2, "B", "U17", "SABRE"), `s${i}`).periods === 3) sabreP3++;
+    }
+    expect(epeeP3).toBeGreaterThan(sabreP3); // epe daha çok 3. periyoda gider
+  });
+
+  it("simulateLaBelle: tek tuş farkıyla (veya öncelikle) kazanan belirler, deterministik", () => {
+    const a = catCombatant(1, "A", "SENIOR");
+    const b = catCombatant(2, "B", "SENIOR");
+    const lb1 = simulateLaBelle(a, b, createRng("belle"), { startA: 14, startB: 14 });
+    const lb2 = simulateLaBelle(a, b, createRng("belle"), { startA: 14, startB: 14 });
+    expect(lb1).toEqual(lb2);
+    expect([1, 2]).toContain(lb1.winnerId);
+    const diff = Math.abs(lb1.scoreA - lb1.scoreB);
+    expect(diff).toBeLessThanOrEqual(1); // en çok 1 tuş fark (tuşsuz ise 0)
   });
 
   it("yakın maçlarda her iki sonuç da mümkün (GDD 18.32)", () => {

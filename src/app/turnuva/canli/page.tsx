@@ -9,6 +9,7 @@ import {
 import { TACTICS, TACTIC_DESC_TR, TACTIC_LABEL_TR } from "@/engine/combat";
 import { getLiveTournament } from "@/server/careerService";
 import { CanliMac } from "../[id]/CanliMac";
+import { CanliPeriyot } from "./CanliPeriyot";
 
 // Canlı turnuva: her istekte taze (DB durumuna bağlı).
 export const dynamic = "force-dynamic";
@@ -79,6 +80,45 @@ export default async function CanliTurnuvaPage() {
         </div>
       )}
 
+      {/* Devam eden eleme maçı — periyot akışı + devre arası taktik değişimi */}
+      {t.liveMatch && (
+        <section className="mt-6">
+          <div className="mb-1 text-xs font-medium opacity-60">
+            Eleme · {t.liveMatch.round} · {t.liveMatch.periodsPlayed}. periyot bitti
+          </div>
+          <CanliPeriyot
+            key={t.liveMatch.log.length}
+            aName="Sen"
+            oppName={t.liveMatch.oppName}
+            scoreHuman={t.liveMatch.scoreHuman}
+            scoreOpp={t.liveMatch.scoreOpp}
+            log={t.liveMatch.log}
+            instantThrough={t.liveMatch.prevLen}
+          />
+          <div className="mt-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
+            <h2 className="text-lg font-semibold">
+              🔄 Devre arası — {t.liveMatch.nextPeriod}. periyot ({t.liveMatch.scoreHuman}-{t.liveMatch.scoreOpp})
+            </h2>
+            <p className="mt-1 text-sm opacity-70">
+              Sonraki periyot için taktiğini değiştirebilirsin. (Toplam {t.liveMatch.totalPeriods} periyot)
+            </p>
+            <form action={playLiveMatchAction} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {TACTICS.map((tac) => (
+                <button
+                  key={tac}
+                  name="tactic"
+                  value={tac}
+                  className="rounded-lg border border-black/15 p-3 text-left transition hover:border-emerald-500 hover:bg-emerald-500/10 dark:border-white/20"
+                >
+                  <span className="text-sm font-medium">{TACTIC_LABEL_TR[tac]}</span>
+                  <span className="mt-1 block text-xs opacity-70">{TACTIC_DESC_TR[tac]}</span>
+                </button>
+              ))}
+            </form>
+          </div>
+        </section>
+      )}
+
       {/* Sıradaki maç — taktik seç ve oyna */}
       {t.pending && (
         <section className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
@@ -87,7 +127,9 @@ export default async function CanliTurnuvaPage() {
           </div>
           <h2 className="mt-1 text-lg font-semibold">Sıradaki maç: {t.pending.oppName}</h2>
           <p className="mt-1 text-sm opacity-70">
-            Bu maç için taktiğini seç — maç hemen başlar. (Her maçın kendi taktiği vardır.)
+            {t.pending.phase === "DE"
+              ? "1. periyot için taktiğini seç — eleme maçı 3 periyota (3×3 dk) kadar; her devre arası taktik değiştirebilirsin."
+              : "Bu maç için taktiğini seç — maç hemen başlar. (Her maçın kendi taktiği vardır.)"}
           </p>
           <form action={playLiveMatchAction} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
             {TACTICS.map((tac) => (

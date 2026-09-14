@@ -95,7 +95,10 @@ yılda 1); alt çubuktan **İlerle** (antrenmanları uygular, turnuva gününde 
 (Geç = o gün antrenman); Turnuvalar **aylık takvim**; **Klasman** (kategori sıralaması + kulüpler +
 yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör** (farklı uzmanlık); sakatlık **gün** cinsinden;
 **yaş-kategori ilerlemesi** (U10→U12→…→Senior, saha rakip kadrosuyla birlikte atlar);
-**tuş-tuş maç anlatımı** — her sayı silaha uygun eskrim terimiyle ayrı satırda (15 tuşlukta detay);
+**tuş-tuş maç anlatımı** — her sayı silaha uygun eskrim terimiyle ayrı satırda; **zamanlı atak
+eventleri** yaşa göre (U10 tek zamanlı → üst kategoride çift/3-4 zamanlı feint dizileri);
+**periyot sistemi** — eleme maçları 3×3 dk, her devre arası taktik değişir, epe 3. periyoda sarkar,
+beraberlikte altın tuş (la belle, FIE);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
 kartlar) sürüyor.
 

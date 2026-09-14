@@ -37,7 +37,17 @@ import {
   type TrainingType,
 } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
-import { MATCH_FORMATS, simulateMatch, type Combatant, type Tactic } from "@/engine/combat";
+import {
+  MATCH_FORMATS,
+  PERIOD_SECONDS,
+  DE_PERIODS,
+  simulateMatch,
+  simulatePeriod,
+  simulateLaBelle,
+  TACTIC_LABEL_TR,
+  type Combatant,
+  type Tactic,
+} from "@/engine/combat";
 import {
   bracketSeedOrder,
   bracketSize,
@@ -1218,6 +1228,22 @@ interface LiveState {
   finalTournamentId?: number;
   earnedPoints?: number; // bu turnuvadan kazanılan ranking puanı
   newRank?: number | null; // turnuva sonrası Quarter Ranking sırası
+  liveMatch?: LiveMatchProgress; // devam eden insan eleme maçı (periyot periyot)
+}
+
+/** İnsanın canlı eleme maçının periyotlar arası durumu (devre arası taktik değişimi için). */
+interface LiveMatchProgress {
+  oppId: number;
+  round: string;
+  roundSize: number;
+  humanPairIndex: number;
+  periodsPlayed: number; // oynanan periyot sayısı; sıradaki = periodsPlayed + 1
+  scoreHuman: number; // insan A tarafında (simulateOne'da humanId=aId)
+  scoreOpp: number;
+  clockSec: number; // birikmiş süre
+  log: string[]; // birikmiş anlatım (periyot başlıkları dahil)
+  prevLen: number; // önceki periyotların bittiği log uzunluğu (canlı akışta yalnız yeni periyot animasyonu)
+  timeOffsetMin: number;
 }
 
 async function loadLive(): Promise<{
@@ -1590,15 +1616,105 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
   }
 
   if (ls.phase === "DE") {
-    const rc = ls.deRound;
-    if (!rc) throw new Error("Sıradaki eleme maçı yok.");
-    const r = simulateOne(ls, ls.humanId, rc.oppId, DE_TOUCHES, "DE", rc.label, tactic, ls.poolEndOffsetMin + ls.deStep * 5);
-    rc.winners[rc.humanPairIndex] = r.winnerId;
-    ls.standings.push({ playerId: r.loserId, position: rc.roundSize / 2 + 1 });
+    // Eleme maçı periyot periyot oynanır (GDD 18.8: 3×3 dk). Devre arası taktik değişebilir.
+    let prog = ls.liveMatch;
+    if (!prog) {
+      const rc = ls.deRound;
+      if (!rc) throw new Error("Sıradaki eleme maçı yok.");
+      prog = {
+        oppId: rc.oppId,
+        round: rc.label,
+        roundSize: rc.roundSize,
+        humanPairIndex: rc.humanPairIndex,
+        periodsPlayed: 0,
+        scoreHuman: 0,
+        scoreOpp: 0,
+        clockSec: 0,
+        log: [],
+        prevLen: 0,
+        timeOffsetMin: ls.poolEndOffsetMin + ls.deStep * 5,
+      };
+    }
+
+    const periodNo = prog.periodsPlayed + 1;
+    const a = liveCombatant(ls, ls.humanId, tactic); // bu periyodun taktiği
+    const b = liveCombatant(ls, prog.oppId);
+    const oppTactic = ls.combatants.find((c) => c.id === prog!.oppId)?.aiTactic ?? "BALANCED";
+    const base = `${ls.seedKey}:de:${prog.round}:${Math.min(ls.humanId, prog.oppId)}-${Math.max(ls.humanId, prog.oppId)}`;
+
+    prog.prevLen = prog.log.length;
+    const pr = simulatePeriod(a, b, createRng(`${base}:p${periodNo}`), {
+      target: DE_TOUCHES,
+      startA: prog.scoreHuman,
+      startB: prog.scoreOpp,
+      startClockSec: prog.clockSec,
+      periodEndSec: periodNo * PERIOD_SECONDS,
+      includeHeader: periodNo === 1,
+    });
+    // Periyot başlığı + tuşlar.
+    if (periodNo === 1 && pr.log.length > 0) prog.log.push(pr.log[0]); // "Maç gücü …"
+    prog.log.push(`▸ ${periodNo}. Periyot — sen: ${TACTIC_LABEL_TR[tactic]}, rakip: ${TACTIC_LABEL_TR[oppTactic]}`);
+    prog.log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
+    prog.scoreHuman = pr.scoreA;
+    prog.scoreOpp = pr.scoreB;
+    prog.clockSec = pr.clockSec;
+    prog.periodsPlayed = periodNo;
+
+    let decided = pr.decided;
+    let winnerId = pr.winnerId;
+    if (!decided && periodNo >= DE_PERIODS) {
+      // 3 periyot bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (la belle).
+      if (pr.scoreA !== pr.scoreB) {
+        winnerId = pr.scoreA > pr.scoreB ? ls.humanId : prog.oppId;
+        prog.log.push(`⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`);
+      } else {
+        const lb = simulateLaBelle(a, b, createRng(`${base}:belle`), { startA: pr.scoreA, startB: pr.scoreB });
+        prog.log.push(...lb.log);
+        prog.scoreHuman = lb.scoreA;
+        prog.scoreOpp = lb.scoreB;
+        winnerId = lb.winnerId;
+      }
+      decided = true;
+    }
+
+    if (!decided) {
+      // Devre arası — sonraki periyot için taktik seçilecek.
+      ls.liveMatch = prog;
+      await saveLive(gs.id, ls);
+      return;
+    }
+
+    // Maç bitti → kalıcı maç kaydına yaz + tabloyu ilerlet.
+    const loserId = winnerId === ls.humanId ? prog.oppId : ls.humanId;
+    prog.log.push(`🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`);
+    const gain = Math.max(3, Math.round(DE_TOUCHES * 0.55));
+    ls.fatigue[ls.humanId] = clamp((ls.fatigue[ls.humanId] ?? 0) + gain, 0, 100);
+    ls.fatigue[prog.oppId] = clamp((ls.fatigue[prog.oppId] ?? 0) + gain, 0, 100);
+    ls.matches.push({
+      phase: "DE",
+      round: prog.round,
+      aId: ls.humanId,
+      bId: prog.oppId,
+      aName: nameOf(ls, ls.humanId),
+      bName: nameOf(ls, prog.oppId),
+      scoreA: prog.scoreHuman,
+      scoreB: prog.scoreOpp,
+      winnerId: winnerId!,
+      loserId,
+      log: prog.log,
+      involvesHuman: true,
+      humanTactic: tactic,
+      timeOffsetMin: prog.timeOffsetMin,
+    });
+
+    const rc = ls.deRound!;
+    rc.winners[rc.humanPairIndex] = winnerId!;
+    ls.standings.push({ playerId: loserId, position: rc.roundSize / 2 + 1 });
     ls.deStep++;
     const next = rc.winners.filter((w): w is number => w !== null && w !== BYE);
     ls.deRound = undefined;
-    if (r.winnerId !== ls.humanId) {
+    ls.liveMatch = undefined;
+    if (winnerId !== ls.humanId) {
       ls.deSlots = next;
       if (next.length <= 1) setChampion(ls, next[0]);
       else finishBracketBulk(ls);
@@ -1711,6 +1827,17 @@ export interface LiveTournamentDTO {
   byes: { round: string; timeLabel: string }[];
   pending: { round: string; phase: "POOL" | "DE"; oppName: string; timeLabel: string } | null;
   upcoming: { oppName: string; timeLabel: string }[];
+  liveMatch?: {
+    round: string;
+    oppName: string;
+    scoreHuman: number;
+    scoreOpp: number;
+    periodsPlayed: number;
+    totalPeriods: number;
+    nextPeriod: number;
+    log: string[];
+    prevLen: number; // canlı akışta yalnız son periyodu animasyonla göster
+  } | null;
   pools?: PoolViewDTO[];
   seedRank?: number | null;
   standings?: { name: string; position: number; isHuman: boolean }[];
@@ -1759,7 +1886,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     for (let k = idx + 1; k < ls.humanPoolOppOrder.length; k++) {
       upcoming.push({ oppName: nameOf(ls, ls.humanPoolOppOrder[k]), timeLabel: clockLabel(ls, (k + 1) * 2) });
     }
-  } else if (ls.phase === "DE" && ls.deRound) {
+  } else if (ls.phase === "DE" && ls.deRound && !ls.liveMatch) {
     pending = {
       round: ls.deRound.label,
       phase: "DE",
@@ -1779,6 +1906,19 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     byes,
     pending,
     upcoming,
+    liveMatch: ls.liveMatch
+      ? {
+          round: ls.liveMatch.round,
+          oppName: nameOf(ls, ls.liveMatch.oppId),
+          scoreHuman: ls.liveMatch.scoreHuman,
+          scoreOpp: ls.liveMatch.scoreOpp,
+          periodsPlayed: ls.liveMatch.periodsPlayed,
+          totalPeriods: DE_PERIODS,
+          nextPeriod: ls.liveMatch.periodsPlayed + 1,
+          log: ls.liveMatch.log,
+          prevLen: ls.liveMatch.prevLen,
+        }
+      : null,
   };
 
   if (ls.phase !== "POOL") {

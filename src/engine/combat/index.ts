@@ -2,17 +2,20 @@
  * Combat Engine — maçı simüle eder (GDD 18). Güç/olasılık hesabını Probability Engine'e
  * bırakır (GDD 20.4); burada maç akışı, momentum, aksiyon anlatımı ve sonuç üretilir.
  *
- * Sorumluluk sınırı (GDD 18.4): skill/ranking/para/bracket HESAPLAMAZ. M2: effective strength
+ * Sorumluluk sınırı (GDD 18.4): skill/ranking/para/bracket HESAPLAMAZ. effective strength
  * (yorgunluk etkili) + tuş olasılığı + küçük momentum (GDD 18.33–18.34) + silaha göre anlatım
  * + açıklanabilir analiz. Deterministik (aynı seed → aynı sonuç, GDD 20.30).
+ *
+ * Anlatım (tuş-tuş) ve saat, skoru belirleyen `rng`'den AYRI bir akıştan (`seed+":narr"`) üretilir
+ * → metin/zaman çeşitliliği maçın sonucunu/determinizmini bozmaz.
  */
 import { clamp, type AgeCategory, type Weapon } from "../domain";
 import {
   computeEffectiveStrength,
   createRng,
   winProbability,
+  type EffectiveStrength,
   type SeededRng,
-  type StrengthModifier,
 } from "../probability";
 import type { PlayerSkills } from "../skill";
 import type { TraitKey } from "../trait";
@@ -37,7 +40,7 @@ export interface Combatant {
   sharpness?: number; // 0–100 (keskinlik); verilmezse combat modifier uygulanmaz
   conditionBonus?: number; // psikoloji+trait+ekipman birleşik katkısı (puan)
   physical?: PhysicalProfile; // boy/kulaç/bacak/yapı/el — verilirse fiziksel erişim avantajı
-  ageCategory?: AgeCategory; // el tercihi avantajının kategoriye bağlılığı için
+  ageCategory?: AgeCategory; // el tercihi avantajı + tuş anlatım karmaşıklığı (zamanlı atak) için
   tactic?: Tactic; // maç öncesi taktik tercihi (GDD 18.22); verilmezse "BALANCED" (nötr)
   traits?: readonly TraitKey[]; // taktik-trait sinerjisi için (Agresif/Soğukkanlı…)
 }
@@ -45,12 +48,16 @@ export interface Combatant {
 /** Maç formatları (GDD 18.8): havuz 5 tuş, eleme 15 tuş. */
 export const MATCH_FORMATS = { POOL: 5, DE: 15 } as const;
 
+/** Eleme maçı zamanlaması (GDD 18.8): 3 periyot × 3 dk (9 dk). Havuz tek 3 dk periyot. */
+export const PERIOD_SECONDS = 180;
+export const DE_PERIODS = 3;
+
 export interface MatchAnalysis {
   effA: number;
   effB: number;
   winProbA: number;
-  modsA: StrengthModifier[];
-  modsB: StrengthModifier[];
+  modsA: EffectiveStrength["modifiers"];
+  modsB: EffectiveStrength["modifiers"];
 }
 
 export interface MatchResult {
@@ -65,7 +72,7 @@ export interface MatchResult {
   analysis: MatchAnalysis;
 }
 
-/** Silaha göre aksiyon anlatım kalıpları (maç sonu özet satırı için). */
+/** Maç sonu özet satırı için silaha göre kısa aksiyon kalıpları. */
 const ACTION_LINES: Record<Weapon, string[]> = {
   FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
   EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
@@ -73,55 +80,148 @@ const ACTION_LINES: Record<Weapon, string[]> = {
 };
 
 /**
- * Tuş-başı anlatım kalıpları (GDD 18.54): her sayının NASIL alındığını silaha uygun
- * eskrim terimleriyle yazar. 15 tuşluk elemede oyuncular detay görebilsin diye zengin.
- * Anlatım ayrı bir RNG akışından seçilir → maçın skor dizisini (determinizm/testler) BOZMAZ.
+ * Tuş-başı anlatım — "kaç zamanlı" (tempo) aksiyona göre katmanlı (GDD 18.9–18.26).
+ * 1 = tek zamanlı basit hücum; 2 = çift zamanlı (feint/beat/parat-riposta); 3–4 = karmaşık diziler.
+ * Yaş kategorisi hangi tempoların çıkacağını belirler (aşağıda TEMPO_MIX).
  */
-const TOUCH_LINES: Record<Weapon, string[]> = {
+type Tempo = 1 | 2 | 3 | 4;
+
+const TOUCH_LINES_BY_TEMPO: Record<Weapon, Record<Tempo, string[]>> = {
   // Flöre: hücum hakkı (right-of-way), hedef gövde.
-  FOIL: [
-    "hücum hakkını kullanıp gövdeye dokundu",
-    "parat-riposta ile sayıyı aldı",
-    "flèche ile öne atılıp tuşu buldu",
-    "beat (çelme) sonrası hücumu tamamladı",
-    "bağ değiştirip açığa net dokundu",
-    "kontratakta hakkı alıp vurdu",
-    "remise ile ikinci niyeti değerlendirdi",
-    "hazırlıkla mesafeyi ayarlayıp isabet buldu",
-  ],
-  // Epe: hak yok, tüm vücut hedef, çift tuş olur.
-  EPEE: [
-    "öne çıkan bileğe ani vuruş yaptı",
-    "el üstüne kısa dokunuşla sayı aldı",
-    "mesafeyi kapatıp gövdeye tuş buldu",
-    "karşı atakla dize/ayağa dokundu",
-    "açı vererek (angulation) kolu buldu",
-    "point-in-line'ı tutup rakibi üzerine çekti",
-    "sabırla bekleyip açığı cezalandırdı",
-    "çift tuşu göze alıp öne geçti",
-  ],
-  // Kılıç: hak var, kesme+dürtme, çok hızlı.
-  SABRE: [
-    "baş kesmeyle (tête) sayıyı aldı",
-    "yanağa (joue) hızlı kesişle dokundu",
-    "flank kesişiyle gövdeyi buldu",
-    "flèche'le patlayıp öne çıktı",
-    "beat (çelme) sonrası hücumu bitirdi",
-    "kontr-kesmeyle hakkı geri aldı",
-    "reaksiyon hızıyla ilk dokunan oldu",
-    "mesafeden ani hücumla vurdu",
-  ],
+  FOIL: {
+    1: [
+      "basit hücumla göğse dokundu",
+      "doğrudan atakla açığı buldu",
+      "hızlı bir flèche ile öne atıldı",
+      "temiz bir uzanışla tuşu aldı",
+    ],
+    2: [
+      "çelme–hücum (beat-atak) ile açığı buldu",
+      "parat–riposta ile sayıyı aldı",
+      "feint sonrası hattı değiştirip (degaje) vurdu",
+      "hazırlık–hücum ikilisiyle dokundu",
+    ],
+    3: [
+      "feint–feint–hücumla savunmayı çözdü",
+      "parat–riposta–remise zinciriyle tuşu aldı",
+      "çift degaje sonrası hücumu bağladı",
+    ],
+    4: [
+      "feint–degaje–feint–hücum kombinasyonuyla açığı buldu",
+      "uzun bir aksiyon dizisinin sonunda tuşu kopardı",
+    ],
+  },
+  // Epe: hak yok, tüm vücut hedef, çift isabet olur.
+  EPEE: {
+    1: [
+      "öne çıkan bileğe ani vuruş yaptı",
+      "el üstüne kısa dokunuşla sayı aldı",
+      "basit bir uzanışla açığı buldu",
+      "karşı atakla dize/ayağa dokundu",
+    ],
+    2: [
+      "çelme sonrası bileği buldu (beat-atak)",
+      "feint sonrası açı vererek (angulation) dokundu",
+      "hazırlık–hücum ile gövdeye tuş buldu",
+      "point-in-line tehdidiyle hattı değiştirip vurdu",
+    ],
+    3: [
+      "çift feint sonrası bileği yakaladı",
+      "prise-de-fer sonrası açıya dokundu",
+      "iki tempo hazırlıkla açığı büyütüp vurdu",
+    ],
+    4: [
+      "uzun bir kombinasyonun sonunda açığı buldu",
+      "feint–feint–açı–hücumla tuşu kopardı",
+    ],
+  },
+  // Kılıç: hak var, kesme+dürtme, yüksek tempo.
+  SABRE: {
+    1: [
+      "baş kesmeyle (tête) sayıyı aldı",
+      "hızlı bir hücumla öne çıktı",
+      "flèche ile patlayıp dokundu",
+      "reaksiyon hızıyla ilk dokunan oldu",
+    ],
+    2: [
+      "çelme–baş kesme (beat-atak) ile vurdu",
+      "parat–riposta ile sayıyı aldı",
+      "yanağa dönüp (change) kesişi tamamladı",
+      "feint sonrası flank kesişiyle dokundu",
+    ],
+    3: [
+      "çift feint sonrası baş kesmeyi bağladı",
+      "parat–riposta–karşı kesme zinciriyle tuşu aldı",
+      "iki tempolu hazırlıkla açığı bulup kesti",
+    ],
+    4: [
+      "uzun bir aksiyon dizisiyle savunmayı çözüp kesti",
+      "feint–feint–flank–baş kesme kombinasyonuyla vurdu",
+    ],
+  },
+};
+
+/**
+ * Yaş kategorisine göre tuşun tempo dağılımı (kullanıcı kuralı):
+ * U10 sadece tek zamanlı; U12 %35 çift; üst kategorilerde 3–4 zamanlı da çıkar.
+ */
+const TEMPO_MIX: Record<AgeCategory, Partial<Record<Tempo, number>>> = {
+  U10: { 1: 1 },
+  U12: { 1: 0.65, 2: 0.35 },
+  U14: { 1: 0.5, 2: 0.38, 3: 0.12 },
+  U17: { 1: 0.35, 2: 0.4, 3: 0.2, 4: 0.05 },
+  U21: { 1: 0.28, 2: 0.42, 3: 0.22, 4: 0.08 },
+  SENIOR: { 1: 0.25, 2: 0.42, 3: 0.23, 4: 0.1 },
+};
+
+/**
+ * Silaha göre tuş-başı ortalama süre (sn) + yaş çarpanı. Küçük kategoriler daha hızlı bitirir
+ * (maçlar erken 15'e ulaşır); büyük kategorilerde epe maçları 3. periyoda sarkabilir (GDD 18.12).
+ */
+const TOUCH_SECONDS: Record<Weapon, number> = { SABRE: 9, FOIL: 12, EPEE: 16 };
+const CATEGORY_TIME_FACTOR: Record<AgeCategory, number> = {
+  U10: 0.8,
+  U12: 0.95,
+  U14: 1.05,
+  U17: 1.12,
+  U21: 1.2,
+  SENIOR: 1.2,
 };
 
 const MOMENTUM_STEP = 0.02;
 const MOMENTUM_CAP = 3; // en çok ±0.06
 
-export function simulateMatch(
-  a: Combatant,
-  b: Combatant,
-  rng: SeededRng,
-  targetTouches: number = MATCH_FORMATS.DE,
-): MatchResult {
+function pickTempo(cat: AgeCategory, narr: SeededRng): Tempo {
+  const mix = TEMPO_MIX[cat];
+  const roll = narr.next();
+  let acc = 0;
+  for (const t of [1, 2, 3, 4] as Tempo[]) {
+    acc += mix[t] ?? 0;
+    if (roll < acc) return t;
+  }
+  return 1;
+}
+
+/** Bir tuşun anlatım satırını (zamanlı ataklı) üretir. */
+function touchPhrase(scorer: Combatant, cat: AgeCategory, narr: SeededRng): string {
+  const tempo = pickTempo(cat, narr);
+  return narr.pick(TOUCH_LINES_BY_TEMPO[scorer.weapon][tempo]);
+}
+
+/** Bir tuşun "fencing time" süresi (sn) — periyot saatini ilerletir. */
+function touchSeconds(weapon: Weapon, cat: AgeCategory, narr: SeededRng): number {
+  return TOUCH_SECONDS[weapon] * CATEGORY_TIME_FACTOR[cat] * (0.75 + narr.next() * 0.5);
+}
+
+interface Matchup {
+  esA: EffectiveStrength;
+  esB: EffectiveStrength;
+  baseP: number; // A'nın tuş kazanma temel olasılığı
+  chaos: number; // taktik kaynaklı salınım (0–0.45)
+}
+
+/** İki oyuncunun (taktikleri dahil) effective strength + tuş olasılığı + kaosunu hesaplar. */
+function buildMatchup(a: Combatant, b: Combatant): Matchup {
   const esA = computeEffectiveStrength(a.skills, a.weapon, {
     fatigue: a.fatigue,
     sharpness: a.sharpness,
@@ -161,31 +261,61 @@ export function simulateMatch(
   // Kaos: ofansif salınımı artırır, defansif azaltır (0–0.45). BALANCED→0 → RNG dizisi değişmez.
   const chaos = clamp(tacticChaos(tacticA) + tacticChaos(tacticB), 0, 0.45);
 
-  const baseP = winProbability(esA.total - esB.total);
+  return { esA, esB, baseP: winProbability(esA.total - esB.total), chaos };
+}
 
-  const log: string[] = [];
-  log.push(
-    `Maç gücü — ${a.name}: ${esA.total} · ${b.name}: ${esB.total} (${a.name} kazanma ihtimali %${Math.round(baseP * 100)}).`,
-  );
+function strengthLine(a: Combatant, b: Combatant, m: Matchup): string {
+  return `Maç gücü — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} kazanma ihtimali %${Math.round(m.baseP * 100)}).`;
+}
+
+/** Bir tuşun sonuç satırını (skor + durum notu) yazar. */
+function touchLine(
+  scorer: Combatant,
+  cat: AgeCategory,
+  narr: SeededRng,
+  scoreA: number,
+  scoreB: number,
+  run: number,
+  target: number,
+): string {
+  let line = `${scorer.name} ${touchPhrase(scorer, cat, narr)}. ${scoreA}–${scoreB}`;
+  if (run >= 3) line += ` — üst üste ${run}!`;
+  else if (scoreA === scoreB) line += " — eşitlik.";
+  else if (scoreA === target - 1 || scoreB === target - 1) line += " — maç sayısı!";
+  return line;
+}
+
+/**
+ * Tam maçı simüle eder (havuz + AI-AI eleme maçları — periyot duraklaması yok).
+ * İnsanın canlı eleme maçı `simulatePeriod` ile periyot periyot oynanır.
+ */
+export function simulateMatch(
+  a: Combatant,
+  b: Combatant,
+  rng: SeededRng,
+  targetTouches: number = MATCH_FORMATS.DE,
+): MatchResult {
+  const m = buildMatchup(a, b);
+  const narr = createRng(`${rng.seed}:narr`);
+  const cat = a.ageCategory ?? "SENIOR";
+
+  const log: string[] = [strengthLine(a, b, m)];
+  const tacticA = a.tactic ?? "BALANCED";
+  const tacticB = b.tactic ?? "BALANCED";
   if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
     log.push(`Taktik — ${a.name}: ${TACTIC_LABEL_TR[tacticA]}, ${b.name}: ${TACTIC_LABEL_TR[tacticB]}.`);
   }
 
-  // Anlatım için AYRI RNG akışı: skoru belirleyen `rng`'yi tüketmez → determinizm korunur.
-  const narr = createRng(`${rng.seed}:narr`);
-
   let scoreA = 0;
   let scoreB = 0;
-  let lastScorer: 0 | 1 | 2 = 0; // 0 yok, 1 A, 2 B
+  let lastScorer: 0 | 1 | 2 = 0;
   let run = 0;
-  let momentum = 0; // + A lehine, − B lehine (GDD 18.34: küçük etki)
+  let momentum = 0;
 
   const maxExchanges = targetTouches * 4;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
-    const p = clamp(baseP + momentum, 0.03, 0.97);
-    // Kaos: bazı tuşlar "risk"le yazı-tura belirlenir (ofansif ↑ sürpriz, defansif ↓ salınım).
-    // BALANCED maçlarda chaos=0 → rng.bool(chaos) hiç çağrılmaz, dizinin sırası korunur.
-    const aScores = chaos > 0 && rng.bool(chaos) ? rng.bool(0.5) : rng.bool(p);
+    const p = clamp(m.baseP + momentum, 0.03, 0.97);
+    const aScores = m.chaos > 0 && rng.bool(m.chaos) ? rng.bool(0.5) : rng.bool(p);
 
     const scorer = aScores ? a : b;
     if (aScores) {
@@ -200,24 +330,14 @@ export function simulateMatch(
       momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     }
 
-    const decisive = scoreA >= targetTouches || scoreB >= targetTouches;
-    if (decisive) break; // son tuşu kapanış satırı anlatır (tekrarı önler)
-
-    // Her tuş için bir satır: NASIL alındığı + güncel skor (A–B).
-    const matchPoint = scoreA === targetTouches - 1 || scoreB === targetTouches - 1;
-    let line = `${scorer.name} ${narr.pick(TOUCH_LINES[scorer.weapon])}. ${scoreA}–${scoreB}`;
-    if (run >= 3) line += ` — üst üste ${run}!`;
-    else if (scoreA === scoreB) line += " — eşitlik.";
-    else if (matchPoint) line += " — maç sayısı!";
-    log.push(line);
+    if (scoreA >= targetTouches || scoreB >= targetTouches) break; // son tuşu kapanış anlatır
+    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, targetTouches));
   }
 
   const winnerIsA = scoreA >= scoreB;
   const winner = winnerIsA ? a : b;
   const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
-  log.push(
-    `🏁 ${winner.name} ${narr.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`,
-  );
+  log.push(`🏁 ${winner.name} ${narr.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`);
 
   return {
     aId: a.id,
@@ -228,12 +348,124 @@ export function simulateMatch(
     loserId: winnerIsA ? b.id : a.id,
     log,
     fatigueGain: Math.max(3, Math.round(targetTouches * 0.55)),
-    analysis: {
-      effA: esA.total,
-      effB: esB.total,
-      winProbA: baseP,
-      modsA: esA.modifiers,
-      modsB: esB.modifiers,
-    },
+    analysis: { effA: m.esA.total, effB: m.esB.total, winProbA: m.baseP, modsA: m.esA.modifiers, modsB: m.esB.modifiers },
   };
+}
+
+export interface PeriodResult {
+  log: string[];
+  scoreA: number; // periyot sonu birikmiş skor
+  scoreB: number;
+  clockSec: number; // birikmiş süre (sn)
+  decided: boolean; // biri hedefe (15) ulaştı mı
+  winnerId?: number;
+}
+
+/**
+ * Tek bir periyodu (3 dk) simüle eder — insanın canlı eleme maçı için. Başlangıç skoru/saatinden
+ * devam eder; periyot dolunca veya hedefe ulaşınca durur. Her periyot kendi taktiğiyle çağrılır.
+ */
+export function simulatePeriod(
+  a: Combatant,
+  b: Combatant,
+  rng: SeededRng,
+  opts: { target: number; startA: number; startB: number; startClockSec: number; periodEndSec: number; includeHeader?: boolean },
+): PeriodResult {
+  const m = buildMatchup(a, b);
+  const narr = createRng(`${rng.seed}:narr`);
+  const cat = a.ageCategory ?? "SENIOR";
+
+  const log: string[] = [];
+  if (opts.includeHeader) log.push(strengthLine(a, b, m));
+
+  // Tuşsuz mübadele (tempo) olasılığı: epede yüksek, kılıçta düşük; defansif taktik artırır
+  // (GDD 18.24: sürekli savunma tempo kaybettirir). Süre dolabildiği için beraberlik/la belle mümkün olur.
+  const tA = a.tactic ?? "BALANCED";
+  const tB = b.tactic ?? "BALANCED";
+  let deadChance = a.weapon === "EPEE" ? 0.14 : a.weapon === "FOIL" ? 0.09 : 0.05;
+  if (tA === "DEFENSIVE") deadChance += 0.04;
+  if (tB === "DEFENSIVE") deadChance += 0.04;
+  deadChance = clamp(deadChance, 0, 0.3);
+
+  let scoreA = opts.startA;
+  let scoreB = opts.startB;
+  let clock = opts.startClockSec;
+  let lastScorer: 0 | 1 | 2 = 0;
+  let run = 0;
+  let momentum = 0;
+
+  while (scoreA < opts.target && scoreB < opts.target && clock < opts.periodEndSec) {
+    clock += touchSeconds(a.weapon, cat, narr); // her mübadele süre yer (skor olsun olmasın)
+    if (rng.bool(deadChance)) continue; // tuşsuz tur — sadece süre akar
+
+    const p = clamp(m.baseP + momentum, 0.03, 0.97);
+    const aScores = m.chaos > 0 && rng.bool(m.chaos) ? rng.bool(0.5) : rng.bool(p);
+
+    const scorer = aScores ? a : b;
+    if (aScores) {
+      scoreA++;
+      run = lastScorer === 1 ? run + 1 : 1;
+      lastScorer = 1;
+      momentum = Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
+    } else {
+      scoreB++;
+      run = lastScorer === 2 ? run + 1 : 1;
+      lastScorer = 2;
+      momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
+    }
+    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, opts.target));
+  }
+
+  const decided = scoreA >= opts.target || scoreB >= opts.target;
+  return {
+    log,
+    scoreA,
+    scoreB,
+    clockSec: clock,
+    decided,
+    winnerId: decided ? (scoreA >= opts.target ? a.id : b.id) : undefined,
+  };
+}
+
+export interface LaBelleResult {
+  log: string[];
+  scoreA: number;
+  scoreB: number;
+  winnerId: number;
+}
+
+/**
+ * Beraberlikte "altın tuş / öncelik dakikası" (FIE t.40–41): kura ile öncelik → 1 dk ani ölüm;
+ * ilk tuş kazanır, tuşsuz geçerse öncelikli kazanır. Alt kategorilerde nadir (maçlar erken biter).
+ */
+export function simulateLaBelle(
+  a: Combatant,
+  b: Combatant,
+  rng: SeededRng,
+  opts: { startA: number; startB: number },
+): LaBelleResult {
+  const m = buildMatchup(a, b);
+  const narr = createRng(`${rng.seed}:narr`);
+  const priorityA = rng.bool(0.5);
+  const log: string[] = [
+    `Skor ${opts.startA}-${opts.startB} berabere → öncelik kurası: ${(priorityA ? a : b).name}.`,
+  ];
+
+  let scoreA = opts.startA;
+  let scoreB = opts.startB;
+  let winnerIsA: boolean;
+
+  if (rng.bool(0.22)) {
+    // Altın dakika tuşsuz geçti → öncelik sahibi kazanır.
+    winnerIsA = priorityA;
+    log.push(`Altın dakika tuşsuz geçti — öncelik ${(priorityA ? a : b).name}'de, ${(priorityA ? a : b).name} kazandı.`);
+  } else {
+    winnerIsA = rng.bool(clamp(m.baseP, 0.05, 0.95));
+    if (winnerIsA) scoreA++;
+    else scoreB++;
+    const w = winnerIsA ? a : b;
+    log.push(`🏅 Altın tuş! ${w.name} ${touchPhrase(w, a.ageCategory ?? "SENIOR", narr)} — ${scoreA}–${scoreB}.`);
+  }
+
+  return { log, scoreA, scoreB, winnerId: winnerIsA ? a.id : b.id };
 }
