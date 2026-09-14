@@ -5,7 +5,9 @@
  * girdi Career Service içinde Zod ile doğrulanır (GDD güvenlik). Her aksiyon POST ile çalışır.
  */
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { LOCALE_COOKIE, type Locale } from "@/i18n";
 import { TACTICS, type Tactic } from "@/engine/combat";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
@@ -110,4 +112,16 @@ export async function resetCareerAction(): Promise<void> {
 export async function clearReportAction(): Promise<void> {
   await clearReport();
   revalidatePath("/kariyer", "layout");
+}
+
+/** Arayüz dilini değiştirir (cookie'ye yazar). */
+export async function setLocaleAction(formData: FormData): Promise<void> {
+  const locale = String(formData.get("locale") ?? "tr") as Locale;
+  const c = await cookies();
+  c.set(LOCALE_COOKIE, locale === "en" ? "en" : "tr", {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  revalidatePath("/", "layout");
 }

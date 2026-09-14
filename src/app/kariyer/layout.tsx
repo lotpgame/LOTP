@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { advanceDayAction, attendTournamentAction, clearReportAction } from "@/app/actions";
 import { GENDER_LABEL_TR, WEAPON_LABEL_TR, type Gender, type Weapon } from "@/engine/domain";
+import { t } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
 import { CareerNav } from "./CareerNav";
 
@@ -14,6 +16,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   if (!h) redirect("/");
   // Devam eden canlı turnuva varsa tüm kariyer sayfaları yerine turnuva ekranına götür (immersion).
   if (h.liveTournamentActive) redirect("/turnuva/canli");
+  const locale = await getLocale();
 
   const meta = `${h.code} · ${GENDER_LABEL_TR[h.gender as Gender]} · ${WEAPON_LABEL_TR[h.weapon as Weapon]} · ${h.age} yaş · ${h.categoryId}`;
   const dateLabel = `Q${h.quarter} · H${h.month} · ${h.dayName}`;
@@ -23,7 +26,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">
-      <CareerNav name={h.name} meta={meta} />
+      <CareerNav name={h.name} meta={meta} locale={locale} />
 
       {/* Antrenman haberi — son "İlerle"nin özeti (kazanımlar + kondisyon/keskinlik değişimi). */}
       {h.report && (
@@ -66,7 +69,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
             <div className="font-medium tabular-nums">{dateLabel}</div>
             <div className="truncate text-xs opacity-60">
               {h.injured
-                ? `🩹 Sakat — ${h.injuryDaysRemaining} gün`
+                ? t(locale, "bar.injured", { n: h.injuryDaysRemaining })
                 : h.today.kind === "TOURNAMENT"
                   ? `🏆 ${h.today.label}${h.today.qualified ? "" : ` · 🔒 ${h.today.requirement}`}`
                   : `🎯 ${h.today.trainingLabel}`}
@@ -76,16 +79,13 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           {canAttend ? (
             <div className="flex shrink-0 gap-2">
               <form action={advanceDayAction}>
-                <button
-                  title="Turnuvaya girme, bugün antrenman yap"
-                  className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-                >
-                  Geç · antren ⏭
+                <button className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
+                  {t(locale, "bar.gec")}
                 </button>
               </form>
               <form action={attendTournamentAction}>
                 <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
-                  🏆 Katıl
+                  {t(locale, "bar.katil")}
                 </button>
               </form>
             </div>
@@ -96,7 +96,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                   h.injured ? "bg-amber-600 hover:bg-amber-500" : "bg-emerald-600 hover:bg-emerald-500"
                 }`}
               >
-                İlerle →
+                {t(locale, "bar.ilerle")}
               </button>
             </form>
           )}

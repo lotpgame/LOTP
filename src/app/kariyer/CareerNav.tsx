@@ -7,22 +7,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { resetCareerAction } from "@/app/actions";
+import { t, type Locale } from "@/i18n";
 
 interface NavItem {
   href: string;
-  label: string;
+  key: string; // i18n anahtarı
   icon: string;
 }
 
 const ITEMS: NavItem[] = [
-  { href: "/kariyer", label: "Profil", icon: "👤" },
-  { href: "/kariyer/antrenman", label: "Antrenman", icon: "🎯" },
-  { href: "/kariyer/turnuvalar", label: "Turnuvalar", icon: "🏆" },
-  { href: "/kariyer/klasman", label: "Klasman", icon: "📊" },
-  { href: "/kariyer/kulup", label: "Kulüp", icon: "🏛️" },
-  { href: "/kariyer/ekipman", label: "Ekipman", icon: "🗡️" },
-  { href: "/kariyer/gecmis", label: "Kariyer Geçmişi", icon: "📜" },
+  { href: "/kariyer", key: "nav.profil", icon: "👤" },
+  { href: "/kariyer/antrenman", key: "nav.antrenman", icon: "🎯" },
+  { href: "/kariyer/turnuvalar", key: "nav.turnuvalar", icon: "🏆" },
+  { href: "/kariyer/klasman", key: "nav.klasman", icon: "📊" },
+  { href: "/kariyer/kulup", key: "nav.kulup", icon: "🏛️" },
+  { href: "/kariyer/ekipman", key: "nav.ekipman", icon: "🗡️" },
+  { href: "/kariyer/gecmis", key: "nav.gecmis", icon: "📜" },
+  { href: "/kariyer/ayarlar", key: "nav.ayarlar", icon: "⚙️" },
 ];
 
 function initials(name: string): string {
@@ -35,11 +36,11 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-export function CareerNav({ name, meta }: { name: string; meta: string }) {
+export function CareerNav({ name, meta, locale }: { name: string; meta: string; locale: Locale }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const active = [...ITEMS].sort((a, b) => b.href.length - a.href.length).find((i) => pathname === i.href || pathname.startsWith(i.href + "/"));
-  const currentLabel = active?.label ?? "Menü";
+  const currentLabel = active ? t(locale, active.key) : t(locale, "nav.menu");
 
   return (
     <header className="sticky top-0 z-20 -mx-4 mb-4 border-b border-black/10 bg-white/85 px-4 pt-4 backdrop-blur sm:-mx-6 sm:px-6 dark:border-white/10 dark:bg-black/70">
@@ -80,16 +81,10 @@ export function CareerNav({ name, meta }: { name: string; meta: string }) {
                 }`}
               >
                 <span className="text-base">{item.icon}</span>
-                {item.label}
+                {t(locale, item.key)}
               </Link>
             );
           })}
-          <form action={resetCareerAction} className="border-t border-black/10 dark:border-white/10">
-            <button className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-500/10 dark:text-red-400">
-              <span className="text-base">🔄</span>
-              Yeni Kariyer
-            </button>
-          </form>
         </nav>
       )}
     </header>

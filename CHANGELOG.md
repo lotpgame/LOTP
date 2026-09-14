@@ -42,6 +42,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   skoru animasyon bitene kadar gizli (`CanliPeriyot afterDone` + gizli skor).
 
 ### Eklendi
+- **Ayarlar sayfası (⚙️) + dil / ses / kariyer yönetimi:** Menüye **Ayarlar** eklendi; "Yeni Kariyer"
+  menüden buraya taşındı. **Dil TR/EN** — cookie tabanlı i18n altyapısı (`src/i18n`); şimdilik **kabuk**
+  çevrildi (menü, alt çubuk, ayarlar), sayfa içerikleri ve maç anlatımları **aşamalı** eklenecek.
+  **Ses aç/kapa** (tercih saklanır; müzik/efektler yakında). **Kariyeri Sil** (onaylı) + **Yeni Kariyer**.
 - **Antrenman türü açıklamaları:** Antrenman sayfasına "Hangi antrenman neyi geliştirir?" bölümü —
   her tür (Teknik/Fiziksel/Taktik/Mental) hangi skill'leri geliştirir + yorgunluk yükü; Dinlenme notu.
 - **Antrenman sonrası haber kartı:** "İlerle" sonrası üstte özet — kazanılan skill'ler ("+0.6 Dayanıklılık,
