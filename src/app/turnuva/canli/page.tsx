@@ -30,6 +30,12 @@ function positionLabel(pos: number | undefined): string {
   return POSITION_LABEL[pos] ?? `${pos}. sıra`;
 }
 
+/** Son periyot başlığının log indeksini bulur → biten eleme maçında yalnız son periyot animasyonla akar. */
+function lastPeriodStart(log: string[]): number {
+  for (let i = log.length - 1; i >= 0; i--) if (log[i].startsWith("▸")) return i;
+  return 0;
+}
+
 /** Taktik seçim ızgarası (pul ilk maçı / eleme 1. periyot / devre arası). */
 function TacticGrid() {
   return (
@@ -161,6 +167,7 @@ export default async function CanliTurnuvaPage() {
                     log={m.log}
                     autoPlay={auto}
                     past={!auto}
+                    instantThrough={!isPoolPhase ? lastPeriodStart(m.log) : 0}
                     afterDone={isLast && gateNext ? nextAction : undefined}
                   />
                 </div>

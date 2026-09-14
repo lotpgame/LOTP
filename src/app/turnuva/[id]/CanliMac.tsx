@@ -27,10 +27,21 @@ export interface CanliMacProps {
   autoPlay?: boolean; // canlı ekranda yeni oynanan maç kendiliğinden akar
   past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
   afterDone?: ReactNode; // animasyon bitince gösterilir (ör. "pul sonuçlarını gör" paneli — spoiler önler)
+  instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız son periyodu animasyonla göster)
 }
 
-export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, past = false, afterDone }: CanliMacProps) {
-  const [shown, setShown] = useState(0);
+export function CanliMac({
+  aName,
+  bName,
+  scoreA,
+  scoreB,
+  log,
+  autoPlay = false,
+  past = false,
+  afterDone,
+  instantThrough = 0,
+}: CanliMacProps) {
+  const [shown, setShown] = useState(autoPlay ? instantThrough : 0);
   const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
   const [open, setOpen] = useState(false); // geçmiş kipinde detay açık mı
@@ -80,6 +91,7 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, 
   };
 
   return (
+    <>
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
         <span className={done && aWon ? "font-semibold" : "opacity-80"}>{aName}</span>
@@ -146,7 +158,8 @@ export function CanliMac({ aName, bName, scoreA, scoreB, log, autoPlay = false, 
           </div>
         </>
       )}
-      {done && afterDone && <div className="mt-3">{afterDone}</div>}
     </div>
+    {done && afterDone ? <div className="mt-3">{afterDone}</div> : null}
+    </>
   );
 }

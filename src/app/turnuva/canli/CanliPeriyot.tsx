@@ -38,6 +38,7 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
   }, [shown, fast, log.length]);
 
   return (
+    <>
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{aName} (sen)</span>
@@ -70,7 +71,8 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
           </button>
         </div>
       )}
-      {done && afterDone && <div className="mt-4">{afterDone}</div>}
     </div>
+    {done && afterDone ? <div className="mt-4">{afterDone}</div> : null}
+    </>
   );
 }
