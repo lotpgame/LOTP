@@ -44,7 +44,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 text-xs opacity-70">
                 <span>🔋 Kondisyon {fmtDelta(h.report.conditionDelta)}</span>
-                <span>🎯 Keskinlik {fmtDelta(h.report.sharpnessDelta)}</span>
+                <span>🎯 Form {fmtDelta(h.report.sharpnessDelta)}</span>
                 {h.report.injured && <span className="font-medium text-amber-600 dark:text-amber-400">🩹 Sakatlandın!</span>}
               </div>
             </div>

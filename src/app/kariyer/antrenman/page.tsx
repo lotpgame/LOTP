@@ -26,7 +26,7 @@ export default async function AntrenmanPage() {
       <section className="mt-3 grid grid-cols-3 gap-2.5">
         <Stat label="Bugün" value={c.dayName} />
         <Stat label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
+        <Stat label="Form" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
 
       {c.injured && (
@@ -45,7 +45,7 @@ export default async function AntrenmanPage() {
         </p>
         <TrainingPlanForm initial={c.trainingPlan} />
         <p className="mt-2 text-xs opacity-50">
-          Dinlenme yorgunluğu düşürür ama keskinliği azaltır; çok yüklenme sakatlık riskini artırır.
+          Dinlenme yorgunluğu düşürür ama formu azaltır; çok yüklenme sakatlık riskini artırır.
         </p>
       </section>
 
@@ -79,7 +79,7 @@ export default async function AntrenmanPage() {
           <div className="rounded-xl border border-sky-500/25 bg-sky-500/[0.06] p-3">
             <div className="font-medium">😴 Dinlenme</div>
             <p className="mt-1.5 text-xs opacity-70">
-              Kondisyonu toparlar (yorgunluğu düşürür) ama o gün keskinlik biraz azalır. Yorgunken
+              Kondisyonu toparlar (yorgunluğu düşürür) ama o gün form biraz azalır. Yorgunken
               antrenman verimi de düşer — ara ara dinlenmek gelişimi hızlandırır.
             </p>
           </div>

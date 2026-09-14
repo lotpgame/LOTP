@@ -54,9 +54,9 @@ export default async function ProfilPage() {
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <Stat icon="📅" label="Sezon" value={`Q${c.quarter} / H${c.month}`} />
-        <Stat icon="⭐" label="Genel Güç" value={c.overall.toFixed(1)} />
+        <Stat icon="⭐" label="Reyting" value={c.overall.toFixed(1)} />
         <Stat icon="🔋" label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat icon="🎯" label="Keskinlik" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
+        <Stat icon="🎯" label="Form" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
       <p className="mt-2 text-xs opacity-50">{c.dayName} · {date}</p>
 

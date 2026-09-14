@@ -132,11 +132,11 @@ export default async function CanliTurnuvaPage() {
           <div className="font-semibold tabular-nums">%{t.player.condition}</div>
         </div>
         <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
-          <div className="text-xs opacity-60">🎯 Keskinlik</div>
+          <div className="text-xs opacity-60">🎯 Form</div>
           <div className="font-semibold tabular-nums">%{t.player.sharpness}</div>
         </div>
         <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
-          <div className="text-xs opacity-60">⭐ Güç</div>
+          <div className="text-xs opacity-60">⭐ Reyting</div>
           <div className="font-semibold tabular-nums">{t.player.overall.toFixed(1)}</div>
         </div>
       </div>
