@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { type SkillCategory } from "@/engine/domain";
 import { SKILLS } from "@/engine/skill";
 import { getCareer } from "@/server/careerService";
-import { CATEGORY_ICON, CATEGORY_LABEL_TR, Stat } from "../parts";
+import { CATEGORY_ICON, CATEGORY_LABEL_TR, SkillsByCategory, Stat } from "../parts";
 import { TrainingPlanForm } from "./TrainingPlanForm";
 
 export const dynamic = "force-dynamic";
@@ -49,10 +49,12 @@ export default async function AntrenmanPage() {
         </p>
       </section>
 
-      {/* Antrenman türleri — hangisi neyi geliştirir? */}
-      <section className="mt-8">
-        <h2 className="text-lg font-semibold">Hangi antrenman neyi geliştirir?</h2>
-        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+      {/* Hangi antrenman neyi geliştirir? — hint (tıklayınca açılır) */}
+      <details className="mt-6 rounded-xl border border-black/10 dark:border-white/15">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium transition hover:bg-black/[0.03] dark:hover:bg-white/[0.04]">
+          ❓ Hangi antrenman neyi geliştirir? <span className="opacity-50">(aç)</span>
+        </summary>
+        <div className="grid gap-2.5 px-4 pb-4 sm:grid-cols-2">
           {TRAIN_INFO.map((info) => {
             const skills = SKILLS.filter((s) => s.category === info.cat).map((s) => s.label);
             return (
@@ -81,6 +83,15 @@ export default async function AntrenmanPage() {
               antrenman verimi de düşer — ara ara dinlenmek gelişimi hızlandırır.
             </p>
           </div>
+        </div>
+      </details>
+
+      {/* Mevcut yeteneklerin — neyin eksik, profile dönmeden gör */}
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold">🤺 Mevcut Yeteneklerin</h2>
+        <p className="mt-1 text-xs opacity-60">Hangi alanı geliştirmen gerektiğini burada görüp planını ona göre kur.</p>
+        <div className="mt-3">
+          <SkillsByCategory skills={c.skills} />
         </div>
       </section>
     </main>

@@ -805,14 +805,19 @@ export async function advanceDay(): Promise<AdvanceResult> {
   const sharpnessBefore = sharpness;
   const startDay = gs.dayIndex;
 
-  // Turnuvaya girilmeyen günlerde uygulanacak "genel antrenman" (planın 1. seansı, GDD 6).
-  const skipTrainType = (planArr[0] ?? "TECHNICAL") as TrainingType;
-
   // Bir antrenman seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok bir kez.)
-  const applySession = (type: TrainingType): boolean => {
+  // general=true: turnuvaya girmeyip evde kalınca yapılan HAFİF GENEL antrenman — tüm becerilere az
+  // katkı, düşük yorgunluk; turnuvaya girenlerle gelişim farkı açmaz (kullanıcı isteği).
+  const applySession = (type: TrainingType, general = false): boolean => {
     // Doğal günlük toparlanma her aktif günde (antrenman + geçilen turnuva günü) uygulanır.
     fatigue = clamp(fatigue - DAY_BASE_RECOVERY, 0, 100);
-    if (type === "REST") {
+    if (general) {
+      for (const def of SKILLS) {
+        const ageCap = skillAgeCeiling(skills[def.key].potential, skills[def.key].floor, age);
+        skills[def.key] = growSkill(skills[def.key], 0.18 * envMult, 1, ageCap);
+      }
+      fatigue = clamp(fatigue + 8, 0, 100); // hafif yük
+    } else if (type === "REST") {
       fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 0, 100);
       restSessions++;
     } else {
@@ -862,8 +867,8 @@ export async function advanceDay(): Promise<AdvanceResult> {
     if (act.kind === "TOURNAMENT") {
       const eligible = qualifies(act.qualification, humanRank);
       if (eligible && !firstDay) break; // yeni bir uygun turnuva günü → dur (Katıl/Geç)
-      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün antrenman.
-      const injured = applySession(skipTrainType);
+      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün HAFİF GENEL antrenman.
+      const injured = applySession("TECHNICAL", true);
       d++;
       firstDay = false;
       if (injured) break;

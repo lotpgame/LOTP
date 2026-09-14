@@ -1,13 +1,7 @@
 import { redirect } from "next/navigation";
-import {
-  type SkillCategory,
-  type Weapon,
-  type Gender,
-  WEAPON_LABEL_TR,
-  GENDER_LABEL_TR,
-} from "@/engine/domain";
+import { type Weapon, type Gender, WEAPON_LABEL_TR, GENDER_LABEL_TR } from "@/engine/domain";
 import { getCareer } from "@/server/careerService";
-import { CATEGORY_ICON, CATEGORY_LABEL_TR, SkillBar, Stat, StatBar, initials } from "./parts";
+import { SkillsByCategory, Stat, StatBar, initials } from "./parts";
 
 export const dynamic = "force-dynamic";
 
@@ -108,25 +102,8 @@ export default async function ProfilPage() {
       {/* Yetenekler */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">🤺 Yetenekler</h2>
-        <p className="mt-1 text-xs opacity-60">
-          Değerler 0–100. İkinci sayı (<b>tavan</b>) bu oyuncunun gizli yetenek sınırı — antrenmanla en
-          fazla oraya gelişir; herkes 100 olamaz. Çubuktaki çizgi tavanı gösterir.
-        </p>
-        <div className="mt-3 grid gap-x-6 gap-y-5 sm:grid-cols-2">
-          {(Object.keys(CATEGORY_LABEL_TR) as SkillCategory[]).map((cat) => (
-            <div key={cat}>
-              <h3 className="mb-2 text-sm font-medium opacity-80">
-                {CATEGORY_ICON[cat]} {CATEGORY_LABEL_TR[cat]}
-              </h3>
-              <ul className="space-y-2">
-                {c.skills
-                  .filter((s) => s.category === cat)
-                  .map((s) => (
-                    <SkillBar key={s.key} label={s.label} current={s.current} potential={s.potential} />
-                  ))}
-              </ul>
-            </div>
-          ))}
+        <div className="mt-3">
+          <SkillsByCategory skills={c.skills} />
         </div>
       </section>
     </main>
