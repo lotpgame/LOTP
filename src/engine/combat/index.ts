@@ -52,6 +52,15 @@ export const MATCH_FORMATS = { POOL: 5, DE: 15 } as const;
 export const PERIOD_SECONDS = 180;
 export const DE_PERIODS = 3;
 
+/**
+ * Yaş kategorisine göre eleme maç formatı (FIE/USA Fencing gençler):
+ * U10 → 10 tuş / 2 periyot (1. periyot 5 tuşta biter); U12 ve üstü → 15 tuş / 3 periyot.
+ * Havuz her kategoride 5 tuş / tek periyot.
+ */
+export function deFormat(ageCategory?: string): { touches: number; periods: number } {
+  return ageCategory === "U10" ? { touches: 10, periods: 2 } : { touches: 15, periods: 3 };
+}
+
 export interface MatchAnalysis {
   effA: number;
   effB: number;
@@ -369,7 +378,15 @@ export function simulatePeriod(
   a: Combatant,
   b: Combatant,
   rng: SeededRng,
-  opts: { target: number; startA: number; startB: number; startClockSec: number; periodEndSec: number; includeHeader?: boolean },
+  opts: {
+    target: number;
+    startA: number;
+    startB: number;
+    startClockSec: number;
+    periodEndSec: number;
+    includeHeader?: boolean;
+    periodCap?: number; // bu periyodun tuş tavanı (U10 1. periyot = 5); ulaşınca periyot biter
+  },
 ): PeriodResult {
   const m = buildMatchup(a, b);
   const narr = createRng(`${rng.seed}:narr`);
@@ -393,8 +410,14 @@ export function simulatePeriod(
   let lastScorer: 0 | 1 | 2 = 0;
   let run = 0;
   let momentum = 0;
+  const cap = opts.periodCap ?? opts.target; // periyot tuş tavanı (yoksa maç hedefi)
 
-  while (scoreA < opts.target && scoreB < opts.target && clock < opts.periodEndSec) {
+  while (
+    scoreA < opts.target &&
+    scoreB < opts.target &&
+    Math.max(scoreA, scoreB) < cap &&
+    clock < opts.periodEndSec
+  ) {
     clock += touchSeconds(a.weapon, cat, narr); // her mübadele süre yer (skor olsun olmasın)
     if (rng.bool(deadChance)) continue; // tuşsuz tur — sadece süre akar
 

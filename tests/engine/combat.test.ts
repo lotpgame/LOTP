@@ -5,6 +5,7 @@ import type { AgeCategory } from "@/engine/domain";
 import {
   MATCH_FORMATS,
   PERIOD_SECONDS,
+  deFormat,
   simulateLaBelle,
   simulateMatch,
   simulatePeriod,
@@ -135,6 +136,28 @@ describe("Combat Engine", () => {
       if (playThreePeriods(catCombatant(1, "A", "U17", "SABRE"), catCombatant(2, "B", "U17", "SABRE"), `s${i}`).periods === 3) sabreP3++;
     }
     expect(epeeP3).toBeGreaterThan(sabreP3); // epe daha çok 3. periyoda gider
+  });
+
+  it("deFormat: U10 eleme 10 tuş/2 periyot, U12+ 15 tuş/3 periyot (FIE gençler)", () => {
+    expect(deFormat("U10")).toEqual({ touches: 10, periods: 2 });
+    expect(deFormat("U12")).toEqual({ touches: 15, periods: 3 });
+    expect(deFormat("SENIOR")).toEqual({ touches: 15, periods: 3 });
+    expect(deFormat(undefined)).toEqual({ touches: 15, periods: 3 });
+  });
+
+  it("simulatePeriod: periodCap ulaşınca periyot biter (U10 1. periyot = 5 tuş)", () => {
+    const a = catCombatant(1, "A", "U10");
+    const b = catCombatant(2, "B", "U10");
+    const pr = simulatePeriod(a, b, createRng("cap"), {
+      target: 10,
+      startA: 0,
+      startB: 0,
+      startClockSec: 0,
+      periodEndSec: 100000, // süre bitmez → yalnız tavan durdurur
+      periodCap: 5,
+    });
+    expect(Math.max(pr.scoreA, pr.scoreB)).toBe(5); // 5'te durdu
+    expect(pr.decided).toBe(false); // maç hedefi 10 → henüz bitmedi
   });
 
   it("simulateLaBelle: tek tuş farkıyla (veya öncelikle) kazanan belirler, deterministik", () => {

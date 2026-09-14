@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
-import { advanceDayAction, attendTournamentAction } from "@/app/actions";
+import { advanceDayAction, attendTournamentAction, clearReportAction } from "@/app/actions";
 import { GENDER_LABEL_TR, WEAPON_LABEL_TR, type Gender, type Weapon } from "@/engine/domain";
 import { getCareerHeader } from "@/server/careerService";
 import { CareerNav } from "./CareerNav";
+
+const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 
 // Kariyer verisine bağlı: her istekte taze.
 export const dynamic = "force-dynamic";
@@ -22,6 +24,39 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">
       <CareerNav name={h.name} meta={meta} />
+
+      {/* Antrenman haberi — son "İlerle"nin özeti (kazanımlar + kondisyon/keskinlik değişimi). */}
+      {h.report && (
+        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] p-3 text-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="font-medium">📰 Antrenman raporu · {h.report.days} gün</div>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                {h.report.gains.length > 0 ? (
+                  h.report.gains.map((g) => (
+                    <span key={g.label} className="font-medium text-emerald-700 dark:text-emerald-300">
+                      +{g.delta.toFixed(1)} {g.label}
+                    </span>
+                  ))
+                ) : (
+                  <span className="opacity-60">Bu sürede kayda değer gelişim yok</span>
+                )}
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-3 text-xs opacity-70">
+                <span>🔋 Kondisyon {fmtDelta(h.report.conditionDelta)}</span>
+                <span>🎯 Keskinlik {fmtDelta(h.report.sharpnessDelta)}</span>
+                {h.report.injured && <span className="font-medium text-amber-600 dark:text-amber-400">🩹 Sakatlandın!</span>}
+              </div>
+            </div>
+            <form action={clearReportAction}>
+              <button className="shrink-0 rounded-md px-2 py-1 text-xs opacity-50 transition hover:opacity-100" title="Kapat">
+                ✕
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {children}
 
       {/* Sabit alt çubuk — sayfalar arası değişmez (gün-bazlı zaman sürücüsü). Online'da otomatik akar. */}
@@ -34,7 +69,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                 ? `🩹 Sakat — ${h.injuryDaysRemaining} gün`
                 : h.today.kind === "TOURNAMENT"
                   ? `🏆 ${h.today.label}${h.today.qualified ? "" : ` · 🔒 ${h.today.requirement}`}`
-                  : `🏋️ ${h.today.trainingLabel}`}
+                  : `🎯 ${h.today.trainingLabel}`}
             </div>
           </div>
 

@@ -142,6 +142,8 @@ model GameState {
   // Kayıtlı haftalık antrenman planı (3 seans, CSV). Sabit "Haftayı İlerle" çubuğu bunu uygular;
   // Antrenman sayfasından düzenlenir. (Online'da zaman otomatik akacak; çubuk yalnız tek-oyuncu.)
   trainingPlan String @default("TECHNICAL,PHYSICAL,REST")
+  // Son "İlerle"nin antrenman özeti (haber kartı): JSON — skill kazanımları + kondisyon/keskinlik değişimi.
+  lastReport String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

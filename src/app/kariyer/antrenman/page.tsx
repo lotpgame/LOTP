@@ -1,9 +1,19 @@
 import { redirect } from "next/navigation";
+import { type SkillCategory } from "@/engine/domain";
+import { SKILLS } from "@/engine/skill";
 import { getCareer } from "@/server/careerService";
-import { Stat } from "../parts";
+import { CATEGORY_ICON, CATEGORY_LABEL_TR, Stat } from "../parts";
 import { TrainingPlanForm } from "./TrainingPlanForm";
 
 export const dynamic = "force-dynamic";
+
+// Her antrenman türü hangi skill'leri geliştirir + yorgunluk yükü (motor: BASE_FATIGUE ile uyumlu).
+const TRAIN_INFO: { cat: SkillCategory; fatigue: string; note: string }[] = [
+  { cat: "TECHNICAL", fatigue: "orta", note: "silah tekniği ve ayak çalışması" },
+  { cat: "PHYSICAL", fatigue: "yüksek", note: "hız, dayanıklılık, refleks — en çok yorar" },
+  { cat: "TACTICAL", fatigue: "orta", note: "rakip okuma ve doğru anı yakalama" },
+  { cat: "MENTAL", fatigue: "düşük", note: "odak ve baskı altında sakinlik — az yorar" },
+];
 
 export default async function AntrenmanPage() {
   const c = await getCareer();
@@ -37,6 +47,41 @@ export default async function AntrenmanPage() {
         <p className="mt-2 text-xs opacity-50">
           Dinlenme yorgunluğu düşürür ama keskinliği azaltır; çok yüklenme sakatlık riskini artırır.
         </p>
+      </section>
+
+      {/* Antrenman türleri — hangisi neyi geliştirir? */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold">Hangi antrenman neyi geliştirir?</h2>
+        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          {TRAIN_INFO.map((info) => {
+            const skills = SKILLS.filter((s) => s.category === info.cat).map((s) => s.label);
+            return (
+              <div key={info.cat} className="rounded-xl border border-black/10 bg-black/[0.015] p-3 dark:border-white/15 dark:bg-white/[0.02]">
+                <div className="flex items-center gap-1.5 font-medium">
+                  <span>{CATEGORY_ICON[info.cat]}</span>
+                  {CATEGORY_LABEL_TR[info.cat]}
+                </div>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {skills.map((s) => (
+                    <span key={s} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-xs opacity-60">
+                  {info.note} · yorgunluk: <b>{info.fatigue}</b>
+                </p>
+              </div>
+            );
+          })}
+          <div className="rounded-xl border border-sky-500/25 bg-sky-500/[0.06] p-3">
+            <div className="font-medium">😴 Dinlenme</div>
+            <p className="mt-1.5 text-xs opacity-70">
+              Kondisyonu toparlar (yorgunluğu düşürür) ama o gün keskinlik biraz azalır. Yorgunken
+              antrenman verimi de düşer — ara ara dinlenmek gelişimi hızlandırır.
+            </p>
+          </div>
+        </div>
       </section>
     </main>
   );

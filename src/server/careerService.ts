@@ -40,7 +40,7 @@ import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engin
 import {
   MATCH_FORMATS,
   PERIOD_SECONDS,
-  DE_PERIODS,
+  deFormat,
   simulateMatch,
   simulatePeriod,
   simulateLaBelle,
@@ -582,6 +582,14 @@ export async function getCareer(): Promise<CareerDTO | null> {
 }
 
 /** Menü/başlık + sabit "İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
+export interface TrainingReport {
+  days: number; // kaç gün ilerledi
+  gains: { label: string; delta: number }[]; // skill kazanımları (delta>0)
+  conditionDelta: number; // kondisyon değişimi (+ toparladı, − yoruldu)
+  sharpnessDelta: number; // keskinlik değişimi
+  injured: boolean; // bu ilerlemede sakatlandı mı
+}
+
 export interface CareerHeaderDTO {
   name: string;
   code: string;
@@ -596,6 +604,7 @@ export interface CareerHeaderDTO {
   injured: boolean;
   injuryDaysRemaining: number;
   today: TodayDTO; // bugünün etkinliği (çubuk İlerle/Katıl/Geç için)
+  report: TrainingReport | null; // son "İlerle" antrenman haberi (varsa)
 }
 
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
@@ -642,6 +651,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     injured,
     injuryDaysRemaining: human.injuryDaysRemaining,
     today,
+    report: gs.lastReport ? (JSON.parse(gs.lastReport) as TrainingReport) : null,
   };
 }
 
@@ -784,6 +794,13 @@ export async function advanceDay(): Promise<AdvanceResult> {
   let restSessions = 0;
   let injuredNow = false;
 
+  // Antrenman haberi (özet) için başlangıç değerleri.
+  const beforeSkills: Record<string, number> = {};
+  for (const def of SKILLS) beforeSkills[def.key] = skills[def.key].current;
+  const fatigueBefore = fatigue;
+  const sharpnessBefore = sharpness;
+  const startDay = gs.dayIndex;
+
   // Turnuvaya girilmeyen günlerde uygulanacak "genel antrenman" (planın 1. seansı, GDD 6).
   const skipTrainType = (planArr[0] ?? "TECHNICAL") as TrainingType;
 
@@ -857,6 +874,25 @@ export async function advanceDay(): Promise<AdvanceResult> {
 
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
+  // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
+  const days = d - startDay;
+  const gains = SKILLS.map((def) => ({
+    label: def.label,
+    delta: Math.round((skills[def.key].current - beforeSkills[def.key]) * 10) / 10,
+  }))
+    .filter((g) => g.delta >= 0.1)
+    .sort((a, b) => b.delta - a.delta);
+  const report =
+    days > 0
+      ? JSON.stringify({
+          days,
+          gains,
+          conditionDelta: Math.round(fatigueBefore - fatigue), // + toparladı, − yoruldu
+          sharpnessDelta: Math.round(sharpness - sharpnessBefore),
+          injured: injuryDays > 0 && injuredNow,
+        })
+      : null;
+
   await prisma.$transaction(async (tx) => {
     for (const def of SKILLS) {
       await tx.playerSkill.update({
@@ -878,9 +914,17 @@ export async function advanceDay(): Promise<AdvanceResult> {
       },
     });
     await worldAdvanceTx(tx, gs, d, gs.seed);
+    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report } });
   });
 
   return {};
+}
+
+/** Antrenman haber kartını temizler (kullanıcı "✕" ile kapatınca). */
+export async function clearReport(): Promise<void> {
+  const gs = await prisma.gameState.findFirst();
+  if (!gs) return;
+  await prisma.gameState.update({ where: { id: gs.id }, data: { lastReport: null } });
 }
 
 /**
@@ -1237,7 +1281,6 @@ function buildPoolSheets(
 
 const BYE = -1;
 const POOL_TOUCHES = MATCH_FORMATS.POOL;
-const DE_TOUCHES = MATCH_FORMATS.DE;
 
 interface LiveCombatant {
   id: number;
@@ -1519,7 +1562,7 @@ function openDeRound(ls: LiveState): void {
         winners[pair] = null; // insan oynayınca dolacak
         continue;
       }
-      const r = simulateOne(ls, x, y, DE_TOUCHES, "DE", label);
+      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label);
       winners[pair] = r.winnerId;
       ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
     }
@@ -1554,7 +1597,7 @@ function finishBracketBulk(ls: LiveState): void {
         winners.push(x);
         continue;
       }
-      const r = simulateOne(ls, x, y, DE_TOUCHES, "DE", label);
+      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label);
       ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
       winners.push(r.winnerId);
     }
@@ -1722,6 +1765,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
       };
     }
 
+    const fmt = deFormat(ls.ageCategory); // U10: 10 tuş/2 periyot, üstü: 15 tuş/3 periyot
     const periodNo = prog.periodsPlayed + 1;
     const a = liveCombatant(ls, ls.humanId, tactic); // bu periyodun taktiği
     const b = liveCombatant(ls, prog.oppId);
@@ -1729,13 +1773,16 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     const base = `${ls.seedKey}:de:${prog.round}:${Math.min(ls.humanId, prog.oppId)}-${Math.max(ls.humanId, prog.oppId)}`;
 
     prog.prevLen = prog.log.length;
+    // U10'da 1. periyot 5 tuşta biter (FIE gençler); diğer periyotlarda tavan = maç hedefi.
+    const periodCap = fmt.touches === 10 && periodNo === 1 ? 5 : fmt.touches;
     const pr = simulatePeriod(a, b, createRng(`${base}:p${periodNo}`), {
-      target: DE_TOUCHES,
+      target: fmt.touches,
       startA: prog.scoreHuman,
       startB: prog.scoreOpp,
       startClockSec: prog.clockSec,
       periodEndSec: periodNo * PERIOD_SECONDS,
       includeHeader: periodNo === 1,
+      periodCap,
     });
     // Periyot başlığı + tuşlar.
     if (periodNo === 1 && pr.log.length > 0) prog.log.push(pr.log[0]); // "Maç gücü …"
@@ -1748,7 +1795,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
 
     let decided = pr.decided;
     let winnerId = pr.winnerId;
-    if (!decided && periodNo >= DE_PERIODS) {
+    if (!decided && periodNo >= fmt.periods) {
       // 3 periyot bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (la belle).
       if (pr.scoreA !== pr.scoreB) {
         winnerId = pr.scoreA > pr.scoreB ? ls.humanId : prog.oppId;
@@ -1774,7 +1821,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     // Maç bitti → kalıcı maç kaydına yaz + tabloyu ilerlet.
     const loserId = winnerId === ls.humanId ? prog.oppId : ls.humanId;
     prog.log.push(`🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`);
-    const gain = Math.max(3, Math.round(DE_TOUCHES * 0.55));
+    const gain = Math.max(3, Math.round(fmt.touches * 0.55));
     ls.fatigue[ls.humanId] = clamp((ls.fatigue[ls.humanId] ?? 0) + gain, 0, 100);
     ls.fatigue[prog.oppId] = clamp((ls.fatigue[prog.oppId] ?? 0) + gain, 0, 100);
     ls.matches.push({
@@ -2015,7 +2062,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
           scoreHuman: ls.liveMatch.scoreHuman,
           scoreOpp: ls.liveMatch.scoreOpp,
           periodsPlayed: ls.liveMatch.periodsPlayed,
-          totalPeriods: DE_PERIODS,
+          totalPeriods: deFormat(ls.ageCategory).periods,
           nextPeriod: ls.liveMatch.periodsPlayed + 1,
           log: ls.liveMatch.log,
           prevLen: ls.liveMatch.prevLen,

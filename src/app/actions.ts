@@ -11,6 +11,7 @@ import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
   advanceDay,
   attendTournament,
+  clearReport,
   createCareer,
   enterBracket,
   getCategoryRanking,
@@ -103,4 +104,10 @@ export async function getCategoryRankingAction(categoryId: string) {
 export async function resetCareerAction(): Promise<void> {
   await resetCareer();
   redirect("/");
+}
+
+/** Antrenman haber kartını kapatır. */
+export async function clearReportAction(): Promise<void> {
+  await clearReport();
+  revalidatePath("/kariyer", "layout");
 }
