@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { t } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import { getCareerHistory } from "@/server/careerService";
 
 export const dynamic = "force-dynamic";
@@ -18,58 +20,58 @@ function placementLabel(pos: number): string {
 export default async function GecmisPage() {
   const h = await getCareerHistory();
   if (!h) redirect("/");
+  const locale = await getLocale();
+  const dateLoc = locale === "en" ? "en-GB" : "tr-TR";
 
   return (
     <main>
-      <h1 className="text-xl font-bold">📜 Kariyer Geçmişi</h1>
+      <h1 className="text-xl font-bold">{t(locale, "gecmis.title")}</h1>
 
       {/* İstatistikler */}
       <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat icon="🏟" label="Turnuva" value={h.stats.totalTournaments} />
-        <Stat icon="🥇" label="Şampiyonluk" value={h.stats.championships} />
-        <Stat icon="🎖" label="Madalya" value={h.stats.medals} />
-        <Stat icon="🏅" label="Final" value={h.stats.finals} />
-        <Stat icon="🤺" label="Maç" value={h.stats.matchesPlayed} />
-        <Stat icon="✅" label="Galibiyet" value={h.stats.matchWins} />
+        <Stat icon="🏟" label={t(locale, "gecmis.tournaments")} value={h.stats.totalTournaments} />
+        <Stat icon="🥇" label={t(locale, "gecmis.championships")} value={h.stats.championships} />
+        <Stat icon="🎖" label={t(locale, "gecmis.medals")} value={h.stats.medals} />
+        <Stat icon="🏅" label={t(locale, "gecmis.finals")} value={h.stats.finals} />
+        <Stat icon="🤺" label={t(locale, "gecmis.matches")} value={h.stats.matchesPlayed} />
+        <Stat icon="✅" label={t(locale, "gecmis.wins")} value={h.stats.matchWins} />
         <Stat
           icon="📈"
-          label="En İyi Ranking"
+          label={t(locale, "gecmis.bestRank")}
           value={h.stats.careerBestRank != null ? `#${h.stats.careerBestRank}` : "—"}
         />
       </section>
 
       {/* Oynanan turnuvalar — maçları yeniden izlemek için tıkla */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">🏟 Turnuvalarım</h2>
+        <h2 className="text-lg font-semibold">{t(locale, "gecmis.myTournaments")}</h2>
         {h.tournaments.length === 0 ? (
-          <p className="mt-1 text-sm opacity-60">Henüz turnuva oynamadın.</p>
+          <p className="mt-1 text-sm opacity-60">{t(locale, "gecmis.noTournaments")}</p>
         ) : (
           <>
-            <p className="mt-1 text-sm opacity-60">
-              Bir turnuvaya dokun → pul ve eleme maçlarını yeniden izle.
-            </p>
+            <p className="mt-1 text-sm opacity-60">{t(locale, "gecmis.tapHint")}</p>
             <ul className="mt-3 space-y-2">
-              {h.tournaments.map((t) => (
-                <li key={t.id}>
+              {h.tournaments.map((tour) => (
+                <li key={tour.id}>
                   <Link
-                    href={`/turnuva/${t.id}`}
+                    href={`/turnuva/${tour.id}`}
                     className="flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-black/[0.015] px-3 py-2.5 text-sm transition hover:border-emerald-500/40 hover:bg-emerald-500/5 dark:border-white/15 dark:bg-white/[0.02]"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate font-medium">{t.name}</span>
+                      <span className="block truncate font-medium">{tour.name}</span>
                       <span className="text-xs opacity-50">
-                        {t.level} · {new Date(t.date).toLocaleDateString("tr-TR")}
+                        {tour.level} · {new Date(tour.date).toLocaleDateString(dateLoc)}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          t.position >= 1 && t.position <= 3
+                          tour.position >= 1 && tour.position <= 3
                             ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
                             : "bg-black/10 opacity-70 dark:bg-white/15"
                         }`}
                       >
-                        {placementLabel(t.position)}
+                        {placementLabel(tour.position)}
                       </span>
                       <span className="opacity-40">›</span>
                     </span>
@@ -83,9 +85,9 @@ export default async function GecmisPage() {
 
       {/* Başarılar */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Başarılar</h2>
+        <h2 className="text-lg font-semibold">{t(locale, "gecmis.achievements")}</h2>
         {h.achievements.length === 0 ? (
-          <p className="mt-1 text-sm opacity-60">Henüz başarı yok. Turnuvalara katıl!</p>
+          <p className="mt-1 text-sm opacity-60">{t(locale, "gecmis.noAchievements")}</p>
         ) : (
           <ul className="mt-3 space-y-2">
             {h.achievements.map((a, i) => (
@@ -99,7 +101,7 @@ export default async function GecmisPage() {
                   {a.detail ? <span className="opacity-60"> — {a.detail}</span> : null}
                 </span>
                 <span className="shrink-0 text-xs opacity-50">
-                  {new Date(a.date).toLocaleDateString("tr-TR")}
+                  {new Date(a.date).toLocaleDateString(dateLoc)}
                 </span>
               </li>
             ))}
@@ -109,16 +111,16 @@ export default async function GecmisPage() {
 
       {/* Rakiplikler */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Rakiplikler</h2>
+        <h2 className="text-lg font-semibold">{t(locale, "gecmis.rivals")}</h2>
         {h.rivals.length === 0 ? (
-          <p className="mt-1 text-sm opacity-60">Henüz yeterli maç yok.</p>
+          <p className="mt-1 text-sm opacity-60">{t(locale, "gecmis.noRivals")}</p>
         ) : (
           <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
             {h.rivals.map((r, i) => (
               <li key={i} className="flex items-center justify-between px-3 py-2 text-sm">
                 <span>{r.name}</span>
                 <span className="tabular-nums opacity-70">
-                  {r.matches} maç · {r.wins}G-{r.losses}M
+                  {t(locale, "gecmis.record", { m: r.matches, w: r.wins, l: r.losses })}
                 </span>
               </li>
             ))}

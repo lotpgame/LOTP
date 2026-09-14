@@ -1,17 +1,18 @@
 import { redirect } from "next/navigation";
-import { type SkillCategory } from "@/engine/domain";
+import { t } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
-import { CATEGORY_LABEL_TR } from "../parts";
 
 export const dynamic = "force-dynamic";
 
 export default async function KulupPage() {
   const c = await getCareer();
   if (!c) redirect("/");
+  const locale = await getLocale();
 
   return (
     <main>
-      <h1 className="text-xl font-bold">Kulüp</h1>
+      <h1 className="text-xl font-bold">{t(locale, "kulup.title")}</h1>
       {c.club ? (
         <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/15">
           <div className="text-lg font-semibold">{c.club.name}</div>
@@ -19,7 +20,7 @@ export default async function KulupPage() {
 
           <div className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between">
-              <span>Tesis kalitesi</span>
+              <span>{t(locale, "kulup.facility")}</span>
               <span className="tabular-nums opacity-70">{c.club.facility}/100</span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
@@ -31,8 +32,8 @@ export default async function KulupPage() {
           {/* İki antrenör — eşit yetenek, farklı uzmanlık (GDD 13). */}
           <div className="mt-4">
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-medium opacity-80">Antrenörler</span>
-              <span className="text-xs opacity-60">Yetenek {c.club.coachSkill}/100</span>
+              <span className="font-medium opacity-80">{t(locale, "kulup.coaches")}</span>
+              <span className="text-xs opacity-60">{t(locale, "kulup.skill")} {c.club.coachSkill}/100</span>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {[
@@ -42,11 +43,11 @@ export default async function KulupPage() {
                 <div key={i} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
                   <div className="text-sm font-medium">{co.name}</div>
                   <div className="mt-0.5 text-xs opacity-60">
-                    Uzmanlık:{" "}
+                    {t(locale, "kulup.specialty")}:{" "}
                     {co.spec
                       .split(",")
                       .filter(Boolean)
-                      .map((s) => CATEGORY_LABEL_TR[s as SkillCategory] ?? s)
+                      .map((s) => t(locale, `category.${s}`))
                       .join(", ") || "—"}
                   </div>
                 </div>
@@ -54,13 +55,10 @@ export default async function KulupPage() {
             </div>
           </div>
 
-          <p className="mt-4 text-xs opacity-50">
-            Tesis ve antrenörler antrenman verimini güçlendirir; bir antrenörün uzmanlığı o yetenek
-            grubunu daha çok geliştirir. (Kulüp değiştirme/teklifler ileride.)
-          </p>
+          <p className="mt-4 text-xs opacity-50">{t(locale, "kulup.note")}</p>
         </section>
       ) : (
-        <p className="mt-4 text-sm opacity-60">Henüz bir kulübe bağlı değilsin.</p>
+        <p className="mt-4 text-sm opacity-60">{t(locale, "kulup.none")}</p>
       )}
     </main>
   );

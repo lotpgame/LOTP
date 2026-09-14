@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { t } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 
 export const dynamic = "force-dynamic";
@@ -6,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function TurnuvalarPage() {
   const c = await getCareer();
   if (!c) redirect("/");
+  const locale = await getLocale();
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
   const intlByMonth = new Map(c.seasonCalendar.filter((e) => e.month > 0).map((e) => [e.month, e]));
@@ -13,12 +16,8 @@ export default async function TurnuvalarPage() {
 
   return (
     <main>
-      <h1 className="text-xl font-bold">Turnuvalar</h1>
-      <p className="mt-1 text-sm opacity-70">
-        Program her ay (H1–H12) tekrar eder. Turnuvaya kaydolmazsın — turnuva günü gelince alttaki{" "}
-        <b>İlerle</b> seni orada durdurur, <b>Katıl</b> ile canlı oynarsın, <b>Geç</b> dersen o gün
-        antrenman yaparsın.
-      </p>
+      <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
+      <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
 
       <section className="mt-4 space-y-2.5">
         {months.map((m) => {
@@ -39,7 +38,7 @@ export default async function TurnuvalarPage() {
               <div className="mb-1.5 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">
                   H{m}
-                  {isNow ? " · bu ay" : ""}
+                  {isNow ? ` · ${t(locale, "turnuvalar.thisMonth")}` : ""}
                 </h3>
                 {intl && (
                   <span className="text-xs text-amber-600 dark:text-amber-400">🌍 {intl.label}</span>
