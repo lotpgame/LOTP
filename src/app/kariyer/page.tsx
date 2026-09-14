@@ -108,6 +108,10 @@ export default async function ProfilPage() {
       {/* Yetenekler */}
       <section className="mt-6">
         <h2 className="text-lg font-semibold">🤺 Yetenekler</h2>
+        <p className="mt-1 text-xs opacity-60">
+          Değerler 0–100. İkinci sayı (<b>tavan</b>) bu oyuncunun gizli yetenek sınırı — antrenmanla en
+          fazla oraya gelişir; herkes 100 olamaz. Çubuktaki çizgi tavanı gösterir.
+        </p>
         <div className="mt-3 grid gap-x-6 gap-y-5 sm:grid-cols-2">
           {(Object.keys(CATEGORY_LABEL_TR) as SkillCategory[]).map((cat) => (
             <div key={cat}>

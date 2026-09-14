@@ -76,17 +76,24 @@ export function StatBar({ label, value, tone = "ok" }: { label: string; value: n
 }
 
 export function SkillBar({ label, current, potential }: { label: string; current: number; potential: number }) {
+  // Çubuk 0–100 ölçekli. Dolu = mevcut; tavan (potential) dikey işaretle gösterilir → geride kalan
+  // boşluk "daha gelişebileceği" alan, tavandan sonrası bu oyuncuya kapalıdır.
   return (
     <li>
       <div className="flex items-baseline justify-between text-sm">
         <span>{label}</span>
         <span className="tabular-nums opacity-70">
           {current.toFixed(1)}
-          <span className="opacity-50"> / {potential.toFixed(0)}</span>
+          <span className="opacity-50"> / {potential.toFixed(0)} tavan</span>
         </span>
       </div>
-      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
-        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${current}%` }} />
+      <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+        {/* mevcuttan tavana kadar açık ton (gelişim payı) */}
+        <div className="absolute inset-y-0 left-0 bg-emerald-500/25" style={{ width: `${potential}%` }} />
+        {/* mevcut değer */}
+        <div className="absolute inset-y-0 left-0 rounded-r-full bg-emerald-500" style={{ width: `${current}%` }} />
+        {/* tavan işareti */}
+        <div className="absolute inset-y-0 w-0.5 bg-black/50 dark:bg-white/60" style={{ left: `calc(${potential}% - 1px)` }} />
       </div>
     </li>
   );
