@@ -26,6 +26,7 @@ import {
   SKILLS,
   generateStartingSkills,
   growSkill,
+  skillAgeCeiling,
   overall,
   type PlayerSkills,
   type SkillValue,
@@ -732,8 +733,10 @@ async function worldAdvanceTx(
   const monthsCrossed = Math.floor(toDay / DAYS_PER_MONTH) - fromMonth;
   if (monthsCrossed > 0) {
     const ais = await tx.player.findMany({ where: { isAI: true }, include: { skills: true } });
+    const devQuarter = quarterOf(toDay);
     for (const ai of ais) {
       if (ai.skills.length === 0) continue;
+      const aiAge = currentAge(ai.birthDate, devQuarter); // yaşa uygun gelişim tavanı için
       for (let m = 0; m < monthsCrossed; m++) {
         const rng = createRng(`${seed}:aidev:${ai.id}:${fromMonth + m}`);
         const row = rng.pick(ai.skills);
@@ -741,6 +744,7 @@ async function worldAdvanceTx(
           { current: row.current, potential: row.potential, floor: row.floor, ceiling: row.ceiling },
           0.4,
           1,
+          skillAgeCeiling(row.potential, row.floor, aiAge),
         );
         if (grown.current !== row.current) {
           row.current = grown.current; // aynı AI'da sonraki ay için tutarlı

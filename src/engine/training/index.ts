@@ -6,7 +6,7 @@
  * uygulanır. M1: günde tek aktivite; verim yaş + yorgunluğa bağlı (GDD 14.32–14.39).
  */
 import { clamp, type SkillCategory } from "../domain";
-import { SKILLS, growSkill, type PlayerSkills, type SkillKey } from "../skill";
+import { SKILLS, growSkill, skillAgeCeiling, type PlayerSkills, type SkillKey } from "../skill";
 
 export type TrainingType = SkillCategory | "REST";
 
@@ -87,7 +87,9 @@ export function applyTraining(
     if (def.category !== type) continue;
     const before = next[def.key].current;
     const skillMult = opts.skillMultipliers?.[def.key] ?? 1;
-    next[def.key] = growSkill(next[def.key], stimulus * skillMult, factor);
+    // Yaşa uygun tavan: 10 yaşındaki oyuncu yetişkin potansiyeline gelişemez (GDD 9.35).
+    const ageCap = skillAgeCeiling(next[def.key].potential, next[def.key].floor, age);
+    next[def.key] = growSkill(next[def.key], stimulus * skillMult, factor, ageCap);
     const delta = next[def.key].current - before;
     if (delta > 0) gains[def.key] = Math.round(delta * 100) / 100;
   }
