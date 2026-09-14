@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
-import { type Weapon, type Gender, WEAPON_LABEL_TR, GENDER_LABEL_TR } from "@/engine/domain";
+import { type Weapon } from "@/engine/domain";
+import { t } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { SkillsByCategory, Stat, StatBar, initials } from "./parts";
 
@@ -10,15 +12,16 @@ const WEAPON_EMOJI: Record<Weapon, string> = { FOIL: "🤺", EPEE: "⚔️", SAB
 export default async function ProfilPage() {
   const c = await getCareer();
   if (!c) redirect("/");
+  const locale = await getLocale();
 
-  const date = new Date(c.currentDate).toLocaleDateString("tr-TR", {
+  const date = new Date(c.currentDate).toLocaleDateString(locale === "en" ? "en-GB" : "tr-TR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
   const ageCat = c.categoryId.split("-")[0]; // "U17-M-FL" → "U17"
-  const weaponLabel = WEAPON_LABEL_TR[c.weapon as Weapon] ?? c.weapon;
-  const genderLabel = GENDER_LABEL_TR[c.gender as Gender] ?? c.gender;
+  const weaponLabel = t(locale, `weapon.${c.weapon}`);
+  const genderLabel = t(locale, `gender.${c.gender}`);
 
   return (
     <main>
@@ -36,14 +39,14 @@ export default async function ProfilPage() {
               </span>
               <span className="rounded-full bg-black/10 px-2 py-0.5 font-medium dark:bg-white/15">{genderLabel}</span>
               <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
-                {ageCat} · {c.age} yaş
+                {ageCat} · {c.age} {t(locale, "common.age")}
               </span>
               {c.club && (
                 <span className="rounded-full bg-black/10 px-2 py-0.5 dark:bg-white/15">🏛 {c.club.city}</span>
               )}
               {c.nationalTeam && (
                 <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-semibold text-red-700 dark:text-red-300">
-                  🇹🇷 Milli Takım
+                  🇹🇷 {t(locale, "common.nationalTeam")}
                 </span>
               )}
             </div>
@@ -53,45 +56,45 @@ export default async function ProfilPage() {
 
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat icon="📅" label="Sezon" value={`Q${c.quarter} / H${c.month}`} />
-        <Stat icon="⭐" label="Reyting" value={c.overall.toFixed(1)} />
-        <Stat icon="🔋" label="Kondisyon" value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat icon="🎯" label="Form" value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
+        <Stat icon="📅" label={t(locale, "profil.season")} value={`Q${c.quarter} / H${c.month}`} />
+        <Stat icon="⭐" label={t(locale, "profil.overall")} value={c.overall.toFixed(1)} />
+        <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
+        <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
       <p className="mt-2 text-xs opacity-50">{c.dayName} · {date}</p>
 
       {c.injured && (
         <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-          🩹 Sakatsın — {c.injuryDaysRemaining} gün pistlerden uzaksın. (Alttaki İlerle ile iyileşirsin.)
+          {t(locale, "profil.injured", { n: c.injuryDaysRemaining })}
         </div>
       )}
 
       {/* Fizik + Psikoloji */}
       <section className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h3 className="mb-3 text-sm font-semibold opacity-80">📏 Fizik</h3>
+          <h3 className="mb-3 text-sm font-semibold opacity-80">📏 {t(locale, "profil.physique")}</h3>
           <ul className="space-y-1 text-sm">
-            <li className="flex justify-between"><span>Boy</span><span className="tabular-nums opacity-70">{c.physique.heightCm.toFixed(0)} cm</span></li>
-            <li className="flex justify-between"><span>Kulaç (erişim)</span><span className="tabular-nums opacity-70">{c.physique.reachCm.toFixed(0)} cm</span></li>
-            <li className="flex justify-between"><span>Bacak</span><span className="tabular-nums opacity-70">{c.physique.legLengthCm.toFixed(0)} cm</span></li>
-            <li className="flex justify-between"><span>Kilo</span><span className="tabular-nums opacity-70">{c.physique.weightKg.toFixed(0)} kg</span></li>
-            <li className="flex justify-between"><span>El</span><span className="opacity-70">{c.physique.leftHanded ? "Sol" : "Sağ"}</span></li>
+            <li className="flex justify-between"><span>{t(locale, "profil.height")}</span><span className="tabular-nums opacity-70">{c.physique.heightCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>{t(locale, "profil.reach")}</span><span className="tabular-nums opacity-70">{c.physique.reachCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>{t(locale, "profil.leg")}</span><span className="tabular-nums opacity-70">{c.physique.legLengthCm.toFixed(0)} cm</span></li>
+            <li className="flex justify-between"><span>{t(locale, "profil.weight")}</span><span className="tabular-nums opacity-70">{c.physique.weightKg.toFixed(0)} kg</span></li>
+            <li className="flex justify-between"><span>{t(locale, "profil.hand")}</span><span className="opacity-70">{c.physique.leftHanded ? t(locale, "profil.left") : t(locale, "profil.right")}</span></li>
           </ul>
         </div>
 
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <h3 className="mb-3 text-sm font-semibold opacity-80">🧠 Psikoloji</h3>
+          <h3 className="mb-3 text-sm font-semibold opacity-80">🧠 {t(locale, "profil.psychology")}</h3>
           <div className="space-y-2">
-            <StatBar label="Moral" value={c.psychology.morale} />
-            <StatBar label="Motivasyon" value={c.psychology.motivation} />
-            <StatBar label="Özgüven" value={c.psychology.confidence} />
-            <StatBar label="Stres" value={c.psychology.stress} tone="warn" />
+            <StatBar label={t(locale, "profil.morale")} value={c.psychology.morale} />
+            <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} />
+            <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} />
+            <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} tone="warn" />
           </div>
           {c.traits.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {c.traits.map((t) => (
-                <span key={t} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
-                  {t}
+              {c.traits.map((tr) => (
+                <span key={tr} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                  {t(locale, `trait.${tr}`)}
                 </span>
               ))}
             </div>
@@ -101,9 +104,9 @@ export default async function ProfilPage() {
 
       {/* Yetenekler */}
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">🤺 Yetenekler</h2>
+        <h2 className="text-lg font-semibold">🤺 {t(locale, "profil.skills")}</h2>
         <div className="mt-3">
-          <SkillsByCategory skills={c.skills} />
+          <SkillsByCategory skills={c.skills} locale={locale} />
         </div>
       </section>
     </main>

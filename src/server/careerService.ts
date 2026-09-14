@@ -22,6 +22,8 @@ import {
   type Weapon,
 } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
+import { t, type Locale } from "@/i18n";
+import { getLocale } from "@/i18n/server";
 import {
   SKILLS,
   generateStartingSkills,
@@ -31,12 +33,7 @@ import {
   type PlayerSkills,
   type SkillValue,
 } from "@/engine/skill";
-import {
-  applyTraining,
-  TRAINING_LABEL_TR,
-  TRAINING_TYPES,
-  type TrainingType,
-} from "@/engine/training";
+import { applyTraining, TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
 import {
   MATCH_FORMATS,
@@ -64,12 +61,29 @@ import {
   DAYS_PER_QUARTER,
   MONTHS_PER_QUARTER,
   activityForDay,
-  dayNameTR,
+  dayOfWeek,
   monthOfQuarter,
   qualificationLabel,
   qualifies,
   quarterOf,
 } from "@/engine/season";
+
+/** Kalıcı TR tur adını (Match.round) aktif dile çevirir. */
+function localizeRound(locale: Locale, round: string): string {
+  if (round === "Final") return t(locale, "round.final");
+  if (round === "Yarı Final") return t(locale, "round.semi");
+  if (round === "Çeyrek Final") return t(locale, "round.quarter");
+  const last = /^Son (\d+)$/.exec(round);
+  if (last) return t(locale, "round.last", { n: last[1] });
+  const pool = /^Pul (\d+)$/.exec(round);
+  if (pool) return t(locale, "round.pool", { n: pool[1] });
+  return round;
+}
+
+/** Turnuva görünen adını dile göre kurar (kalıcı TR ada bağlı kalmaz). */
+function tournamentDisplayName(locale: Locale, ageCategory: string, level: TournamentLevel): string {
+  return `${ageCategory} ${t(locale, `tournament.${level}`)}`;
+}
 import {
   COMPETITION_SHARPNESS_GAIN,
   applySharpness,
@@ -79,7 +93,6 @@ import {
 import {
   generateTraits,
   traitCombatModifier,
-  traitLabels,
   traitTrainingMultiplier,
   type TraitKey,
 } from "@/engine/trait";
@@ -451,6 +464,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const state = await loadState();
   if (!state) return null;
   const { gs, human } = state;
+  const locale = await getLocale();
 
   const skills = rowsToSkills(human.skills);
   const quarter = quarterOf(gs.dayIndex);
@@ -467,20 +481,21 @@ export async function getCareer(): Promise<CareerDTO | null> {
 
   // Bugünün etkinliği (gün-bazlı program).
   const act = activityForDay(gs.dayIndex);
+  const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
   const today: TodayDTO =
     act.kind === "TRAINING"
       ? {
-          dayName: dayNameTR(gs.dayIndex),
+          dayName: dayLabel,
           kind: "TRAINING",
-          trainingLabel: TRAINING_LABEL_TR[(planArr[act.slot] ?? "REST") as TrainingType],
+          trainingLabel: t(locale, `training.${(planArr[act.slot] ?? "REST") as TrainingType}`),
         }
       : {
-          dayName: dayNameTR(gs.dayIndex),
+          dayName: dayLabel,
           kind: "TOURNAMENT",
           level: act.level,
-          label: TOURNAMENT_LABEL_TR[act.level],
+          label: t(locale, `tournament.${act.level}`),
           qualified: !injured && qualifies(act.qualification, humanRank),
-          requirement: qualificationLabel(act.qualification),
+          requirement: t(locale, `qual.${act.qualification}`),
         };
 
   // Bu yılın turnuva takvimi: haftalık (her ay) + uluslararası (yılda 1). GDD 17.7.
@@ -491,11 +506,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
     if (a.kind === "TOURNAMENT") {
       seasonCalendar.push({
         level: a.level,
-        label: TOURNAMENT_LABEL_TR[a.level],
+        label: t(locale, `tournament.${a.level}`),
         month: 0, // 0 = her ay
-        dayName: dayNameTR(yearStart + dow),
+        dayName: t(locale, `day.${dayOfWeek(yearStart + dow)}`),
         qualified: qualifies(a.qualification, humanRank),
-        requirement: qualificationLabel(a.qualification),
+        requirement: t(locale, `qual.${a.qualification}`),
       });
     }
   }
@@ -504,11 +519,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
     if (a.kind === "TOURNAMENT") {
       seasonCalendar.push({
         level: a.level,
-        label: TOURNAMENT_LABEL_TR[a.level],
+        label: t(locale, `tournament.${a.level}`),
         month: m,
-        dayName: "Pazar",
+        dayName: t(locale, "day.6"),
         qualified: qualifies(a.qualification, humanRank),
-        requirement: qualificationLabel(a.qualification),
+        requirement: t(locale, `qual.${a.qualification}`),
       });
     }
   }
@@ -529,10 +544,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
     currentDate: gs.currentDate.toISOString(),
     quarter,
     month,
-    dayName: dayNameTR(gs.dayIndex),
+    dayName: dayLabel,
     nationalTeam,
     overall: roundSkill(overall(skills)),
-    traits: traitLabels(parseTraits(human.traits)),
+    traits: parseTraits(human.traits), // trait ANAHTARLARI; UI dile göre çevirir
+
     psychology: {
       morale: roundSkill(human.morale),
       motivation: roundSkill(human.motivation),
@@ -541,7 +557,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     },
     club: human.club
       ? {
-          name: human.club.name,
+          name: `${human.club.city} ${t(locale, "club.suffix")}`,
           city: human.club.city,
           facility: human.club.facility,
           coachName: human.club.coachName,
@@ -571,7 +587,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     })(),
     skills: SKILLS.map((def) => ({
       key: def.key,
-      label: def.label,
+      label: t(locale, `skill.${def.key}`),
       category: def.category,
       current: roundSkill(skills[def.key].current),
       potential: roundSkill(skills[def.key].potential),
@@ -612,29 +628,31 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const state = await loadState();
   if (!state) return null;
   const { gs, human } = state;
+  const locale = await getLocale();
   const quarter = quarterOf(gs.dayIndex);
   const cur = currentIdentity(human, quarter);
   const injured = human.injuryDaysRemaining > 0;
   const act = activityForDay(gs.dayIndex);
+  const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
 
   let today: TodayDTO;
   if (act.kind === "TRAINING") {
     const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
     today = {
-      dayName: dayNameTR(gs.dayIndex),
+      dayName: dayLabel,
       kind: "TRAINING",
-      trainingLabel: TRAINING_LABEL_TR[(planArr[act.slot] ?? "REST") as TrainingType],
+      trainingLabel: t(locale, `training.${(planArr[act.slot] ?? "REST") as TrainingType}`),
     };
   } else {
     const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
     const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
     today = {
-      dayName: dayNameTR(gs.dayIndex),
+      dayName: dayLabel,
       kind: "TOURNAMENT",
       level: act.level,
-      label: TOURNAMENT_LABEL_TR[act.level],
+      label: t(locale, `tournament.${act.level}`),
       qualified: !injured && qualifies(act.qualification, humanRank),
-      requirement: qualificationLabel(act.qualification),
+      requirement: t(locale, `qual.${act.qualification}`),
     };
   }
 
@@ -648,7 +666,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     liveTournamentActive: gs.liveTournament != null,
     quarter,
     month: monthOfQuarter(gs.dayIndex),
-    dayName: dayNameTR(gs.dayIndex),
+    dayName: dayLabel,
     injured,
     injuryDaysRemaining: human.injuryDaysRemaining,
     today,
@@ -1001,6 +1019,7 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId } });
   if (!human) return null;
   const hid = human.id;
+  const locale = await getLocale();
 
   const [achievements, entries, matches] = await Promise.all([
     prisma.achievement.findMany({
@@ -1025,8 +1044,8 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
     .sort((a, b) => b.tournament.date.getTime() - a.tournament.date.getTime())
     .map((e) => ({
       id: e.tournamentId,
-      name: e.tournament.name,
-      level: TOURNAMENT_LABEL_TR[e.tournament.level as TournamentLevel] ?? e.tournament.level,
+      name: tournamentDisplayName(locale, e.tournament.categoryId.split("-")[0], e.tournament.level as TournamentLevel),
+      level: t(locale, `tournament.${e.tournament.level}`),
       categoryId: e.tournament.categoryId,
       date: e.tournament.date.toISOString(),
       position: e.finalPosition ?? 0,
@@ -1081,41 +1100,42 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
 
 /** Kaydedilmiş bir turnuvayı id ile yükler (sonuç ekranı için). */
 export async function getTournament(id: number): Promise<TournamentResultDTO | null> {
-  const t = await prisma.tournament.findUnique({
+  const tourn = await prisma.tournament.findUnique({
     where: { id },
     include: {
       participants: { include: { player: true } },
       matches: { orderBy: { orderIndex: "asc" } },
     },
   });
-  if (!t) return null;
+  if (!tourn) return null;
   const gs = await prisma.gameState.findFirst();
   const humanId = gs?.humanPlayerId ?? -1;
-  const fieldSize = t.participants.length;
+  const fieldSize = tourn.participants.length;
+  const locale = await getLocale();
 
   const nameById = new Map(
-    t.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
+    tourn.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
   );
-  const sortedParticipants = [...t.participants].sort(
+  const sortedParticipants = [...tourn.participants].sort(
     (a, b) => (a.finalPosition ?? 999) - (b.finalPosition ?? 999),
   );
   const champion = sortedParticipants.find((p) => p.finalPosition === 1);
-  const you = t.participants.find((p) => p.playerId === humanId);
+  const you = tourn.participants.find((p) => p.playerId === humanId);
 
   return {
-    tournamentId: t.id,
-    name: t.name,
-    level: t.level,
-    categoryId: t.categoryId,
+    tournamentId: tourn.id,
+    name: tournamentDisplayName(locale, tourn.categoryId.split("-")[0], tourn.level as TournamentLevel),
+    level: t(locale, `tournament.${tourn.level}`),
+    categoryId: tourn.categoryId,
     yourPosition: you?.finalPosition ?? fieldSize,
     yourSeedRank: you?.seedRank ?? null,
     championName: champion ? (nameById.get(champion.playerId) ?? "?") : "?",
-    pools: buildPoolsView(t.participants, nameById, humanId),
+    pools: buildPoolsView(tourn.participants, nameById, humanId),
     poolSheets: buildPoolSheets(
-      t.matches
+      tourn.matches
         .filter((m) => m.phase === "POOL")
         .map((m) => ({ aId: m.playerAId, bId: m.playerBId, scoreA: m.scoreA, scoreB: m.scoreB })),
-      new Map(t.participants.filter((p) => p.poolNumber != null).map((p) => [p.playerId, p.poolNumber as number])),
+      new Map(tourn.participants.filter((p) => p.poolNumber != null).map((p) => [p.playerId, p.poolNumber as number])),
       nameById,
       humanId,
     ),
@@ -1124,9 +1144,9 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
       isHuman: p.playerId === humanId,
     })),
-    matches: t.matches.map((m) => ({
+    matches: tourn.matches.map((m) => ({
       phase: m.phase,
-      round: m.round,
+      round: localizeRound(locale, m.round),
       aName: nameById.get(m.playerAId) ?? formatPlayerCode(m.playerAId),
       bName: nameById.get(m.playerBId) ?? formatPlayerCode(m.playerBId),
       scoreA: m.scoreA,
@@ -1135,7 +1155,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       aIsHuman: m.playerAId === humanId,
       bIsHuman: m.playerBId === humanId,
     })),
-    currentDate: (gs?.currentDate ?? t.date).toISOString(),
+    currentDate: (gs?.currentDate ?? tourn.date).toISOString(),
   };
 }
 
@@ -2006,6 +2026,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
   const live = await loadLive();
   if (!live) return null;
   const ls = live.ls;
+  const locale = await getLocale();
   const humanFatigue = ls.fatigue[ls.humanId] ?? live.human.fatigue; // turnuva-içi güncel yorgunluk
   const playerStats = {
     condition: Math.round(100 - clamp(humanFatigue, 0, 100)),
@@ -2015,7 +2036,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
   const played: LiveMatchView[] = ls.matches
     .filter((m) => m.involvesHuman)
     .map((m) => ({
-      round: m.round,
+      round: localizeRound(locale, m.round),
       phase: m.phase,
       aName: m.aName,
       bName: m.bName,
@@ -2026,14 +2047,14 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       log: m.log,
       timeLabel: clockLabel(ls, m.timeOffsetMin ?? 0),
     }));
-  const byes = ls.byes.map((b) => ({ round: b.round, timeLabel: clockLabel(ls, b.timeOffsetMin) }));
+  const byes = ls.byes.map((b) => ({ round: localizeRound(locale, b.round), timeLabel: clockLabel(ls, b.timeOffsetMin) }));
 
   let pending: LiveTournamentDTO["pending"] = null;
   const upcoming: { oppName: string; timeLabel: string }[] = [];
   if (ls.phase === "POOL" && ls.humanPoolIndex < ls.humanPoolOppOrder.length) {
     const idx = ls.humanPoolIndex;
     pending = {
-      round: `Pul ${humanPoolNumber(ls)}`,
+      round: t(locale, "round.pool", { n: humanPoolNumber(ls) }),
       phase: "POOL",
       oppName: nameOf(ls, ls.humanPoolOppOrder[idx]),
       timeLabel: clockLabel(ls, (idx + 1) * 2),
@@ -2044,7 +2065,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     }
   } else if (ls.phase === "DE" && ls.deRound && !ls.liveMatch) {
     pending = {
-      round: ls.deRound.label,
+      round: localizeRound(locale, ls.deRound.label),
       phase: "DE",
       oppName: nameOf(ls, ls.deRound.oppId),
       timeLabel: clockLabel(ls, ls.poolEndOffsetMin + ls.deStep * 5),
@@ -2052,7 +2073,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
   }
 
   const dto: LiveTournamentDTO = {
-    name: `${ls.ageCategory} ${TOURNAMENT_LABEL_TR[ls.level]}`,
+    name: tournamentDisplayName(locale, ls.ageCategory, ls.level),
     categoryId: ls.categoryId,
     phase: ls.phase,
     poolPlayed: ls.humanPoolIndex,
@@ -2066,7 +2087,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     upcoming,
     liveMatch: ls.liveMatch
       ? {
-          round: ls.liveMatch.round,
+          round: localizeRound(locale, ls.liveMatch.round),
           oppName: nameOf(ls, ls.liveMatch.oppId),
           scoreHuman: ls.liveMatch.scoreHuman,
           scoreOpp: ls.liveMatch.scoreOpp,

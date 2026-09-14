@@ -2,6 +2,7 @@
  * Kariyer sayfalarında ortak sunum bileşenleri (saf; hook yok → server component'lerde kullanılır).
  */
 import type { SkillCategory } from "@/engine/domain";
+import { t, type Locale } from "@/i18n";
 import type { CareerDTO } from "@/server/careerService";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
@@ -93,15 +94,17 @@ export function SkillBar({ label, current }: { label: string; current: number; p
 /** 4 kategori altında mevcut yetenekleri gösterir (Profil ve Antrenman ortak kullanır). */
 export function SkillsByCategory({
   skills,
+  locale,
 }: {
   skills: { key: string; label: string; category: string; current: number }[];
+  locale: Locale;
 }) {
   return (
     <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
       {(Object.keys(CATEGORY_LABEL_TR) as SkillCategory[]).map((cat) => (
         <div key={cat}>
           <h3 className="mb-2 text-sm font-medium opacity-80">
-            {CATEGORY_ICON[cat]} {CATEGORY_LABEL_TR[cat]}
+            {CATEGORY_ICON[cat]} {t(locale, `category.${cat}`)}
           </h3>
           <ul className="space-y-2">
             {skills
