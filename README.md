@@ -102,7 +102,8 @@ beraberlikte altın tuş (la belle, FIE); **U10 eleme 10 tuş/2 periyot**, U12+ 
 **pul kağıdı** (poule) + **eleme çatalı** görünümü; **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
 ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik değişimi);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
-kartlar) sürüyor.
+kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam TR/EN dil desteği** (arayüz + maç
+anlatımları; cookie tabanlı, oluşturma ekranından seçilebilir).
 
 Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
 §B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,

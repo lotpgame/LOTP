@@ -43,9 +43,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 
 ### Eklendi
 - **Ayarlar sayfası (⚙️) + dil / ses / kariyer yönetimi:** Menüye **Ayarlar** eklendi; "Yeni Kariyer"
-  menüden buraya taşındı. **Dil TR/EN** — cookie tabanlı i18n altyapısı (`src/i18n`); şimdilik **kabuk**
-  çevrildi (menü, alt çubuk, ayarlar), sayfa içerikleri ve maç anlatımları **aşamalı** eklenecek.
-  **Ses aç/kapa** (tercih saklanır; müzik/efektler yakında). **Kariyeri Sil** (onaylı) + **Yeni Kariyer**.
+  menüden buraya taşındı. **Ses aç/kapa** (tercih saklanır; müzik/efektler yakında). **Kariyeri Sil**
+  (onaylı) + **Yeni Kariyer**.
+- **Tam İngilizce dil desteği (TR/EN):** Cookie tabanlı i18n (`src/i18n`, sözlük + `t()`; server/client
+  ayrımı). Dil oyuncu oluşturma ekranından da seçilebilir. **Tüm arayüz çevrildi** — menü, alt çubuk,
+  oluşturma ekranı, Profil, Antrenman, Turnuvalar, Klasman, Kulüp, Ekipman, Kariyer Geçmişi, Ayarlar,
+  canlı turnuva + sonuç/replay ekranları, ve **maç anlatımları** (tuş-tuş/periyot/la belle) dahil.
+  Motor etiketleri (silah/cinsiyet/turnuva/antrenman/taktik/yetenek/tur/gün) careerService DTO'larında
+  dile göre üretilir; kalıcı loglar üretildikleri dilde kalır.
 - **Antrenman türü açıklamaları:** Antrenman sayfasına "Hangi antrenman neyi geliştirir?" bölümü —
   her tür (Teknik/Fiziksel/Taktik/Mental) hangi skill'leri geliştirir + yorgunluk yükü; Dinlenme notu.
 - **Antrenman sonrası haber kartı:** "İlerle" sonrası üstte özet — kazanılan skill'ler ("+0.6 Dayanıklılık,
