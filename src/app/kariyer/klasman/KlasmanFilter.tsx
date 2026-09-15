@@ -8,25 +8,16 @@ import { useState, useTransition } from "react";
 import { getCategoryRankingAction } from "@/app/actions";
 import {
   GENDERS,
-  GENDER_LABEL_TR,
   WEAPONS,
-  WEAPON_LABEL_TR,
   makeCategoryId,
   type AgeCategory,
   type Gender,
   type Weapon,
 } from "@/engine/domain";
+import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 
 const AGES = ["U10", "U12", "U14", "U17", "U21", "SENIOR"];
-const AGE_LABEL: Record<string, string> = {
-  U10: "U10",
-  U12: "U12",
-  U14: "U14",
-  U17: "U17",
-  U21: "U21",
-  SENIOR: "Senior",
-};
 
 const GENDER_FROM_CODE: Record<string, Gender> = { M: "MALE", F: "FEMALE" };
 const WEAPON_FROM_CODE: Record<string, Weapon> = { FL: "FOIL", EPE: "EPEE", KIL: "SABRE" };
@@ -34,9 +25,11 @@ const WEAPON_FROM_CODE: Record<string, Weapon> = { FL: "FOIL", EPE: "EPEE", KIL:
 export function KlasmanFilter({
   initialCategoryId,
   initialRows,
+  locale,
 }: {
   initialCategoryId: string;
   initialRows: RankingRowDTO[];
+  locale: Locale;
 }) {
   const [age0, gCode, wCode] = initialCategoryId.split("-");
   const [age, setAge] = useState(age0);
@@ -67,7 +60,7 @@ export function KlasmanFilter({
         >
           {AGES.map((a) => (
             <option key={a} value={a}>
-              {AGE_LABEL[a]}
+              {a}
             </option>
           ))}
         </select>
@@ -82,7 +75,7 @@ export function KlasmanFilter({
         >
           {GENDERS.map((g) => (
             <option key={g} value={g}>
-              {GENDER_LABEL_TR[g]}
+              {t(locale, `gender.${g}`)}
             </option>
           ))}
         </select>
@@ -97,17 +90,17 @@ export function KlasmanFilter({
         >
           {WEAPONS.map((w) => (
             <option key={w} value={w}>
-              {WEAPON_LABEL_TR[w]}
+              {t(locale, `weapon.${w}`)}
             </option>
           ))}
         </select>
       </div>
 
       {pending ? (
-        <p className="mt-3 text-sm opacity-60">Yükleniyor…</p>
+        <p className="mt-3 text-sm opacity-60">{t(locale, "klasman.loading")}</p>
       ) : rows.length === 0 ? (
         <p className="mt-3 rounded-lg border border-dashed border-black/15 p-3 text-sm opacity-60 dark:border-white/20">
-          Bu kategoride henüz yarışan yok. (Çok oyunculuda diğer oyuncularla dolacak.)
+          {t(locale, "klasman.emptyCat")}
         </p>
       ) : (
         <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
@@ -121,7 +114,7 @@ export function KlasmanFilter({
               <span className="min-w-0">
                 <span className="inline-block w-6 tabular-nums opacity-60">{r.position}.</span>
                 {r.name}
-                {r.isHuman ? " (sen)" : ""}
+                {r.isHuman ? ` ${t(locale, "common.you")}` : ""}
                 {r.clubName ? <span className="ml-1 text-xs opacity-50">· {r.clubName}</span> : null}
               </span>
               <span className="shrink-0 tabular-nums opacity-70">{r.points.toFixed(1)} p</span>

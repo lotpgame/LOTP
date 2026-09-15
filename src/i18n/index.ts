@@ -219,6 +219,24 @@ const TR: Dict = {
   "turnuvalar.title": "Turnuvalar",
   "turnuvalar.intro": "Program her ay (H1–H12) tekrar eder. Turnuvaya kaydolmazsın — turnuva günü gelince alttaki İlerle seni orada durdurur, Katıl ile canlı oynarsın, Geç dersen o gün antrenman yaparsın.",
   "turnuvalar.thisMonth": "bu ay",
+  // Klasman
+  "klasman.title": "Klasman",
+  "klasman.ownRank": "{cat} klasmanında {n}. sıradasın.",
+  "klasman.noRank": "{cat} klasmanında henüz sıralaman yok — ilk turnuvadan sonra oluşur.",
+  "klasman.note": "Bu klasman milli takım (ilk 4) ve uluslararası davet (ilk 16) kapısını belirler; her yıl (Q) sonunda sıfırlanır.",
+  "klasman.rank": "Sıran",
+  "klasman.intl": "Uluslararası",
+  "klasman.nt4": "✔ ilk 4",
+  "klasman.intl16": "✔ ilk 16",
+  "klasman.rankings": "Klasmanlar",
+  "klasman.filterHint": "Başka bir kategorinin sıralamasına bak (yaş / cinsiyet / silah):",
+  "klasman.worldNote": "🌍 Dünya / ülke sıralaması ileride (V2). GDD'de dünya klasmanı, kulüp sıralaması ve uluslararası ranking sistemi \"Gelecek Sürümler\" olarak planlı.",
+  "country.TR": "Türkiye",
+  // Ranking tablosu
+  "ranking.title": "Quarter Ranking (Q{q})",
+  "ranking.empty": "Bu quarter henüz turnuva oynanmadı. İlk turnuvadan sonra sıralama oluşur (quarter sonunda sıfırlanır).",
+  "klasman.loading": "Yükleniyor…",
+  "klasman.emptyCat": "Bu kategoride henüz yarışan yok. (Çok oyunculuda diğer oyuncularla dolacak.)",
 };
 
 const EN: Dict = {
@@ -403,6 +421,22 @@ const EN: Dict = {
   "turnuvalar.title": "Tournaments",
   "turnuvalar.intro": "The program repeats every month (H1–H12). You don't register — when a tournament day comes, Advance stops you there; Enter to play live, or Skip to train that day.",
   "turnuvalar.thisMonth": "this month",
+  "klasman.title": "Rankings",
+  "klasman.ownRank": "You're ranked #{n} in the {cat} ranking.",
+  "klasman.noRank": "You're not ranked in {cat} yet — it forms after your first tournament.",
+  "klasman.note": "This ranking decides national team (top 4) and international invites (top 16); it resets at the end of each year (Q).",
+  "klasman.rank": "Rank",
+  "klasman.intl": "International",
+  "klasman.nt4": "✔ top 4",
+  "klasman.intl16": "✔ top 16",
+  "klasman.rankings": "Rankings",
+  "klasman.filterHint": "View another category's ranking (age / gender / weapon):",
+  "klasman.worldNote": "🌍 World / country rankings later (V2). The GDD plans world ranking, club standings and the international ranking system as \"Future Versions\".",
+  "country.TR": "Turkey",
+  "ranking.title": "Quarter Ranking (Q{q})",
+  "ranking.empty": "No tournament played this quarter yet. The ranking forms after your first tournament (resets at quarter end).",
+  "klasman.loading": "Loading…",
+  "klasman.emptyCat": "No competitors in this category yet. (Fills with other players in multiplayer.)",
 };
 
 const DICT: Record<Locale, Dict> = { tr: TR, en: EN };
