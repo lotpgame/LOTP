@@ -2073,8 +2073,6 @@ export interface LiveTournamentDTO {
   poolSheets?: PoolSheetDTO[]; // pul kağıdı (poule) — pul bitince
   seedRank?: number | null;
   seeding?: { name: string; seedRank: number; isHuman: boolean }[]; // pul sonrası klasman (seeding)
-  bracket?: { round: string; aName: string; bName: string; scoreA: number; scoreB: number; aIsHuman: boolean }[]; // TÜM eleme maçları (çatal)
-  currentRound?: string | null; // o an oynanan eleme turu (çatalda skoru gizlemek için)
   standings?: { name: string; position: number; isHuman: boolean }[];
   championName?: string;
   finalPosition?: number;
@@ -2194,26 +2192,6 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       dto.seeding = [...ls.ranking]
         .sort((a, b) => a.seedRank - b.seedRank)
         .map((r) => ({ name: nameOf(ls, r.playerId), seedRank: r.seedRank, isHuman: r.playerId === ls.humanId }));
-    }
-
-    // TÜM eleme maçları (çatal) — insan + AI birlikte, tur tur.
-    dto.bracket = ls.matches
-      .filter((m) => m.phase === "DE")
-      .map((m) => ({
-        round: localizeRound(locale, m.round),
-        aName: m.aName,
-        bName: m.bName,
-        scoreA: m.scoreA,
-        scoreB: m.scoreB,
-        aIsHuman: m.aId === ls.humanId,
-      }));
-
-    // O an oynanan/animasyonu süren eleme turu — çatalda skoru gizlemek için.
-    if (ls.liveMatch) {
-      dto.currentRound = localizeRound(locale, ls.liveMatch.round);
-    } else if (ls.lastAction === "play") {
-      const lastHumanDe = [...ls.matches].reverse().find((m) => m.phase === "DE" && m.involvesHuman);
-      dto.currentRound = lastHumanDe ? localizeRound(locale, lastHumanDe.round) : null;
     }
 
     // KO_DRAW aşaması: o an oynanacak turun eşleşmelerini (kurasını) göster.

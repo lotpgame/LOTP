@@ -164,7 +164,7 @@ export default async function CanliTurnuvaPage() {
 
         {stage === "STANDINGS" && <Standings tour={tour} locale={locale} />}
 
-        {stage === "KO_DRAW" && <KoDraw tour={tour} locale={locale} deMatches={deMatches} />}
+        {stage === "KO_DRAW" && <KoDraw tour={tour} locale={locale} />}
 
         {stage === "DE" && (
           <>
@@ -201,27 +201,23 @@ export default async function CanliTurnuvaPage() {
             ) : (
               <PendingPanel tour={tour} locale={locale} />
             )}
-            <FullBracket bracket={tour.bracket} hideRound={null} locale={locale} />
           </>
         )}
 
         {stage === "WAIT_DE" && deMatches.length > 0 && (
-          <>
-            <section>
-              <h2 className="text-lg font-semibold">{t(locale, "canli.deMatches")}</h2>
-              <div className="mt-3">
-                <MatchCard m={deMatches[deMatches.length - 1]} index={deMatches.length - 1} locale={locale} auto>
-                  <Countdown
-                    seconds={WAIT_SECONDS}
-                    action={advanceLiveStageAction}
-                    label={t(locale, "canli.waitDe")}
-                    sub={t(locale, "canli.waitSub", { n: WAIT_SECONDS })}
-                  />
-                </MatchCard>
-              </div>
-            </section>
-            <FullBracket bracket={tour.bracket} hideRound={tour.currentRound ?? null} locale={locale} />
-          </>
+          <section>
+            <h2 className="text-lg font-semibold">{t(locale, "canli.deMatches")}</h2>
+            <div className="mt-3">
+              <MatchCard m={deMatches[deMatches.length - 1]} index={deMatches.length - 1} locale={locale} auto>
+                <Countdown
+                  seconds={WAIT_SECONDS}
+                  action={advanceLiveStageAction}
+                  label={t(locale, "canli.waitDe")}
+                  sub={t(locale, "canli.waitSub", { n: WAIT_SECONDS })}
+                />
+              </MatchCard>
+            </div>
+          </section>
         )}
 
         {stage === "DONE" && <DoneScreen tour={tour} locale={locale} />}
@@ -383,11 +379,9 @@ function Standings({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
 function KoDraw({
   tour,
   locale,
-  deMatches,
 }: {
   tour: LiveTournamentDTO;
   locale: Locale;
-  deMatches: LiveTournamentDTO["played"];
 }) {
   const firstRound = tour.phase === "POOL_DONE";
   return (
@@ -417,8 +411,6 @@ function KoDraw({
       )}
 
       <AdvanceButton locale={locale} labelKey={firstRound ? "canli.enterBracket" : "canli.toMatch"} />
-
-      {deMatches.length > 0 && <FullBracket bracket={tour.bracket} hideRound={null} locale={locale} />}
     </section>
   );
 }
@@ -461,9 +453,6 @@ function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
         </ol>
       )}
 
-      {/* Tam çatal — bitişte açık görülebilir (artık spoiler yok) */}
-      <FullBracket bracket={tour.bracket} hideRound={null} locale={locale} open />
-
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <form action={leaveLiveTournamentAction}>
           <button className="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
@@ -483,62 +472,3 @@ function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
   );
 }
 
-/**
- * Tüm eleme çatalı — VARSAYILAN KAPALI katlanır (spoiler içerir). Merak eden açar.
- * `hideRound`: animasyonu süren tur → senin o turdaki maçının skoru gizli ("•").
- */
-function FullBracket({
-  bracket,
-  hideRound,
-  locale,
-  open,
-}: {
-  bracket: LiveTournamentDTO["bracket"];
-  hideRound: string | null;
-  locale: Locale;
-  open?: boolean;
-}) {
-  if (!bracket || bracket.length === 0) return null;
-  const rounds: string[] = [];
-  for (const m of bracket) if (!rounds.includes(m.round)) rounds.push(m.round);
-  return (
-    <details open={open} className="mt-6 rounded-lg border border-black/10 p-3 dark:border-white/15">
-      <summary className="cursor-pointer text-sm font-medium opacity-80">
-        {open ? t(locale, "canli.bracket") : `⚠️ ${t(locale, "canli.bracketSpoiler")}`}
-      </summary>
-      <div className="mt-3 overflow-x-auto pb-2">
-        <div className="flex min-w-max gap-3">
-          {rounds.map((round) => (
-            <div key={round} className="flex min-w-[160px] flex-col justify-around gap-3">
-              <h3 className="text-center text-xs font-medium opacity-70">{round}</h3>
-              {bracket
-                .filter((m) => m.round === round)
-                .map((m, i) => {
-                  const mine = m.aIsHuman;
-                  const hide = mine && hideRound != null && m.round === hideRound;
-                  const aWon = m.scoreA >= m.scoreB;
-                  return (
-                    <div
-                      key={i}
-                      className={`rounded-lg border p-2 text-xs ${
-                        mine ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`truncate ${!hide && aWon ? "font-semibold" : "opacity-60"}`}>{m.aName}</span>
-                        <span className="tabular-nums opacity-80">{hide ? "•" : m.scoreA}</span>
-                      </div>
-                      <div className="mt-0.5 flex items-center justify-between gap-2">
-                        <span className={`truncate ${!hide && !aWon ? "font-semibold" : "opacity-60"}`}>{m.bName}</span>
-                        <span className="tabular-nums opacity-80">{hide ? "•" : m.scoreB}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ))}
-        </div>
-      </div>
-    </details>
-  );
-}

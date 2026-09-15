@@ -101,8 +101,9 @@ eventleri** yaşa göre (U10 tek zamanlı → üst kategoride çift/3-4 zamanlı
 beraberlikte altın tuş (la belle, FIE); **U10 eleme 10 tuş/2 periyot**, U12+ 15 tuş/3 periyot (FIE gençler);
 **aşamalı turnuva akışı** — tek ekranda adım adım: pul kuraları → pul maçları → **pul kağıdı** (poule) →
 turnuva klasmanı → **eleme kurası** → eleme maçı (yalnız senin maçın) → kazanınca sonraki turun kurası;
-maç bitince **sabit 10 sn bekleme** (sonuç/çatal hemen fırlamaz); elemede **spoiler yok** (tüm eşleşmeli
-çatal varsayılan kapalı bir "spoiler içerir" katlanır kutuda, merak eden açar); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
+maç bitince **sabit 10 sn bekleme** (sonuç/çatal hemen fırlamaz); elemede **spoiler yok** (çatal canlı
+turnuvada hiç gösterilmez — yalnız o turun kurası + senin maçın; tam çatal turnuva bitince Geçmiş'te);
+**antrenman açıklamaları** (hangi antrenman neyi geliştirir)
 ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik değişimi);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
 kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam TR/EN dil desteği** (arayüz + maç

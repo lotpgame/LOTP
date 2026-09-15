@@ -17,9 +17,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   … → sonuç. (`LiveState.stage`, `advanceLiveStage`, tek "Devam/İlerle" aksiyonu.)
 - **Maç bitince 10 sn bekleme:** Maç biter bitmez pul sonucu / sonraki çatal / turnuva sonucu **hemen
   fırlamaz** — sabit **10 saniyelik geri sayım** sonrası açılır (`Countdown`, kullanıcı tercihiyle atlanmaz).
-- **Elemede spoiler yok:** Eleme maçı sırasında çatal görünmez; tüm eşleşmeler/çatal **varsayılan
-  kapalı** bir "⚠️ spoiler içerir" katlanır kutuda — merak eden açıp tüm draw'a bakabilir. Animasyonu
-  süren maçın skoru katlanır çatalda da gizli (`•`).
+- **Elemede spoiler yok (gerçekçi):** Canlı turnuvada eleme aşamasında **çatal/tüm eşleşmeler hiç
+  gösterilmez** — yalnız o an oynanacak turun **kurası** (isimler, skor yok) ve **senin maçın** görünür.
+  Motor sonraki turu önden hesaplasa bile "henüz olmamış" sonuçlar ekrana sızmaz. Tam çatal yalnız
+  turnuva bitince **Kariyer Geçmişi**'ndeki turnuva detay sayfasında görülür.
 - **Pul kağıdı (poule sheet):** Turnuvada pul sonuçları artık klasik **FIE pul kağıdı** olarak —
   NxN sonuç ızgarası (V5 = galibiyet/attığın tuş, sayı = mağlubiyette attığın tuş) + V/TS/TR/Ind/Sıra
   sütunları; hem canlı ekranda hem sonuç/geçmiş ekranında. (`PoolSheetDTO`, `buildPoolSheets`, `PulKagidi`.)
