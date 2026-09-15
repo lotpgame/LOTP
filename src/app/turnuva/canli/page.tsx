@@ -90,14 +90,59 @@ export default async function CanliTurnuvaPage() {
       </form>
     </div>
   ) : tour.phase === "POOL_DONE" ? (
-    <div className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-4">
-      <h2 className="text-lg font-semibold">{t(locale, "canli.poolPhaseDone")}</h2>
-      <p className="mt-1 text-sm opacity-80">{t(locale, "canli.seedInfo", { n: tour.seedRank ?? "—" })}</p>
-      <form action={enterBracketAction} className="mt-3">
-        <button className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
-          {t(locale, "canli.enterBracket")}
-        </button>
-      </form>
+    <div className="space-y-4">
+      {/* Önce pul sonrası klasman (seeding) — sonra kura (draw) — sonra elemeye geç. */}
+      {tour.seeding && tour.seeding.length > 0 && (
+        <section className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <h2 className="text-base font-semibold">{t(locale, "canli.seedingTitle")}</h2>
+          <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
+            {tour.seeding.map((s) => (
+              <li
+                key={s.seedRank}
+                className={`flex items-center px-3 py-2 text-sm ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}
+              >
+                <span className="mr-2 w-6 tabular-nums opacity-50">{s.seedRank}.</span>
+                <span>
+                  {s.name}
+                  {s.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+      {tour.draw && tour.draw.length > 0 && (
+        <section className="rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <h2 className="text-base font-semibold">{t(locale, "canli.drawTitle")}</h2>
+          <p className="mt-1 text-xs opacity-60">{t(locale, "canli.drawNote")}</p>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {tour.draw.map((d, i) => {
+              const mine = d.aIsHuman || d.bIsHuman;
+              return (
+                <div
+                  key={i}
+                  className={`rounded-lg border p-2 text-xs ${
+                    mine ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
+                  }`}
+                >
+                  <div className={`truncate ${d.aIsHuman ? "font-semibold" : ""}`}>{d.aName}</div>
+                  <div className="my-0.5 text-center opacity-40">vs</div>
+                  <div className={`truncate ${d.bIsHuman ? "font-semibold" : ""}`}>{d.bName}</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      <div className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-4">
+        <h2 className="text-lg font-semibold">{t(locale, "canli.poolPhaseDone")}</h2>
+        <p className="mt-1 text-sm opacity-80">{t(locale, "canli.seedInfo", { n: tour.seedRank ?? "—" })}</p>
+        <form action={enterBracketAction} className="mt-3">
+          <button className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500">
+            {t(locale, "canli.enterBracket")}
+          </button>
+        </form>
+      </div>
     </div>
   ) : tour.phase === "DONE" ? (
     <DoneScreen tour={tour} locale={locale} />
@@ -149,8 +194,14 @@ export default async function CanliTurnuvaPage() {
         </div>
       </div>
 
-      {/* Eleme çatalı (bracket) — eleme aşamasında, oynanan turlar sütun sütun */}
-      {!isPoolPhase && deMatches.length > 0 && <ElemeCatali matches={deMatches} locale={locale} />}
+      {/* Eleme çatalı (bracket) — TÜM eşleşmeler; senin animasyonu süren maçının skoru gizli */}
+      {!isPoolPhase && (tour.bracket?.length ?? 0) > 0 && (
+        <ElemeCatali
+          bracket={tour.bracket!}
+          hideRound={gateNext ? (tour.currentRound ?? null) : null}
+          locale={locale}
+        />
+      )}
 
       {/* Oynanan maçların — pul aşamasında pul maçları, elemede eleme maçları */}
       {displayed.length > 0 && (
@@ -348,31 +399,50 @@ function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
   );
 }
 
-/** Canlı eleme çatalı — oynanan turlar sütun sütun (senin maçların vurgulu). */
-function ElemeCatali({ matches, locale }: { matches: LiveTournamentDTO["played"]; locale: Locale }) {
+/**
+ * Canlı eleme çatalı — TÜM eşleşmeler (insan + AI), tur tur sütunlar; senin maçların vurgulu.
+ * `hideRound`: o an animasyonu süren tur → senin o turdaki maçının skoru gizlenir (spoiler önleme).
+ */
+function ElemeCatali({
+  bracket,
+  hideRound,
+  locale,
+}: {
+  bracket: NonNullable<LiveTournamentDTO["bracket"]>;
+  hideRound: string | null;
+  locale: Locale;
+}) {
   const rounds: string[] = [];
-  for (const m of matches) if (!rounds.includes(m.round)) rounds.push(m.round);
+  for (const m of bracket) if (!rounds.includes(m.round)) rounds.push(m.round);
   return (
     <section className="mt-6">
       <h2 className="text-lg font-semibold">{t(locale, "canli.bracket")}</h2>
+      <p className="mt-1 text-xs opacity-60">{t(locale, "canli.bracketAll")}</p>
       <div className="mt-3 overflow-x-auto pb-2">
         <div className="flex min-w-max gap-3">
           {rounds.map((round) => (
             <div key={round} className="flex min-w-[160px] flex-col justify-around gap-3">
               <h3 className="text-center text-xs font-medium opacity-70">{round}</h3>
-              {matches
+              {bracket
                 .filter((m) => m.round === round)
                 .map((m, i) => {
+                  const mine = m.aIsHuman;
+                  const hide = mine && hideRound != null && m.round === hideRound; // animasyonu süren maç
                   const aWon = m.scoreA >= m.scoreB;
                   return (
-                    <div key={i} className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-2 text-xs">
+                    <div
+                      key={i}
+                      className={`rounded-lg border p-2 text-xs ${
+                        mine ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
+                      }`}
+                    >
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`truncate ${aWon ? "font-semibold" : "opacity-60"}`}>{m.aName}</span>
-                        <span className="tabular-nums opacity-80">{m.scoreA}</span>
+                        <span className={`truncate ${!hide && aWon ? "font-semibold" : "opacity-60"}`}>{m.aName}</span>
+                        <span className="tabular-nums opacity-80">{hide ? "•" : m.scoreA}</span>
                       </div>
                       <div className="mt-0.5 flex items-center justify-between gap-2">
-                        <span className={`truncate ${!aWon ? "font-semibold" : "opacity-60"}`}>{m.bName}</span>
-                        <span className="tabular-nums opacity-80">{m.scoreB}</span>
+                        <span className={`truncate ${!hide && !aWon ? "font-semibold" : "opacity-60"}`}>{m.bName}</span>
+                        <span className="tabular-nums opacity-80">{hide ? "•" : m.scoreB}</span>
                       </div>
                     </div>
                   );

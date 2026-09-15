@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Pul → Klasman → Kura → Eleme akışı:** Pul maçları bitince "Elemeye Geç"ten önce sırayla
+  **turnuva klasmanı** (pul sonrası seeding sıralaması) ve **eleme kurası** (ilk tur eşleşmeleri,
+  seed'e göre) gösterilir; ardından elemeye geçilir. (`LiveTournamentDTO.seeding` / `.draw`.)
+- **Eleme çatalında TÜM eşleşmeler:** Çatal artık yalnız senin maçlarını değil, **tüm oyuncuların
+  eşleşmelerini** (insan + AI, tur tur) gösterir — seninki vurgulu. (`LiveTournamentDTO.bracket`.)
 - **Pul kağıdı (poule sheet):** Turnuvada pul sonuçları artık klasik **FIE pul kağıdı** olarak —
   NxN sonuç ızgarası (V5 = galibiyet/attığın tuş, sayı = mağlubiyette attığın tuş) + V/TS/TR/Ind/Sıra
   sütunları; hem canlı ekranda hem sonuç/geçmiş ekranında. (`PoolSheetDTO`, `buildPoolSheets`, `PulKagidi`.)
@@ -37,6 +42,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   tükeniyordu. Artık normal program kondisyonu hafif toparlar (~−13/hafta), ağır turnuvalar düşürür.
 - **Pul son maçı bitmeden sonuç çıkması:** Son pul maçı canlı akarken "Pul sonuçlarını gör" paneli
   hemen görünüyordu (spoiler). Artık panel **maç animasyonu bitince** görünür (`CanliMac afterDone`).
+- **Eleme çatalı skoru maç sürerken görünüyordu (spoiler):** Senin animasyonu süren eleme maçının
+  skoru, üstteki çatalda maç kartında akmadan önce görünüyordu. Artık o turdaki maçın skoru
+  animasyon bitene kadar **gizli** (`•`), maç bitince açılır. (`LiveTournamentDTO.currentRound`.)
 - **Devre arası paneli 1. periyot bitmeden görünmesi:** Periyot canlı akarken alttaki devre arası
   paneli ve skoru hemen çıkıyordu (spoiler). Artık **periyot animasyonu bitince** görünür ve periyot
   skoru animasyon bitene kadar gizli (`CanliPeriyot afterDone` + gizli skor).

@@ -2024,6 +2024,10 @@ export interface LiveTournamentDTO {
   pools?: PoolViewDTO[];
   poolSheets?: PoolSheetDTO[]; // pul kağıdı (poule) — pul bitince
   seedRank?: number | null;
+  seeding?: { name: string; seedRank: number; isHuman: boolean }[]; // pul sonrası klasman (seeding)
+  draw?: { aName: string; bName: string; aIsHuman: boolean; bIsHuman: boolean }[]; // eleme ilk tur kurası
+  bracket?: { round: string; aName: string; bName: string; scoreA: number; scoreB: number; aIsHuman: boolean }[]; // TÜM eleme maçları (çatal)
+  currentRound?: string | null; // o an oynanan eleme turu (çatalda skoru gizlemek için)
   standings?: { name: string; position: number; isHuman: boolean }[];
   championName?: string;
   finalPosition?: number;
@@ -2136,6 +2140,52 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       ls.humanId,
     );
     dto.seedRank = ls.ranking?.find((r) => r.playerId === ls.humanId)?.seedRank ?? null;
+
+    // Pul sonrası klasman (seeding) — sıralı liste (1..N).
+    if (ls.ranking) {
+      dto.seeding = [...ls.ranking]
+        .sort((a, b) => a.seedRank - b.seedRank)
+        .map((r) => ({ name: nameOf(ls, r.playerId), seedRank: r.seedRank, isHuman: r.playerId === ls.humanId }));
+    }
+
+    // TÜM eleme maçları (çatal) — insan + AI birlikte, tur tur.
+    dto.bracket = ls.matches
+      .filter((m) => m.phase === "DE")
+      .map((m) => ({
+        round: localizeRound(locale, m.round),
+        aName: m.aName,
+        bName: m.bName,
+        scoreA: m.scoreA,
+        scoreB: m.scoreB,
+        aIsHuman: m.aId === ls.humanId,
+      }));
+
+    // O an oynanan/animasyonu süren eleme turu — çatalda skoru gizlemek için.
+    if (ls.liveMatch) {
+      dto.currentRound = localizeRound(locale, ls.liveMatch.round);
+    } else if (ls.lastAction === "play") {
+      const lastHumanDe = [...ls.matches].reverse().find((m) => m.phase === "DE" && m.involvesHuman);
+      dto.currentRound = lastHumanDe ? localizeRound(locale, lastHumanDe.round) : null;
+    }
+
+    // Pul biter bitmez (henüz elemeye geçilmeden) ilk tur kurasını göster.
+    if (ls.phase === "POOL_DONE" && ls.ranking) {
+      const ranking = ls.ranking;
+      const order = bracketSeedOrder(bracketSize(ranking.length));
+      const slots = order.map((seedNo) => (seedNo <= ranking.length ? ranking[seedNo - 1].playerId : BYE));
+      const draw: NonNullable<LiveTournamentDTO["draw"]> = [];
+      for (let i = 0; i < slots.length; i += 2) {
+        const x = slots[i];
+        const y = slots[i + 1];
+        draw.push({
+          aName: x === BYE ? t(locale, "canli.bye") : nameOf(ls, x),
+          bName: y === BYE ? t(locale, "canli.bye") : nameOf(ls, y),
+          aIsHuman: x === ls.humanId,
+          bIsHuman: y === ls.humanId,
+        });
+      }
+      dto.draw = draw;
+    }
   }
   if (ls.phase === "DONE") {
     dto.standings = [...ls.standings]
