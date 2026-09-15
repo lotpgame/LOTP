@@ -6,6 +6,7 @@
  * Bileşen her yeni periyotta remount edilir (page'de key={log.length}) → shown doğru başlar.
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { t, type Locale } from "@/i18n";
 
 /** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
 function lastRevealedScore(lines: string[]): string | null {
@@ -24,9 +25,10 @@ export interface CanliPeriyotProps {
   log: string[];
   instantThrough: number; // bu indeksten öncesi anında gösterilir
   afterDone?: ReactNode; // periyot animasyonu bitince gösterilir (devre arası paneli — spoiler önler)
+  locale?: Locale;
 }
 
-export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instantThrough, afterDone }: CanliPeriyotProps) {
+export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instantThrough, afterDone, locale = "tr" }: CanliPeriyotProps) {
   const [shown, setShown] = useState(instantThrough);
   const [fast, setFast] = useState(false);
   const done = shown >= log.length;
@@ -61,13 +63,13 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
             onClick={() => setFast((f) => !f)}
             className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
           >
-            {fast ? "Normal hız" : "Hızlı"}
+            {fast ? t(locale, "mac.normal") : t(locale, "mac.fast")}
           </button>
           <button
             onClick={() => setShown(log.length)}
             className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
           >
-            Atla ⏭
+            {t(locale, "mac.skip")}
           </button>
         </div>
       )}

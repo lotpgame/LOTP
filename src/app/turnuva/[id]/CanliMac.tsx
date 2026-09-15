@@ -8,6 +8,7 @@
  *   döküm açılıp kapanır (canlı izleme yerine, kullanıcı isteği).
  */
 import { useEffect, useState, type ReactNode } from "react";
+import { t, type Locale } from "@/i18n";
 
 /** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
 function lastRevealedScore(lines: string[]): string | null {
@@ -28,6 +29,7 @@ export interface CanliMacProps {
   past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
   afterDone?: ReactNode; // animasyon bitince gösterilir (ör. "pul sonuçlarını gör" paneli — spoiler önler)
   instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız son periyodu animasyonla göster)
+  locale?: Locale;
 }
 
 export function CanliMac({
@@ -40,6 +42,7 @@ export function CanliMac({
   past = false,
   afterDone,
   instantThrough = 0,
+  locale = "tr",
 }: CanliMacProps) {
   const [shown, setShown] = useState(autoPlay ? instantThrough : 0);
   const [playing, setPlaying] = useState(autoPlay);
@@ -72,7 +75,7 @@ export function CanliMac({
           onClick={() => setOpen((o) => !o)}
           className="flex w-full items-center justify-center gap-1 border-t border-black/5 px-3 py-1.5 text-xs opacity-60 transition hover:opacity-100 dark:border-white/10"
         >
-          📋 Skor detayı {open ? "▴" : "▾"}
+          {t(locale, "mac.detail")} {open ? "▴" : "▾"}
         </button>
         {open && (
           <ul className="space-y-0.5 border-t border-black/5 px-3 py-2 text-xs opacity-80 dark:border-white/10">
@@ -111,13 +114,13 @@ export function CanliMac({
             onClick={start}
             className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-500"
           >
-            ▶ Canlı İzle
+            {t(locale, "mac.watch")}
           </button>
           <button
             onClick={() => setShown(log.length)}
             className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
           >
-            Sonucu Gör
+            {t(locale, "mac.result")}
           </button>
         </div>
       )}
@@ -138,13 +141,13 @@ export function CanliMac({
                   onClick={() => setFast((f) => !f)}
                   className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
                 >
-                  {fast ? "Normal hız" : "Hızlı"}
+                  {fast ? t(locale, "mac.normal") : t(locale, "mac.fast")}
                 </button>
                 <button
                   onClick={() => setShown(log.length)}
                   className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
                 >
-                  Atla ⏭
+                  {t(locale, "mac.skip")}
                 </button>
               </>
             ) : (
@@ -152,7 +155,7 @@ export function CanliMac({
                 onClick={start}
                 className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
               >
-                ↺ Tekrar izle
+                {t(locale, "mac.rewatch")}
               </button>
             )}
           </div>
