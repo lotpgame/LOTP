@@ -102,8 +102,10 @@ beraberlikte altın tuş (la belle, FIE); **U10 eleme 10 tuş/2 periyot**, U12+ 
 **alt sekme çubuklu turnuva ekranı** (Pul kağıdı · Pul maçları · Klasman · Elemeler · Sonuç) — sekmeler
 turnuva ilerledikçe **kilitli açılır**, geçmiş bölümler serbest gezilir, gelecek bölümler kilitli olduğu
 için **spoiler yok** (elemede yalnız o turun kurası + senin maçın; tam çatal turnuva bitince Geçmiş'te);
-maç bitince **"Sonuçlar işleniyor…"** beklemesi sonrası ilgili sekme otomatik açılır (geri sayım sayısı
-gösterilmez); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
+**pul kağıdı** ilk maçtan sonra açılır ve **canlı dolar** (yalnız senin pulun), **pul maçları** sekmesi
+tüm maçları sabit listeler (oynanan/sıradaki/kilitli), **klasman** gerçek pul klasmanı gibi G-M/averaj/tuş
+gösterir; maç bitince **"Sonuçlar işleniyor…"** beklemesi sonrası ilgili sekme otomatik açılır (geri sayım
+sayısı gösterilmez); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
 ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik değişimi);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
 kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam TR/EN dil desteği** (arayüz + maç

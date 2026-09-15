@@ -33,7 +33,6 @@ export function PulKagidi({ sheet, locale }: { sheet: PoolSheetDTO; locale: Loca
               <td className="whitespace-nowrap border border-black/15 p-1 dark:border-white/20">
                 <span className="mr-1 opacity-50">{i + 1}</span>
                 {p.name}
-                {p.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
               </td>
               {sheet.cells[i].map((c, j) => (
                 <td

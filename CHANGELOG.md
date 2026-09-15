@@ -20,6 +20,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Maç bitince "Sonuçlar işleniyor…" beklemesi:** Maç biter bitmez pul sonucu / klasman / sonraki
   tur / turnuva sonucu **hemen fırlamaz** — kısa bir bekleme sonrası ilgili sekme otomatik açılır.
   Geri sayım sayısı gösterilmez; yalnız "…işleniyor" yazısı akar (`Countdown`).
+- **Pul kağıdı canlı dolar:** İlk pul maçından sonra "Pul kağıdı" sekmesi açılır ve her maç bittikçe
+  ızgara **canlı dolar** (yalnız senin pulun; diğer puller pul bitince "Diğer puller" katlanırında).
+- **Pul klasmanı gerçekçi:** Turnuva klasmanı artık **G-M** (galibiyet-mağlubiyet), **averaj** (Ind) ve
+  **atılan tuş** (TV) sütunlarıyla — gerçek pul klasmanı gibi.
 - **Elemede spoiler yok (gerçekçi):** Canlı turnuvada eleme aşamasında **çatal/tüm eşleşmeler hiç
   gösterilmez** — yalnız o an oynanacak turun **kurası** (isimler, skor yok) ve **senin maçın** görünür.
   Motor sonraki turu önden hesaplasa bile "henüz olmamış" sonuçlar ekrana sızmaz. Tam çatal yalnız
@@ -33,6 +37,16 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   boyunca güncel — kondisyon maçlarla düşer).
 
 ### Değiştirdi
+- **Pul maçları sabit liste:** "Pul maçları" sekmesi artık tüm maçları **sabit** gösterir (oynanan =
+  skor+açılır detay, sıradaki = işaretli, kalanlar = kilitli). Böylece maçlar "kendiliğinden ekrana
+  düşmez" — hepsi baştan görünür (kullanıcı geri bildirimi).
+- **Pul kağıdında yalnız senin pulun:** Öne çıkan senin havuzun; diğer puller pul bitince katlanır kutuda.
+- **İlerleme butonu üstte:** "Devam / Elemeye Geç / Maça geç / Pul maçlarına başla" artık **durum
+  çubuğunun (reyting) hemen altında** — aşağı kaydırmadan basılır.
+- **Turnuva sonucu ekranı sadeleşti:** "Tüm tabloyu gör" butonu kaldırıldı — sonuç açıklanınca pul
+  kağıdı / pul maçları / klasman sekmelerden gezilebildiği için gereksiz; yalnız **Eve Dön** kaldı.
+- **"(sen)" etiketi kaldırıldı:** Klasman, pul kağıdı ve pul kurasında insanın satırı zaten vurgulu
+  olduğu için "(sen)" yazısı kaldırıldı; elemede periyot kartı da artık **karakterin adını** yazıyor.
 - **Canlı maç skoru event geçtikçe güncellenir:** Üstteki skor, açıklanan son tuşa göre canlı ilerler
   (önceden bitene kadar "• • •" idi).
 - **Biten pul maçları katlanır:** Canlı ekranda oynanmış pul maçları artık **skor + açılır detay**

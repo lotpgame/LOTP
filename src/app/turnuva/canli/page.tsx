@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { advanceLiveStageAction, leaveLiveTournamentAction, playLiveMatchAction } from "@/app/actions";
@@ -17,7 +16,6 @@ export const dynamic = "force-dynamic";
 
 const WAIT_SECONDS = 10; // maç bitince sonraki aşamadan önce sabit bekleme (kullanıcı tercihi)
 
-// Aşama sırası → hangi sekme "canlı" ve hangi sekmeler açık.
 const STAGE_ORDER: Record<string, number> = {
   POOL_INTRO: 0,
   POOL: 1,
@@ -73,17 +71,6 @@ function TacticGrid({ locale }: { locale: Locale }) {
           <span className="mt-1 block text-xs opacity-70">{t(locale, `tacticDesc.${tac}`)}</span>
         </button>
       ))}
-    </form>
-  );
-}
-
-/** Tek "Devam/İlerle" butonu (server action). */
-function AdvanceButton({ locale, labelKey }: { locale: Locale; labelKey: string }) {
-  return (
-    <form action={advanceLiveStageAction} className="mt-4">
-      <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
-        {t(locale, labelKey)}
-      </button>
     </form>
   );
 }
@@ -150,6 +137,17 @@ function MatchCard({
   );
 }
 
+/** Tek "Devam/İlerle" butonu (server action) — üstte, durum çubuğunun altında. */
+function AdvanceButton({ locale, labelKey }: { locale: Locale; labelKey: string }) {
+  return (
+    <form action={advanceLiveStageAction} className="mt-3">
+      <button className="w-full rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+        {t(locale, labelKey)}
+      </button>
+    </form>
+  );
+}
+
 export default async function CanliTurnuvaPage() {
   const tour = await getLiveTournament();
   if (!tour) redirect("/kariyer"); // aktif turnuva yok
@@ -161,7 +159,7 @@ export default async function CanliTurnuvaPage() {
   const deMatches = tour.played.filter((m) => m.phase === "DE");
 
   const unlocked = {
-    kagit: ord >= STAGE_ORDER.POOL_RESULT,
+    kagit: poolMatches.length > 0 || ord >= STAGE_ORDER.POOL_RESULT, // ilk maçtan sonra pul kağıdı açık
     maclar: true,
     klasman: ord >= STAGE_ORDER.STANDINGS,
     elemeler: ord >= STAGE_ORDER.KO_DRAW,
@@ -178,10 +176,22 @@ export default async function CanliTurnuvaPage() {
             ? "elemeler"
             : "sonuc";
 
+  // Manuel ilerleme butonu (üstte): sadece bekleme gerektirmeyen adımlarda.
+  const advanceKey =
+    stage === "POOL_INTRO"
+      ? "canli.startPool"
+      : stage === "POOL_RESULT" || stage === "STANDINGS"
+        ? "canli.continue"
+        : stage === "KO_DRAW"
+          ? tour.phase === "POOL_DONE"
+            ? "canli.enterBracket"
+            : "canli.toMatch"
+          : null;
+
   const panels: Record<string, ReactNode> = {
-    kagit: unlocked.kagit ? <KagitPanel tour={tour} locale={locale} live={stage === "POOL_RESULT"} /> : null,
+    kagit: unlocked.kagit ? <KagitPanel tour={tour} locale={locale} /> : null,
     maclar: <MaclarPanel tour={tour} locale={locale} poolMatches={poolMatches} stage={stage} />,
-    klasman: unlocked.klasman ? <Standings tour={tour} locale={locale} live={stage === "STANDINGS"} /> : null,
+    klasman: unlocked.klasman ? <Standings tour={tour} locale={locale} /> : null,
     elemeler: unlocked.elemeler ? <ElemelerPanel tour={tour} locale={locale} deMatches={deMatches} stage={stage} /> : null,
     sonuc: unlocked.sonuc ? <DoneScreen tour={tour} locale={locale} /> : null,
   };
@@ -227,13 +237,32 @@ export default async function CanliTurnuvaPage() {
         </div>
       </div>
 
+      {/* İlerleme butonu — reytingin hemen altında (kullanıcı tercihi) */}
+      {advanceKey && <AdvanceButton locale={locale} labelKey={advanceKey} />}
+
       {/* Aşamalı sekmeler — aynı anda tek bölüm; sekmeler ilerledikçe açılır (spoiler yok) */}
       <TournamentTabs key={stage} tabs={tabs} defaultTab={liveTab} panels={panels} lockedMsg={t(locale, "canli.tabLocked")} />
     </main>
   );
 }
 
-/** "Pul maçları" sekmesi — kuralar / oynanan maçlar / bekleme (aşamaya göre). */
+/** Sabit pul maçları listesi satırı (oynandı / sıradaki / kilitli). */
+function FixtureRow({ no, opp, right, tone, locale }: { no: number; opp: string; right?: string; tone: "current" | "locked"; locale: Locale }) {
+  return (
+    <div
+      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${
+        tone === "current" ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 opacity-50 dark:border-white/15"
+      }`}
+    >
+      <span>
+        <span className="mr-1 opacity-60">{t(locale, "canli.matchN", { n: no })} ·</span> {opp}
+      </span>
+      <span className="text-xs opacity-70">{right}</span>
+    </div>
+  );
+}
+
+/** "Pul maçları" sekmesi — TÜM maçların sabit listesi + o anki maç (kuru pop-in yok). */
 function MaclarPanel({
   tour,
   locale,
@@ -247,76 +276,87 @@ function MaclarPanel({
 }) {
   if (stage === "POOL_INTRO") return <PoolIntro tour={tour} locale={locale} />;
 
-  if (stage === "WAIT_POOL" && poolMatches.length > 0) {
-    return (
-      <section>
-        <h2 className="text-lg font-semibold">{t(locale, "canli.poolMatches")}</h2>
-        <div className="mt-3">
-          <MatchCard m={poolMatches[poolMatches.length - 1]} index={poolMatches.length - 1} isPool locale={locale} auto>
-            <Countdown seconds={WAIT_SECONDS} action={advanceLiveStageAction} label={t(locale, "canli.waitPool")} />
-          </MatchCard>
-        </div>
-      </section>
-    );
-  }
-
-  // POOL aşaması: maçlar teker teker. Pul bitti (browse): yalnız geçmiş maçlar.
-  const playing = stage === "POOL";
-  const gateNext = playing && tour.freshMatch && !tour.liveMatch && poolMatches.length > 0;
-  const pending = playing && tour.pending ? <PendingPanel tour={tour} locale={locale} /> : null;
+  const fixtures = tour.poolFixtures ?? [];
+  const poolPlayed = tour.poolPlayed;
+  const gateNext = stage === "POOL" && tour.freshMatch && !tour.liveMatch && poolMatches.length > 0;
+  const freshIdx = stage === "WAIT_POOL" || gateNext ? poolMatches.length - 1 : -1; // canlı akan maç
+  const pendingTactic = stage === "POOL" && tour.pending ? <PendingPanel tour={tour} locale={locale} /> : null;
 
   return (
-    <>
-      {poolMatches.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold">{t(locale, "canli.poolMatches")}</h2>
-          <div className="mt-3 space-y-3">
-            {poolMatches.map((m, i) => {
-              const isLast = i === poolMatches.length - 1;
-              return (
-                <MatchCard key={i} m={m} index={i} isPool locale={locale} auto={isLast && gateNext}>
-                  {isLast && gateNext ? pending : undefined}
-                </MatchCard>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {playing && !gateNext && pending && <div className="mt-6">{pending}</div>}
-
-      {playing && !tour.poolAwaitingResult && tour.upcoming.length > 0 && (
-        <section className="mt-4">
-          <h3 className="text-sm font-semibold opacity-70">{t(locale, "canli.upcomingLocked")}</h3>
-          <ul className="mt-2 space-y-1">
-            {tour.upcoming.map((u, i) => (
-              <li
-                key={i}
-                className="flex items-center justify-between rounded-lg border border-black/10 px-3 py-2 text-sm opacity-50 dark:border-white/15"
-              >
-                <span>🔒 vs {u.oppName}</span>
-                <span className="tabular-nums">{u.timeLabel}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </>
+    <section>
+      <h2 className="text-lg font-semibold">{t(locale, "canli.poolMatches")}</h2>
+      <div className="mt-3 space-y-3">
+        {fixtures.map((f, i) => {
+          const key = f.matchNo;
+          // Canlı akan maç (yeni oynanan) — kart olarak animasyonla; bittiğinde altına panel/countdown.
+          if (i === freshIdx) {
+            const m = poolMatches[i];
+            const after =
+              stage === "WAIT_POOL" ? (
+                <Countdown seconds={WAIT_SECONDS} action={advanceLiveStageAction} label={t(locale, "canli.waitPool")} />
+              ) : gateNext ? (
+                pendingTactic
+              ) : undefined;
+            return <MatchCard key={key} m={m} index={i} isPool locale={locale} auto>{after}</MatchCard>;
+          }
+          // Oynanmış maç — katlanır skor + tekrar izleme.
+          if (f.done) {
+            const m = poolMatches[i];
+            return (
+              <details key={key} className="rounded-lg border border-black/10 dark:border-white/15">
+                <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm">
+                  <span>
+                    <span className="mr-1 opacity-60">{t(locale, "canli.matchN", { n: f.matchNo })} ·</span> {f.oppName}
+                  </span>
+                  <span className="font-medium tabular-nums">
+                    {f.scoreHuman}–{f.scoreOpp}
+                  </span>
+                </summary>
+                {m && (
+                  <div className="border-t border-black/10 p-2 dark:border-white/15">
+                    <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
+                  </div>
+                )}
+              </details>
+            );
+          }
+          // Sıradaki maç — kapı açıksa (canlı akan maç var) yalnız işaret; değilse taktik paneli.
+          if (i === poolPlayed && stage === "POOL") {
+            if (gateNext) return <FixtureRow key={key} no={f.matchNo} opp={f.oppName} right={t(locale, "canli.nextUp")} tone="current" locale={locale} />;
+            return <div key={key}>{pendingTactic}</div>;
+          }
+          // Gelecek maçlar — kilitli (sabit, her zaman görünür).
+          return <FixtureRow key={key} no={f.matchNo} opp={f.oppName} tone="locked" locale={locale} />;
+        })}
+      </div>
+    </section>
   );
 }
 
-/** "Pul kağıdı" sekmesi — poule sheet(ler). live: pul sonucu adımıysa "Devam". */
-function KagitPanel({ tour, locale, live }: { tour: LiveTournamentDTO; locale: Locale; live: boolean }) {
+/** "Pul kağıdı" sekmesi — önce SENİN pulun; diğer puller katlanır (pul bitince). */
+function KagitPanel({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
+  const sheets = tour.poolSheets ?? [];
+  const mine = sheets.find((s) => s.poolNumber === tour.humanPoolNumber);
+  const others = sheets.filter((s) => s.poolNumber !== tour.humanPoolNumber);
   return (
     <section>
       <h2 className="text-lg font-semibold">{t(locale, "canli.poolSheets")}</h2>
       <p className="mt-1 text-xs opacity-60">{t(locale, "canli.poolSheetsNote")}</p>
-      <div className="mt-3 space-y-5">
-        {tour.poolSheets?.map((sheet) => (
-          <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
-        ))}
-      </div>
-      {live && <AdvanceButton locale={locale} labelKey="canli.continue" />}
+      {mine && (
+        <div className="mt-3">
+          <PulKagidi sheet={mine} locale={locale} />
+        </div>
+      )}
+      {tour.phase !== "POOL" && others.length > 0 && (
+        <details className="mt-4 rounded-lg border border-black/10 p-3 dark:border-white/15">
+          <summary className="cursor-pointer text-sm font-medium opacity-80">{t(locale, "canli.otherPools")}</summary>
+          <div className="mt-3 space-y-5">
+            {others.map((sheet) => (
+              <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
+            ))}
+          </div>
+        </details>
+      )}
     </section>
   );
 }
@@ -335,34 +375,48 @@ function PoolIntro({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
             {intro.members.map((mem, i) => (
               <li key={i} className={`px-3 py-2 text-sm ${mem.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
                 {mem.name}
-                {mem.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
               </li>
             ))}
           </ul>
         </>
       )}
-      <AdvanceButton locale={locale} labelKey="canli.startPool" />
     </section>
   );
 }
 
-/** Turnuva klasmanı (pul sonrası seeding). live: klasman adımıysa "Devam". */
-function Standings({ tour, locale, live }: { tour: LiveTournamentDTO; locale: Locale; live: boolean }) {
+/** Turnuva klasmanı (pul sonrası) — gerçek pul klasmanı gibi G-M / averaj / tuş. */
+function Standings({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   return (
     <section>
       <h2 className="text-lg font-semibold">{t(locale, "canli.seedingTitle")}</h2>
-      <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
-        {tour.seeding?.map((s) => (
-          <li key={s.seedRank} className={`flex items-center px-3 py-2 text-sm ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
-            <span className="mr-2 w-6 tabular-nums opacity-50">{s.seedRank}.</span>
-            <span>
-              {s.name}
-              {s.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
-            </span>
-          </li>
-        ))}
-      </ol>
-      {live && <AdvanceButton locale={locale} labelKey="canli.continue" />}
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs opacity-60">
+              <th className="py-1 pr-2 text-left font-medium">#</th>
+              <th className="py-1 pr-2 text-left font-medium">{t(locale, "klasman.player")}</th>
+              <th className="py-1 px-2 text-center font-medium">{t(locale, "klasman.winLoss")}</th>
+              <th className="py-1 px-2 text-center font-medium">{t(locale, "klasman.avg")}</th>
+              <th className="py-1 pl-2 text-right font-medium">{t(locale, "klasman.touches")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tour.seeding?.map((s) => (
+              <tr key={s.seedRank} className={`border-t border-black/5 dark:border-white/10 ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
+                <td className="py-1.5 pr-2 tabular-nums opacity-60">{s.seedRank}</td>
+                <td className="py-1.5 pr-2">{s.name}</td>
+                <td className="py-1.5 px-2 text-center tabular-nums">
+                  {s.wins}-{s.matches - s.wins}
+                </td>
+                <td className="py-1.5 px-2 text-center tabular-nums">
+                  {s.indicator > 0 ? `+${s.indicator}` : s.indicator}
+                </td>
+                <td className="py-1.5 pl-2 text-right tabular-nums opacity-70">{s.touchesScored}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
@@ -406,7 +460,7 @@ function ElemelerPanel({
             </div>
             <CanliPeriyot
               key={tour.liveMatch.log.length}
-              aName={t(locale, "common.youShort")}
+              aName={tour.playerName}
               oppName={tour.liveMatch.oppName}
               scoreHuman={tour.liveMatch.scoreHuman}
               scoreOpp={tour.liveMatch.scoreOpp}
@@ -445,9 +499,8 @@ function ElemelerPanel({
   );
 }
 
-/** Eleme kurası — o turun eşleşmeleri (skor yok) + elemeye/maça geç. */
+/** Eleme kurası — o turun eşleşmeleri (skor yok). İlerleme butonu üstte. */
 function KoDraw({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
-  const firstRound = tour.phase === "POOL_DONE";
   return (
     <section>
       <h2 className="text-lg font-semibold">{t(locale, "canli.koDrawTitle", { round: tour.roundName ?? "" })}</h2>
@@ -469,17 +522,14 @@ function KoDraw({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
           );
         })}
       </div>
-
-      {tour.seedRank != null && firstRound && (
+      {tour.seedRank != null && tour.phase === "POOL_DONE" && (
         <p className="mt-3 text-sm opacity-80">{t(locale, "canli.seedInfo", { n: tour.seedRank })}</p>
       )}
-
-      <AdvanceButton locale={locale} labelKey={firstRound ? "canli.enterBracket" : "canli.toMatch"} />
     </section>
   );
 }
 
-/** Turnuva bitiş ekranı — sonuç + klasman + eve dön. */
+/** Turnuva bitiş ekranı — sonuç + klasman + eve dön (tüm tablo butonu yok; sekmelerden gezilir). */
 function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   return (
     <div>
@@ -507,30 +557,19 @@ function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
         <ol className="mt-4 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
           {tour.standings.slice(0, 8).map((s, i) => (
             <li key={i} className={`flex items-center justify-between px-3 py-2 text-sm ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
-              <span>
-                {s.name}
-                {s.isHuman ? ` ${t(locale, "common.you")}` : ""}
-              </span>
+              <span>{s.name}</span>
               <span className="opacity-70">{positionLabel(locale, s.position)}</span>
             </li>
           ))}
         </ol>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center gap-2">
+      <div className="mt-5 flex justify-center">
         <form action={leaveLiveTournamentAction}>
-          <button className="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+          <button className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
             {t(locale, "canli.home")}
           </button>
         </form>
-        {tour.finalTournamentId != null && (
-          <Link
-            href={`/turnuva/${tour.finalTournamentId}`}
-            className="rounded-lg border border-black/15 px-4 py-3 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-          >
-            {t(locale, "canli.seeTable")}
-          </Link>
-        )}
       </div>
     </div>
   );

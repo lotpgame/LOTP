@@ -2046,7 +2046,10 @@ export interface LiveTournamentDTO {
   categoryId: string;
   phase: LiveState["phase"];
   stage: LiveStage; // ekranın gösterdiği tek aşama
+  playerName: string; // insanın adı (eleme/periyot kartında "Sen" yerine)
   poolIntro?: { poolNumber: number; members: { name: string; isHuman: boolean }[] } | null; // pul kuraları
+  poolFixtures?: { matchNo: number; oppName: string; done: boolean; scoreHuman: number; scoreOpp: number }[]; // tüm pul maçların (sabit liste)
+  humanPoolNumber?: number; // insanın havuz numarası (pul kağıdında öne çıkarmak için)
   roundName?: string | null; // KO_DRAW: o turun adı (Son 32…)
   roundDraw?: { aName: string; bName: string; aIsHuman: boolean; bIsHuman: boolean }[]; // KO_DRAW: eşleşmeler
   poolPlayed: number;
@@ -2072,7 +2075,17 @@ export interface LiveTournamentDTO {
   pools?: PoolViewDTO[];
   poolSheets?: PoolSheetDTO[]; // pul kağıdı (poule) — pul bitince
   seedRank?: number | null;
-  seeding?: { name: string; seedRank: number; isHuman: boolean }[]; // pul sonrası klasman (seeding)
+  // pul sonrası klasman (seeding) — gerçek pul klasmanı gibi V (galibiyet)/maç, averaj (Ind), attığı tuş
+  seeding?: {
+    name: string;
+    seedRank: number;
+    isHuman: boolean;
+    wins: number;
+    matches: number;
+    touchesScored: number;
+    touchesReceived: number;
+    indicator: number;
+  }[];
   standings?: { name: string; position: number; isHuman: boolean }[];
   championName?: string;
   finalPosition?: number;
@@ -2141,6 +2154,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     categoryId: ls.categoryId,
     phase: ls.phase,
     stage: ls.stage ?? (ls.phase === "DONE" ? "DONE" : ls.phase === "DE" ? "DE" : "POOL"),
+    playerName: nameOf(ls, ls.humanId),
     poolPlayed: ls.humanPoolIndex,
     poolAwaitingResult: ls.phase === "POOL" && ls.humanPoolIndex >= ls.humanPoolOppOrder.length,
     freshMatch: ls.lastAction === "play",
@@ -2165,6 +2179,29 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       : null,
   };
 
+  // Pul kağıdı + insanın havuz no + maç listesi — pul aşamasında da (canlı dolar).
+  dto.humanPoolNumber = humanPoolNumber(ls);
+  const membership = new Map<number, number>();
+  ls.pools.forEach((pool, pi) => pool.forEach((id) => membership.set(id, pi + 1)));
+  dto.poolSheets = buildPoolSheets(
+    ls.matches.filter((m) => m.phase === "POOL").map((m) => ({ aId: m.aId, bId: m.bId, scoreA: m.scoreA, scoreB: m.scoreB })),
+    membership,
+    new Map(ls.combatants.map((c) => [c.id, c.name])),
+    ls.humanId,
+  );
+  // İnsanın tüm pul maçları — sabit sıralı liste (oynanan = skor, kalan = kilitli).
+  const humanPoolPlayed = ls.matches.filter((m) => m.phase === "POOL" && m.aId === ls.humanId);
+  dto.poolFixtures = ls.humanPoolOppOrder.map((oppId, i) => {
+    const pm = humanPoolPlayed[i];
+    return {
+      matchNo: i + 1,
+      oppName: nameOf(ls, oppId),
+      done: i < ls.humanPoolIndex,
+      scoreHuman: pm?.scoreA ?? 0,
+      scoreOpp: pm?.scoreB ?? 0,
+    };
+  });
+
   if (ls.phase !== "POOL") {
     dto.pools = buildPoolsView(
       (ls.poolResults ?? []).map((p) => ({
@@ -2177,21 +2214,26 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       new Map(ls.combatants.map((c) => [c.id, c.name])),
       ls.humanId,
     );
-    const membership = new Map<number, number>();
-    ls.pools.forEach((pool, pi) => pool.forEach((id) => membership.set(id, pi + 1)));
-    dto.poolSheets = buildPoolSheets(
-      ls.matches.filter((m) => m.phase === "POOL").map((m) => ({ aId: m.aId, bId: m.bId, scoreA: m.scoreA, scoreB: m.scoreB })),
-      membership,
-      new Map(ls.combatants.map((c) => [c.id, c.name])),
-      ls.humanId,
-    );
     dto.seedRank = ls.ranking?.find((r) => r.playerId === ls.humanId)?.seedRank ?? null;
 
-    // Pul sonrası klasman (seeding) — sıralı liste (1..N).
+    // Pul sonrası klasman (seeding) — sıralı liste + gerçek pul klasmanı istatistikleri.
     if (ls.ranking) {
+      const stat = new Map((ls.poolResults ?? []).map((p) => [p.playerId, p]));
       dto.seeding = [...ls.ranking]
         .sort((a, b) => a.seedRank - b.seedRank)
-        .map((r) => ({ name: nameOf(ls, r.playerId), seedRank: r.seedRank, isHuman: r.playerId === ls.humanId }));
+        .map((r) => {
+          const s = stat.get(r.playerId);
+          return {
+            name: nameOf(ls, r.playerId),
+            seedRank: r.seedRank,
+            isHuman: r.playerId === ls.humanId,
+            wins: s?.wins ?? 0,
+            matches: s?.matches ?? 0,
+            touchesScored: s?.touchesScored ?? 0,
+            touchesReceived: s?.touchesReceived ?? 0,
+            indicator: s?.indicator ?? 0,
+          };
+        });
     }
 
     // KO_DRAW aşaması: o an oynanacak turun eşleşmelerini (kurasını) göster.
