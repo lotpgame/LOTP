@@ -1352,8 +1352,24 @@ interface LiveDeRound {
   roundSize: number;
 }
 
+/**
+ * Turnuva UI aşaması — ekran her seferinde TEK aşama gösterir (kullanıcı adım adım ilerler).
+ * WAIT_*: maç bitince 10 sn geri sayım (sonuç/çatal hemen fırlamasın).
+ */
+type LiveStage =
+  | "POOL_INTRO" // pul kuraları (maçlar başlamadan)
+  | "POOL" // pul maçları oynanıyor
+  | "WAIT_POOL" // son pul maçı bitti → 10 sn → pul sonucu
+  | "POOL_RESULT" // pul kağıdı (poule)
+  | "STANDINGS" // turnuva klasmanı (seeding)
+  | "KO_DRAW" // eleme kurası (o turun eşleşmeleri)
+  | "DE" // eleme maçı (sadece senin maçın)
+  | "WAIT_DE" // eleme maçı bitti → 10 sn → sonraki çatal / sonuç
+  | "DONE"; // turnuva sonucu
+
 interface LiveState {
   version: 1;
+  stage?: LiveStage;
   level: TournamentLevel;
   categoryId: string;
   ageCategory: string;
@@ -1744,6 +1760,7 @@ export async function startLiveTournament(
     poolEndOffsetMin: humanPoolOppOrder.length * 2 + 5,
     matches: [],
     phase: "POOL",
+    stage: "POOL_INTRO", // önce pul kuraları görünür, sonra maçlar
     deStep: 0,
     byes: [],
     standings: [],
@@ -1768,8 +1785,9 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     simulateOne(ls, ls.humanId, oppId, POOL_TOUCHES, "POOL", `Pul ${humanPoolNumber(ls)}`, locale, tactic, (ls.humanPoolIndex + 1) * 2);
     ls.humanPoolIndex++;
     ls.lastAction = "play"; // taze maç → izlenmeden sıradaki taktik açılmaz
-    // NOT: son maçta pul sonucunu HEMEN hesaplama — kullanıcı maçı izleyip "Sonuçları gör"e basınca
-    // (revealPool) açıklanır. Böylece son maç bitmeden pul aşaması sonucu ekrana düşmez.
+    // Son pul maçıysa: WAIT_POOL (maç izlenir → 10 sn → pul sonucu). Böylece son maç bitmeden
+    // pul aşaması sonucu ekrana düşmez. Değilse pul maçları devam eder.
+    ls.stage = ls.humanPoolIndex >= ls.humanPoolOppOrder.length ? "WAIT_POOL" : "POOL";
     await saveLive(gs.id, ls);
     return;
   }
@@ -1853,6 +1871,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
       // Devre arası — sonraki periyot için taktik seçilecek (periyot izlenmeden açılmaz).
       ls.liveMatch = prog;
       ls.lastAction = "play";
+      ls.stage = "DE"; // maç sürüyor (devre arası) — henüz WAIT_DE değil
       await saveLive(gs.id, ls);
       return;
     }
@@ -1902,6 +1921,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
       openDeRound(ls, locale);
     }
     ls.lastAction = "play"; // biten maç izlenmeden sonraki tur/sonuç açılmaz
+    ls.stage = "WAIT_DE"; // maç izlenir → 10 sn → sonraki çatal / turnuva sonucu
     if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
     await saveLive(gs.id, ls);
     return;
@@ -1910,33 +1930,57 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
   throw new Error("Şu an oynanacak maç yok.");
 }
 
-/** Pul bitince elemeye geçer (kullanıcı "Elemeye Geç" der). */
-export async function enterBracket(): Promise<void> {
-  const live = await loadLive();
-  if (!live) throw new Error("Aktif turnuva yok.");
-  const { gs, human, ls } = live;
-  if (ls.phase !== "POOL_DONE") throw new Error("Pul aşaması bitmedi.");
-  const locale = await getLocale();
+/** Pul sıralamasına göre eleme tablosunu (deSlots) kurar ve ilk turu açar. Kaydetmez. */
+function enterBracketCore(ls: LiveState, locale: Locale): void {
   const ranking = ls.ranking!;
-  const size = bracketSize(ranking.length);
-  const order = bracketSeedOrder(size);
+  const order = bracketSeedOrder(bracketSize(ranking.length));
   ls.deSlots = order.map((seedNo) => (seedNo <= ranking.length ? ranking[seedNo - 1].playerId : BYE));
   ls.phase = "DE";
   ls.deStep = 0;
   openDeRound(ls, locale);
-  ls.lastAction = "enter"; // eleme ekranına yeni geçildi → ilk maç taktiği hemen görünür
-  if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
-  await saveLive(gs.id, ls);
 }
 
-/** Pul maçları bitince (son maç izlendikten sonra) pul sonucunu açar (GDD 17.44). */
-export async function revealPool(): Promise<void> {
+/**
+ * Tek "İlerle/Devam" aksiyonu — aşamalar arasında geçiş (kullanıcı butonu veya 10 sn geri sayım).
+ * Ekran her zaman TEK aşama gösterdiği için akış tümüyle bu imleçle sürer.
+ */
+export async function advanceLiveStage(): Promise<void> {
   const live = await loadLive();
   if (!live) throw new Error("Aktif turnuva yok.");
-  const { gs, ls } = live;
-  if (ls.phase !== "POOL" || ls.humanPoolIndex < ls.humanPoolOppOrder.length) return;
-  finishPool(ls, await getLocale());
-  ls.lastAction = "reveal";
+  const { gs, human, ls } = live;
+  const locale = await getLocale();
+  switch (ls.stage) {
+    case "POOL_INTRO":
+      ls.stage = "POOL"; // pul maçlarına başla
+      break;
+    case "WAIT_POOL":
+      finishPool(ls, locale); // pul sonucu + FIE sıralaması hesaplanır (phase → POOL_DONE)
+      ls.lastAction = "reveal";
+      ls.stage = "POOL_RESULT";
+      break;
+    case "POOL_RESULT":
+      ls.stage = "STANDINGS";
+      break;
+    case "STANDINGS":
+      ls.stage = "KO_DRAW";
+      break;
+    case "KO_DRAW":
+      if (ls.phase === "POOL_DONE") {
+        enterBracketCore(ls, locale); // ilk tur tablosu + açılış
+        ls.lastAction = "enter";
+        ls.stage = ls.championId != null ? "WAIT_DE" : "DE";
+        if (ls.championId != null) await finalizeLive(gs, human, ls); // tek kişilik tablo vb. uç durum
+      } else {
+        ls.lastAction = "enter"; // sıradaki eleme maçının taktiği hemen görünür
+        ls.stage = "DE";
+      }
+      break;
+    case "WAIT_DE":
+      ls.stage = ls.phase === "DONE" ? "DONE" : "KO_DRAW";
+      break;
+    default:
+      break; // POOL / DE gibi aşamalar maç aksiyonuyla ilerler
+  }
   await saveLive(gs.id, ls);
 }
 
@@ -2001,6 +2045,10 @@ export interface LiveTournamentDTO {
   name: string;
   categoryId: string;
   phase: LiveState["phase"];
+  stage: LiveStage; // ekranın gösterdiği tek aşama
+  poolIntro?: { poolNumber: number; members: { name: string; isHuman: boolean }[] } | null; // pul kuraları
+  roundName?: string | null; // KO_DRAW: o turun adı (Son 32…)
+  roundDraw?: { aName: string; bName: string; aIsHuman: boolean; bIsHuman: boolean }[]; // KO_DRAW: eşleşmeler
   poolPlayed: number;
   poolTotal: number;
   poolAwaitingResult: boolean; // tüm pul maçları oynandı, sonuç henüz açıklanmadı
@@ -2025,7 +2073,6 @@ export interface LiveTournamentDTO {
   poolSheets?: PoolSheetDTO[]; // pul kağıdı (poule) — pul bitince
   seedRank?: number | null;
   seeding?: { name: string; seedRank: number; isHuman: boolean }[]; // pul sonrası klasman (seeding)
-  draw?: { aName: string; bName: string; aIsHuman: boolean; bIsHuman: boolean }[]; // eleme ilk tur kurası
   bracket?: { round: string; aName: string; bName: string; scoreA: number; scoreB: number; aIsHuman: boolean }[]; // TÜM eleme maçları (çatal)
   currentRound?: string | null; // o an oynanan eleme turu (çatalda skoru gizlemek için)
   standings?: { name: string; position: number; isHuman: boolean }[];
@@ -2095,6 +2142,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     name: tournamentDisplayName(locale, ls.ageCategory, ls.level),
     categoryId: ls.categoryId,
     phase: ls.phase,
+    stage: ls.stage ?? (ls.phase === "DONE" ? "DONE" : ls.phase === "DE" ? "DE" : "POOL"),
     poolPlayed: ls.humanPoolIndex,
     poolAwaitingResult: ls.phase === "POOL" && ls.humanPoolIndex >= ls.humanPoolOppOrder.length,
     freshMatch: ls.lastAction === "play",
@@ -2168,23 +2216,44 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
       dto.currentRound = lastHumanDe ? localizeRound(locale, lastHumanDe.round) : null;
     }
 
-    // Pul biter bitmez (henüz elemeye geçilmeden) ilk tur kurasını göster.
-    if (ls.phase === "POOL_DONE" && ls.ranking) {
-      const ranking = ls.ranking;
-      const order = bracketSeedOrder(bracketSize(ranking.length));
-      const slots = order.map((seedNo) => (seedNo <= ranking.length ? ranking[seedNo - 1].playerId : BYE));
-      const draw: NonNullable<LiveTournamentDTO["draw"]> = [];
+    // KO_DRAW aşaması: o an oynanacak turun eşleşmelerini (kurasını) göster.
+    // İlk tur: pul sıralamasından (ranking). Sonraki turlar: açılmış deRound'dan.
+    if (dto.stage === "KO_DRAW") {
+      let slots: number[] = [];
+      let roundLbl = "";
+      if (ls.phase === "POOL_DONE" && ls.ranking) {
+        const ranking = ls.ranking;
+        const size = bracketSize(ranking.length);
+        slots = bracketSeedOrder(size).map((s) => (s <= ranking.length ? ranking[s - 1].playerId : BYE));
+        roundLbl = roundLabel(size);
+      } else if (ls.deRound) {
+        slots = ls.deRound.slots;
+        roundLbl = ls.deRound.label;
+      }
+      const roundDraw: NonNullable<LiveTournamentDTO["roundDraw"]> = [];
       for (let i = 0; i < slots.length; i += 2) {
         const x = slots[i];
         const y = slots[i + 1];
-        draw.push({
+        roundDraw.push({
           aName: x === BYE ? t(locale, "canli.bye") : nameOf(ls, x),
           bName: y === BYE ? t(locale, "canli.bye") : nameOf(ls, y),
           aIsHuman: x === ls.humanId,
           bIsHuman: y === ls.humanId,
         });
       }
-      dto.draw = draw;
+      dto.roundDraw = roundDraw;
+      dto.roundName = localizeRound(locale, roundLbl);
+    }
+  }
+
+  // Pul kuraları (POOL_INTRO): insanın havuzu + üyeleri.
+  if (dto.stage === "POOL_INTRO") {
+    const pi = ls.pools.findIndex((p) => p.includes(ls.humanId));
+    if (pi >= 0) {
+      dto.poolIntro = {
+        poolNumber: pi + 1,
+        members: ls.pools[pi].map((id) => ({ name: nameOf(ls, id), isHuman: id === ls.humanId })),
+      };
     }
   }
   if (ls.phase === "DONE") {

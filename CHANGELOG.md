@@ -10,11 +10,16 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
-- **Pul → Klasman → Kura → Eleme akışı:** Pul maçları bitince "Elemeye Geç"ten önce sırayla
-  **turnuva klasmanı** (pul sonrası seeding sıralaması) ve **eleme kurası** (ilk tur eşleşmeleri,
-  seed'e göre) gösterilir; ardından elemeye geçilir. (`LiveTournamentDTO.seeding` / `.draw`.)
-- **Eleme çatalında TÜM eşleşmeler:** Çatal artık yalnız senin maçlarını değil, **tüm oyuncuların
-  eşleşmelerini** (insan + AI, tur tur) gösterir — seninki vurgulu. (`LiveTournamentDTO.bracket`.)
+- **Aşamalı turnuva akışı (adım adım tek ekran):** Turnuva artık tek sayfada **her seferinde tek
+  aşama** gösterir ve kullanıcı adım adım ilerler: **1) Pul Kuraları** (havuz + rakipler) → **2) Pul
+  maçları** → **3) Pul sonucu** (pul kağıdı) → **4) Turnuva klasmanı** → **5) Eleme kurası** (o turun
+  eşleşmeleri) → **6) Eleme maçı** (yalnız senin maçın) → **7)** kazanınca **sonraki turun kurası** →
+  … → sonuç. (`LiveState.stage`, `advanceLiveStage`, tek "Devam/İlerle" aksiyonu.)
+- **Maç bitince 10 sn bekleme:** Maç biter bitmez pul sonucu / sonraki çatal / turnuva sonucu **hemen
+  fırlamaz** — sabit **10 saniyelik geri sayım** sonrası açılır (`Countdown`, kullanıcı tercihiyle atlanmaz).
+- **Elemede spoiler yok:** Eleme maçı sırasında çatal görünmez; tüm eşleşmeler/çatal **varsayılan
+  kapalı** bir "⚠️ spoiler içerir" katlanır kutuda — merak eden açıp tüm draw'a bakabilir. Animasyonu
+  süren maçın skoru katlanır çatalda da gizli (`•`).
 - **Pul kağıdı (poule sheet):** Turnuvada pul sonuçları artık klasik **FIE pul kağıdı** olarak —
   NxN sonuç ızgarası (V5 = galibiyet/attığın tuş, sayı = mağlubiyette attığın tuş) + V/TS/TR/Ind/Sıra
   sütunları; hem canlı ekranda hem sonuç/geçmiş ekranında. (`PoolSheetDTO`, `buildPoolSheets`, `PulKagidi`.)

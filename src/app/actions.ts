@@ -12,16 +12,15 @@ import { TACTICS, type Tactic } from "@/engine/combat";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import {
   advanceDay,
+  advanceLiveStage,
   attendTournament,
   clearReport,
   createCareer,
-  enterBracket,
   getCategoryRanking,
   hasCareer,
   leaveLiveTournament,
   playLiveMatch,
   resetCareer,
-  revealPool,
   setTrainingPlan,
   upgradeEquipment,
 } from "@/server/careerService";
@@ -79,15 +78,9 @@ export async function playLiveMatchAction(formData: FormData): Promise<void> {
   revalidatePath("/turnuva/canli");
 }
 
-/** Son pul maçı izlendikten sonra pul sonucunu açar. */
-export async function revealPoolAction(): Promise<void> {
-  await revealPool();
-  revalidatePath("/turnuva/canli");
-}
-
-/** Pul bitince elemeye geçer. */
-export async function enterBracketAction(): Promise<void> {
-  await enterBracket();
+/** Turnuva aşamalarını tek tek ilerletir (Devam / Elemeye Geç / Maça Geç ve 10 sn geri sayım). */
+export async function advanceLiveStageAction(): Promise<void> {
+  await advanceLiveStage();
   revalidatePath("/turnuva/canli");
 }
 

@@ -99,9 +99,10 @@ yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör** (farklı uzmanlık); 
 eventleri** yaşa göre (U10 tek zamanlı → üst kategoride çift/3-4 zamanlı feint dizileri);
 **periyot sistemi** — eleme maçları 3×3 dk, her devre arası taktik değişir, epe 3. periyoda sarkar,
 beraberlikte altın tuş (la belle, FIE); **U10 eleme 10 tuş/2 periyot**, U12+ 15 tuş/3 periyot (FIE gençler);
-**pul kağıdı** (poule) + **eleme çatalı** (tüm eşleşmeler görünür, seninki vurgulu; animasyonu süren
-maçın skoru bitene kadar gizli) görünümü; **pul → klasman → kura → eleme** akışı (pul biter bitmez
-turnuva klasmanı + ilk tur kurası gösterilir, sonra elemeye geçilir); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
+**aşamalı turnuva akışı** — tek ekranda adım adım: pul kuraları → pul maçları → **pul kağıdı** (poule) →
+turnuva klasmanı → **eleme kurası** → eleme maçı (yalnız senin maçın) → kazanınca sonraki turun kurası;
+maç bitince **sabit 10 sn bekleme** (sonuç/çatal hemen fırlamaz); elemede **spoiler yok** (tüm eşleşmeli
+çatal varsayılan kapalı bir "spoiler içerir" katlanır kutuda, merak eden açar); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
 ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik değişimi);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
 kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam TR/EN dil desteği** (arayüz + maç
