@@ -42,7 +42,6 @@ import {
   simulateMatch,
   simulatePeriod,
   simulateLaBelle,
-  TACTIC_LABEL_TR,
   type Combatant,
   type Tactic,
 } from "@/engine/combat";
@@ -1456,6 +1455,7 @@ function simulateOne(
   touches: number,
   phase: "POOL" | "DE",
   round: string,
+  locale: Locale,
   humanTactic?: Tactic,
   timeOffsetMin?: number,
 ) {
@@ -1463,7 +1463,7 @@ function simulateOne(
   const a = liveCombatant(ls, aId, aId === ls.humanId ? humanTactic : undefined);
   const b = liveCombatant(ls, bId, bId === ls.humanId ? humanTactic : undefined);
   const tag = `${ls.seedKey}:${phase === "POOL" ? "pool" : "de"}:${round}:${Math.min(aId, bId)}-${Math.max(aId, bId)}`;
-  const r = simulateMatch(a, b, createRng(tag), touches);
+  const r = simulateMatch(a, b, createRng(tag), touches, locale);
   ls.fatigue[aId] = clamp((ls.fatigue[aId] ?? 0) + r.fatigueGain, 0, 100);
   ls.fatigue[bId] = clamp((ls.fatigue[bId] ?? 0) + r.fatigueGain, 0, 100);
   ls.matches.push({
@@ -1492,7 +1492,7 @@ function setChampion(ls: LiveState, id: number): void {
 }
 
 /** Pul biterken: kalan tüm pul maçlarını toplu simüle et → istatistik + FIE sıralaması (GDD 17.44). */
-function finishPool(ls: LiveState): void {
+function finishPool(ls: LiveState, locale: Locale): void {
   const played = new Set(
     ls.matches.filter((m) => m.phase === "POOL").map((m) => `${Math.min(m.aId, m.bId)}-${Math.max(m.aId, m.bId)}`),
   );
@@ -1500,7 +1500,7 @@ function finishPool(ls: LiveState): void {
     for (let i = 0; i < pool.length; i++) {
       for (let j = i + 1; j < pool.length; j++) {
         const key = `${Math.min(pool[i], pool[j])}-${Math.max(pool[i], pool[j])}`;
-        if (!played.has(key)) simulateOne(ls, pool[i], pool[j], POOL_TOUCHES, "POOL", `Pul ${pi + 1}`);
+        if (!played.has(key)) simulateOne(ls, pool[i], pool[j], POOL_TOUCHES, "POOL", `Pul ${pi + 1}`, locale);
       }
     }
   });
@@ -1557,7 +1557,7 @@ function finishPool(ls: LiveState): void {
 }
 
 /** Eleme turunu açar: insan-dışı maçları toplu oynar, insanın maçını "bekliyor" bırakır; bay'ları zincirler. */
-function openDeRound(ls: LiveState): void {
+function openDeRound(ls: LiveState, locale: Locale): void {
   for (;;) {
     const slots = ls.deSlots!;
     if (slots.length <= 1) {
@@ -1591,7 +1591,7 @@ function openDeRound(ls: LiveState): void {
         winners[pair] = null; // insan oynayınca dolacak
         continue;
       }
-      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label);
+      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label, locale);
       winners[pair] = r.winnerId;
       ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
     }
@@ -1609,7 +1609,7 @@ function openDeRound(ls: LiveState): void {
 }
 
 /** İnsan elendikten sonra tablonun kalanını (yalnız AI) toplu tamamlar → şampiyon + dereceler. */
-function finishBracketBulk(ls: LiveState): void {
+function finishBracketBulk(ls: LiveState, locale: Locale): void {
   let slots = ls.deSlots!;
   while (slots.length > 1) {
     const label = roundLabel(slots.length);
@@ -1626,7 +1626,7 @@ function finishBracketBulk(ls: LiveState): void {
         winners.push(x);
         continue;
       }
-      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label);
+      const r = simulateOne(ls, x, y, deFormat(ls.ageCategory).touches, "DE", label, locale);
       ls.standings.push({ playerId: r.loserId, position: slots.length / 2 + 1 });
       winners.push(r.winnerId);
     }
@@ -1760,11 +1760,12 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
   const live = await loadLive();
   if (!live) throw new Error("Aktif turnuva yok.");
   const { gs, human, ls } = live;
+  const locale = await getLocale();
 
   if (ls.phase === "POOL") {
     const oppId = ls.humanPoolOppOrder[ls.humanPoolIndex];
     if (oppId == null) throw new Error("Sıradaki pul maçı yok.");
-    simulateOne(ls, ls.humanId, oppId, POOL_TOUCHES, "POOL", `Pul ${humanPoolNumber(ls)}`, tactic, (ls.humanPoolIndex + 1) * 2);
+    simulateOne(ls, ls.humanId, oppId, POOL_TOUCHES, "POOL", `Pul ${humanPoolNumber(ls)}`, locale, tactic, (ls.humanPoolIndex + 1) * 2);
     ls.humanPoolIndex++;
     ls.lastAction = "play"; // taze maç → izlenmeden sıradaki taktik açılmaz
     // NOT: son maçta pul sonucunu HEMEN hesaplama — kullanıcı maçı izleyip "Sonuçları gör"e basınca
@@ -1812,10 +1813,15 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
       periodEndSec: periodNo * PERIOD_SECONDS,
       includeHeader: periodNo === 1,
       periodCap,
+      locale,
     });
     // Periyot başlığı + tuşlar.
     if (periodNo === 1 && pr.log.length > 0) prog.log.push(pr.log[0]); // "Maç gücü …"
-    prog.log.push(`▸ ${periodNo}. Periyot — sen: ${TACTIC_LABEL_TR[tactic]}, rakip: ${TACTIC_LABEL_TR[oppTactic]}`);
+    const periodHead =
+      locale === "en"
+        ? `▸ Period ${periodNo} — you: ${t(locale, `tactic.${tactic}`)}, opp: ${t(locale, `tactic.${oppTactic}`)}`
+        : `▸ ${periodNo}. Periyot — sen: ${t(locale, `tactic.${tactic}`)}, rakip: ${t(locale, `tactic.${oppTactic}`)}`;
+    prog.log.push(periodHead);
     prog.log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
     prog.scoreHuman = pr.scoreA;
     prog.scoreOpp = pr.scoreB;
@@ -1828,9 +1834,13 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
       // 3 periyot bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (la belle).
       if (pr.scoreA !== pr.scoreB) {
         winnerId = pr.scoreA > pr.scoreB ? ls.humanId : prog.oppId;
-        prog.log.push(`⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`);
+        prog.log.push(
+          locale === "en"
+            ? `⏱ Time up — ${nameOf(ls, winnerId)} finished ahead ${prog.scoreHuman}-${prog.scoreOpp}.`
+            : `⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`,
+        );
       } else {
-        const lb = simulateLaBelle(a, b, createRng(`${base}:belle`), { startA: pr.scoreA, startB: pr.scoreB });
+        const lb = simulateLaBelle(a, b, createRng(`${base}:belle`), { startA: pr.scoreA, startB: pr.scoreB, locale });
         prog.log.push(...lb.log);
         prog.scoreHuman = lb.scoreA;
         prog.scoreOpp = lb.scoreB;
@@ -1849,7 +1859,11 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
 
     // Maç bitti → kalıcı maç kaydına yaz + tabloyu ilerlet.
     const loserId = winnerId === ls.humanId ? prog.oppId : ls.humanId;
-    prog.log.push(`🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`);
+    prog.log.push(
+      locale === "en"
+        ? `🏁 ${nameOf(ls, winnerId!)} won the match ${prog.scoreHuman}-${prog.scoreOpp}.`
+        : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
+    );
     const gain = Math.max(3, Math.round(fmt.touches * 0.55));
     ls.fatigue[ls.humanId] = clamp((ls.fatigue[ls.humanId] ?? 0) + gain, 0, 100);
     ls.fatigue[prog.oppId] = clamp((ls.fatigue[prog.oppId] ?? 0) + gain, 0, 100);
@@ -1880,12 +1894,12 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     if (winnerId !== ls.humanId) {
       ls.deSlots = next;
       if (next.length <= 1) setChampion(ls, next[0]);
-      else finishBracketBulk(ls);
+      else finishBracketBulk(ls, locale);
     } else if (next.length <= 1) {
       setChampion(ls, ls.humanId);
     } else {
       ls.deSlots = next;
-      openDeRound(ls);
+      openDeRound(ls, locale);
     }
     ls.lastAction = "play"; // biten maç izlenmeden sonraki tur/sonuç açılmaz
     if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
@@ -1902,13 +1916,14 @@ export async function enterBracket(): Promise<void> {
   if (!live) throw new Error("Aktif turnuva yok.");
   const { gs, human, ls } = live;
   if (ls.phase !== "POOL_DONE") throw new Error("Pul aşaması bitmedi.");
+  const locale = await getLocale();
   const ranking = ls.ranking!;
   const size = bracketSize(ranking.length);
   const order = bracketSeedOrder(size);
   ls.deSlots = order.map((seedNo) => (seedNo <= ranking.length ? ranking[seedNo - 1].playerId : BYE));
   ls.phase = "DE";
   ls.deStep = 0;
-  openDeRound(ls);
+  openDeRound(ls, locale);
   ls.lastAction = "enter"; // eleme ekranına yeni geçildi → ilk maç taktiği hemen görünür
   if (ls.championId != null) await finalizeLive(gs, human, ls); // şampiyon set ⇔ turnuva bitti
   await saveLive(gs.id, ls);
@@ -1920,7 +1935,7 @@ export async function revealPool(): Promise<void> {
   if (!live) throw new Error("Aktif turnuva yok.");
   const { gs, ls } = live;
   if (ls.phase !== "POOL" || ls.humanPoolIndex < ls.humanPoolOppOrder.length) return;
-  finishPool(ls);
+  finishPool(ls, await getLocale());
   ls.lastAction = "reveal";
   await saveLive(gs.id, ls);
 }

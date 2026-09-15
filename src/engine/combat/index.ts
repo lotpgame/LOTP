@@ -20,7 +20,8 @@ import {
 import type { PlayerSkills } from "../skill";
 import type { TraitKey } from "../trait";
 import { physiqueCombatEdge, type PhysicalProfile } from "../physique";
-import { tacticChaos, tacticStrengthMod, TACTIC_LABEL_TR, type Tactic } from "./tactics";
+import { t, type Locale } from "@/i18n";
+import { tacticChaos, tacticStrengthMod, type Tactic } from "./tactics";
 
 export {
   TACTICS,
@@ -81,92 +82,66 @@ export interface MatchResult {
   analysis: MatchAnalysis;
 }
 
-/** Maç sonu özet satırı için silaha göre kısa aksiyon kalıpları. */
-const ACTION_LINES: Record<Weapon, string[]> = {
-  FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
-  EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
-  SABRE: ["patlayıcı bir hücum başlattı", "hızlı bir baş kesme denedi", "reaksiyonla öne atıldı"],
+/** Maç sonu özet satırı için silaha göre kısa aksiyon kalıpları (dile göre). */
+const ACTION_LINES: Record<Locale, Record<Weapon, string[]>> = {
+  tr: {
+    FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
+    EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
+    SABRE: ["patlayıcı bir hücum başlattı", "hızlı bir baş kesme denedi", "reaksiyonla öne atıldı"],
+  },
+  en: {
+    FOIL: ["closed distance and attacked", "picked up the tempo", "tried a quick flèche"],
+    EPEE: ["patiently waited for an opening", "answered with a wrist hit", "kept distance and counter-attacked"],
+    SABRE: ["launched an explosive attack", "tried a quick head cut", "sprang forward on reaction"],
+  },
 };
 
 /**
- * Tuş-başı anlatım — "kaç zamanlı" (tempo) aksiyona göre katmanlı (GDD 18.9–18.26).
+ * Tuş-başı anlatım — "kaç zamanlı" (tempo) aksiyona göre katmanlı (GDD 18.9–18.26), dile göre.
  * 1 = tek zamanlı basit hücum; 2 = çift zamanlı (feint/beat/parat-riposta); 3–4 = karmaşık diziler.
- * Yaş kategorisi hangi tempoların çıkacağını belirler (aşağıda TEMPO_MIX).
  */
 type Tempo = 1 | 2 | 3 | 4;
 
-const TOUCH_LINES_BY_TEMPO: Record<Weapon, Record<Tempo, string[]>> = {
-  // Flöre: hücum hakkı (right-of-way), hedef gövde.
-  FOIL: {
-    1: [
-      "basit hücumla göğse dokundu",
-      "doğrudan atakla açığı buldu",
-      "hızlı bir flèche ile öne atıldı",
-      "temiz bir uzanışla tuşu aldı",
-    ],
-    2: [
-      "çelme–hücum (beat-atak) ile açığı buldu",
-      "parat–riposta ile sayıyı aldı",
-      "feint sonrası hattı değiştirip (degaje) vurdu",
-      "hazırlık–hücum ikilisiyle dokundu",
-    ],
-    3: [
-      "feint–feint–hücumla savunmayı çözdü",
-      "parat–riposta–remise zinciriyle tuşu aldı",
-      "çift degaje sonrası hücumu bağladı",
-    ],
-    4: [
-      "feint–degaje–feint–hücum kombinasyonuyla açığı buldu",
-      "uzun bir aksiyon dizisinin sonunda tuşu kopardı",
-    ],
+const TOUCH_LINES_BY_TEMPO: Record<Locale, Record<Weapon, Record<Tempo, string[]>>> = {
+  tr: {
+    FOIL: {
+      1: ["basit hücumla göğse dokundu", "doğrudan atakla açığı buldu", "hızlı bir flèche ile öne atıldı", "temiz bir uzanışla tuşu aldı"],
+      2: ["çelme–hücum (beat-atak) ile açığı buldu", "parat–riposta ile sayıyı aldı", "feint sonrası hattı değiştirip (degaje) vurdu", "hazırlık–hücum ikilisiyle dokundu"],
+      3: ["feint–feint–hücumla savunmayı çözdü", "parat–riposta–remise zinciriyle tuşu aldı", "çift degaje sonrası hücumu bağladı"],
+      4: ["feint–degaje–feint–hücum kombinasyonuyla açığı buldu", "uzun bir aksiyon dizisinin sonunda tuşu kopardı"],
+    },
+    EPEE: {
+      1: ["öne çıkan bileğe ani vuruş yaptı", "el üstüne kısa dokunuşla sayı aldı", "basit bir uzanışla açığı buldu", "karşı atakla dize/ayağa dokundu"],
+      2: ["çelme sonrası bileği buldu (beat-atak)", "feint sonrası açı vererek (angulation) dokundu", "hazırlık–hücum ile gövdeye tuş buldu", "point-in-line tehdidiyle hattı değiştirip vurdu"],
+      3: ["çift feint sonrası bileği yakaladı", "prise-de-fer sonrası açıya dokundu", "iki tempo hazırlıkla açığı büyütüp vurdu"],
+      4: ["uzun bir kombinasyonun sonunda açığı buldu", "feint–feint–açı–hücumla tuşu kopardı"],
+    },
+    SABRE: {
+      1: ["baş kesmeyle (tête) sayıyı aldı", "hızlı bir hücumla öne çıktı", "flèche ile patlayıp dokundu", "reaksiyon hızıyla ilk dokunan oldu"],
+      2: ["çelme–baş kesme (beat-atak) ile vurdu", "parat–riposta ile sayıyı aldı", "yanağa dönüp (change) kesişi tamamladı", "feint sonrası flank kesişiyle dokundu"],
+      3: ["çift feint sonrası baş kesmeyi bağladı", "parat–riposta–karşı kesme zinciriyle tuşu aldı", "iki tempolu hazırlıkla açığı bulup kesti"],
+      4: ["uzun bir aksiyon dizisiyle savunmayı çözüp kesti", "feint–feint–flank–baş kesme kombinasyonuyla vurdu"],
+    },
   },
-  // Epe: hak yok, tüm vücut hedef, çift isabet olur.
-  EPEE: {
-    1: [
-      "öne çıkan bileğe ani vuruş yaptı",
-      "el üstüne kısa dokunuşla sayı aldı",
-      "basit bir uzanışla açığı buldu",
-      "karşı atakla dize/ayağa dokundu",
-    ],
-    2: [
-      "çelme sonrası bileği buldu (beat-atak)",
-      "feint sonrası açı vererek (angulation) dokundu",
-      "hazırlık–hücum ile gövdeye tuş buldu",
-      "point-in-line tehdidiyle hattı değiştirip vurdu",
-    ],
-    3: [
-      "çift feint sonrası bileği yakaladı",
-      "prise-de-fer sonrası açıya dokundu",
-      "iki tempo hazırlıkla açığı büyütüp vurdu",
-    ],
-    4: [
-      "uzun bir kombinasyonun sonunda açığı buldu",
-      "feint–feint–açı–hücumla tuşu kopardı",
-    ],
-  },
-  // Kılıç: hak var, kesme+dürtme, yüksek tempo.
-  SABRE: {
-    1: [
-      "baş kesmeyle (tête) sayıyı aldı",
-      "hızlı bir hücumla öne çıktı",
-      "flèche ile patlayıp dokundu",
-      "reaksiyon hızıyla ilk dokunan oldu",
-    ],
-    2: [
-      "çelme–baş kesme (beat-atak) ile vurdu",
-      "parat–riposta ile sayıyı aldı",
-      "yanağa dönüp (change) kesişi tamamladı",
-      "feint sonrası flank kesişiyle dokundu",
-    ],
-    3: [
-      "çift feint sonrası baş kesmeyi bağladı",
-      "parat–riposta–karşı kesme zinciriyle tuşu aldı",
-      "iki tempolu hazırlıkla açığı bulup kesti",
-    ],
-    4: [
-      "uzun bir aksiyon dizisiyle savunmayı çözüp kesti",
-      "feint–feint–flank–baş kesme kombinasyonuyla vurdu",
-    ],
+  en: {
+    FOIL: {
+      1: ["scored with a simple attack to the chest", "found the opening with a direct attack", "sprang in with a quick flèche", "landed a clean extension"],
+      2: ["found the opening with a beat-attack", "took the point with a parry–riposte", "disengaged after a feint and hit", "scored on a preparation–attack combo"],
+      3: ["broke the defense with feint–feint–attack", "scored with a parry–riposte–remise chain", "bound the attack after a double disengage"],
+      4: ["found the opening with a feint–disengage–feint–attack combo", "tore off the touch after a long sequence"],
+    },
+    EPEE: {
+      1: ["snapped a hit to the advancing wrist", "scored with a short touch to the hand", "found the opening with a simple extension", "counter-attacked to the knee/foot"],
+      2: ["found the wrist after a beat-attack", "gave angulation after a feint and hit", "scored to the body with a preparation–attack", "threatened point-in-line, changed line and hit"],
+      3: ["caught the wrist after a double feint", "touched the opening after a prise-de-fer", "widened the gap with a two-tempo preparation and hit"],
+      4: ["found the opening at the end of a long combination", "tore off the touch with feint–feint–angle–attack"],
+    },
+    SABRE: {
+      1: ["scored with a head cut (tête)", "surged ahead with a quick attack", "burst in with a flèche and hit", "was first to land on pure reaction"],
+      2: ["hit with a beat–head cut", "took the point with a parry–riposte", "changed to the cheek and finished the cut", "cut to the flank after a feint"],
+      3: ["bound the head cut after a double feint", "scored with a parry–riposte–counter-cut chain", "found the opening with a two-tempo prep and cut"],
+      4: ["broke the defense and cut after a long sequence", "hit with a feint–feint–flank–head cut combo"],
+    },
   },
 };
 
@@ -212,9 +187,9 @@ function pickTempo(cat: AgeCategory, narr: SeededRng): Tempo {
 }
 
 /** Bir tuşun anlatım satırını (zamanlı ataklı) üretir. */
-function touchPhrase(scorer: Combatant, cat: AgeCategory, narr: SeededRng): string {
+function touchPhrase(scorer: Combatant, cat: AgeCategory, narr: SeededRng, locale: Locale): string {
   const tempo = pickTempo(cat, narr);
-  return narr.pick(TOUCH_LINES_BY_TEMPO[scorer.weapon][tempo]);
+  return narr.pick(TOUCH_LINES_BY_TEMPO[locale][scorer.weapon][tempo]);
 }
 
 /** Bir tuşun "fencing time" süresi (sn) — periyot saatini ilerletir. */
@@ -273,8 +248,11 @@ function buildMatchup(a: Combatant, b: Combatant): Matchup {
   return { esA, esB, baseP: winProbability(esA.total - esB.total), chaos };
 }
 
-function strengthLine(a: Combatant, b: Combatant, m: Matchup): string {
-  return `Maç gücü — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} kazanma ihtimali %${Math.round(m.baseP * 100)}).`;
+function strengthLine(a: Combatant, b: Combatant, m: Matchup, locale: Locale): string {
+  const pct = Math.round(m.baseP * 100);
+  return locale === "en"
+    ? `Match strength — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} win chance ${pct}%).`
+    : `Maç gücü — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} kazanma ihtimali %${pct}).`;
 }
 
 /** Bir tuşun sonuç satırını (skor + durum notu) yazar. */
@@ -286,11 +264,12 @@ function touchLine(
   scoreB: number,
   run: number,
   target: number,
+  locale: Locale,
 ): string {
-  let line = `${scorer.name} ${touchPhrase(scorer, cat, narr)}. ${scoreA}–${scoreB}`;
-  if (run >= 3) line += ` — üst üste ${run}!`;
-  else if (scoreA === scoreB) line += " — eşitlik.";
-  else if (scoreA === target - 1 || scoreB === target - 1) line += " — maç sayısı!";
+  let line = `${scorer.name} ${touchPhrase(scorer, cat, narr, locale)}. ${scoreA}–${scoreB}`;
+  if (run >= 3) line += locale === "en" ? ` — streak of ${run}!` : ` — üst üste ${run}!`;
+  else if (scoreA === scoreB) line += locale === "en" ? " — even." : " — eşitlik.";
+  else if (scoreA === target - 1 || scoreB === target - 1) line += locale === "en" ? " — match point!" : " — maç sayısı!";
   return line;
 }
 
@@ -303,16 +282,18 @@ export function simulateMatch(
   b: Combatant,
   rng: SeededRng,
   targetTouches: number = MATCH_FORMATS.DE,
+  locale: Locale = "tr",
 ): MatchResult {
   const m = buildMatchup(a, b);
   const narr = createRng(`${rng.seed}:narr`);
   const cat = a.ageCategory ?? "SENIOR";
 
-  const log: string[] = [strengthLine(a, b, m)];
+  const log: string[] = [strengthLine(a, b, m, locale)];
   const tacticA = a.tactic ?? "BALANCED";
   const tacticB = b.tactic ?? "BALANCED";
   if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
-    log.push(`Taktik — ${a.name}: ${TACTIC_LABEL_TR[tacticA]}, ${b.name}: ${TACTIC_LABEL_TR[tacticB]}.`);
+    const prefix = locale === "en" ? "Tactic" : "Taktik";
+    log.push(`${prefix} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}.`);
   }
 
   let scoreA = 0;
@@ -340,13 +321,18 @@ export function simulateMatch(
     }
 
     if (scoreA >= targetTouches || scoreB >= targetTouches) break; // son tuşu kapanış anlatır
-    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, targetTouches));
+    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, targetTouches, locale));
   }
 
   const winnerIsA = scoreA >= scoreB;
   const winner = winnerIsA ? a : b;
   const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
-  log.push(`🏁 ${winner.name} ${narr.pick(ACTION_LINES[winner.weapon])} ve maçı ${wScore}-${lScore} kazandı.`);
+  const act = narr.pick(ACTION_LINES[locale][winner.weapon]);
+  log.push(
+    locale === "en"
+      ? `🏁 ${winner.name} ${act} and won the match ${wScore}-${lScore}.`
+      : `🏁 ${winner.name} ${act} ve maçı ${wScore}-${lScore} kazandı.`,
+  );
 
   return {
     aId: a.id,
@@ -386,14 +372,16 @@ export function simulatePeriod(
     periodEndSec: number;
     includeHeader?: boolean;
     periodCap?: number; // bu periyodun tuş tavanı (U10 1. periyot = 5); ulaşınca periyot biter
+    locale?: Locale;
   },
 ): PeriodResult {
   const m = buildMatchup(a, b);
   const narr = createRng(`${rng.seed}:narr`);
   const cat = a.ageCategory ?? "SENIOR";
+  const locale = opts.locale ?? "tr";
 
   const log: string[] = [];
-  if (opts.includeHeader) log.push(strengthLine(a, b, m));
+  if (opts.includeHeader) log.push(strengthLine(a, b, m, locale));
 
   // Tuşsuz mübadele (tempo) olasılığı: epede yüksek, kılıçta düşük; defansif taktik artırır
   // (GDD 18.24: sürekli savunma tempo kaybettirir). Süre dolabildiği için beraberlik/la belle mümkün olur.
@@ -436,7 +424,7 @@ export function simulatePeriod(
       lastScorer = 2;
       momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     }
-    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, opts.target));
+    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, opts.target, locale));
   }
 
   const decided = scoreA >= opts.target || scoreB >= opts.target;
@@ -465,13 +453,17 @@ export function simulateLaBelle(
   a: Combatant,
   b: Combatant,
   rng: SeededRng,
-  opts: { startA: number; startB: number },
+  opts: { startA: number; startB: number; locale?: Locale },
 ): LaBelleResult {
   const m = buildMatchup(a, b);
   const narr = createRng(`${rng.seed}:narr`);
+  const locale = opts.locale ?? "tr";
   const priorityA = rng.bool(0.5);
+  const prioName = (priorityA ? a : b).name;
   const log: string[] = [
-    `Skor ${opts.startA}-${opts.startB} berabere → öncelik kurası: ${(priorityA ? a : b).name}.`,
+    locale === "en"
+      ? `Score ${opts.startA}-${opts.startB} tied → priority draw: ${prioName}.`
+      : `Skor ${opts.startA}-${opts.startB} berabere → öncelik kurası: ${prioName}.`,
   ];
 
   let scoreA = opts.startA;
@@ -481,13 +473,22 @@ export function simulateLaBelle(
   if (rng.bool(0.22)) {
     // Altın dakika tuşsuz geçti → öncelik sahibi kazanır.
     winnerIsA = priorityA;
-    log.push(`Altın dakika tuşsuz geçti — öncelik ${(priorityA ? a : b).name}'de, ${(priorityA ? a : b).name} kazandı.`);
+    log.push(
+      locale === "en"
+        ? `The golden minute passed with no touch — priority holder ${prioName} wins.`
+        : `Altın dakika tuşsuz geçti — öncelik ${prioName}'de, ${prioName} kazandı.`,
+    );
   } else {
     winnerIsA = rng.bool(clamp(m.baseP, 0.05, 0.95));
     if (winnerIsA) scoreA++;
     else scoreB++;
     const w = winnerIsA ? a : b;
-    log.push(`🏅 Altın tuş! ${w.name} ${touchPhrase(w, a.ageCategory ?? "SENIOR", narr)} — ${scoreA}–${scoreB}.`);
+    const phrase = touchPhrase(w, a.ageCategory ?? "SENIOR", narr, locale);
+    log.push(
+      locale === "en"
+        ? `🏅 Golden touch! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`
+        : `🏅 Altın tuş! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+    );
   }
 
   return { log, scoreA, scoreB, winnerId: winnerIsA ? a.id : b.id };
