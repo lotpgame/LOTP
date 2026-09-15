@@ -10,13 +10,16 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
-- **Aşamalı turnuva akışı (adım adım tek ekran):** Turnuva artık tek sayfada **her seferinde tek
-  aşama** gösterir ve kullanıcı adım adım ilerler: **1) Pul Kuraları** (havuz + rakipler) → **2) Pul
-  maçları** → **3) Pul sonucu** (pul kağıdı) → **4) Turnuva klasmanı** → **5) Eleme kurası** (o turun
-  eşleşmeleri) → **6) Eleme maçı** (yalnız senin maçın) → **7)** kazanınca **sonraki turun kurası** →
-  … → sonuç. (`LiveState.stage`, `advanceLiveStage`, tek "Devam/İlerle" aksiyonu.)
-- **Maç bitince 10 sn bekleme:** Maç biter bitmez pul sonucu / sonraki çatal / turnuva sonucu **hemen
-  fırlamaz** — sabit **10 saniyelik geri sayım** sonrası açılır (`Countdown`, kullanıcı tercihiyle atlanmaz).
+- **Alt sekme çubuklu turnuva ekranı (yazı, ikonsuz):** Turnuva tek sayfada, altta **sekme çubuğuyla**
+  gezilir: **Pul kağıdı · Pul maçları · Klasman · Elemeler · Sonuç**. Sekmeler **turnuva ilerledikçe
+  açılır** (kilitli başlar; kilitliye tıklanınca "Bu bölüm henüz açılmadı"). Aktif/oynanacak bölüm
+  otomatik seçilir; geçmiş bölümler serbest gezilir; gelecek bölümler kilitli olduğu için **spoiler yok**.
+  (`TournamentTabs`, `LiveState.stage`, tek `advanceLiveStage` aksiyonu.)
+- **Aşama akışı:** Pul kuraları → pul maçları → pul kağıdı → klasman → eleme kurası (o turun eşleşmeleri,
+  skor yok) → eleme maçı (yalnız senin maçın) → kazanınca sonraki turun kurası → … → sonuç.
+- **Maç bitince "Sonuçlar işleniyor…" beklemesi:** Maç biter bitmez pul sonucu / klasman / sonraki
+  tur / turnuva sonucu **hemen fırlamaz** — kısa bir bekleme sonrası ilgili sekme otomatik açılır.
+  Geri sayım sayısı gösterilmez; yalnız "…işleniyor" yazısı akar (`Countdown`).
 - **Elemede spoiler yok (gerçekçi):** Canlı turnuvada eleme aşamasında **çatal/tüm eşleşmeler hiç
   gösterilmez** — yalnız o an oynanacak turun **kurası** (isimler, skor yok) ve **senin maçın** görünür.
   Motor sonraki turu önden hesaplasa bile "henüz olmamış" sonuçlar ekrana sızmaz. Tam çatal yalnız
