@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **V2 yol haritası — Çok Oyunculu / Ortak Dünya (asıl hedef):** `docs/ROADMAP.md`'ye §B2 olarak
+  eklendi — vizyon (tüm dünyadaki eskrimciler tek paylaşılan dünyada) + aşamalar **M9** (hesaplar +
+  kişisel kayıt, Postgres'e geçiş, `ownerId` izolasyonu), **M10** (ortak dünya + sunucu saati,
+  paylaşılan turnuvalar), **M11** (ölçek & servis). Ayrıca "tek-kişilik cilada yalnız ortak dünyaya
+  **taşınacak** kısımları derinleştir" yönü (oyuncu-güdümlü saate az yatırım).
 - **Alt sekme çubuklu turnuva ekranı (yazı, ikonsuz):** Turnuva tek sayfada, altta **sekme çubuğuyla**
   gezilir: **Pul kağıdı · Pul maçları · Klasman · Elemeler · Sonuç**. Sekmeler **turnuva ilerledikçe
   açılır** (kilitli başlar; kilitliye tıklanınca "Bu bölüm henüz açılmadı"). Aktif/oynanacak bölüm

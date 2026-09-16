@@ -120,10 +120,52 @@ psikoloji combat performansını, ekonomi ödül/gideri yönetir.
 - Başsız dengeleme simülasyonları (`scripts/`, 100 oyuncu × N yıl), katsayı dengeleme,
   UI/UX geçişi (GDD 25), DB index/performans, save backup/version/migration, raporlama.
 
-### Sonra (V2 / Future)
-Multiplayer (PostgreSQL'e geçiş), Olimpiyat, üçüncülük maçı, kart/hakem sistemi, scouting,
-medya, gerçek-zamanlı combat, gizli potansiyel/scout. Mimari bunları bozmadan eklenecek
-şekilde kuruluyor.
+## B2. V2 — Çok Oyunculu / Ortak Dünya (asıl hedef) 🎯
+
+> **Vizyon (oyun sahibi, 2026-09-16):** Dünyadaki tüm eskrimciler **tek bir paylaşılan
+> dünyada** kendi kariyerlerini yönetir; aynı turnuvalarda **birbirleriyle** karşılaşır,
+> ortak ranking'te yarışır. Tek-kişilik mod bir amaç değil, bu ortak dünyaya giden yolun
+> kanıtlanmış çekirdeğidir. Proje ancak ortak dünya ile "başarılı" sayılır.
+
+**Bu yüzden bugünkü işlerde yön:** Tek-kişilikte yalnız **ortak dünyaya taşınacak** kısımları
+derinleştir. Dünya-bağımsız ve **taşınır** olanlar (cila değeri yüksek): Combat motoru,
+Skill/Trait/Psychology gelişimi, Turnuva formatı (pul/eleme/tie-break), Ranking mantığı,
+arayüz, denge. **Çöpe gidecek / az yatırım yapılacak:** **oyuncu-güdümlü "Haftayı İlerle"
+saati** (ortak dünyada zamanı sunucu ilerletir), tek-global-kayıt varsayımı. Yeni mekanik
+eklerken sorulacak soru: *"Bu ortak dünyada nasıl çalışır?"*
+
+### M9 — Hesaplar + Kişisel Kayıt (Postgres'e geçiş)
+Tek sunucu, çok kullanıcı; **herkes kendi kariyerini** oynar (rakipler hâlâ AI). Ortak
+dünyanın zorunlu temeli; bittiğinde telefonlarda **çok-kullanıcılı test** de mümkün olur.
+- **Auth:** kayıt / giriş / oturum (güvenli; sırlar `.env`).
+- **Veri sahipliği:** her kullanıcı bir insan Player'a sahip; `GameState` ve kariyer verisi
+  **kullanıcı-bazlı** (`ownerId`). Bugün her sorgu `findFirst()` ile tek global kaydı okuyor
+  → tüm erişim `ownerId`'ye göre izole edilir (bir kullanıcının verisi diğerine sızmaz).
+- **DB:** SQLite → **PostgreSQL** (Prisma provider + adapter; migration; A.12 zaten uyumlu).
+- **Bitti:** iki farklı hesap aynı sunucuda **birbirini bozmadan** ayrı kariyer oynar; veri
+  izolasyonu testte kanıtlı; Postgres'te build+lint+test yeşil.
+
+### M10 — Ortak Dünya + Sunucu Saati (asıl multiplayer)
+Tasarımı en ağır aşama: zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner.
+- **Merkezi saat:** dünya saatini **sunucu** ilerletir (zamanlanmış iş / cron); oyuncu offline
+  iken dünya akar (Hattrick modeli, GDD 2.18/2.27). "İlerle" butonu kalkar / anlamı değişir.
+- **Paylaşılan turnuvalar:** gerçek oyuncular **+ AI** aynı sahada; kayıt dönemi + matchmaking;
+  aynı kategorideki insanlar birbiriyle eşleşir.
+- **Ortak ranking/klasman:** gerçek oyuncular arası; milli takım/uluslararası davet ortak havuzdan.
+- **Özet/bildirim:** oyuncu girince "yokken neler oldu" özeti (maçlar, ranking, davet).
+- **Bitti:** iki gerçek oyuncu aynı turnuvada eşleşip maç yapabiliyor; dünya saati onlar
+  offline iken ilerliyor; ortak ranking güncelleniyor.
+
+### M11 — Ölçek & Servis (canlı servise hazırlık)
+- Arka plan işleri (haftalık dünya simülasyonu) + kuyruk; idempotent tik (GDD 6.42).
+- Yedek/geri yükleme, izleme/log, oran sınırlama, kötüye kullanım/moderasyon.
+- Hosting: kalıcı DB + always-on sunucu + cron; dağıtım (deploy) hattı; maliyet/ölçek planı.
+- **Bitti:** çok sayıda hesapla stabil; dünya tiki otomatik; yedek + izleme çalışır.
+
+### Sonra (Future — ortak dünyadan sonra)
+Olimpiyat, üçüncülük maçı, kart/hakem sistemi, scouting, medya, gerçek-zamanlı combat,
+gizli potansiyel/scout, kulüpler arası lig, arkadaş/rekabet. Mimari bunları bozmadan
+eklenecek şekilde kuruluyor.
 
 ---
 
@@ -185,9 +227,16 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [x] **M8** — Cila & denge (başsız denge simülasyonu, db yedeği, sürüm cilası) ✅
 
 > 🎉 **V1 TAMAMLANDI (2026-09-13, sürüm 1.0.0):** uçtan uca çalışan kariyer döngüsü. Sonraki
-> derinlik maddeleri §G backlog'da; V2 hedefleri §B "Sonra" bölümünde.
+> derinlik maddeleri §G backlog'da.
 
-> Bir aşama tamamlandığında burada işaretlenir ve `CHANGELOG.md`'ye yazılır.
+**V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, bkz. §B2):**
+- [ ] **M9** — Hesaplar + kişisel kayıt (Postgres'e geçiş, `ownerId` izolasyonu)
+- [ ] **M10** — Ortak dünya + sunucu saati (paylaşılan turnuvalar, gerçek oyuncu eşleşmesi)
+- [ ] **M11** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
+
+> Not: V2'ye geçmeden tek-kişilik çekirdeği cilalarken **yalnız ortak dünyaya taşınacak**
+> kısımlar derinleştirilir (§B2 "yön" notu). Bir aşama tamamlandığında burada işaretlenir ve
+> `CHANGELOG.md`'ye yazılır.
 
 ---
 
