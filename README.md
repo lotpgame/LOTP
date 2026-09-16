@@ -92,8 +92,12 @@ panelde **kondisyon** (dolu başlar, azalır) ve tüm göstergeler %'li; terim *
 Turnuvalar / Klasman / Kulüp / Ekipman / Geçmiş sayfaları); **gün-bazlı zaman** — Q=1 oyun yılı,
 12 ay (H1–H12), her ay 7 günlük sabit program (Salı İl · Perşembe Türkiye · Cmt Open · uluslararası
 yılda 1); alt çubuktan **İlerle** (antrenmanları uygular, turnuva gününde durur) → **Katıl / Geç**
-(Geç = o gün antrenman); Turnuvalar **aylık takvim**; **Klasman** (kategori sıralaması + kulüpler +
-yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör** (farklı uzmanlık); sakatlık **gün** cinsinden;
+(Geç = o gün planındaki antrenman/dinlenme); **7 günlük antrenman planı** (her güne antrenman veya
+**Dinlenme**); **kondisyon Dayanıklılık'a bağlı** — kademeli toparlanma (her sabah %100 değil), fit
+sporcu maçta az yorulur/çabuk toparlar; makul planla maça ~%80+ girilir, üst üste ağır antrenman+turnuva
+kondisyonu düşürür ve sakatlık riskini artırır (dinlenme gerçek kaldıraç); Turnuvalar **aylık takvim**;
+**Klasman** (kategori sıralaması + kulüpler + yaş/cinsiyet/silah filtresi); kulüplerde **2 antrenör**
+(farklı uzmanlık); sakatlık **gün** cinsinden;
 **yaş-kategori ilerlemesi** (U10→U12→…→Senior, saha rakip kadrosuyla birlikte atlar);
 **tuş-tuş maç anlatımı** — her sayı silaha uygun eskrim terimiyle ayrı satırda; **zamanlı atak
 eventleri** yaşa göre (U10 tek zamanlı → üst kategoride çift/3-4 zamanlı feint dizileri);

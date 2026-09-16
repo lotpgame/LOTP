@@ -342,7 +342,7 @@ export function simulateMatch(
     winnerId: winnerIsA ? a.id : b.id,
     loserId: winnerIsA ? b.id : a.id,
     log,
-    fatigueGain: Math.max(3, Math.round(targetTouches * 0.55)),
+    fatigueGain: Math.max(2, Math.round(targetTouches * 0.45)),
     analysis: { effA: m.esA.total, effB: m.esB.total, winProbA: m.baseP, modsA: m.esA.modifiers, modsB: m.esB.modifiers },
   };
 }

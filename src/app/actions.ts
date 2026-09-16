@@ -9,7 +9,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LOCALE_COOKIE, type Locale } from "@/i18n";
 import { TACTICS, type Tactic } from "@/engine/combat";
-import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
+import { type TrainingType } from "@/engine/training";
 import {
   advanceDay,
   advanceLiveStage,
@@ -56,11 +56,11 @@ export async function attendTournamentAction(): Promise<void> {
   revalidatePath("/kariyer", "layout");
 }
 
-/** Haftalık antrenman planını kaydeder (4 seans: Pzt/Çrş/Cuma/Pazar). */
+/** 7 günlük antrenman planını kaydeder (Pzt..Paz; her gün antrenman türü veya Dinlenme). */
 export async function setTrainingPlanAction(formData: FormData): Promise<void> {
-  const slots = ["slot1", "slot2", "slot3", "slot4"]
-    .map((s) => String(formData.get(s) ?? ""))
-    .filter((v): v is TrainingType => TRAINING_TYPES.includes(v as TrainingType));
+  const slots = ["slot0", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"].map(
+    (s) => String(formData.get(s) ?? "REST") as TrainingType,
+  );
   await setTrainingPlan(slots);
   revalidatePath("/kariyer/antrenman");
 }

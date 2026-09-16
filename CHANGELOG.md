@@ -10,6 +10,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Kondisyon = Dayanıklılık'a bağlandı (gerçekçi model):** "Dayanıklılık" yeteneği artık ölü değil —
+  **günlük toparlanmayı** ve **maç yorgunluğu direncini** yönetiyor (`conditioning.dailyRecovery`,
+  `matchFatigueMultiplier`). Fit sporcu turnuvalar arası daha hızlı toparlar ve maçta daha az yorulur.
+- **7 günlük antrenman planı:** Plan artık haftanın **her günü** için (Pzt..Paz); her güne antrenman
+  **veya Dinlenme** koyabilirsin. Turnuva günü seçtiğin seans yalnız o turnuvaya **katılmazsan** uygulanır
+  (skip-day artık plana bağlı — "hangi antrenman" belirsizliği bitti). Her gün ağır antrenman → yorgunluk
+  + sakatlık riski birikir → araya dinlenme koymaya zorlar (risk/ödül).
 - **V2 yol haritası — Çok Oyunculu / Ortak Dünya (asıl hedef):** `docs/ROADMAP.md`'ye §B2 olarak
   eklendi — vizyon (tüm dünyadaki eskrimciler tek paylaşılan dünyada) + aşamalar **M9** (hesaplar +
   kişisel kayıt, Postgres'e geçiş, `ownerId` izolasyonu), **M10** (ortak dünya + sunucu saati,
@@ -59,6 +66,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Pul maçı numaralandırma:** "Pul 4 · 1. maç, 2. maç…" olarak gösteriliyor (karışıklık giderildi).
 
 ### Düzeltildi
+- **Kondisyon dengesi (kademeli toparlanma):** Toparlanma artık düz −10/gün değil, **Dayanıklılık'a
+  göre** (~%80–96 ile maça girilir, her sabah %100'e ışınlanmak yok); maç yorgunluğu tabanı hafif
+  düşürüldü (`tuş×0,45`, taban 2). Makul plan (arada dinlenme, 2 turnuva) → maça ~%80+; her gün ağır
+  antrenman + 3 turnuva → kondisyon çöker (dinlenme şart). Trace ile doğrulandı.
 - **Sıradaki maç paneli önceki maçın çerçevesinin içinde görünüyordu:** Panel artık maç kartının
   **dışında**, ayrı kutu olarak (algı karışıklığı giderildi; `CanliMac`/`CanliPeriyot` afterDone kart dışına alındı).
 - **Biten eleme maçı tüm logu baştan (1. periyot) oynatıyordu:** Artık önceki periyotlar **anında**

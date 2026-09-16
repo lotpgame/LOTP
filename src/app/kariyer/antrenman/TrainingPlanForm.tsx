@@ -1,21 +1,21 @@
 "use client";
 
 /**
- * Haftalık antrenman planı formu (KONTROLLÜ + onClick).
- * `<form action>` kullanılmıyor: React 19 server action sonrası formu otomatik resetleyip seçimi
+ * 7 günlük antrenman planı formu (Pzt..Paz; KONTROLLÜ + onClick).
+ * `<form action>` kullanılmıyor: React 19 server action sonrası formu resetleyip seçimi
  * eskiye döndürüyordu. Kaydet butonu server action'ı doğrudan çağırır; kontrollü state korunur.
+ * Turnuva günlerinde (Sal/Prş/Cmt) seçilen seans yalnız o turnuvaya KATILMAZSAN uygulanır.
  */
 import { useState, useTransition } from "react";
 import { setTrainingPlanAction } from "@/app/actions";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import { t, type Locale } from "@/i18n";
 
-// Antrenman günleri: Pzt/Çrş/Cuma/Pazar → gün indeksleri 0,2,4,6.
-const TRAINING_DAY_KEYS = ["day.0", "day.2", "day.4", "day.6"];
+const TOURNAMENT_DAYS = new Set([1, 3, 5]); // Salı / Perşembe / Cumartesi
 
 export function TrainingPlanForm({ initial, locale }: { initial: string[]; locale: Locale }) {
   const [slots, setSlots] = useState<string[]>(() =>
-    TRAINING_DAY_KEYS.map((_, i) => initial[i] ?? "REST"),
+    Array.from({ length: 7 }, (_, i) => (TRAINING_TYPES.includes(initial[i] as TrainingType) ? initial[i] : "REST")),
   );
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -24,7 +24,7 @@ export function TrainingPlanForm({ initial, locale }: { initial: string[]; local
     setSaved(false);
     startTransition(async () => {
       const fd = new FormData();
-      slots.forEach((v, i) => fd.append(`slot${i + 1}`, v));
+      slots.forEach((v, i) => fd.append(`slot${i}`, v));
       await setTrainingPlanAction(fd);
       setSaved(true);
     });
@@ -32,11 +32,15 @@ export function TrainingPlanForm({ initial, locale }: { initial: string[]; local
 
   return (
     <div className="mt-3 space-y-3">
-      {TRAINING_DAY_KEYS.map((dayKey, i) => (
-        <label key={dayKey} className="block">
-          <span className="mb-1 block text-xs opacity-60">{t(locale, dayKey)}</span>
+      <p className="text-xs opacity-60">{t(locale, "plan.everyDayNote")}</p>
+      {slots.map((val, i) => (
+        <label key={i} className="block">
+          <span className="mb-1 block text-xs opacity-60">
+            {t(locale, `day.${i}`)}
+            {TOURNAMENT_DAYS.has(i) && <span className="ml-1 text-sky-600 dark:text-sky-400">· {t(locale, "plan.tournamentDay")}</span>}
+          </span>
           <select
-            value={slots[i]}
+            value={val}
             onChange={(e) => {
               const v = e.target.value;
               setSaved(false);

@@ -12,6 +12,23 @@ import type { TrainingType } from "./training";
 export const SHARPNESS_MIN = 0;
 export const SHARPNESS_MAX = 100;
 
+/**
+ * Günlük doğal toparlanma (yorgunluk azalması) — Dayanıklılık (endurance) yükseldikçe daha hızlı.
+ * Kondisyonun "gizli" yöneticisi budur: fit sporcu turnuvalar arası daha çabuk toparlanır.
+ * end 20 → ~8/gün, 40 → ~11, 60 → ~14, 80 → ~17.
+ */
+export function dailyRecovery(endurance: number): number {
+  return 6 + endurance * 0.18;
+}
+
+/**
+ * Maç yorgunluğu çarpanı — Dayanıklılık yükseldikçe maçta daha az yorulur.
+ * end 20 → ×0.92, 60 → ×0.76, 100 → ×0.60 (0.55 tabana kadar).
+ */
+export function matchFatigueMultiplier(endurance: number): number {
+  return clamp(1 - endurance * 0.004, 0.55, 1);
+}
+
 /** Bir antrenman seansının keskinliğe etkisi: çalışma keskinliği artırır, dinlenme düşürür. */
 export function sessionSharpnessDelta(type: TrainingType): number {
   return type === "REST" ? -3 : 4;

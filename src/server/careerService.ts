@@ -86,6 +86,8 @@ function tournamentDisplayName(locale: Locale, ageCategory: string, level: Tourn
 import {
   COMPETITION_SHARPNESS_GAIN,
   applySharpness,
+  dailyRecovery,
+  matchFatigueMultiplier,
   rollInjury,
   sessionSharpnessDelta,
 } from "@/engine/conditioning";
@@ -128,7 +130,10 @@ const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı
 const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
 // Varsayılan haftalık plan: 4 antrenman günü (Pazartesi / Çarşamba / Cuma / Pazar).
-const DEFAULT_PLAN = "TECHNICAL,PHYSICAL,TACTICAL,REST";
+// 7 günlük plan (Pzt=0 … Paz=6). Turnuva günlerinin (Sal/Prş/Cmt) planı yalnız o turnuvaya
+// KATILMAZSAN uygulanır. Varsayılan dinlenmeli/dengeli — her gün antrenman şart değil.
+const DEFAULT_PLAN = "TECHNICAL,MENTAL,PHYSICAL,MENTAL,TACTICAL,REST,REST";
+const PLAN_DAYS = 7;
 
 // ---------- yardımcılar ----------
 
@@ -293,7 +298,7 @@ export interface CareerDTO {
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
-  trainingPlan: string[]; // haftalık plan: 4 antrenman günü (Pzt/Çrş/Cuma/Pazar)
+  trainingPlan: string[]; // 7 günlük plan (Pzt..Paz); turnuva günleri yalnız katılmazsan uygulanır
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
   ranking: RankingRowDTO[];
@@ -486,7 +491,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       ? {
           dayName: dayLabel,
           kind: "TRAINING",
-          trainingLabel: t(locale, `training.${(planArr[act.slot] ?? "REST") as TrainingType}`),
+          trainingLabel: t(locale, `training.${(planArr[dayOfWeek(gs.dayIndex)] ?? "REST") as TrainingType}`),
         }
       : {
           dayName: dayLabel,
@@ -640,7 +645,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     today = {
       dayName: dayLabel,
       kind: "TRAINING",
-      trainingLabel: t(locale, `training.${(planArr[act.slot] ?? "REST") as TrainingType}`),
+      trainingLabel: t(locale, `training.${(planArr[dayOfWeek(gs.dayIndex)] ?? "REST") as TrainingType}`),
     };
   } else {
     const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
@@ -677,8 +682,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
 export async function setTrainingPlan(slots: TrainingType[]): Promise<void> {
   const gs = await prisma.gameState.findFirst();
   if (!gs) throw new Error("Aktif kariyer yok.");
-  const valid = slots.filter((s) => TRAINING_TYPES.includes(s));
-  if (valid.length === 0) throw new Error("En az bir seans seç.");
+  // 7 günlük plan (Pzt..Paz); geçersiz/eksik günler REST'e düşer.
+  const valid = Array.from({ length: PLAN_DAYS }, (_, i) =>
+    TRAINING_TYPES.includes(slots[i]) ? slots[i] : "REST",
+  );
   await prisma.gameState.update({ where: { id: gs.id }, data: { trainingPlan: valid.join(",") } });
 }
 
@@ -713,11 +720,10 @@ export async function getCategoryRanking(categoryId: string): Promise<RankingRow
   return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id);
 }
 
-// Kondisyon modeli: her AKTİF günde doğal toparlanma (uyku/beslenme) uygulanır; antrenman bunun
-// üzerine yük biner. Böylece normal bir haftalık program kondisyonu hafif toparlar, ağır turnuvalar
-// düşürür. (Önceden doğal toparlanma yoktu → kondisyon çok hızlı tükeniyordu.)
-const DAY_BASE_RECOVERY = 10; // her aktif günde doğal günlük toparlanma
-const REST_EXTRA_RECOVERY = 8; // REST seansının ek toparlanması (doğal toparlanmaya eklenir)
+// Kondisyon modeli: her AKTİF günde doğal toparlanma uygulanır (Dayanıklılık'a göre; conditioning.
+// dailyRecovery). Antrenman bunun üzerine yük biner; maç günü toparlanma YOK (maç yorar). Toparlanma
+// kademeli — her sabah %100'e dönmez; yorgunluk hafta içinde birikir, dinlenme gerçek bir kaldıraç olur.
+const REST_EXTRA_RECOVERY = 10; // REST seansının doğal toparlanmaya EK katkısı
 const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
 const INJURY_DAYS_PER_WEEK = 3; // rollInjury hafta → OYUN günü (3–9 gün; birkaç turnuva kaçırır)
 
@@ -822,19 +828,12 @@ export async function advanceDay(): Promise<AdvanceResult> {
   const sharpnessBefore = sharpness;
   const startDay = gs.dayIndex;
 
-  // Bir antrenman seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok bir kez.)
-  // general=true: turnuvaya girmeyip evde kalınca yapılan HAFİF GENEL antrenman — tüm becerilere az
-  // katkı, düşük yorgunluk; turnuvaya girenlerle gelişim farkı açmaz (kullanıcı isteği).
-  const applySession = (type: TrainingType, general = false): boolean => {
-    // Doğal günlük toparlanma her aktif günde (antrenman + geçilen turnuva günü) uygulanır.
-    fatigue = clamp(fatigue - DAY_BASE_RECOVERY, 0, 100);
-    if (general) {
-      for (const def of SKILLS) {
-        const ageCap = skillAgeCeiling(skills[def.key].potential, skills[def.key].floor, age);
-        skills[def.key] = growSkill(skills[def.key], 0.18 * envMult, 1, ageCap);
-      }
-      fatigue = clamp(fatigue + 8, 0, 100); // hafif yük
-    } else if (type === "REST") {
+  // Bir antrenman/dinlenme seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok
+  // bir kez.) Turnuvaya katılmadığın gün de PLANINDAKİ seans uygulanır (Dinlenme koyabilirsin).
+  const applySession = (type: TrainingType): boolean => {
+    // Doğal günlük toparlanma — Dayanıklılık'a göre (fit sporcu daha hızlı toparlar).
+    fatigue = clamp(fatigue - dailyRecovery(skills.endurance.current), 0, 100);
+    if (type === "REST") {
       fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 0, 100);
       restSessions++;
     } else {
@@ -884,15 +883,15 @@ export async function advanceDay(): Promise<AdvanceResult> {
     if (act.kind === "TOURNAMENT") {
       const eligible = qualifies(act.qualification, humanRank);
       if (eligible && !firstDay) break; // yeni bir uygun turnuva günü → dur (Katıl/Geç)
-      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün HAFİF GENEL antrenman.
-      const injured = applySession("TECHNICAL", true);
+      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün PLANINDAKİ seans.
+      const injured = applySession(planArr[dayOfWeek(d)] ?? "REST");
       d++;
       firstDay = false;
       if (injured) break;
       continue;
     }
-    // Antrenman günü (plan seansı)
-    const injured = applySession(planArr[act.slot] ?? "REST");
+    // Antrenman günü (plan seansı — güne göre)
+    const injured = applySession(planArr[dayOfWeek(d)] ?? "REST");
     d++;
     firstDay = false;
     if (injured) break;
@@ -1436,6 +1435,11 @@ function nameOf(ls: LiveState, id: number): string {
   return ls.combatants.find((c) => c.id === id)?.name ?? formatPlayerCode(id);
 }
 
+/** Combatant snapshot'ından Dayanıklılık (endurance) — maç yorgunluğu direncinde kullanılır. */
+function enduranceOf(ls: LiveState, id: number): number {
+  return ls.combatants.find((c) => c.id === id)?.skills.endurance ?? 20;
+}
+
 function humanPoolNumber(ls: LiveState): number {
   return ls.pools.findIndex((p) => p.includes(ls.humanId)) + 1;
 }
@@ -1480,8 +1484,9 @@ function simulateOne(
   const b = liveCombatant(ls, bId, bId === ls.humanId ? humanTactic : undefined);
   const tag = `${ls.seedKey}:${phase === "POOL" ? "pool" : "de"}:${round}:${Math.min(aId, bId)}-${Math.max(aId, bId)}`;
   const r = simulateMatch(a, b, createRng(tag), touches, locale);
-  ls.fatigue[aId] = clamp((ls.fatigue[aId] ?? 0) + r.fatigueGain, 0, 100);
-  ls.fatigue[bId] = clamp((ls.fatigue[bId] ?? 0) + r.fatigueGain, 0, 100);
+  // Maç yorgunluğu Dayanıklılık'a göre azalır (fit sporcu daha az yorulur).
+  ls.fatigue[aId] = clamp((ls.fatigue[aId] ?? 0) + r.fatigueGain * matchFatigueMultiplier(enduranceOf(ls, aId)), 0, 100);
+  ls.fatigue[bId] = clamp((ls.fatigue[bId] ?? 0) + r.fatigueGain * matchFatigueMultiplier(enduranceOf(ls, bId)), 0, 100);
   ls.matches.push({
     phase,
     round,
@@ -1883,9 +1888,10 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
         ? `🏁 ${nameOf(ls, winnerId!)} won the match ${prog.scoreHuman}-${prog.scoreOpp}.`
         : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
     );
-    const gain = Math.max(3, Math.round(fmt.touches * 0.55));
-    ls.fatigue[ls.humanId] = clamp((ls.fatigue[ls.humanId] ?? 0) + gain, 0, 100);
-    ls.fatigue[prog.oppId] = clamp((ls.fatigue[prog.oppId] ?? 0) + gain, 0, 100);
+    const gain = Math.max(2, Math.round(fmt.touches * 0.45));
+    // Dayanıklılık'a göre azaltılmış maç yorgunluğu (canlı eleme maçı).
+    ls.fatigue[ls.humanId] = clamp((ls.fatigue[ls.humanId] ?? 0) + gain * matchFatigueMultiplier(enduranceOf(ls, ls.humanId)), 0, 100);
+    ls.fatigue[prog.oppId] = clamp((ls.fatigue[prog.oppId] ?? 0) + gain * matchFatigueMultiplier(enduranceOf(ls, prog.oppId)), 0, 100);
     ls.matches.push({
       phase: "DE",
       round: prog.round,
