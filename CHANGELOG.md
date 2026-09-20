@@ -16,6 +16,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.2 — Çizelgeli offline otomatik oynatma + ortak klasman:** Kayıtlı bir turnuvanın günü, sen
+  offline'ken (dünya saati o günü geçtiyse) sunucu turnuvayı **otomatik oynatır**: sen **önceden verdiğin
+  taktikle** (bot gibi), AI'lar kendi stilleriyle; saha = sen + kategorindeki AI havuzu. Combat sunucuda,
+  sonuç + ödül + ortak **Quarter Ranking** + başarılar canlı yolla aynı `finalizeTournament`'a yazılır.
+  `advanceDay` artık geçmiş+kayıtlı turnuvaları otomatik çözer; canlı **"Katıl" yalnız BUGÜN'ün** turnuvasında.
+  (Tarayıcıda doğrulandı: kayıt → dünya saati ilerletildi → turnuva Ofansif taktiğiyle otomatik oynandı.)
 - **M11.1 — Zaman çizelgesi motoru (saf):** `src/engine/schedule/` — turnuvanın gün-içi dakika-bazlı
   çizelgesini deterministik üretir (DB/combat yok). Sabitler FIE-uyumlu (periyot 3 dk, periyot arası 1 dk).
   `poolPlan` (11:05'ten sıralı, 4 dk tempo), `dePlan` (14:00 elemeler + 17:00 yarı/final), periyot ve

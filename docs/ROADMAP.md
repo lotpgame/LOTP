@@ -296,7 +296,7 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
   - Not (geçici sınır → M11'de kalkacak): oyuncu turnuvaya girmezse kariyer o günde bekler (offline otomatik oynatma). Farklı dünya-quarter'ında katılan yeni oyuncu için AI eşleşmesi M11 (canlı dünya/yeni nesil).
 - [~] **M11** — Ortak turnuva simülasyonu + klasman (sunucu çizelgeye göre oynatır → replay + ortak klasman) ← DEVAM EDİYOR
   - [x] **M11.1** — Zaman çizelgesi motoru (saf): `src/engine/schedule/` — dakika-bazlı çizelge, periyot + taktik pencereleri, FIE-uyumlu sabitler. 12 test.
-  - [ ] **M11.2** — Çizelgeli otomatik oynatma (offline yol, önceden taktik) + ortak Quarter Ranking
+  - [x] **M11.2** — Çizelgeli offline otomatik oynatma + ortak Quarter Ranking: `autoResolveTournament` (insan önceden-taktik, AI stil) → `finalizeTournament`; `advanceDay` geçmiş+kayıtlı turnuvaları otomatik çözer, canlı "Katıl" yalnız bugün. Tarayıcıda doğrulandı.
   - [ ] **M11.3** — Canlı per-periyot oynatma (online): taraf başına taktik kaynağı (AI=stil, offline=önceden, online=canlı)
   - [ ] **M11.4** — Replay + "yokken neler oldu" özeti
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)

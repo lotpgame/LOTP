@@ -53,6 +53,7 @@ import {
   bracketSize,
   computePoolSizes,
   roundLabel,
+  simulateTournament,
   type PoolPlayerResult,
   type TournamentMatch,
   type TournamentOutcome,
@@ -763,8 +764,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
 
   const worldDay = serverWorldDay();
   const arrived = gs.dayIndex <= worldDay; // bugün gerçek zamanda "geldi" mi
-  const canAttend = arrived && today.kind === "TOURNAMENT" && today.qualified === true;
-  const needsSync = arrived && !canAttend; // işlenecek gün var (antrenman/iyileşme/uygunsuz turnuva)
+  const isToday = gs.dayIndex === worldDay; // canlı "Katıl" yalnız BUGÜN'ün turnuvasında
+  const canAttend = isToday && today.kind === "TOURNAMENT" && today.qualified === true;
+  // Geçmiş turnuva (kayıtlıysa offline oynanır, değilse kaçırılır) + antrenman/iyileşme → otomatik işlenir.
+  const needsSync = arrived && !canAttend;
   return {
     name: `${human.firstName} ${human.lastName}`,
     code: human.code,
@@ -998,6 +1001,12 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const worldDay = serverWorldDay(); // dünyaya kadar ilerle (gerçek zaman tavanı)
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean) as TrainingType[];
 
+  // M11.2: bu ilerlemede geçilecek turnuvalara önceden kayıt (offline otomatik oynatma için).
+  const regRows = await prisma.registration.findMany({
+    where: { playerId: human.id, worldDay: { gte: gs.dayIndex, lte: worldDay } },
+  });
+  const regByDay = new Map(regRows.map((r) => [`${r.worldDay}:${r.level}`, r]));
+
   // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
   const psych = psychologyOf(human);
   const envMult =
@@ -1014,6 +1023,8 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   let d = gs.dayIndex;
   let restSessions = 0;
   let injuredNow = false;
+  // M11.2: geçmiş bir turnuvaya kayıtlıysak, döngü orada durur ve bunu doldururuz (persist sonrası oynatılır).
+  let pendingAuto: { level: TournamentLevel; tactic: Tactic } | null = null;
 
   // Antrenman haberi (özet) için başlangıç değerleri.
   const beforeSkills: Record<string, number> = {};
@@ -1077,8 +1088,15 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     const act = activityForDay(d);
     if (act.kind === "TOURNAMENT") {
       const eligible = qualifies(act.qualification, humanRank);
-      if (eligible && !(firstDay && skipFirst)) break; // uygun turnuvada dur (Geç ile ilk günü atla)
-      // Uygun olmayan turnuva ya da (Geç ile) ilk gün → o gün PLANINDAKİ seans.
+      const isToday = d === worldDay; // bugün (dünya saati) → canlı oynanabilir
+      if (eligible && isToday && !(firstDay && skipFirst)) break; // bugünün turnuvasında dur (Katıl/Geç)
+      // M11.2: geçmiş (d < worldDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
+      const reg = regByDay.get(`${d}:${act.level}`);
+      if (eligible && !isToday && reg) {
+        pendingAuto = { level: act.level, tactic: reg.tactic as Tactic };
+        break; // döngüden çık; antrenmanı persist et, sonra turnuvayı oynat
+      }
+      // Uygun değil / geçmiş-kayıtsız (kaçırdın) / (Geç ile) bugünkü ilk gün → o gün PLANINDAKİ seans.
       const injured = applySession(planArr[dayOfWeek(d)] ?? "REST");
       d++;
       firstDay = false;
@@ -1136,6 +1154,16 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     await worldAdvanceTx(tx, gs, d, gs.seed);
     await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report } });
   });
+
+  // M11.2: geçmiş bir turnuvaya kayıtlıysak, güncel durumu tazeleyip offline oynat.
+  // (finalizeTournament dünyayı turnuva gününden bir sonraki güne ilerletir; AutoAdvance
+  // kalan günler için tekrar tetiklenir → sıradaki turnuva/antrenman.)
+  if (pendingAuto) {
+    const fresh = await loadState();
+    if (fresh && !fresh.gs.liveTournament) {
+      await autoResolveTournament(fresh.gs, fresh.human, pendingAuto.level, pendingAuto.tactic);
+    }
+  }
 
   return {};
 }
@@ -2493,6 +2521,90 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
 }
 
 /** Canlı turnuva bitince kalıcılaştırır: permanent tablolar + ekonomi/ranking/başarı + hafta ilerler. */
+/**
+ * M11.2 — Bir turnuvayı OFFLINE (çizelgeye göre) otomatik oynatır. İnsan önceden verdiği
+ * taktikle oynar (bot gibi, sabit); AI'lar kendi stilleriyle. Saha = insan + kategorideki
+ * AI havuzu. Combat sunucuda tek-atış `simulateTournament` ile; sonuç + ortak Quarter
+ * Ranking canlı yolla AYNI `finalizeTournament`'a yazılır (tek kaynak, GDD 5.36).
+ *
+ * Not: bu offline yol sonucu tek-atış üretir (dakika-bazlı canlı çizelge M11.3'te replay
+ * için kullanılacak); sonuç deterministik (seed) ve canlı yolla aynı kategoriyi paylaşır.
+ */
+async function autoResolveTournament(
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
+  human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
+  level: TournamentLevel,
+  tactic: Tactic,
+): Promise<void> {
+  const quarter = quarterOf(gs.dayIndex);
+  const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+
+  const aiPlayers = await prisma.player.findMany({
+    where: { isAI: true, gender: human.gender, weapon: human.weapon },
+    include: { skills: true },
+    take: AI_COUNT,
+  });
+
+  const humanConditionBonus =
+    psychologyCombatModifier(psychologyOf(human)) +
+    traitCombatModifier(parseTraits(human.traits)) +
+    equipmentCombatModifier(human.equipmentLevel);
+
+  const toCombatant = (
+    p: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      weapon: string;
+      sharpness: number;
+      fatigue: number;
+      birthDate: Date;
+      adultHeightCm: number;
+      reachBiasCm: number;
+      buildFactor: number;
+      leftHanded: boolean;
+      traits: string;
+      skills: SkillRow[];
+    },
+    isHuman: boolean,
+  ): Combatant => {
+    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
+    const traits = parseTraits(p.traits);
+    return {
+      id: p.id,
+      name: `${p.firstName} ${p.lastName}`,
+      weapon: p.weapon as Weapon,
+      skills: rowsToSkills(p.skills),
+      fatigue: p.fatigue,
+      sharpness: p.sharpness,
+      conditionBonus: isHuman ? humanConditionBonus : undefined,
+      physical: {
+        reachCm: ph.reachCm,
+        legLengthCm: ph.legLengthCm,
+        buildFactor: p.buildFactor,
+        leftHanded: p.leftHanded,
+      },
+      ageCategory: base.ageCategory as AgeCategory,
+      tactic: isHuman ? tactic : tacticFromTraits(traits),
+      traits,
+    };
+  };
+
+  const field: Combatant[] = [toCombatant(human, true), ...aiPlayers.map((p) => toCombatant(p, false))];
+  if (field.length < 2) return; // yeterli rakip yok → sessizce geç (dünya yine ilerler)
+
+  const dateKey = gs.currentDate.toISOString().slice(0, 10);
+  const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
+  const de = deFormat(base.ageCategory);
+  const outcome = simulateTournament(field, createRng(`${seedKey}:auto`), {
+    poolSize: POOL_SIZE,
+    poolTouches: MATCH_FORMATS.POOL,
+    deTouches: de.touches,
+  });
+
+  await finalizeTournament(gs, human, level, base, outcome, seedKey);
+}
+
 async function finalizeTournament(
   gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
