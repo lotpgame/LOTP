@@ -187,12 +187,18 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
 
 > **DAKİKA-BAZLI ZAMAN ÇİZELGESİ + PERİYOT TAKTİK KAYNAĞI KİLİTLENDİ (oyun sahibi, 2026-09-20):**
 > Turnuva deterministik bir zaman çizgisidir; her maçın kesin [başlangıç–bitiş] dilimi vardır (sunucu
-> gün-dakikasından çözer). **Periyot = 3 dk; periyot arası = 30 sn** (taktik değişim penceresi).
+> gün-dakikasından çözer). **Periyot = 3 dk; periyot arası = 1 dk** (FIE-doğru + taktik değişim penceresi).
 > **Pul:** 11:00 başlar; oyuncunun maçları SIRALI (11:05 m1 → 1 dk ara → m2 …); 5 tuş ~3 dk, tuşa erken
-> ulaşınca erken biter. **Eleme:** 14:00; 15 tuş = 3 periyot = 3×3dk + 2×30sn ≈ **10 dk**, 10 tuş (U10) =
-> 2 periyot ≈ **6,5 dk**; erken cap → erken biter AMA sonraki tur kendi saatinde/sabit arayla (1-2 dk)
+> ulaşınca erken biter. **Eleme:** 14:00; 15 tuş = 3 periyot = 3×3dk + 2×1dk ≈ **11 dk**, 10 tuş (U10) =
+> 2 periyot ≈ **7 dk**; erken cap → erken biter AMA sonraki tur kendi saatinde/sabit arayla (1-2 dk)
 > başlar. **Yarı+Final:** 17:00. Saatler gün-içi "oyun-dakikası";
 > dünya saati gerçek zamana çevirir (üretim gerçek saat, dev sıkışık).
+>
+> **FIE DENETİMİ (oyun sahibi onayı, 2026-09-20):** Format FIE'ye karşı kontrol edildi.
+> ✅ Uyumlu: periyot 3 dk, eleme 15 tuş/3 periyot, pul 5 tuş/~3 dk, U10 kısa format, periyot arası **1 dk**.
+> ⚠️ Basitleştirme (bilinçli): beraberlikte "altın tuş = ilk tuş kazanır". FIE aslında **1 dk ek süre +
+> kurayla çekilen öncelik** (tuş olmazsa öncelikli kazanır). V1'de sade tutuldu; öncelik modeli sonraya not.
+> ⚠️ Sunum: pul maçları gerçekte paralel pistlerde; oyun akışı için sıralı gösteriyoruz (kural ihlali değil).
 >
 > **Periyot taktiğinin kaynağı her taraf için bağımsız** (AI/offline/online tek mekanizma):
 > AI → stili; **offline insan → önceden verdiği/varsayılan taktik (bot gibi, sabit)**; **online insan →
