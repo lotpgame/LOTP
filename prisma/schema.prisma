@@ -39,9 +39,11 @@ model Season {
 /// (Player.userId null). Başta çerez tabanlı anonim (token); e-posta/şifre girişi M9.2'de eklenir.
 model User {
   id           Int      @id @default(autoincrement())
-  token        String   @unique // çerezde tutulan gizli kimlik (anonim hesap)
-  email        String?  @unique // M9.2: kalıcı giriş
-  passwordHash String? // M9.2
+  token        String   @unique // çerezde tutulan gizli kimlik (anonim hesap / oturum)
+  phone        String?  @unique // M9.2: telefon tabanlı hesap (E.164, ülke koduyla). Ülke buradan.
+  phoneVerifiedAt DateTime? // OTP doğrulama zamanı (gerçek SMS yayına alırken; şimdilik dev)
+  email        String?  @unique // ileride e-posta seçeneği
+  passwordHash String?
   createdAt    DateTime @default(now())
 
   player    Player? // sahip olduğu insan oyuncu

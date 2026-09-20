@@ -6,6 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
+import { parsePhone } from "@/engine/geo";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -350,6 +351,39 @@ async function currentGameState() {
   const uid = await currentUserId();
   if (uid == null) return null;
   return prisma.gameState.findUnique({ where: { userId: uid } });
+}
+
+const USER_COOKIE_OPTS = { path: "/", maxAge: 60 * 60 * 24 * 365 * 5, httpOnly: true, sameSite: "lax" as const };
+
+/**
+ * Telefonla giriş (M9.2). NOT: OTP/SMS doğrulaması yok — bu geliştirme adımı; gerçek SMS yayına
+ * alırken eklenir (bkz. ROADMAP M9.3). Telefon = kimlik: kayıtlıysa o hesaba giriş; boştaysa mevcut
+ * (anonim) kariyeri o telefona bağlar; hiç kullanıcı yoksa yeni hesap açar. Ülke telefon kodundan.
+ */
+export async function signInWithPhone(rawPhone: string): Promise<{ ok: boolean; reason?: "format" | "unsupported"; linked?: boolean }> {
+  const r = parsePhone(rawPhone);
+  if (!r.ok) return { ok: false, reason: r.reason };
+  const jar = await cookies();
+  const existing = await prisma.user.findUnique({ where: { phone: r.phone }, select: { id: true, token: true } });
+  if (existing) {
+    jar.set(USER_COOKIE, existing.token, USER_COOKIE_OPTS); // bu telefonun hesabına giriş
+    return { ok: true, linked: false };
+  }
+  const curUid = await currentUserId();
+  if (curUid != null) {
+    // Boştaki telefonu mevcut (anonim) kullanıcıya bağla → kariyer korunur, başka cihazdan girilebilir.
+    await prisma.user.update({ where: { id: curUid }, data: { phone: r.phone, phoneVerifiedAt: new Date() } });
+    return { ok: true, linked: true };
+  }
+  const token = globalThis.crypto.randomUUID();
+  jar.set(USER_COOKIE, token, USER_COOKIE_OPTS);
+  await prisma.user.create({ data: { token, phone: r.phone, phoneVerifiedAt: new Date() } });
+  return { ok: true, linked: false };
+}
+
+/** Oturumu kapatır (çerezi siler). Hesap/veri silinmez; tekrar telefonla girilebilir. */
+export async function signOut(): Promise<void> {
+  (await cookies()).set(USER_COOKIE, "", { path: "/", maxAge: 0 });
 }
 
 /**

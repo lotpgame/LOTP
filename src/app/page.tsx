@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createCareerAction, setLocaleAction } from "@/app/actions";
 import { GENDERS, PROFILES, TR_CITIES, WEAPONS } from "@/engine/domain";
@@ -39,6 +40,13 @@ export default async function Home() {
           ))}
         </div>
       </div>
+
+      <Link
+        href="/giris"
+        className="mt-4 block rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2.5 text-center text-sm font-medium text-emerald-700 transition hover:bg-emerald-500/10 dark:text-emerald-300"
+      >
+        {t(locale, "giris.haveAccount")}
+      </Link>
 
       <form action={createCareerAction} className="mt-8 space-y-5">
         <div className="grid grid-cols-2 gap-4">

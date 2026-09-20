@@ -22,6 +22,8 @@ import {
   playLiveMatch,
   resetCareer,
   setTrainingPlan,
+  signInWithPhone,
+  signOut,
   upgradeEquipment,
 } from "@/server/careerService";
 
@@ -98,6 +100,21 @@ export async function getCategoryRankingAction(categoryId: string) {
 
 export async function resetCareerAction(): Promise<void> {
   await resetCareer();
+  redirect("/");
+}
+
+/** Telefonla giriş (M9.2). Sonucu döndürür → istemci hatayı gösterir / başarıda yönlendirir. */
+export async function signInWithPhoneAction(
+  phone: string,
+): Promise<{ ok: boolean; reason?: "format" | "unsupported"; linked?: boolean }> {
+  const res = await signInWithPhone(phone);
+  if (res.ok) revalidatePath("/", "layout");
+  return res;
+}
+
+/** Oturumu kapatır. */
+export async function signOutAction(): Promise<void> {
+  await signOut();
   redirect("/");
 }
 

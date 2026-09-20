@@ -245,7 +245,10 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 **V2 — Çok Oyunculu / Ortak Dünya · ASENKRON (asıl hedef, bkz. §B2):**
 - [~] **M9** — Kimlik + kalıcı DB ← DEVAM EDİYOR
   - [x] **M9.1** — User + çerez hesabı + `Player.userId`/`GameState.userId`; loadState/create/reset kullanıcı-bazlı; AI havuzu ortak (SQLite)
-  - [ ] **M9.2** — Gerçek giriş (e-posta/şifre; anonim kariyeri hesaba bağla)
+  - [x] **M9.2a** — Coğrafya modeli (telefon ülke kodu → ülke → sınırlı şehir listesi; `parsePhone`)
+  - [x] **M9.2b** — Telefonla giriş (`/giris`, `User.phone`); anonim kariyeri telefona bağlama; **OTP yok (dev)**
+  - [ ] **M9.2c** — Oluşturma ekranında ülke telefondan otomatik + şehir o ülkeden (çoklu ülke gelince)
+  - [ ] **M9.2d** — Gerçek OTP/SMS (yayına alırken; SMS servisi kullanıcı hesabı gerektirir)
   - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma
 - [ ] **M10** — Ortak dünya + sunucu saati (`World` singleton, "İlerle" kalkar, kayıt + önceden taktik)
 - [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
