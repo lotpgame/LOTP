@@ -320,7 +320,7 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [~] **M11** — Ortak turnuva simülasyonu + klasman (sunucu çizelgeye göre oynatır → replay + ortak klasman) ← DEVAM EDİYOR
   - [x] **M11.1** — Zaman çizelgesi motoru (saf): `src/engine/schedule/` — dakika-bazlı çizelge, periyot + taktik pencereleri, FIE-uyumlu sabitler. 12 test.
   - [x] **M11.2** — Çizelgeli offline otomatik oynatma + ortak Quarter Ranking: `autoResolveTournament` (insan önceden-taktik, AI stil) → `finalizeTournament`; `advanceDay` geçmiş+kayıtlı turnuvaları otomatik çözer, canlı "Katıl" yalnız bugün. Tarayıcıda doğrulandı.
-  - [ ] **M11.3a** — Birleşik periyot motoru + taktik kaynağı: offline çözümü de periyot-bazlı olur (maç logu periyot kırılımı + event'ler); tek mekanizma (AI=stil, offline=önceden/default, online=canlı)
+  - [x] **M11.3a** — Birleşik periyot motoru + taktik kaynağı: `simulateBoutByPeriods` (saf); offline çözüm periyot-bazlı (log periyot kırılımlı + event'ler); `simulateTournament` `byPeriods` opsiyonu. 5 test. Tarayıcıda doğrulandı.
   - [ ] **M11.3b** — Ortak turnuva örneği: gruplama (İl=ülke+şehir, Türkiye=ülke, uluslararası=bölge) + tek Tournament satırı (dedup) + saha = kayıtlı gerçek oyuncular + AI dolgu; uluslararası U17+; kayıt gün-00:00 kapanır
   - [ ] **M11.4** — "Yokken neler oldu" özeti (offline oyuncu geçmiş turnuvayı sonuç + event'leriyle görür)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)

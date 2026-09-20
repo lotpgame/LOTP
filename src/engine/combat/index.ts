@@ -496,3 +496,111 @@ export function simulateLaBelle(
 
   return { log, scoreA, scoreB, winnerId: winnerIsA ? a.id : b.id };
 }
+
+/** Bir periyodun taktiğini veren kaynak (M11.3): periyot no → taktik. AI=stil, offline=önceden/default, online=kayıt. */
+export type PeriodTactic = (periodNo: number) => Tactic;
+
+export interface BoutByPeriodsOpts {
+  touches: number; // maç hedefi (15 / 10)
+  periods: number; // periyot sayısı (3 / 2)
+  tacticA?: PeriodTactic; // periyot başına A taktiği (yoksa a.tactic / BALANCED sabit)
+  tacticB?: PeriodTactic;
+  locale?: Locale;
+}
+
+/**
+ * Bir bout'u PERİYOT PERİYOT çözer — pür sürüm (offline otomatik oynatma, AI-vs-AI ve replay için).
+ * Canlı insan maçı `playLiveMatch` içinde interaktif kalır (periyot başına HTTP çağrısı). Buradaki tek
+ * mekanizma (M11.3): her periyot öncesi her tarafın taktiği KAYNAĞINDAN gelir (AI=stil, offline=önceden/
+ * default, online-replay=kaydı). Süre dolunca yüksek skor kazanır; son periyotta eşitse altın tuş (la belle).
+ * Log periyot başlıklı + tuş-tuş — offline oyuncu maç-içi event'leri görebilsin (ROADMAP §B2/M11).
+ */
+export function simulateBoutByPeriods(
+  a: Combatant,
+  b: Combatant,
+  rng: SeededRng,
+  opts: BoutByPeriodsOpts,
+): MatchResult {
+  const { touches, periods, locale = "tr" } = opts;
+  const tacticA = opts.tacticA ?? (() => a.tactic ?? "BALANCED");
+  const tacticB = opts.tacticB ?? (() => b.tactic ?? "BALANCED");
+
+  const log: string[] = [];
+  let scoreA = 0;
+  let scoreB = 0;
+  let clock = 0;
+  let decided = false;
+  let winnerId: number | undefined;
+
+  for (let periodNo = 1; periodNo <= periods && !decided; periodNo++) {
+    const ta = tacticA(periodNo);
+    const tb = tacticB(periodNo);
+    const pa: Combatant = { ...a, tactic: ta };
+    const pb: Combatant = { ...b, tactic: tb };
+    // U10: 1. periyot 5 tuşta biter (FIE gençler); diğerlerinde tavan = maç hedefi.
+    const periodCap = touches === 10 && periodNo === 1 ? 5 : touches;
+    const pr = simulatePeriod(pa, pb, createRng(`${rng.seed}:p${periodNo}`), {
+      target: touches,
+      startA: scoreA,
+      startB: scoreB,
+      startClockSec: clock,
+      periodEndSec: periodNo * PERIOD_SECONDS,
+      includeHeader: periodNo === 1,
+      periodCap,
+      locale,
+    });
+    if (periodNo === 1 && pr.log.length > 0) log.push(pr.log[0]); // "Maç gücü …" satırı
+    log.push(
+      locale === "en"
+        ? `▸ Period ${periodNo} — ${a.name}: ${t(locale, `tactic.${ta}`)}, ${b.name}: ${t(locale, `tactic.${tb}`)}`
+        : `▸ ${periodNo}. Periyot — ${a.name}: ${t(locale, `tactic.${ta}`)}, ${b.name}: ${t(locale, `tactic.${tb}`)}`,
+    );
+    log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
+    scoreA = pr.scoreA;
+    scoreB = pr.scoreB;
+    clock = pr.clockSec;
+    decided = pr.decided;
+    winnerId = pr.winnerId;
+
+    if (!decided && periodNo >= periods) {
+      // Süre bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (öncelikli, FIE).
+      if (scoreA !== scoreB) {
+        winnerId = scoreA > scoreB ? a.id : b.id;
+        const wname = winnerId === a.id ? a.name : b.name;
+        log.push(
+          locale === "en"
+            ? `⏱ Time up — ${wname} finished ahead ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`
+            : `⏱ Süre doldu — ${wname} ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} önde bitirdi.`,
+        );
+      } else {
+        const lb = simulateLaBelle(a, b, createRng(`${rng.seed}:belle`), { startA: scoreA, startB: scoreB, locale });
+        log.push(...lb.log);
+        scoreA = lb.scoreA;
+        scoreB = lb.scoreB;
+        winnerId = lb.winnerId;
+      }
+      decided = true;
+    }
+  }
+
+  const winIsA = winnerId === a.id;
+  const wname = winIsA ? a.name : b.name;
+  log.push(
+    locale === "en"
+      ? `🏁 ${wname} won the match ${winIsA ? scoreA : scoreB}-${winIsA ? scoreB : scoreA}.`
+      : `🏁 ${wname} maçı ${winIsA ? scoreA : scoreB}-${winIsA ? scoreB : scoreA} kazandı.`,
+  );
+
+  const m = buildMatchup(a, b); // analiz satırı için (nötr)
+  return {
+    aId: a.id,
+    bId: b.id,
+    scoreA,
+    scoreB,
+    winnerId: winnerId!,
+    loserId: winnerId === a.id ? b.id : a.id,
+    log,
+    fatigueGain: Math.max(2, Math.round(touches * 0.45)),
+    analysis: { effA: m.esA.total, effB: m.esB.total, winProbA: m.baseP, modsA: m.esA.modifiers, modsB: m.esB.modifiers },
+  };
+}

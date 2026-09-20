@@ -16,6 +16,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.3a — Birleşik periyot motoru + taktik kaynağı:** `simulateBoutByPeriods` (saf, combat) — bir maçı
+  **periyot periyot** çözer; her periyot öncesi her tarafın taktiği kaynağından gelir (AI=stil, offline=
+  önceden/default, online=canlı). Süre bitince yüksek skor, son periyotta eşitse altın tuş. Offline otomatik
+  oynatma (`autoResolveTournament`) artık eleme maçlarını periyot-bazlı çözer → maç logu **periyot kırılımlı**
+  (offline oyuncu maç-içi event'leri görür). `simulateTournament`'a `byPeriods` opsiyonu. 5 yeni test.
+  (Tarayıcıda doğrulandı: offline turnuvanın eleme maçında "1./2./3. Periyot — sen: Defansif, rakip: …".)
 - **M11.2 — Çizelgeli offline otomatik oynatma + ortak klasman:** Kayıtlı bir turnuvanın günü, sen
   offline'ken (dünya saati o günü geçtiyse) sunucu turnuvayı **otomatik oynatır**: sen **önceden verdiğin
   taktikle** (bot gibi), AI'lar kendi stilleriyle; saha = sen + kategorindeki AI havuzu. Combat sunucuda,

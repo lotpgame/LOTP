@@ -2596,10 +2596,12 @@ async function autoResolveTournament(
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
   const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
   const de = deFormat(base.ageCategory);
+  const locale = await getLocale();
   const outcome = simulateTournament(field, createRng(`${seedKey}:auto`), {
     poolSize: POOL_SIZE,
     poolTouches: MATCH_FORMATS.POOL,
     deTouches: de.touches,
+    byPeriods: { periods: de.periods, locale }, // M11.3a: eleme maçları periyot kırılımlı loglanır
   });
 
   await finalizeTournament(gs, human, level, base, outcome, seedKey);

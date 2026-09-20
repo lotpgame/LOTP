@@ -9,8 +9,9 @@
  * ve bye sistemiyle tutarlı olması için: havuzdan kesme YOK, eleme tablosu = katılımcıdan
  * büyük/eşit en küçük 2'nin kuvveti; fazlalık üst seed'lere bye olur (GDD 17.62).
  */
-import type { SeededRng } from "../probability";
-import { MATCH_FORMATS, simulateMatch, type Combatant, type MatchResult } from "../combat";
+import { createRng, type SeededRng } from "../probability";
+import { MATCH_FORMATS, simulateBoutByPeriods, simulateMatch, type Combatant, type MatchResult } from "../combat";
+import type { Locale } from "@/i18n";
 
 const DEFAULT_POOL_SIZE = 6;
 
@@ -110,11 +111,18 @@ export function roundLabel(size: number): string {
 export function simulateTournament(
   participants: readonly Combatant[],
   rng: SeededRng,
-  opts: { poolSize?: number; poolTouches?: number; deTouches?: number } = {},
+  opts: {
+    poolSize?: number;
+    poolTouches?: number;
+    deTouches?: number;
+    /** M11.3a: verilirse eleme maçları PERİYOT-BAZLI çözülür (periyot kırılımlı log). Offline yol kullanır. */
+    byPeriods?: { periods: number; locale?: Locale };
+  } = {},
 ): TournamentOutcome {
   const poolSize = opts.poolSize ?? DEFAULT_POOL_SIZE;
   const poolTouches = opts.poolTouches ?? MATCH_FORMATS.POOL;
   const deTouches = opts.deTouches ?? MATCH_FORMATS.DE;
+  const byPeriods = opts.byPeriods;
 
   const fatigue: Record<number, number> = {};
   for (const p of participants) fatigue[p.id] = p.fatigue;
@@ -222,7 +230,16 @@ export function simulateTournament(
       }
       const a = { ...byId.get(x)!, fatigue: fatigue[x] };
       const b = { ...byId.get(y)!, fatigue: fatigue[y] };
-      const r = simulateMatch(a, b, rng, deTouches);
+      // Offline yol (byPeriods): eleme maçı periyot-bazlı çözülür; her maça benzersiz seed
+      // (rng.seed + oyuncular) — paylaşılan rng periyot alt-tohumlarını tekrar etmesin.
+      const r = byPeriods
+        ? simulateBoutByPeriods(
+            a,
+            b,
+            createRng(`${rng.seed}:de:${label}:${Math.min(x, y)}-${Math.max(x, y)}`),
+            { touches: deTouches, periods: byPeriods.periods, locale: byPeriods.locale },
+          )
+        : simulateMatch(a, b, rng, deTouches);
       matches.push({ ...r, phase: "DE", round: label, aName: a.name, bName: b.name });
       fatigue[x] += r.fatigueGain;
       fatigue[y] += r.fatigueGain;
