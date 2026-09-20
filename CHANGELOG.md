@@ -17,11 +17,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   **veya Dinlenme** koyabilirsin. Turnuva günü seçtiğin seans yalnız o turnuvaya **katılmazsan** uygulanır
   (skip-day artık plana bağlı — "hangi antrenman" belirsizliği bitti). Her gün ağır antrenman → yorgunluk
   + sakatlık riski birikir → araya dinlenme koymaya zorlar (risk/ödül).
-- **V2 yol haritası — Çok Oyunculu / Ortak Dünya (asıl hedef):** `docs/ROADMAP.md`'ye §B2 olarak
-  eklendi — vizyon (tüm dünyadaki eskrimciler tek paylaşılan dünyada) + aşamalar **M9** (hesaplar +
-  kişisel kayıt, Postgres'e geçiş, `ownerId` izolasyonu), **M10** (ortak dünya + sunucu saati,
-  paylaşılan turnuvalar), **M11** (ölçek & servis). Ayrıca "tek-kişilik cilada yalnız ortak dünyaya
-  **taşınacak** kısımları derinleştir" yönü (oyuncu-güdümlü saate az yatırım).
+- **V2 yol haritası — Çok Oyunculu / Ortak Dünya (asıl hedef):** `docs/ROADMAP.md` §B2. **Model kararı
+  (2026-09-20): ASENKRON ortak dünya (Hattrick)** — Ali/Mehmet/Jack tek dünyada, aynı turnuva/klasmanda;
+  turnuvaya önceden kaydol + taktiği önceden ver → sunucu oynatır (offline olsan bile) → kendi maçlarını
+  replay izlersin; AI/turnuva/klasman ORTAK. "Haftayı İlerle" kalkar, taktik önceden verilir. Revize
+  aşamalar: **M9** kimlik + kalıcı DB (User + `Player.userId`, AI ortak; Postgres) → **M10** `World`
+  singleton + sunucu saati + kayıt/önceden-taktik → **M11** ortak turnuva simülasyonu + klasman (replay)
+  → **M12** ölçek & servis.
 - **Alt sekme çubuklu turnuva ekranı (yazı, ikonsuz):** Turnuva tek sayfada, altta **sekme çubuğuyla**
   gezilir: **Pul kağıdı · Pul maçları · Klasman · Elemeler · Sonuç**. Sekmeler **turnuva ilerledikçe
   açılır** (kilitli başlar; kilitliye tıklanınca "Bu bölüm henüz açılmadı"). Aktif/oynanacak bölüm

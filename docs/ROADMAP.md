@@ -134,32 +134,45 @@ arayüz, denge. **Çöpe gidecek / az yatırım yapılacak:** **oyuncu-güdüml�
 saati** (ortak dünyada zamanı sunucu ilerletir), tek-global-kayıt varsayımı. Yeni mekanik
 eklerken sorulacak soru: *"Bu ortak dünyada nasıl çalışır?"*
 
-### M9 — Hesaplar + Kişisel Kayıt (Postgres'e geçiş)
-Tek sunucu, çok kullanıcı; **herkes kendi kariyerini** oynar (rakipler hâlâ AI). Ortak
-dünyanın zorunlu temeli; bittiğinde telefonlarda **çok-kullanıcılı test** de mümkün olur.
-- **Auth:** kayıt / giriş / oturum (güvenli; sırlar `.env`).
-- **Veri sahipliği:** her kullanıcı bir insan Player'a sahip; `GameState` ve kariyer verisi
-  **kullanıcı-bazlı** (`ownerId`). Bugün her sorgu `findFirst()` ile tek global kaydı okuyor
-  → tüm erişim `ownerId`'ye göre izole edilir (bir kullanıcının verisi diğerine sızmaz).
-- **DB:** SQLite → **PostgreSQL** (Prisma provider + adapter; migration; A.12 zaten uyumlu).
-- **Bitti:** iki farklı hesap aynı sunucuda **birbirini bozmadan** ayrı kariyer oynar; veri
-  izolasyonu testte kanıtlı; Postgres'te build+lint+test yeşil.
+> **Model kararı (oyun sahibi, 2026-09-20): ASENKRON ortak dünya (Hattrick modeli).**
+> Ali (İstanbul), Mehmet (Ankara), Jack (ABD) **tek dünyada**, **aynı** turnuvalarda, **aynı**
+> klasmanda. Farklı saat dilimleri aynı anda online olamayacağı için: turnuvaya **önceden kaydol +
+> taktiğini önceden ver** → **dünya saati gelince SUNUCU turnuvayı** tüm kayıtlı gerçek oyuncular +
+> AI ile oynatır (sen offline olsan bile) → sonra girip **kendi maçlarını REPLAY** izlersin, ortak
+> sonucu/klasmanı görürsün. **AI havuzu ORTAK, turnuvalar ORTAK, klasman ORTAK.** Sonuç:
+> **"Haftayı İlerle" kalkar** (zamanı sunucu ilerletir); **taktik canlı değil, önceden** verilir;
+> "canlı izle" → **replay** olur. Kritik hesap yine sunucuda (hile önleme), seed'ler saklanır.
 
-### M10 — Ortak Dünya + Sunucu Saati (asıl multiplayer)
-Tasarımı en ağır aşama: zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner.
-- **Merkezi saat:** dünya saatini **sunucu** ilerletir (zamanlanmış iş / cron); oyuncu offline
-  iken dünya akar (Hattrick modeli, GDD 2.18/2.27). "İlerle" butonu kalkar / anlamı değişir.
-- **Paylaşılan turnuvalar:** gerçek oyuncular **+ AI** aynı sahada; kayıt dönemi + matchmaking;
-  aynı kategorideki insanlar birbiriyle eşleşir.
-- **Ortak ranking/klasman:** gerçek oyuncular arası; milli takım/uluslararası davet ortak havuzdan.
-- **Özet/bildirim:** oyuncu girince "yokken neler oldu" özeti (maçlar, ranking, davet).
-- **Bitti:** iki gerçek oyuncu aynı turnuvada eşleşip maç yapabiliyor; dünya saati onlar
-  offline iken ilerliyor; ortak ranking güncelleniyor.
+### M9 — Kimlik + Kalıcı DB (temel)
+Kim kimdir + veri sahipliği. İnsan verisi kullanıcıya bağlı; **dünya (AI + turnuva + klasman) ORTAK.**
+- **Hesap:** önce çerez/anonim (her cihaz bir kullanıcı — hızlı test), sonra e-posta/şifre girişi
+  (anonim kariyeri hesaba bağla). Güvenli; sırlar `.env`.
+- **Veri sahipliği:** `User` modeli; `Player.userId` (insan = kullanıcıya bağlı, **AI = ortak/`null`**).
+  İnsan kariyer verisi kullanıcı-bazlı; bugünkü `findFirst()` (tek global kayıt) → kullanıcıya göre çözülür.
+- **DB:** SQLite → **PostgreSQL** (Prisma provider + adapter; A.12 uyumlu). Kod SQLite'ta yazılıp
+  test edilir, Postgres'e geçiş sona bırakılır (kod için altyapı gerekmez).
+- **Bitti:** iki hesap aynı sunucuda ayrı insan oyuncu olarak var; veri izolasyonu testte kanıtlı.
 
-### M11 — Ölçek & Servis (canlı servise hazırlık)
-- Arka plan işleri (haftalık dünya simülasyonu) + kuyruk; idempotent tik (GDD 6.42).
-- Yedek/geri yükleme, izleme/log, oran sınırlama, kötüye kullanım/moderasyon.
-- Hosting: kalıcı DB + always-on sunucu + cron; dağıtım (deploy) hattı; maliyet/ölçek planı.
+### M10 — Ortak Dünya + Sunucu Saati
+Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağır tasarım).
+- **Tek dünya takvimi:** `World` (singleton) — dünya günü/saati; herkes içinde. `GameState`'in
+  per-kariyer saati buraya taşınır. Per-kullanıcı kalan: kayıtlar, önceden-taktik, izlenmemiş sonuçlar.
+- **Merkezi saat:** dünya zamanını **sunucu** ilerletir (zamanlanmış iş / cron); offline ilerleme
+  (Hattrick, GDD 2.18/2.27). **"İlerle" butonu kalkar.** Tik **idempotent** (aynı gün iki kez işlenmez).
+- **Kayıt + önceden taktik:** oyuncu turnuvalara kaydolur ve taktiğini önceden verir (offline oynanacağı için).
+- **Bitti:** dünya saati oyuncular offline iken ilerliyor; kayıt + önceden-taktik akışı çalışıyor.
+
+### M11 — Ortak Turnuva Simülasyonu + Klasman (asıl multiplayer)
+- **Sunucu turnuvayı oynatır:** dünya saati gelince, o turnuvaya kayıtlı **tüm gerçek oyuncular + AI**
+  tek pul/eleme sahasında; combat sunucuda; ortak sonuç + ortak Quarter Ranking. (Combat/turnuva
+  motoru zaten hazır — çok-insanlı alana genişletilir.)
+- **Replay:** her oyuncu girince **kendi maçlarını** izler (mevcut "canlı izle" tech → replay);
+  "yokken neler oldu" özeti (maçlar, klasman, davet).
+- **Bitti:** iki gerçek oyuncu aynı turnuvada gerçekten eşleşip sonuç/klasman paylaşıyor.
+
+### M12 — Ölçek & Servis (canlı servise hazırlık)
+- Arka plan işleri + kuyruk; yedek/geri yükleme, izleme/log, oran sınırlama, moderasyon.
+- Hosting: kalıcı DB + always-on sunucu + cron; deploy hattı; maliyet/ölçek planı.
 - **Bitti:** çok sayıda hesapla stabil; dünya tiki otomatik; yedek + izleme çalışır.
 
 ### Sonra (Future — ortak dünyadan sonra)
@@ -229,10 +242,11 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 > 🎉 **V1 TAMAMLANDI (2026-09-13, sürüm 1.0.0):** uçtan uca çalışan kariyer döngüsü. Sonraki
 > derinlik maddeleri §G backlog'da.
 
-**V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, bkz. §B2):**
-- [ ] **M9** — Hesaplar + kişisel kayıt (Postgres'e geçiş, `ownerId` izolasyonu)
-- [ ] **M10** — Ortak dünya + sunucu saati (paylaşılan turnuvalar, gerçek oyuncu eşleşmesi)
-- [ ] **M11** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
+**V2 — Çok Oyunculu / Ortak Dünya · ASENKRON (asıl hedef, bkz. §B2):**
+- [ ] **M9** — Kimlik + kalıcı DB (User + `Player.userId`, AI ortak; Postgres'e geçiş) ← SIRADAKİ
+- [ ] **M10** — Ortak dünya + sunucu saati (`World` singleton, "İlerle" kalkar, kayıt + önceden taktik)
+- [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
+- [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
 
 > Not: V2'ye geçmeden tek-kişilik çekirdeği cilalarken **yalnız ortak dünyaya taşınacak**
 > kısımlar derinleştirilir (§B2 "yön" notu). Bir aşama tamamlandığında burada işaretlenir ve
