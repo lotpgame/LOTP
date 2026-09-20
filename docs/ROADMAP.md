@@ -237,9 +237,10 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
 ### Gerçekçilik (combat) — durum
 YAPILDI (2026-09-20): AI'lara da Form; tüm psikoloji maça yansır; **günün hâli** (daily mood, herkeste);
 **veteran gerilemesi** (~30 sonrası, `ageCombatModifier`); **gün-bazlı sakatlık** (çoğu 1–2 gün).
-**SIRADAKİ BÜYÜK GERÇEKÇİLİK = #5 Öncelik/Hak-yolu (right-of-way)** — flöre/kılıçta öncelik + epe çift-tuş +
-aksiyon niyeti (hücum/parat-riposte/kontra) + silaha özel çözümleme. Karar (oyun sahibi 2026-09-20):
-**deploy'dan SONRA ilk V2 özelliği** (silahları gerçekten ayıran hamle; büyük iş). Deploy önce.
+**#5 ÖNCELİK/HAK-YOLU YAPILDI (2026-09-20, oyun sahibi launch-öncesi istedi):** `combat/priority.ts` —
+niyet (hücum/parat-riposte/kontra) + öncelik; ana etmen **mesafe+zamanlama**; epe çift-tuş, flöre/kılıç
+eşzamanlı hücum iptal, kılıç hücum baskın; katı üçgen değil (yetenek belirler). Taktikler: Baskı kur/Dengeli/
+Bekle&karşıla. Denge korundu. NOT: playtest ile katsayı ince ayarı yapılabilir (priority.ts başındaki sabitler).
 
 ### Sonra (Future — ortak dünyadan sonra)
 Öncelik/hak-yolu (#5, ilk V2), Olimpiyat, üçüncülük maçı, kart/hakem sistemi, scouting, medya,

@@ -97,12 +97,12 @@ const TR: Dict = {
   "training.TACTICAL": "Taktik Çalışma",
   "training.REST": "Dinlenme",
   // Taktikler
-  "tactic.OFFENSIVE": "Ofansif",
+  "tactic.OFFENSIVE": "Baskı kur",
   "tactic.BALANCED": "Dengeli",
-  "tactic.DEFENSIVE": "Defansif",
-  "tacticDesc.OFFENSIVE": "Daha çok saldır, baskı kur — sayı bulursun ama açık da verirsin (risk ↑).",
-  "tacticDesc.BALANCED": "Dengeli oyna — ne aşırı risk ne aşırı temkin.",
-  "tacticDesc.DEFENSIVE": "Mesafeyi koru, rakibi bekle — az risk; ama fazla pasiflik tempo kaybettirir.",
+  "tactic.DEFENSIVE": "Bekle & karşıla",
+  "tacticDesc.OFFENSIVE": "Sık atağa çık, inisiyatifi al — sayı bulursun ama parat-riposte'a açık verirsin (risk ↑).",
+  "tacticDesc.BALANCED": "Duruma göre oyna — bazen atağa çık, bazen bekle.",
+  "tacticDesc.DEFENSIVE": "Atağa davet et, parat-riposte ve kontra ile karşıla — az risk; ama aceleci olmayan rakibe tempo verir.",
   // Yetenekler
   "skill.attack": "Atak",
   "skill.defense": "Savunma",

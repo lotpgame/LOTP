@@ -44,11 +44,12 @@ describe("Combat Engine", () => {
 
   it("her tuş için anlatım satırı üretir (15 tuşluk elemede detay)", () => {
     const r = simulateMatch(combatant(1, "A", 65), combatant(2, "B", 65), createRng("narr"), MATCH_FORMATS.DE);
-    // Toplam tuş = kazanan(15) + kaybeden skoru. Her tuş bir satır + kapanış satırı.
+    // Öncelik motoru (#5): çift-tuş (epe) ve iptal turları yüzünden satır sayısı tuş sayısıyla birebir
+    // eşit değildir; ama tuş-tuş DETAY üretilmeli (düz özet değil).
     const totalTouches = r.scoreA + r.scoreB;
-    const touchLines = r.log.filter((l) => /\d+–\d+/.test(l)); // "3–2" içeren tuş satırları
-    // Son tuş kapanış satırıyla anlatılır → tuş satırı sayısı = toplam tuş − 1.
-    expect(touchLines.length).toBe(totalTouches - 1);
+    const touchLines = r.log.filter((l) => /\d+–\d+/.test(l)); // "3–2" içeren tuş/çift-tuş satırları
+    expect(touchLines.length).toBeGreaterThan(10);
+    expect(touchLines.length).toBeLessThanOrEqual(totalTouches);
     expect(r.log[r.log.length - 1]).toContain("kazandı");
     expect(r.log.length).toBeGreaterThan(15); // düz özet değil, tuş-tuş detay
   });

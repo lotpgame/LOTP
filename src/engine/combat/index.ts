@@ -22,6 +22,13 @@ import type { TraitKey } from "../trait";
 import { physiqueCombatEdge, type PhysicalProfile } from "../physique";
 import { t, type Locale } from "@/i18n";
 import { tacticChaos, tacticStrengthMod, type Tactic } from "./tactics";
+import {
+  pickIntent,
+  resolveExchange,
+  type ExchangeContext,
+  type Intent,
+  type IntentSkills,
+} from "./priority";
 
 export {
   TACTICS,
@@ -201,11 +208,35 @@ function touchSeconds(weapon: Weapon, cat: AgeCategory, narr: SeededRng): number
   return TOUCH_SECONDS[weapon] * CATEGORY_TIME_FACTOR[cat] * (0.75 + narr.next() * 0.5);
 }
 
+interface IntentSide {
+  tactic: Tactic;
+  skills: IntentSkills;
+  traits: readonly TraitKey[];
+}
+
 interface Matchup {
   esA: EffectiveStrength;
   esB: EffectiveStrength;
   baseP: number; // A'nın tuş kazanma temel olasılığı
-  chaos: number; // taktik kaynaklı salınım (0–0.45)
+  chaos: number; // taktik kaynaklı salınım (0–0.45) — eski model (artık öncelik motoru kullanılır)
+  weapon: Weapon;
+  timingDiff: number; // (A−B) zamanlama, −1..+1 (ANA etmen)
+  distanceDiff: number; // (A−B) mesafe = footwork + kulaç, −1..+1 (ANA etmen)
+  sideA: IntentSide;
+  sideB: IntentSide;
+}
+
+/** Combatant'tan niyet-seçimi için gereken (0–100) yetenekleri çıkarır. */
+function intentSkillsOf(cmb: Combatant): IntentSkills {
+  const s = cmb.skills;
+  return {
+    attack: s.attack.current,
+    defense: s.defense.current,
+    reaction: s.reaction.current,
+    speed: s.speed.current,
+    reading: s.reading.current,
+    timing: s.timing.current,
+  };
 }
 
 /** İki oyuncunun (taktikleri dahil) effective strength + tuş olasılığı + kaosunu hesaplar. */
@@ -248,10 +279,29 @@ function buildMatchup(a: Combatant, b: Combatant): Matchup {
     esB.modifiers.push({ label: "Taktik", value: tmodB });
     esB.total = Math.round((esB.total + tmodB) * 10) / 10;
   }
-  // Kaos: ofansif salınımı artırır, defansif azaltır (0–0.45). BALANCED→0 → RNG dizisi değişmez.
+  // Kaos: (eski model — öncelik motoru geldi, artık döngüde kullanılmıyor; geriye uyum için tutulur).
   const chaos = clamp(tacticChaos(tacticA) + tacticChaos(tacticB), 0, 0.45);
 
-  return { esA, esB, baseP: winProbability(esA.total - esB.total), chaos };
+  // ANA etmenler: zamanlama (timing) + mesafe (footwork + kulaç). −1..+1 (A − B).
+  const timingDiff = clamp((a.skills.timing.current - b.skills.timing.current) / 50, -1, 1);
+  const distanceDiff = clamp(
+    ((a.skills.footwork.current - b.skills.footwork.current) / 50) * 0.7 +
+      ((a.physical?.reachCm ?? 175) - (b.physical?.reachCm ?? 175)) * 0.02,
+    -1,
+    1,
+  );
+
+  return {
+    esA,
+    esB,
+    baseP: winProbability(esA.total - esB.total),
+    chaos,
+    weapon: a.weapon,
+    timingDiff,
+    distanceDiff,
+    sideA: { tactic: tacticA, skills: intentSkillsOf(a), traits: a.traits ?? [] },
+    sideB: { tactic: tacticB, skills: intentSkillsOf(b), traits: b.traits ?? [] },
+  };
 }
 
 function strengthLine(a: Combatant, b: Combatant, m: Matchup, locale: Locale): string {
@@ -277,6 +327,30 @@ function touchLine(
   else if (scoreA === scoreB) line += locale === "en" ? " — even." : " — eşitlik.";
   else if (scoreA === target - 1 || scoreB === target - 1) line += locale === "en" ? " — match point!" : " — maç sayısı!";
   return line;
+}
+
+/** Epe çift-tuş anlatımı (ikisi de aynı anda değdi). */
+function doubleTouchLine(a: Combatant, b: Combatant, scoreA: number, scoreB: number, locale: Locale): string {
+  return locale === "en"
+    ? `Double touch! Both land together. ${scoreA}–${scoreB}`
+    : `Çift tuş! İkisi de aynı anda değdi. ${scoreA}–${scoreB}`;
+}
+
+interface ExchangeOutcome {
+  a: boolean;
+  b: boolean;
+}
+
+/** Bir mübadeleyi oynatır: niyetleri seç → öncelik motoruyla çöz (mesafe+zamanlama ana etmen). */
+function runExchange(m: Matchup, momentum: number, rng: SeededRng): ExchangeOutcome {
+  const iA: Intent = pickIntent(m.sideA.tactic, m.sideA.skills, m.sideA.traits, rng);
+  const iB: Intent = pickIntent(m.sideB.tactic, m.sideB.skills, m.sideB.traits, rng);
+  const ctx: ExchangeContext = {
+    p: clamp(m.baseP + momentum, 0.05, 0.95),
+    timingDiff: m.timingDiff,
+    distanceDiff: m.distanceDiff,
+  };
+  return resolveExchange(m.weapon, iA, iB, ctx, rng);
 }
 
 /**
@@ -308,26 +382,36 @@ export function simulateMatch(
   let run = 0;
   let momentum = 0;
 
-  const maxExchanges = targetTouches * 4;
+  // Öncelik motoru (#5): her tur niyet seç + silaha göre çöz. İptal/tempo turları olabildiği için
+  // daha fazla tur payı bırakılır. Epede çift tuş; flöre/kılıçta eşzamanlı hücum iptal.
+  const maxExchanges = targetTouches * 8;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
-    const p = clamp(m.baseP + momentum, 0.03, 0.97);
-    const aScores = m.chaos > 0 && rng.bool(m.chaos) ? rng.bool(0.5) : rng.bool(p);
-
-    const scorer = aScores ? a : b;
-    if (aScores) {
-      scoreA++;
+    let { a: aScored, b: bScored } = runExchange(m, momentum, rng);
+    // Maç sonu çift-tuş koruması (epe DE): çift, iki tarafı da hedefe götürüyorsa tek tuşa iner.
+    if (aScored && bScored && (scoreA + 1 >= targetTouches || scoreB + 1 >= targetTouches)) {
+      if (rng.bool(clamp(m.baseP + momentum, 0.05, 0.95))) bScored = false;
+      else aScored = false;
+    }
+    if (!aScored && !bScored) continue; // iptal / tempo → tur boşa (maçta süre yok)
+    if (aScored) scoreA++;
+    if (bScored) scoreB++;
+    if (aScored && bScored) {
+      run = 0;
+      lastScorer = 0;
+      momentum = 0;
+    } else if (aScored) {
       run = lastScorer === 1 ? run + 1 : 1;
       lastScorer = 1;
       momentum = Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     } else {
-      scoreB++;
       run = lastScorer === 2 ? run + 1 : 1;
       lastScorer = 2;
       momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     }
 
     if (scoreA >= targetTouches || scoreB >= targetTouches) break; // son tuşu kapanış anlatır
-    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, targetTouches, locale));
+    if (aScored && bScored) log.push(doubleTouchLine(a, b, scoreA, scoreB, locale));
+    else log.push(touchLine(aScored ? a : b, cat, narr, scoreA, scoreB, run, targetTouches, locale));
   }
 
   const winnerIsA = scoreA >= scoreB;
@@ -389,15 +473,6 @@ export function simulatePeriod(
   const log: string[] = [];
   if (opts.includeHeader) log.push(strengthLine(a, b, m, locale));
 
-  // Tuşsuz mübadele (tempo) olasılığı: epede yüksek, kılıçta düşük; defansif taktik artırır
-  // (GDD 18.24: sürekli savunma tempo kaybettirir). Süre dolabildiği için beraberlik/la belle mümkün olur.
-  const tA = a.tactic ?? "BALANCED";
-  const tB = b.tactic ?? "BALANCED";
-  let deadChance = a.weapon === "EPEE" ? 0.14 : a.weapon === "FOIL" ? 0.09 : 0.05;
-  if (tA === "DEFENSIVE") deadChance += 0.04;
-  if (tB === "DEFENSIVE") deadChance += 0.04;
-  deadChance = clamp(deadChance, 0, 0.3);
-
   let scoreA = opts.startA;
   let scoreB = opts.startB;
   let clock = opts.startClockSec;
@@ -413,24 +488,30 @@ export function simulatePeriod(
     clock < opts.periodEndSec
   ) {
     clock += touchSeconds(a.weapon, cat, narr); // her mübadele süre yer (skor olsun olmasın)
-    if (rng.bool(deadChance)) continue; // tuşsuz tur — sadece süre akar
-
-    const p = clamp(m.baseP + momentum, 0.03, 0.97);
-    const aScores = m.chaos > 0 && rng.bool(m.chaos) ? rng.bool(0.5) : rng.bool(p);
-
-    const scorer = aScores ? a : b;
-    if (aScores) {
-      scoreA++;
+    // Öncelik motoru (#5): niyet + silaha göre çöz. İptal/tempo turu = tuşsuz (süre yine akar → la belle mümkün).
+    let { a: aScored, b: bScored } = runExchange(m, momentum, rng);
+    if (aScored && bScored && (scoreA + 1 >= opts.target || scoreB + 1 >= opts.target)) {
+      if (rng.bool(clamp(m.baseP + momentum, 0.05, 0.95))) bScored = false;
+      else aScored = false;
+    }
+    if (!aScored && !bScored) continue; // tuşsuz tur — sadece süre akar
+    if (aScored) scoreA++;
+    if (bScored) scoreB++;
+    if (aScored && bScored) {
+      run = 0;
+      lastScorer = 0;
+      momentum = 0;
+    } else if (aScored) {
       run = lastScorer === 1 ? run + 1 : 1;
       lastScorer = 1;
       momentum = Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     } else {
-      scoreB++;
       run = lastScorer === 2 ? run + 1 : 1;
       lastScorer = 2;
       momentum = -Math.min(run, MOMENTUM_CAP) * MOMENTUM_STEP;
     }
-    log.push(touchLine(scorer, cat, narr, scoreA, scoreB, run, opts.target, locale));
+    if (aScored && bScored) log.push(doubleTouchLine(a, b, scoreA, scoreB, locale));
+    else log.push(touchLine(aScored ? a : b, cat, narr, scoreA, scoreB, run, opts.target, locale));
   }
 
   const decided = scoreA >= opts.target || scoreB >= opts.target;

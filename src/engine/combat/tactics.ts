@@ -22,15 +22,15 @@ export type Tactic = "OFFENSIVE" | "BALANCED" | "DEFENSIVE";
 export const TACTICS: readonly Tactic[] = ["OFFENSIVE", "BALANCED", "DEFENSIVE"];
 
 export const TACTIC_LABEL_TR: Record<Tactic, string> = {
-  OFFENSIVE: "Ofansif",
+  OFFENSIVE: "Baskı kur",
   BALANCED: "Dengeli",
-  DEFENSIVE: "Defansif",
+  DEFENSIVE: "Bekle & karşıla",
 };
 
 export const TACTIC_DESC_TR: Record<Tactic, string> = {
-  OFFENSIVE: "Daha çok saldır, baskı kur — sayı bulursun ama açık da verirsin (risk ↑).",
-  BALANCED: "Dengeli oyna — ne aşırı risk ne aşırı temkin.",
-  DEFENSIVE: "Mesafeyi koru, rakibi bekle — az risk; ama fazla pasiflik tempo kaybettirir.",
+  OFFENSIVE: "Sık atağa çık, inisiyatifi al — sayı bulursun ama parat-riposte'a açık verirsin (risk ↑).",
+  BALANCED: "Duruma göre oyna — bazen atağa çık, bazen bekle.",
+  DEFENSIVE: "Atağa davet et, parat-riposte ve kontra ile karşıla — az risk; aceleci olmayan rakibe tempo verir.",
 };
 
 /** 0–100 skill'i −1..+1 aralığına ortalar (50 nötr). */

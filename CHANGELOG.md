@@ -15,6 +15,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
+### Eklendi
+- **#5 — Öncelik / Hak-yolu (silahları gerçekten ayıran motor):** Her mübadele artık **niyet + öncelik** ile
+  çözülür (`combat/priority.ts`): **Hücum / Bekle-parat-riposte / Kontra**. **Ana etmenler: mesafe** (footwork
+  + kulaç) **ve zamanlama** (timing). Silaha göre: **Epe** öncelik yok → kontra + **çift tuş** (imzası);
+  **Flöre** orta öncelik (iyi parat inisiyatifi çalar), eşzamanlı hücum → iptal; **Kılıç** hücum baskın,
+  eşzamanlı → iptal. Katı üçgen değil — **yetenek belirler** (iyi savunan aceleci atağı yener). Taktikler
+  netleştirildi: **Baskı kur / Dengeli / Bekle & karşıla**. 5 yeni test; denge simülasyonu korundu
+  (yakın maçlar biraz daha çekişmeli, yetenek hâlâ baskın).
+
 ### Değişti
 - **Maç gerçekçiliği (combat etkenleri):**
   - **Rakiplerin (AI) formu artık maça giriyor** — eskiden yalnız insan forma göre iyi/kötü oynardı, AI nötrdü.
