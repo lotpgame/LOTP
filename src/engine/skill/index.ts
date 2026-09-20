@@ -54,6 +54,16 @@ export function maturity(age: number): number {
   return clamp(0.3 + (age - 8) * (0.7 / 18), 0.3, 1);
 }
 
+/**
+ * Yaşa bağlı performans katkısı (GDD 9.35): ~26–30 zirve/plato, sonra kademeli gerileme (fiziksel
+ * düşüş, toparlanma yavaşlar). Kalıcı skill'i DEĞİŞTİRMEZ; combat'ta "o anki güç"e uygulanır.
+ * Puan cinsinden: 30'a kadar 0; 30 sonrası her yıl −0.6, en çok −8 (35→−3, 40→−6).
+ */
+export function ageCombatModifier(age: number): number {
+  if (age <= 30) return 0;
+  return -Math.min((age - 30) * 0.6, 8);
+}
+
 /** Bir yaştaki gelişim tavanı: taban + olgunlaşma × (yetişkin potansiyeli − taban). */
 export function skillAgeCeiling(potential: number, floor: number, age: number): number {
   return floor + maturity(age) * (potential - floor);

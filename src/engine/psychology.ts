@@ -33,7 +33,14 @@ export function psychologyTrainingMultiplier(p: Psychology): number {
 
 /** Combat effective strength katkısı: özgüven +, stres − (GDD 20.11). */
 export function psychologyCombatModifier(p: Psychology): number {
-  return (p.confidence - 50) * 0.04 - p.stress * 0.02;
+  // Tüm psikoloji maça yansır (GDD 11): özgüven en güçlü; moral ("bugün iyi hissediyorum") ve
+  // motivasyon katkı verir; stres düşürür. Toplam ~±4 ile sınırlı kalır (barem 0–100).
+  return (
+    (p.confidence - 50) * 0.03 +
+    (p.morale - 50) * 0.02 +
+    (p.motivation - 50) * 0.015 -
+    p.stress * 0.015
+  );
 }
 
 /** Bir haftalık antrenman sonrası: çalışmak motivasyonu korur, yük stresi artırır. */

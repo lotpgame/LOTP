@@ -48,4 +48,13 @@ describe("Probability Engine — güç & olasılık", () => {
     expect(dull.total).toBeLessThan(flat.total);
     expect(none.modifiers.some((m) => m.label === "Keskinlik")).toBe(false);
   });
+
+  it("yaş: ~30 sonrası gerileme; genç/zirvede etki yok", () => {
+    const skills = skillsByCategory({ TECHNICAL: 70, PHYSICAL: 70, MENTAL: 70, TACTICAL: 70 });
+    const peak = computeEffectiveStrength(skills, "EPEE", { fatigue: 0, age: 26 });
+    const old = computeEffectiveStrength(skills, "EPEE", { fatigue: 0, age: 38 });
+    expect(peak.modifiers.some((m) => m.label === "Yaş")).toBe(false); // 30 altı → yok
+    expect(old.total).toBeLessThan(peak.total); // yaşlı daha düşük
+    expect(old.modifiers.some((m) => m.label === "Yaş" && m.value < 0)).toBe(true);
+  });
 });

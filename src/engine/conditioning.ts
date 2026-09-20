@@ -58,13 +58,25 @@ export function injuryChance(fatigue: number, age: number): number {
 
 export interface InjuryResult {
   injured: boolean;
-  weeks: number; // sakatlık süresi (hafta); injured=false ise 0
+  days: number; // sakatlık süresi (OYUN günü); injured=false ise 0
 }
 
-/** Sakatlık kontrolü. Tohumlu RNG ile deterministik. Süre 1–3 hafta (basit). */
+/**
+ * Sakatlık kontrolü. Tohumlu RNG ile deterministik. Şiddet: çoğu HAFİF (1–2 gün, gerçek "aşırı
+ * yüklenme" tipiktir), bazen orta (3–5 gün), nadiren ağır (7–14 gün). Böylece küçük sakatlıklar
+ * sık ama kısa; kariyer kırıcı ağır sakatlık seyrek.
+ */
 export function rollInjury(rng: SeededRng, fatigue: number, age: number): InjuryResult {
-  if (rng.bool(injuryChance(fatigue, age))) {
-    return { injured: true, weeks: rng.int(1, 3) };
-  }
-  return { injured: false, weeks: 0 };
+  if (!rng.bool(injuryChance(fatigue, age))) return { injured: false, days: 0 };
+  const r = rng.next();
+  const days = r < 0.7 ? rng.int(1, 2) : r < 0.93 ? rng.int(3, 5) : rng.int(7, 14);
+  return { injured: true, days };
+}
+
+/** Günün hâli — o güne özel küçük form dalgalanması (herkeste). Üçgen dağılım: çoğu gün ~nötr,
+ * bazı günler belirgin iyi/kötü. Kalıcı moralden AYRIDIR (bugün formda mısın?). ±DAILY_MOOD_MAX. */
+export const DAILY_MOOD_MAX = 2.5;
+export function dailyMood(rng: SeededRng): number {
+  const u = (rng.float(-1, 1) + rng.float(-1, 1)) / 2; // üçgen ≈ bell
+  return Math.round(u * DAILY_MOOD_MAX * 10) / 10;
 }

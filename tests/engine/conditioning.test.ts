@@ -4,6 +4,8 @@ import {
   applySharpness,
   injuryChance,
   rollInjury,
+  dailyMood,
+  DAILY_MOOD_MAX,
   sessionSharpnessDelta,
 } from "@/engine/conditioning";
 
@@ -30,7 +32,10 @@ describe("Conditioning — keskinlik & sakatlık", () => {
     const a = rollInjury(createRng("x"), 95, 20);
     const b = rollInjury(createRng("x"), 95, 20);
     expect(a).toEqual(b);
-    if (a.injured) expect(a.weeks).toBeGreaterThanOrEqual(1);
+    if (a.injured) {
+      expect(a.days).toBeGreaterThanOrEqual(1);
+      expect(a.days).toBeLessThanOrEqual(14);
+    }
 
     let highInjuries = 0;
     let lowInjuries = 0;
@@ -40,5 +45,29 @@ describe("Conditioning — keskinlik & sakatlık", () => {
     }
     expect(highInjuries).toBeGreaterThan(lowInjuries);
     expect(highInjuries).toBeGreaterThan(0);
+  });
+
+  it("sakatlıkların çoğu HAFİF (1–2 gün); ağır (7+) nadir", () => {
+    let light = 0;
+    let heavy = 0;
+    let total = 0;
+    for (let i = 0; i < 400; i++) {
+      const inj = rollInjury(createRng(`inj${i}`), 95, 20);
+      if (!inj.injured) continue;
+      total++;
+      if (inj.days <= 2) light++;
+      if (inj.days >= 7) heavy++;
+    }
+    expect(total).toBeGreaterThan(20);
+    expect(light).toBeGreaterThan(heavy); // hafif >> ağır
+    expect(light / total).toBeGreaterThan(0.5); // çoğu 1–2 gün
+  });
+
+  it("dailyMood deterministik ve ±sınır içinde", () => {
+    expect(dailyMood(createRng("d1"))).toBe(dailyMood(createRng("d1")));
+    for (let i = 0; i < 200; i++) {
+      const m = dailyMood(createRng(`d${i}`));
+      expect(Math.abs(m)).toBeLessThanOrEqual(DAILY_MOOD_MAX + 0.001);
+    }
   });
 });

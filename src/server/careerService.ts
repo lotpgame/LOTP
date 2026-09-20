@@ -90,6 +90,7 @@ function tournamentDisplayName(locale: Locale, ageCategory: string, level: Tourn
 import {
   COMPETITION_SHARPNESS_GAIN,
   applySharpness,
+  dailyMood,
   dailyRecovery,
   matchFatigueMultiplier,
   rollInjury,
@@ -977,7 +978,6 @@ export async function getCategoryRanking(
 // kademeli — her sabah %100'e dönmez; yorgunluk hafta içinde birikir, dinlenme gerçek bir kaldıraç olur.
 const REST_EXTRA_RECOVERY = 10; // REST seansının doğal toparlanmaya EK katkısı
 const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
-const INJURY_DAYS_PER_WEEK = 3; // rollInjury hafta → OYUN günü (3–9 gün; birkaç turnuva kaçırır)
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
@@ -1121,7 +1121,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     if (type !== "REST" && !injuredNow) {
       const inj = rollInjury(createRng(`${gs.seed}:injury:${d}`), fatigue, age);
       if (inj.injured) {
-        injuryDays = inj.weeks * INJURY_DAYS_PER_WEEK;
+        injuryDays = inj.days;
         injuredNow = true;
         return true;
       }
@@ -1636,7 +1636,8 @@ interface LiveCombatant {
   traits: string[];
   isHuman: boolean;
   aiTactic: Tactic;
-  conditionBonus?: number; // yalnız insan
+  conditionBonus?: number; // form (psikoloji+trait+ekipman+günün hâli) — herkeste
+  age?: number; // tam yaş (combat'ta ~30 sonrası gerileme)
 }
 
 interface LivePlayedMatch {
@@ -1776,6 +1777,7 @@ function liveCombatant(ls: LiveState, id: number, tacticOverride?: Tactic): Comb
     fatigue: ls.fatigue[id] ?? 0,
     sharpness: lc.sharpness,
     conditionBonus: lc.conditionBonus,
+    age: lc.age,
     physical: { reachCm: lc.reachCm, legLengthCm: lc.legLengthCm, buildFactor: lc.buildFactor, leftHanded: lc.leftHanded },
     ageCategory: ls.ageCategory as Combatant["ageCategory"],
     traits: lc.traits as Combatant["traits"],
@@ -2031,13 +2033,16 @@ export async function startLiveTournament(
       equipmentLevel: number;
       skills: SkillRow[];
     },
-    opts: { isHuman: boolean; realPlayer: boolean; tactic?: Tactic },
+    opts: { isHuman: boolean; tactic?: Tactic },
   ): LiveCombatant => {
-    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
+    const age = currentAge(p.birthDate, quarter);
+    const ph = computePhysique(geneticsOf(p), age);
     const sk = rowsToSkills(p.skills);
     const skills: Record<string, number> = {};
     for (const def of SKILLS) skills[def.key] = sk[def.key].current;
     const traits = parseTraits(p.traits);
+    // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel).
+    const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
     return {
       id: p.id,
       name: `${p.firstName} ${p.lastName}`,
@@ -2051,17 +2056,19 @@ export async function startLiveTournament(
       traits,
       isHuman: opts.isHuman,
       aiTactic: opts.tactic ?? tacticFromTraits(traits),
-      // Gerçek oyuncular (canlı + kapsam-içi bot) form katkısı alır; saf AI nötr.
-      conditionBonus: opts.realPlayer
-        ? psychologyCombatModifier(psychologyOf(p)) + traitCombatModifier(traits) + equipmentCombatModifier(p.equipmentLevel)
-        : undefined,
+      age,
+      conditionBonus:
+        psychologyCombatModifier(psychologyOf(p)) +
+        traitCombatModifier(traits) +
+        equipmentCombatModifier(p.equipmentLevel) +
+        mood,
     };
   };
 
   const combatants: LiveCombatant[] = [
-    snapshot(human, { isHuman: true, realPlayer: true }),
-    ...coHumans.map((p) => snapshot(p, { isHuman: false, realPlayer: true, tactic: coTactic.get(p.id) ?? "BALANCED" })),
-    ...aiPlayers.map((p) => snapshot(p, { isHuman: false, realPlayer: false })),
+    snapshot(human, { isHuman: true }),
+    ...coHumans.map((p) => snapshot(p, { isHuman: false, tactic: coTactic.get(p.id) ?? "BALANCED" })),
+    ...aiPlayers.map((p) => snapshot(p, { isHuman: false })),
   ];
   if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
@@ -2814,13 +2821,16 @@ async function autoResolveTournament(
   });
 
   const toCombatant = (p: CombatantRow, isHuman: boolean): Combatant => {
-    const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
+    const age = currentAge(p.birthDate, quarter);
+    const ph = computePhysique(geneticsOf(p), age);
     const traits = parseTraits(p.traits);
-    const conditionBonus = isHuman
-      ? psychologyCombatModifier(psychologyOf(p)) +
-        traitCombatModifier(traits) +
-        equipmentCombatModifier(p.equipmentLevel)
-      : undefined;
+    // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel, oyuncu+gün tohumlu).
+    const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
+    const conditionBonus =
+      psychologyCombatModifier(psychologyOf(p)) +
+      traitCombatModifier(traits) +
+      equipmentCombatModifier(p.equipmentLevel) +
+      mood;
     return {
       id: p.id,
       name: `${p.firstName} ${p.lastName}`,
@@ -2829,6 +2839,7 @@ async function autoResolveTournament(
       fatigue: p.fatigue,
       sharpness: p.sharpness,
       conditionBonus,
+      age,
       physical: { reachCm: ph.reachCm, legLengthCm: ph.legLengthCm, buildFactor: p.buildFactor, leftHanded: p.leftHanded },
       ageCategory: base.ageCategory as AgeCategory,
       tactic: isHuman ? (tacticByPlayer.get(p.id) ?? "BALANCED") : tacticFromTraits(traits),
@@ -2969,7 +2980,7 @@ async function finalizeTournament(
           confidence: ph.postPsych.confidence,
           stress: ph.postPsych.stress,
           status: ph.injury.injured ? "INJURED" : ph.h.status,
-          injuryDaysRemaining: ph.injury.injured ? ph.injury.weeks * INJURY_DAYS_PER_WEEK : 0,
+          injuryDaysRemaining: ph.injury.injured ? ph.injury.days : 0,
         },
       });
     }

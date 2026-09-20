@@ -42,6 +42,7 @@ export interface Combatant {
   conditionBonus?: number; // psikoloji+trait+ekipman birleşik katkısı (puan)
   physical?: PhysicalProfile; // boy/kulaç/bacak/yapı/el — verilirse fiziksel erişim avantajı
   ageCategory?: AgeCategory; // el tercihi avantajı + tuş anlatım karmaşıklığı (zamanlı atak) için
+  age?: number; // tam yaş — ~30 sonrası combat'ta kademeli gerileme (verilmezse yaş etkisi yok)
   tactic?: Tactic; // maç öncesi taktik tercihi (GDD 18.22); verilmezse "BALANCED" (nötr)
   traits?: readonly TraitKey[]; // taktik-trait sinerjisi için (Agresif/Soğukkanlı…)
 }
@@ -213,11 +214,13 @@ function buildMatchup(a: Combatant, b: Combatant): Matchup {
     fatigue: a.fatigue,
     sharpness: a.sharpness,
     conditionBonus: a.conditionBonus,
+    age: a.age,
   });
   const esB = computeEffectiveStrength(b.skills, b.weapon, {
     fatigue: b.fatigue,
     sharpness: b.sharpness,
     conditionBonus: b.conditionBonus,
+    age: b.age,
   });
 
   // Fiziksel erişim avantajı (relatif, küçük): kulaç/bacak/yapı/el (GDD 2.7–2.8).

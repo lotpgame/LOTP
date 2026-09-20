@@ -7,7 +7,7 @@
  * izlenir → "neden kazandı/kaybetti" açıklanabilir (GDD 20.34–20.36).
  */
 import { clamp, type SkillCategory, type Weapon } from "../domain";
-import { categoryAverage, type PlayerSkills } from "../skill";
+import { ageCombatModifier, categoryAverage, type PlayerSkills } from "../skill";
 
 /** Silaha göre kategori ağırlıkları (GDD 9.13, 20.8). Silahlar belirgin şekilde farklı. */
 export const WEAPON_WEIGHTS: Record<Weapon, Record<SkillCategory, number>> = {
@@ -37,7 +37,7 @@ export interface EffectiveStrength {
 export function computeEffectiveStrength(
   skills: PlayerSkills,
   weapon: Weapon,
-  opts: { fatigue: number; sharpness?: number; conditionBonus?: number },
+  opts: { fatigue: number; sharpness?: number; conditionBonus?: number; age?: number },
 ): EffectiveStrength {
   const w = WEAPON_WEIGHTS[weapon];
   let base = 0;
@@ -54,9 +54,14 @@ export function computeEffectiveStrength(
     const s = (opts.sharpness - 50) * 0.06; // 100 → +3, 0 → −3
     if (Math.abs(s) > 0.05) modifiers.push({ label: "Keskinlik", value: round1(s) });
   }
-  // Form: psikoloji + trait + ekipman birleşik katkısı (GDD 20.10, 20.34).
+  // Form: psikoloji + trait + ekipman + günün hâli birleşik katkısı (GDD 20.10, 20.34).
   if (opts.conditionBonus != null && Math.abs(opts.conditionBonus) > 0.05) {
     modifiers.push({ label: "Form", value: round1(opts.conditionBonus) });
+  }
+  // Yaş: ~30 sonrası kademeli gerileme (GDD 9.35). Kalıcı skill'i değil, o anki gücü etkiler.
+  if (opts.age != null) {
+    const ageMod = ageCombatModifier(opts.age);
+    if (Math.abs(ageMod) > 0.05) modifiers.push({ label: "Yaş", value: round1(ageMod) });
   }
   const total = base + modifiers.reduce((acc, m) => acc + m.value, 0);
   return { base: round1(base), modifiers, total: round1(total) };

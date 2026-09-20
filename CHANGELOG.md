@@ -15,6 +15,20 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
+### Değişti
+- **Maç gerçekçiliği (combat etkenleri):**
+  - **Rakiplerin (AI) formu artık maça giriyor** — eskiden yalnız insan forma göre iyi/kötü oynardı, AI nötrdü.
+    Artık herkese "Form" uygulanır (psikoloji + trait + ekipman).
+  - **Tüm psikoloji maça yansıyor** — eskiden yalnız özgüven+stres etkiliyordu; artık **moral + motivasyon** da
+    katkı verir (`psychologyCombatModifier`).
+  - **Günün hâli (daily mood)** — o güne özel küçük form dalgalanması (herkeste; kalıcı moralden ayrı):
+    bazı günler formda, bazı günler değil. `dailyMood` (üçgen dağılım, ±2.5), oyuncu+gün tohumlu.
+  - **Veteran gerilemesi** — ~30 yaş sonrası kademeli düşüş (`ageCombatModifier`; combat'ta "Yaş" modifier'ı,
+    kalıcı skill'i değiştirmez). Eskiden yetenek 26'da tavana oturup hiç düşmüyordu.
+  - **Sakatlık süreleri gerçekçi** — artık çoğu **hafif (1–2 gün)**, bazen orta (3–5), nadiren ağır (7–14).
+    Eskiden hep 3–9 gündü. (`rollInjury` gün-bazlı + şiddet dağılımı.)
+  - 5 yeni test. Denge simülasyonu + tarayıcı ile doğrulandı.
+
 ### Eklendi
 - **Büyük eskrim ülkeleri eklendi:** 4 kıtaya yayılmış 17 ülke (Fransa, İtalya, Almanya, Macaristan, Rusya,
   Polonya, İspanya, İngiltere, Ukrayna · ABD, Brezilya · Japonya, G. Kore, Çin, Avustralya · Mısır, Tunus + TR),
