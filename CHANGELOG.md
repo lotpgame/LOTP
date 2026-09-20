@@ -16,6 +16,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **Büyük eskrim ülkeleri eklendi:** 4 kıtaya yayılmış 17 ülke (Fransa, İtalya, Almanya, Macaristan, Rusya,
+  Polonya, İspanya, İngiltere, Ukrayna · ABD, Brezilya · Japonya, G. Kore, Çin, Avustralya · Mısır, Tunus + TR),
+  ülke kodu + şehir listeleriyle. Klasman kıta/ülke filtresi artık gerçek ülkelerle. (Dev'de karakter yine
+  IP-kilidiyle TR; bu ülkeler multiplayer'da IP ile dolar. Telefon kodları benzersiz.)
 - **Sezon göstergesine yıl:** Profil "Sezon" kutusu ve alt çubuk artık **oyun-içi takvim yılını** gösterir
   (ör. `2026 · Q1·H3`); yıl `currentDate`'ten gelir, kariyer ilerledikçe değişir. Header DTO'ya `year`.
 - **Kıta katmanı + 3-katmanlı klasman kapsamı:** Coğrafyaya **kıtalar** eklendi (FIE'nin 4 konfederasyonu:

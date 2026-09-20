@@ -34,11 +34,34 @@ export interface Country {
 }
 
 /**
- * Desteklenen ülkeler. Önce TR (Avrupa). Yeni ülke eklemek = buraya bir satır
- * (kod + isim + kıta + dial + şehirler). Büyük/eskrim ülkeleri sırayla açılacak.
+ * Desteklenen ülkeler — büyük eskrim ulusları, 4 kıtaya yayılmış. Yeni ülke = buraya bir satır.
+ * (Şehir listeleri kısa/temsilîdir; asıl multiplayer'da IP ile ülke atanır, dev'de TR sabit.)
+ * NOT: telefon ülke kodu (dialCode) benzersiz tutulur — ABD/Kanada +1 çakışmasını önlemek için
+ * bu listede aynı dial code'dan iki ülke yok (Kanada sonraya).
  */
 export const COUNTRIES: readonly Country[] = [
+  // Avrupa (EU)
   { code: "TR", name: "Türkiye", continent: "EU", dialCode: "+90", cities: TR_CITIES },
+  { code: "FR", name: "Fransa", continent: "EU", dialCode: "+33", cities: ["Paris", "Lyon", "Marsilya", "Bordeaux", "Lille", "Strasbourg"] },
+  { code: "IT", name: "İtalya", continent: "EU", dialCode: "+39", cities: ["Roma", "Milano", "Napoli", "Torino", "Bologna", "Padova"] },
+  { code: "DE", name: "Almanya", continent: "EU", dialCode: "+49", cities: ["Berlin", "Münih", "Hamburg", "Köln", "Frankfurt", "Leipzig"] },
+  { code: "HU", name: "Macaristan", continent: "EU", dialCode: "+36", cities: ["Budapeşte", "Debrecen", "Szeged", "Miskolc"] },
+  { code: "RU", name: "Rusya", continent: "EU", dialCode: "+7", cities: ["Moskova", "St. Petersburg", "Kazan", "Novosibirsk", "Soçi"] },
+  { code: "PL", name: "Polonya", continent: "EU", dialCode: "+48", cities: ["Varşova", "Krakov", "Poznań", "Wrocław", "Gdańsk"] },
+  { code: "ES", name: "İspanya", continent: "EU", dialCode: "+34", cities: ["Madrid", "Barselona", "Valensiya", "Sevilla"] },
+  { code: "GB", name: "İngiltere", continent: "EU", dialCode: "+44", cities: ["Londra", "Manchester", "Birmingham", "Leeds"] },
+  { code: "UA", name: "Ukrayna", continent: "EU", dialCode: "+380", cities: ["Kiev", "Harkiv", "Lviv", "Odessa"] },
+  // Amerika (AM)
+  { code: "US", name: "ABD", continent: "AM", dialCode: "+1", cities: ["New York", "Los Angeles", "Chicago", "Boston", "San Francisco", "Houston"] },
+  { code: "BR", name: "Brezilya", continent: "AM", dialCode: "+55", cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Curitiba"] },
+  // Asya-Okyanusya (AS)
+  { code: "JP", name: "Japonya", continent: "AS", dialCode: "+81", cities: ["Tokyo", "Osaka", "Nagoya", "Fukuoka", "Sapporo"] },
+  { code: "KR", name: "Güney Kore", continent: "AS", dialCode: "+82", cities: ["Seul", "Busan", "Incheon", "Daegu"] },
+  { code: "CN", name: "Çin", continent: "AS", dialCode: "+86", cities: ["Pekin", "Şanghay", "Guangzhou", "Nanjing", "Tianjin"] },
+  { code: "AU", name: "Avustralya", continent: "AS", dialCode: "+61", cities: ["Sydney", "Melbourne", "Brisbane", "Perth"] },
+  // Afrika (AF)
+  { code: "EG", name: "Mısır", continent: "AF", dialCode: "+20", cities: ["Kahire", "İskenderiye", "Giza"] },
+  { code: "TN", name: "Tunus", continent: "AF", dialCode: "+216", cities: ["Tunus", "Sfax", "Sousse"] },
 ];
 
 export function countryByCode(code: string): Country | undefined {

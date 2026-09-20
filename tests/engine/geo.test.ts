@@ -27,9 +27,14 @@ describe("geo — ülke / telefon", () => {
   });
 
   it("parsePhone: desteklenmeyen ülke kodu → unsupported", () => {
-    const r = parsePhone("+1 415 555 0100"); // ABD henüz eklenmedi
+    const r = parsePhone("+670 7712 3456"); // Timor-Leste — listede yok
     expect(r.ok).toBe(false);
     expect(r.reason).toBe("unsupported");
+  });
+
+  it("parsePhone: eklenen ülkeler tanınır (ABD +1, Fransa +33)", () => {
+    expect(parsePhone("+1 415 555 0100").country?.code).toBe("US");
+    expect(parsePhone("+33 6 12 34 56 78").country?.code).toBe("FR");
   });
 
   it("parsePhone: bozuk biçim → format", () => {
