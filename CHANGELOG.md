@@ -16,6 +16,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.1 — Zaman çizelgesi motoru (saf):** `src/engine/schedule/` — turnuvanın gün-içi dakika-bazlı
+  çizelgesini deterministik üretir (DB/combat yok). Sabitler FIE-uyumlu (periyot 3 dk, periyot arası 1 dk).
+  `poolPlan` (11:05'ten sıralı, 4 dk tempo), `dePlan` (14:00 elemeler + 17:00 yarı/final), periyot ve
+  **taktik değişim pencereleri** (online oyuncunun periyot arası taktik verdiği anlar). 12 test.
 - **M10.2 — Turnuvaya kayıt + önceden taktik:** Turnuvalar sayfasına **"Yaklaşan Turnuvalar"** — önümüzdeki
   turnuvalara **kaydol / güncelle / iptal** + **taktiğini önceden seç** (ortak dünyada turnuva sunucuca
   otomatik oynanacak; offline'ken varsayılan/verilen taktikle). Uluslararası turnuvalar uygunluk (ilk16/ilk4)
