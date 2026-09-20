@@ -16,6 +16,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.3b-1 — Ortak turnuva örneği (asıl çok-oyunculu çekirdek):** Bir turnuva günü artık **paylaşılan
+  örnek**tir. Gruplama: **İl = ülke+şehir**, Türkiye/Open = ülke, uluslararası = dünya (her il kendi İl'ini
+  oynar). Aynı kapsama kayıtlı **tüm gerçek oyuncular tek turnuvada** oynar (saha 24'e AI ile tamamlanır);
+  sonuç + ortak Quarter Ranking + kişisel etkiler herkes için yazılır. `Tournament.scopeKey` ile **dedup**
+  (bir kez oluşturulur, sonrakiler okur/gününü ilerletir). `finalizeTournament` çoklu-oyuncuya genişledi;
+  yeni gruplama yardımcıları (`geoScopeForLevel`, `tournamentScopeKey`). Şema: `Tournament.scopeKey` (migration).
+  (Tarayıcı + DB ile doğrulandı: İstanbul'lu iki gerçek oyuncu **aynı** turnuvada — tek satır, 24 katılımcı,
+  ikisine de ortak klasman.)
 - **M11.3a — Birleşik periyot motoru + taktik kaynağı:** `simulateBoutByPeriods` (saf, combat) — bir maçı
   **periyot periyot** çözer; her periyot öncesi her tarafın taktiği kaynağından gelir (AI=stil, offline=
   önceden/default, online=canlı). Süre bitince yüksek skor, son periyotta eşitse altın tuş. Offline otomatik

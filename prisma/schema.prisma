@@ -203,6 +203,10 @@ model Tournament {
   week       Int      @default(1) // quarter içindeki hafta (1..12)
   date       DateTime
   status     String   @default("FINISHED") // turnuva anında simüle edilir
+  // M11.3b: ORTAK turnuva örneğinin benzersiz anahtarı — "level:geoScope:categoryId:worldDay".
+  // Aynı scopeKey'e kayıtlı herkes AYNI turnuvada oynar; bir kez oluşturulur (dedup), sonrakiler okur.
+  // Eski (tek-oyunculu) satırlarda null; canlı yol henüz null (b-2'de paylaşıma taşınacak).
+  scopeKey   String?  @unique
 
   participants TournamentParticipant[]
   matches      Match[]

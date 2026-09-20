@@ -1024,7 +1024,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   let restSessions = 0;
   let injuredNow = false;
   // M11.2: geçmiş bir turnuvaya kayıtlıysak, döngü orada durur ve bunu doldururuz (persist sonrası oynatılır).
-  let pendingAuto: { level: TournamentLevel; tactic: Tactic } | null = null;
+  let pendingAuto: { level: TournamentLevel } | null = null;
 
   // Antrenman haberi (özet) için başlangıç değerleri.
   const beforeSkills: Record<string, number> = {};
@@ -1093,7 +1093,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       // M11.2: geçmiş (d < worldDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
       const reg = regByDay.get(`${d}:${act.level}`);
       if (eligible && !isToday && reg) {
-        pendingAuto = { level: act.level, tactic: reg.tactic as Tactic };
+        pendingAuto = { level: act.level }; // taktikler kayıtlardan okunur (ortak çözüm)
         break; // döngüden çık; antrenmanı persist et, sonra turnuvayı oynat
       }
       // Uygun değil / geçmiş-kayıtsız (kaçırdın) / (Geç ile) bugünkü ilk gün → o gün PLANINDAKİ seans.
@@ -1161,7 +1161,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   if (pendingAuto) {
     const fresh = await loadState();
     if (fresh && !fresh.gs.liveTournament) {
-      await autoResolveTournament(fresh.gs, fresh.human, pendingAuto.level, pendingAuto.tactic);
+      await autoResolveTournament(fresh.gs, fresh.human, pendingAuto.level);
     }
   }
 
@@ -2253,7 +2253,8 @@ async function finalizeLive(
     championId: ls.championId ?? ls.humanId,
     finalFatigue: ls.fatigue,
   };
-  const fin = await finalizeTournament(gs, human, ls.level, base, outcome, ls.seedKey);
+  // Canlı yol: tek human, scopeKey'siz (özel örnek). Ortak örneğe taşıma M11.3b-2.
+  const fin = await finalizeTournament(gs, [human], ls.level, base, outcome, ls.seedKey);
   ls.finalTournamentId = fin.id;
   ls.earnedPoints = fin.earnedPoints;
   ls.newRank = fin.newRank;
@@ -2530,46 +2531,135 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
  * Not: bu offline yol sonucu tek-atış üretir (dakika-bazlı canlı çizelge M11.3'te replay
  * için kullanılacak); sonuç deterministik (seed) ve canlı yolla aynı kategoriyi paylaşır.
  */
+/** Turnuva alanı hedef boyutu (gerçek oyuncular + AI dolgu). */
+const FIELD_TARGET = 24;
+
+/**
+ * Ortak turnuva örneğinin coğrafi kapsamı (M11.3b): İl = ülke+şehir; Türkiye/Open = ülke;
+ * uluslararası = tüm dünya. Aynı kapsamdaki oyuncular aynı turnuvada oynar.
+ */
+function geoScopeForLevel(level: TournamentLevel, countryCode: string, city: string): string {
+  if (level === "IL") return `${countryCode}#${city}`;
+  if (level === "TURKIYE" || level === "OPEN") return countryCode;
+  return "WORLD"; // SATELLITE / EUROPEAN / GRAND_PRIX / WORLD_CUP
+}
+
+/** Ortak turnuva örneğinin benzersiz anahtarı (dedup). Aynı anahtar = aynı turnuva. */
+function tournamentScopeKey(
+  level: TournamentLevel,
+  countryCode: string,
+  city: string,
+  categoryId: string,
+  worldDay: number,
+): string {
+  return `${level}:${geoScopeForLevel(level, countryCode, city)}:${categoryId}:${worldDay}`;
+}
+
+/** finalizeTournament'ın kişisel etki için ihtiyaç duyduğu asgari oyuncu alanları. */
+interface EffectHuman {
+  id: number;
+  fatigue: number;
+  sharpness: number;
+  morale: number;
+  motivation: number;
+  confidence: number;
+  stress: number;
+  status: string;
+  careerBestRank: number | null;
+  traits: string;
+  equipmentLevel: number;
+}
+
+/** Combatant kurmak için gereken oyuncu alanları (insan veya AI). */
+interface CombatantRow {
+  id: number;
+  firstName: string;
+  lastName: string;
+  weapon: string;
+  sharpness: number;
+  fatigue: number;
+  birthDate: Date;
+  adultHeightCm: number;
+  reachBiasCm: number;
+  buildFactor: number;
+  leftHanded: boolean;
+  traits: string;
+  morale: number;
+  motivation: number;
+  confidence: number;
+  stress: number;
+  equipmentLevel: number;
+  skills: SkillRow[];
+}
+
+/**
+ * M11.3b-1 — bir turnuva gününü ORTAK örnek olarak çözer. Kapsam anahtarı (scopeKey) ile dedup:
+ * ilk çözen kayıtlı oyuncu tüm kapsam-içi gerçek oyuncuları (+ AI dolgu) tek turnuvada oynatır,
+ * sonuç + klasman + herkesin kişisel etkileri yazılır (Model A). Sonradan senkronlayan kayıtlı
+ * katılımcı yeniden oynatmaz — etkileri zaten uygulandı, sadece kendi gününü ilerletir.
+ */
 async function autoResolveTournament(
   gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
-  tactic: Tactic,
 ): Promise<void> {
   const quarter = quarterOf(gs.dayIndex);
   const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
 
+  // Kapsam anahtarı: bu oyuncunun ülkesi + (İl ise) şehri.
+  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
+  const myCity = human.club?.city ?? "";
+  const scopeKey = tournamentScopeKey(level, country?.code ?? "??", myCity, base.categoryId, gs.dayIndex);
+
+  // Dedup: bu örnek zaten çözüldüyse (başka kayıtlı oyuncu tetiklemiş), etkiler uygulanmıştır →
+  // sadece kendi günümü ilerlet (yeniden oynatma).
+  const existing = await prisma.tournament.findUnique({ where: { scopeKey } });
+  if (existing) {
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    return;
+  }
+
+  // Bu oyuncu ÇÖZÜCÜ. Kapsam-içi tüm kayıtlı gerçek oyuncuları topla (+ herkesin taktiği).
+  const myScope = geoScopeForLevel(level, country?.code ?? "??", myCity);
+  const regs = await prisma.registration.findMany({ where: { worldDay: gs.dayIndex, level } });
+  const tacticByPlayer = new Map(regs.map((r) => [r.playerId, r.tactic as Tactic]));
+  const categoryByPlayer = new Map(regs.map((r) => [r.playerId, r.categoryId]));
+  const regPlayers = await prisma.player.findMany({
+    where: { id: { in: regs.map((r) => r.playerId) }, isAI: false },
+    include: { skills: true, club: true, nationality: true },
+  });
+  // Çözücü her zaman dahil; diğerleri AYNI kategori + AYNI coğrafi kapsam ise dahil.
+  const inScope = regPlayers.filter(
+    (p) =>
+      p.id === human.id ||
+      (categoryByPlayer.get(p.id) === base.categoryId &&
+        geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope),
+  );
+  // Çözücü her zaman en başta (günü ilerleyen taraf o).
+  const humans = [
+    ...inScope.filter((p) => p.id === human.id),
+    ...inScope.filter((p) => p.id !== human.id),
+  ];
+  if (humans.length === 0) {
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    return;
+  }
+
+  const aiNeeded = Math.max(0, FIELD_TARGET - humans.length);
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
     include: { skills: true },
-    take: AI_COUNT,
+    take: aiNeeded,
   });
 
-  const humanConditionBonus =
-    psychologyCombatModifier(psychologyOf(human)) +
-    traitCombatModifier(parseTraits(human.traits)) +
-    equipmentCombatModifier(human.equipmentLevel);
-
-  const toCombatant = (
-    p: {
-      id: number;
-      firstName: string;
-      lastName: string;
-      weapon: string;
-      sharpness: number;
-      fatigue: number;
-      birthDate: Date;
-      adultHeightCm: number;
-      reachBiasCm: number;
-      buildFactor: number;
-      leftHanded: boolean;
-      traits: string;
-      skills: SkillRow[];
-    },
-    isHuman: boolean,
-  ): Combatant => {
+  const toCombatant = (p: CombatantRow, isHuman: boolean): Combatant => {
     const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
     const traits = parseTraits(p.traits);
+    const conditionBonus = isHuman
+      ? psychologyCombatModifier(psychologyOf(p)) +
+        traitCombatModifier(traits) +
+        equipmentCombatModifier(p.equipmentLevel)
+      : undefined;
     return {
       id: p.id,
       name: `${p.firstName} ${p.lastName}`,
@@ -2577,21 +2667,22 @@ async function autoResolveTournament(
       skills: rowsToSkills(p.skills),
       fatigue: p.fatigue,
       sharpness: p.sharpness,
-      conditionBonus: isHuman ? humanConditionBonus : undefined,
-      physical: {
-        reachCm: ph.reachCm,
-        legLengthCm: ph.legLengthCm,
-        buildFactor: p.buildFactor,
-        leftHanded: p.leftHanded,
-      },
+      conditionBonus,
+      physical: { reachCm: ph.reachCm, legLengthCm: ph.legLengthCm, buildFactor: p.buildFactor, leftHanded: p.leftHanded },
       ageCategory: base.ageCategory as AgeCategory,
-      tactic: isHuman ? tactic : tacticFromTraits(traits),
+      tactic: isHuman ? (tacticByPlayer.get(p.id) ?? "BALANCED") : tacticFromTraits(traits),
       traits,
     };
   };
 
-  const field: Combatant[] = [toCombatant(human, true), ...aiPlayers.map((p) => toCombatant(p, false))];
-  if (field.length < 2) return; // yeterli rakip yok → sessizce geç (dünya yine ilerler)
+  const field: Combatant[] = [
+    ...humans.map((p) => toCombatant(p, true)),
+    ...aiPlayers.map((p) => toCombatant(p, false)),
+  ];
+  if (field.length < 2) {
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    return;
+  }
 
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
   const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
@@ -2604,16 +2695,24 @@ async function autoResolveTournament(
     byPeriods: { periods: de.periods, locale }, // M11.3a: eleme maçları periyot kırılımlı loglanır
   });
 
-  await finalizeTournament(gs, human, level, base, outcome, seedKey);
+  // humans[0] = çözücü (günü ilerler); diğer kapsam-içi oyunculara da etki uygulanır (Model A).
+  await finalizeTournament(gs, humans, level, base, outcome, seedKey, { scopeKey });
 }
 
+/**
+ * Turnuva sonucunu + klasmanı + kişisel etkileri yazar. M11.3b: `humans` kapsam-içi tüm gerçek
+ * oyuncular; humans[0] ÇÖZÜCÜ (yalnız onun günü ilerler). Kişisel etkiler (ödül/psikoloji/keskinlik/
+ * sakatlık/başarı) her human'a uygulanır (Model A). `scopeKey` verilirse ortak örnek olarak dedup'lanır.
+ * Canlı yol tek human + scopeKey'siz çağırır (davranış eskisiyle aynı).
+ */
 async function finalizeTournament(
   gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
-  human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
+  humans: readonly EffectHuman[],
   level: TournamentLevel,
   base: ReturnType<typeof currentIdentity>,
   outcome: TournamentOutcome,
   seedKey: string,
+  opts: { scopeKey?: string } = {},
 ): Promise<{ id: number; earnedPoints: number; newRank: number | null }> {
   const quarter = quarterOf(gs.dayIndex);
   const week = monthOfQuarter(gs.dayIndex); // Tournament.week alanı artık ayı saklar
@@ -2621,21 +2720,25 @@ async function finalizeTournament(
   const tournamentName = `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`;
   const positionByPlayer = new Map(outcome.standings.map((s) => [s.playerId, s.position]));
   const seedByPlayer = new Map(outcome.ranking.map((r) => [r.playerId, r.seedRank]));
-  const humanPsych = psychologyOf(human);
+  const resolver = humans[0];
 
-  // İnsan oyuncu: yarışma keskinlik kazancı (GDD 14.80) + hafta sonu sakatlık kontrolü.
-  const humanFinalFatigue = clamp(outcome.finalFatigue[human.id] ?? human.fatigue, 0, 100);
-  const humanSharpness = applySharpness(human.sharpness, COMPETITION_SHARPNESS_GAIN);
-  const injury = rollInjury(createRng(`${seedKey}:injury`), humanFinalFatigue, base.age);
-
-  // Ödül (Economy, GDD 5.14) + turnuva sonrası psikoloji (GDD 18.59).
-  const humanPosition = positionByPlayer.get(human.id) ?? outcome.pools.length;
-  const prize = prizeFor(level, humanPosition);
-  const postPsych = psychAfterTournament(humanPsych, humanPosition, outcome.pools.length);
+  // Her kapsam-içi oyuncunun kişisel etkilerini (tx dışı, saf) önceden hesapla.
+  const perHuman = humans.map((h) => {
+    const finalFatigue = clamp(outcome.finalFatigue[h.id] ?? h.fatigue, 0, 100);
+    const position = positionByPlayer.get(h.id) ?? outcome.pools.length;
+    return {
+      h,
+      position,
+      sharpness: applySharpness(h.sharpness, COMPETITION_SHARPNESS_GAIN),
+      injury: rollInjury(createRng(`${seedKey}:injury:${h.id}`), finalFatigue, base.age),
+      prize: prizeFor(level, position),
+      postPsych: psychAfterTournament(psychologyOf(h), position, outcome.pools.length),
+    };
+  });
 
   const txResult = await prisma.$transaction(async (tx) => {
     const tournament = await tx.tournament.create({
-      data: { name: tournamentName, categoryId, level, quarter, week, date: gs.currentDate, status: "FINISHED" },
+      data: { name: tournamentName, categoryId, level, quarter, week, date: gs.currentDate, status: "FINISHED", scopeKey: opts.scopeKey ?? null },
     });
 
     for (const c of outcome.pools) {
@@ -2675,29 +2778,31 @@ async function finalizeTournament(
       });
     }
 
-    // Yorgunlukları kalıcılaştır (turlar arası birikim, GDD 18.37).
+    // Yorgunlukları kalıcılaştır (turlar arası birikim, GDD 18.37) — tüm katılımcılar (AI + insan).
     for (const c of outcome.pools) {
       await tx.player.update({
         where: { id: c.playerId },
         data: { fatigue: clamp(outcome.finalFatigue[c.playerId] ?? 0, 0, 100) },
       });
     }
-    // İnsan oyuncu: keskinlik + ödül + psikoloji + sakatlık durumu.
-    await tx.player.update({
-      where: { id: human.id },
-      data: {
-        sharpness: humanSharpness,
-        balance: { increment: prize },
-        morale: postPsych.morale,
-        motivation: postPsych.motivation,
-        confidence: postPsych.confidence,
-        stress: postPsych.stress,
-        status: injury.injured ? "INJURED" : human.status,
-        injuryDaysRemaining: injury.injured ? injury.weeks * INJURY_DAYS_PER_WEEK : 0,
-      },
-    });
+    // Her kapsam-içi oyuncu: keskinlik + ödül + psikoloji + sakatlık durumu.
+    for (const ph of perHuman) {
+      await tx.player.update({
+        where: { id: ph.h.id },
+        data: {
+          sharpness: ph.sharpness,
+          balance: { increment: ph.prize },
+          morale: ph.postPsych.morale,
+          motivation: ph.postPsych.motivation,
+          confidence: ph.postPsych.confidence,
+          stress: ph.postPsych.stress,
+          status: ph.injury.injured ? "INJURED" : ph.h.status,
+          injuryDaysRemaining: ph.injury.injured ? ph.injury.weeks * INJURY_DAYS_PER_WEEK : 0,
+        },
+      });
+    }
 
-    // Ranking puanı (seviyeye göre) ekle ve pozisyonları yeniden hesapla (GDD 19.29).
+    // Ranking puanı (seviyeye göre) ekle ve pozisyonları yeniden hesapla (GDD 19.29) — bir kez, tüm dereceler.
     for (const s of outcome.standings) {
       const pts = rankingPointsForPosition(s.position, level);
       if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
@@ -2715,48 +2820,40 @@ async function finalizeTournament(
         data: { position: r.position },
       });
     }
-    const humanNewRank = ranked.find((r) => r.playerId === human.id)?.position ?? null;
+    const newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
 
-    // Kariyer en iyi ranking (GDD 19.36).
-    if (humanNewRank != null && (human.careerBestRank == null || humanNewRank < human.careerBestRank)) {
-      await tx.player.update({ where: { id: human.id }, data: { careerBestRank: humanNewRank } });
+    // Her kapsam-içi oyuncu: kariyer en iyi ranking (GDD 19.36) + başarılar (Memory, GDD 21/22.37).
+    for (const ph of perHuman) {
+      const newRank = newRankById.get(ph.h.id) ?? null;
+      if (newRank != null && (ph.h.careerBestRank == null || newRank < ph.h.careerBestRank)) {
+        await tx.player.update({ where: { id: ph.h.id }, data: { careerBestRank: newRank } });
+      }
+      const earnedRows = await tx.achievement.findMany({ where: { playerId: ph.h.id }, select: { type: true } });
+      const earnedUnique = new Set(earnedRows.map((a) => a.type as AchievementType));
+      for (const a of detectAchievements({ level, tournamentName, position: ph.position, postRank: newRank, earnedUnique })) {
+        await tx.achievement.create({
+          data: {
+            playerId: ph.h.id,
+            type: a.type,
+            label: a.label,
+            detail: a.detail,
+            importance: a.importance,
+            quarter,
+            date: gs.currentDate,
+          },
+        });
+      }
     }
 
-    // Başarılar (Memory Engine, GDD 21/22.37).
-    const earnedRows = await tx.achievement.findMany({
-      where: { playerId: human.id },
-      select: { type: true },
-    });
-    const earnedUnique = new Set(earnedRows.map((a) => a.type as AchievementType));
-    for (const a of detectAchievements({
-      level,
-      tournamentName,
-      position: humanPosition,
-      postRank: humanNewRank,
-      earnedUnique,
-    })) {
-      await tx.achievement.create({
-        data: {
-          playerId: human.id,
-          type: a.type,
-          label: a.label,
-          detail: a.detail,
-          importance: a.importance,
-          quarter,
-          date: gs.currentDate,
-        },
-      });
-    }
-
-    // Turnuva gününden bir sonraki güne geç (dünya + gün ilerler).
+    // Turnuva gününden bir sonraki güne geç — YALNIZ çözücünün günü ilerler.
     await worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed);
-    return { id: tournament.id, humanNewRank };
+    return { id: tournament.id, resolverNewRank: newRankById.get(resolver.id) ?? null };
   });
 
   return {
     id: txResult.id,
-    earnedPoints: rankingPointsForPosition(humanPosition, level),
-    newRank: txResult.humanNewRank,
+    earnedPoints: rankingPointsForPosition(positionByPlayer.get(resolver.id) ?? outcome.pools.length, level),
+    newRank: txResult.resolverNewRank,
   };
 }
 
