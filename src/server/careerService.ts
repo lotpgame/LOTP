@@ -7,6 +7,7 @@
  */
 import { cookies } from "next/headers";
 import { parsePhone } from "@/engine/geo";
+import { serverWorldDay } from "./world";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -203,6 +204,15 @@ function geneticsOf(p: {
 /** Oyuncunun o quarter'daki yaşı (1 quarter = 1 oyun yılı, GDD 17.5). */
 function currentAge(birthDate: Date, quarter: number): number {
   return computeAge(birthDate, GAME_START) + (quarter - 1);
+}
+
+/**
+ * Kariyerin "yaş quarter'ı" (M10): dünya günü gerçek zamandan gelir; yaş, kariyerin AÇILIŞINDAKİ
+ * dünya quarter'ından bu yana geçen quarter kadar ilerler. Böylece dünyaya sonradan katılan biri
+ * doğru yaşta başlar. Açılışta (dayIndex == careerStartDay) sonuç 1'dir → başlangıç yaşı.
+ */
+function careerQuarter(dayIndex: number, careerStartDay: number): number {
+  return 1 + quarterOf(dayIndex) - quarterOf(careerStartDay);
 }
 
 async function ensureCountry(code: string, name: string): Promise<number> {
@@ -436,6 +446,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   const otherCities = clubRng.shuffle(TR_CITIES.filter((c) => c !== data.city)).slice(0, 5);
 
   const userId = await ensureUserId(); // çerez + kullanıcı (yoksa oluştur, çerezi set eder)
+  const worldDay = serverWorldDay(); // M10: kariyer "şu anki" dünya gününde başlar (yaş çıpası)
 
   const humanPlayerId = await prisma.$transaction(async (tx) => {
     // AI havuzu ORTAK (ortak dünya hedefi): yalnız ilk kariyer üretiminde oluşturulur; sonraki
@@ -507,7 +518,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     }
 
     await tx.gameState.create({
-      data: { humanPlayerId: human.id, userId, seed, currentDate: GAME_START },
+      data: { humanPlayerId: human.id, userId, seed, currentDate: dayDate(worldDay), careerStartDay: worldDay, dayIndex: worldDay },
     });
     return human.id;
   });
@@ -558,7 +569,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const skills = rowsToSkills(human.skills);
   const quarter = quarterOf(gs.dayIndex);
   const month = monthOfQuarter(gs.dayIndex);
-  const cur = currentIdentity(human, quarter); // yaş kategorisi yıllara göre ilerler
+  const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)); // yaş kariyer çıpasına göre
   const categoryId = cur.categoryId;
   const age = cur.age;
 
@@ -709,8 +720,13 @@ export interface CareerHeaderDTO {
   dayName: string; // Pazartesi..Pazar
   injured: boolean;
   injuryDaysRemaining: number;
-  today: TodayDTO; // bugünün etkinliği (çubuk İlerle/Katıl/Geç için)
-  report: TrainingReport | null; // son "İlerle" antrenman haberi (varsa)
+  today: TodayDTO; // bugünün etkinliği (çubuk Katıl/Geç için)
+  report: TrainingReport | null; // son "dünyaya yetiş" antrenman haberi (varsa)
+  // M10 dünya saati: canAttend = bugünkü uygun turnuva "geldi" (Katıl/Geç); needsSync = işlenecek
+  // gün var (otomatik dünyaya yetiş); caughtUp = dünyaya yetişildi, sonraki gün gerçek zamanda gelecek.
+  canAttend: boolean;
+  needsSync: boolean;
+  caughtUp: boolean;
 }
 
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
@@ -719,7 +735,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const { gs, human } = state;
   const locale = await getLocale();
   const quarter = quarterOf(gs.dayIndex);
-  const cur = currentIdentity(human, quarter);
+  const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const injured = human.injuryDaysRemaining > 0;
   const act = activityForDay(gs.dayIndex);
   const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
@@ -745,6 +761,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     };
   }
 
+  const worldDay = serverWorldDay();
+  const arrived = gs.dayIndex <= worldDay; // bugün gerçek zamanda "geldi" mi
+  const canAttend = arrived && today.kind === "TOURNAMENT" && today.qualified === true;
+  const needsSync = arrived && !canAttend; // işlenecek gün var (antrenman/iyileşme/uygunsuz turnuva)
   return {
     name: `${human.firstName} ${human.lastName}`,
     code: human.code,
@@ -760,6 +780,9 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     injuryDaysRemaining: human.injuryDaysRemaining,
     today,
     report: gs.lastReport ? (JSON.parse(gs.lastReport) as TrainingReport) : null,
+    canAttend,
+    needsSync,
+    caughtUp: !arrived,
   };
 }
 
@@ -876,17 +899,18 @@ async function worldAdvanceTx(
  * dinlenme/sakatlık günlerinde toparlanır ve turnuva gününde DURUR (Katıl/Geç için). Antrenmanda
  * sakatlanırsa orada durur. Online'da bu akış sunucu saatiyle otomatik olur.
  */
-export async function advanceDay(): Promise<AdvanceResult> {
+export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
   if (gs.liveTournament) return { live: true };
 
   const startQuarter = quarterOf(gs.dayIndex);
-  const cur = currentIdentity(human, startQuarter);
+  const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const age = cur.age;
   const ranking = await buildRankingView(cur.categoryId, startQuarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  const worldDay = serverWorldDay(); // dünyaya kadar ilerle (gerçek zaman tavanı)
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean) as TrainingType[];
 
   // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
@@ -953,10 +977,11 @@ export async function advanceDay(): Promise<AdvanceResult> {
     return false;
   };
 
-  // Sonraki KATILABİLİR turnuva gününe kadar ilerle. İlk gün turnuvaysa "Geç" demektir → o gün
-  // antrenman yapılmış sayılır (turnuvaya girmedin ama boş geçmedin). Sonraki uygun turnuvada durur.
+  // M10: dünya gününe (gerçek zaman) kadar otomatik ilerle. Uygun turnuva günlerinde DUR (Katıl/Geç).
+  // skipFirst=true (Geç): baştaki turnuvayı antrenmanla geçip sonraki turnuvaya kadar ilerle.
   let firstDay = true;
   for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
+    if (d > worldDay) break; // gerçek zamanı geçemeyiz — dünyaya yetiştik, bekle
     if (injuryDays > 0) {
       fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
       injuryDays--;
@@ -967,8 +992,8 @@ export async function advanceDay(): Promise<AdvanceResult> {
     const act = activityForDay(d);
     if (act.kind === "TOURNAMENT") {
       const eligible = qualifies(act.qualification, humanRank);
-      if (eligible && !firstDay) break; // yeni bir uygun turnuva günü → dur (Katıl/Geç)
-      // İlk gün turnuvası (Geç) ya da uygun olmayan turnuva → katılmıyorsun, o gün PLANINDAKİ seans.
+      if (eligible && !(firstDay && skipFirst)) break; // uygun turnuvada dur (Geç ile ilk günü atla)
+      // Uygun olmayan turnuva ya da (Geç ile) ilk gün → o gün PLANINDAKİ seans.
       const injured = applySession(planArr[dayOfWeek(d)] ?? "REST");
       d++;
       firstDay = false;
@@ -1049,7 +1074,9 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (human.injuryDaysRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
   const act = activityForDay(gs.dayIndex);
   if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
-  const ranking = await buildRankingView(currentIdentity(human, quarterOf(gs.dayIndex)).categoryId, quarterOf(gs.dayIndex), human.id);
+  if (gs.dayIndex > serverWorldDay()) throw new Error("Bu turnuva günü henüz gelmedi (dünya saati).");
+  const cat = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)).categoryId;
+  const ranking = await buildRankingView(cat, quarterOf(gs.dayIndex), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) {
     throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
@@ -1747,13 +1774,13 @@ function finishBracketBulk(ls: LiveState, locale: Locale): void {
  * sırayla oynanır. Kayıt tüketilir; hafta turnuva bitince ilerler (finalize).
  */
 export async function startLiveTournament(
-  gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
 ): Promise<void> {
   const quarter = quarterOf(gs.dayIndex);
   const week = monthOfQuarter(gs.dayIndex); // "hafta" alanı artık ayı (h1..h12) saklar
-  const base = currentIdentity(human, quarter); // o anki yaş kategorisi
+  const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)); // insanın yaş kategorisi
 
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
@@ -2084,11 +2111,11 @@ export async function leaveLiveTournament(): Promise<void> {
 
 /** Canlı turnuva bitince kalıcılaştırır (permanent tablolar + ekonomi/ranking/başarı + hafta ilerler). */
 async function finalizeLive(
-  gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
+  gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   ls: LiveState,
 ): Promise<void> {
-  const base = currentIdentity(human, quarterOf(gs.dayIndex)); // o anki kategori
+  const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)); // insanın kategorisi
   const outcome: TournamentOutcome = {
     pools: ls.poolResults ?? [],
     ranking: (ls.ranking ?? []).map((r) => ({ playerId: r.playerId, name: nameOf(ls, r.playerId), seedRank: r.seedRank })),

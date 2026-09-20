@@ -74,6 +74,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   boyunca güncel — kondisyon maçlarla düşer).
 
 ### Değiştirdi
+- **"Haftayı İlerle" kalktı → dünya saati gerçek zamanla akar (M10.1b):** Zaman artık oyuncu-güdümlü
+  değil; sayfa açılınca kariyer şimdiki dünya gününe **otomatik yetişir** (antrenman/iyileşme uygulanır),
+  uygun turnuva gününde **Katıl / Geç** için durur. Alt çubukta 🌍 dünya günü göstergesi; "İlerle" butonu yok.
+  Yaş **kariyer açılış çıpasına** göre (dünyaya sonradan katılan doğru yaşta başlar; `GameState.careerStartDay`).
+  Kariyer oluşturma dünya anına sabitlenir. (Geçici: turnuvaya girilmezse o günde bekler → offline oto-oynatma M10.2.)
 - **Pul maçları sabit liste:** "Pul maçları" sekmesi artık tüm maçları **sabit** gösterir (oynanan =
   skor+açılır detay, sıradaki = işaretli, kalanlar = kilitli). Böylece maçlar "kendiliğinden ekrana
   düşmez" — hepsi baştan görünür (kullanıcı geri bildirimi).

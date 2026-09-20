@@ -119,8 +119,9 @@ anlatımları; cookie tabanlı, oluşturma ekranından seçilebilir).
 dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar
 [`docs/ROADMAP.md`](docs/ROADMAP.md) §B2: **M9** kimlik + kalıcı DB (User + `Player.userId`, AI ortak;
 Postgres) → **M10** ortak dünya + sunucu saati → **M11** ortak turnuva simülasyonu + klasman → **M12**
-ölçek/servis. **M9.1 (kimlik/veri sahipliği) yapıldı:** çerez tabanlı hesap, kullanıcı-bazlı kariyer,
-ortak AI havuzu.
+ölçek/servis. **İlerleme:** M9.1 (kimlik/veri sahipliği), M9.2 (telefonla giriş — auth yönü Google+IP'ye
+dönecek), M10.1 (ortak dünya saati: "Haftayı İlerle" kalktı, zaman gerçek zamanla akar, otomatik dünyaya
+yetiş) yapıldı; sıradaki M10.2 (turnuva kaydı + önceden taktik) → M11 (ortak turnuva simülasyonu).
 
 Diğer derinlik maddeleri (§G backlog): AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
 gelişmiş taktik (counter/pressure).

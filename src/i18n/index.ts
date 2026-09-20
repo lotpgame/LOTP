@@ -33,6 +33,8 @@ const TR: Dict = {
   "bar.gec": "Geç · antren ⏭",
   "bar.injured": "🩹 Sakat — {n} gün",
   "bar.training": "Antrenman",
+  "bar.syncing": "⏳ Dünyaya yetişiliyor…",
+  "bar.caughtUp": "🌍 Dünya güncel · sonraki gün gerçek zamanda",
   // Ayarlar
   "settings.title": "Ayarlar",
   "settings.language": "Dil",
@@ -354,6 +356,8 @@ const EN: Dict = {
   "bar.gec": "Skip · train ⏭",
   "bar.injured": "🩹 Injured — {n} days",
   "bar.training": "Training",
+  "bar.syncing": "⏳ Catching up to the world…",
+  "bar.caughtUp": "🌍 World is current · next day in real time",
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.languageNote": "Interface language. (English translation is being rolled out.)",

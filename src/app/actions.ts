@@ -42,13 +42,21 @@ export async function createCareerAction(formData: FormData): Promise<void> {
 }
 
 /**
- * "İlerle / Geç" — sabit çubuktan gün-bazlı zaman sürücüsü (online'da otomatik). Sonraki turnuva
- * gününe kadar ilerler (antrenmanları uygular), turnuva gününde durur (Katıl/Geç).
+ * "Dünyaya yetiş" (M10): dünya saati gerçek zamanla akar; bu, kariyeri şimdiki dünya gününe kadar
+ * otomatik ilerletir (antrenmanları uygular), uygun turnuva gününde durur (Katıl/Geç). Sayfa açılınca
+ * otomatik tetiklenir — "Haftayı İlerle" butonu kalktı.
  */
 export async function advanceDayAction(): Promise<void> {
-  const result = await advanceDay();
+  const result = await advanceDay(false);
   if (result.live) redirect("/turnuva/canli");
   revalidatePath("/kariyer", "layout"); // başlık (gün) + mevcut sayfa tazelensin
+}
+
+/** "Geç" — bugünkü turnuvaya katılmayıp o gün planındaki antrenmanı yapar, sonraki güne geçer. */
+export async function skipDayAction(): Promise<void> {
+  const result = await advanceDay(true);
+  if (result.live) redirect("/turnuva/canli");
+  revalidatePath("/kariyer", "layout");
 }
 
 /** Bugünkü turnuvaya katılır → canlı turnuva ekranına geçer. */

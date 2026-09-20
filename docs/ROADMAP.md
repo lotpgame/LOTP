@@ -264,8 +264,9 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
   - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma (Google+IP burada gerçeklenir)
 - [~] **M10** — Ortak dünya + sunucu saati (gerçek-zaman saati; "İlerle" kalkar) ← DEVAM EDİYOR
   - [x] **M10.1a** — `worldclock.ts`: gerçek-zamandan dünya günü (saf + test); zaman modeli kilitlendi
-  - [ ] **M10.1b** — Dünya saatini oyuna bağla (per-kariyer dayIndex → global; "İlerle" kalkar; yaş/kategori world'e göre)
-  - [ ] **M10.2** — Turnuvaya kayıt + önceden taktik (offline → varsayılan/son taktik)
+  - [x] **M10.1b** — Dünya saati oyuna bağlandı: "İlerle" kalktı (otomatik "dünyaya yetiş"); dünya günü gerçek zamandan; yaş `careerStartDay` çıpalı; oluşturma dünya anına sabit; bar 🌍 + Katıl/Geç. `GameState.careerStartDay`.
+  - [ ] **M10.2** — Turnuvaya kayıt + önceden taktik (offline → varsayılan/son taktik; offline auto-run)
+  - Not (M10.1b geçici sınır): oyuncu turnuvaya girmezse kariyer o günde bekler (offline otomatik oynatma M10.2'de). Farklı dünya-quarter'ında katılan yeni oyuncu için AI eşleşmesi M11 (canlı dünya/yeni nesil).
 - [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
 

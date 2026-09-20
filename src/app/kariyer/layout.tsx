@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { advanceDayAction, attendTournamentAction, clearReportAction } from "@/app/actions";
+import { attendTournamentAction, clearReportAction, skipDayAction } from "@/app/actions";
 import { GENDER_LABEL_TR, WEAPON_LABEL_TR, type Gender, type Weapon } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
+import { AutoAdvance } from "./AutoAdvance";
 import { CareerNav } from "./CareerNav";
 
 const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
@@ -19,13 +20,12 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   const locale = await getLocale();
 
   const meta = `${h.code} · ${GENDER_LABEL_TR[h.gender as Gender]} · ${WEAPON_LABEL_TR[h.weapon as Weapon]} · ${h.age} yaş · ${h.categoryId}`;
-  const dateLabel = `Q${h.quarter} · H${h.month} · ${h.dayName}`;
-
-  // Bugün katılabileceğin bir turnuva mı? (sağlıklı + uygun) → Katıl/Geç; değilse İlerle.
-  const canAttend = !h.injured && h.today.kind === "TOURNAMENT" && h.today.qualified === true;
+  const dateLabel = `🌍 Q${h.quarter} · H${h.month} · ${h.dayName}`;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">
+      {/* Dünya saati: işlenecek gün varsa otomatik "dünyaya yetiş" (buton yok). */}
+      <AutoAdvance active={h.needsSync} />
       <CareerNav name={h.name} meta={meta} locale={locale} />
 
       {/* Antrenman haberi — son "İlerle"nin özeti (kazanımlar + kondisyon/keskinlik değişimi). */}
@@ -76,9 +76,10 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
             </div>
           </div>
 
-          {canAttend ? (
+          {h.canAttend ? (
+            // Uygun turnuva günü geldi → Katıl / Geç
             <div className="flex shrink-0 gap-2">
-              <form action={advanceDayAction}>
+              <form action={skipDayAction}>
                 <button className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
                   {t(locale, "bar.gec")}
                 </button>
@@ -89,16 +90,14 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                 </button>
               </form>
             </div>
+          ) : h.needsSync ? (
+            // Dünyaya yetişiliyor (otomatik) — buton yok
+            <div className="shrink-0 animate-pulse text-sm font-medium text-sky-600 dark:text-sky-400">
+              {t(locale, "bar.syncing")}
+            </div>
           ) : (
-            <form action={advanceDayAction} className="shrink-0">
-              <button
-                className={`rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition ${
-                  h.injured ? "bg-amber-600 hover:bg-amber-500" : "bg-emerald-600 hover:bg-emerald-500"
-                }`}
-              >
-                {t(locale, "bar.ilerle")}
-              </button>
-            </form>
+            // Dünya güncel — sonraki gün gerçek zamanda gelecek
+            <div className="shrink-0 text-right text-xs opacity-60">{t(locale, "bar.caughtUp")}</div>
           )}
         </div>
       </div>

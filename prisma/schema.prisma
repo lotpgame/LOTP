@@ -158,7 +158,11 @@ model GameState {
   user          User?    @relation(fields: [userId], references: [id])
   seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
   currentDate   DateTime // oyun-içi tarih (gösterim)
-  dayIndex      Int      @default(0) // 0-tabanlı global GÜN; quarter/ay/gün buradan türetilir
+  // M10: dünya saati gerçek zamandan gelir. careerStartDay = kariyer açılışındaki GLOBAL dünya günü
+  // (yaş çıpası: yaş = başlangıç yaşı + (dünya quarter − başlangıç quarter)). dayIndex = kariyerin
+  // "işlenmiş son güne kadar geldiği" imleç (dünyaya yetiş bunu worldDay'e kadar ilerletir).
+  careerStartDay Int     @default(0)
+  dayIndex      Int      @default(0) // kariyerin geldiği gün (worldDay'e kadar otomatik ilerler)
   // Canlı (devam eden) turnuva durumu (GDD 18.54): maç-maç oynanır, her maçın kendi taktiği.
   // JSON blob (combatant anlık görüntüsü + pul/eleme ilerlemesi + oynanan maçlar). Bitince temizlenir.
   liveTournament String?
