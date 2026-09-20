@@ -234,10 +234,17 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
 - Hosting: kalıcı DB + always-on sunucu + cron; deploy hattı; maliyet/ölçek planı.
 - **Bitti:** çok sayıda hesapla stabil; dünya tiki otomatik; yedek + izleme çalışır.
 
+### Gerçekçilik (combat) — durum
+YAPILDI (2026-09-20): AI'lara da Form; tüm psikoloji maça yansır; **günün hâli** (daily mood, herkeste);
+**veteran gerilemesi** (~30 sonrası, `ageCombatModifier`); **gün-bazlı sakatlık** (çoğu 1–2 gün).
+**SIRADAKİ BÜYÜK GERÇEKÇİLİK = #5 Öncelik/Hak-yolu (right-of-way)** — flöre/kılıçta öncelik + epe çift-tuş +
+aksiyon niyeti (hücum/parat-riposte/kontra) + silaha özel çözümleme. Karar (oyun sahibi 2026-09-20):
+**deploy'dan SONRA ilk V2 özelliği** (silahları gerçekten ayıran hamle; büyük iş). Deploy önce.
+
 ### Sonra (Future — ortak dünyadan sonra)
-Olimpiyat, üçüncülük maçı, kart/hakem sistemi, scouting, medya, gerçek-zamanlı combat,
-gizli potansiyel/scout, kulüpler arası lig, arkadaş/rekabet. Mimari bunları bozmadan
-eklenecek şekilde kuruluyor.
+Öncelik/hak-yolu (#5, ilk V2), Olimpiyat, üçüncülük maçı, kart/hakem sistemi, scouting, medya,
+gerçek-zamanlı combat, gizli potansiyel/scout, kulüpler arası lig, arkadaş/rekabet. Mimari bunları
+bozmadan eklenecek şekilde kuruluyor.
 
 ---
 
