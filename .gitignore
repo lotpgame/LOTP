@@ -8,6 +8,7 @@ node_modules/
 out/
 dist/
 build/
+*.tsbuildinfo
 
 # Ortam değişkenleri (SIRLAR — asla commit'lenmez)
 .env
