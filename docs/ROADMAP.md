@@ -322,7 +322,7 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
   - [x] **M11.2** — Çizelgeli offline otomatik oynatma + ortak Quarter Ranking: `autoResolveTournament` (insan önceden-taktik, AI stil) → `finalizeTournament`; `advanceDay` geçmiş+kayıtlı turnuvaları otomatik çözer, canlı "Katıl" yalnız bugün. Tarayıcıda doğrulandı.
   - [x] **M11.3a** — Birleşik periyot motoru + taktik kaynağı: `simulateBoutByPeriods` (saf); offline çözüm periyot-bazlı (log periyot kırılımlı + event'ler); `simulateTournament` `byPeriods` opsiyonu. 5 test. Tarayıcıda doğrulandı.
   - [x] **M11.3b-1** — Ortak turnuva örneği (offline): gruplama (İl=ülke+şehir, Türkiye/Open=ülke, uluslararası=dünya) + `Tournament.scopeKey` dedup + saha = kapsam-içi kayıtlı gerçek oyuncular + AI dolgu; çözücü herkesin etkisini uygular (Model A). Tarayıcı+DB ile doğrulandı: 2 gerçek oyuncu aynı turnuvada, ortak klasman.
-  - [ ] **M11.3b-2** — Canlı insanın ortak örneğe katılması (bugünkü turnuvayı canlı oynarken diğer kayıtlı gerçek oyuncular sahada); uluslararası U17+ kapısı; kayıt gün-00:00 kapanışı
+  - [x] **M11.3b-2** — Canlı insan ortak örneğe katılır: canlı sahaya kapsam-içi kayıtlı gerçek oyuncular (bot/önceden-taktik) girer, `scopeKey` dedup, etkiler herkese; uluslararası **U17+** kapısı; kayıt **gün-00:00** kapanır. Tarayıcı+DB ile doğrulandı (canlı Ali + offline Veli aynı turnuvada, ortak klasman).
   - [ ] **M11.4** — "Yokken neler oldu" özeti (offline oyuncu geçmiş turnuvayı sonuç + event'leriyle görür)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
 

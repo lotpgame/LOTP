@@ -133,6 +133,14 @@ const GAME_START = new Date("2026-01-01T00:00:00.000Z");
 const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı)
 const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
+
+/** Uluslararası turnuva seviyeleri (yalnız U17+; FIE: kıdemli devreler + Kadet/Junior şampiyonaları). */
+const INTERNATIONAL_LEVELS: readonly TournamentLevel[] = ["SATELLITE", "EUROPEAN", "GRAND_PRIX", "WORLD_CUP"];
+/** Uluslararası turnuvalar yalnız U17 ve üstü kategorilerde (M11.3b: oyun sahibi + FIE). */
+function levelAllowedForCategory(level: TournamentLevel, ageCategory: AgeCategory): boolean {
+  if (!INTERNATIONAL_LEVELS.includes(level)) return true;
+  return ageCategory === "U17" || ageCategory === "U21" || ageCategory === "SENIOR";
+}
 // Varsayılan haftalık plan: 4 antrenman günü (Pazartesi / Çarşamba / Cuma / Pazar).
 // 7 günlük plan (Pzt=0 … Paz=6). Turnuva günlerinin (Sal/Prş/Cmt) planı yalnız o turnuvaya
 // KATILMAZSAN uygulanır. Varsayılan dinlenmeli/dengeli — her gün antrenman şart değil.
@@ -757,7 +765,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
       kind: "TOURNAMENT",
       level: act.level,
       label: t(locale, `tournament.${act.level}`),
-      qualified: !injured && qualifies(act.qualification, humanRank),
+      qualified: !injured && qualifies(act.qualification, humanRank) && levelAllowedForCategory(act.level, cur.ageCategory),
       requirement: t(locale, `qual.${act.qualification}`),
     };
   }
@@ -837,10 +845,12 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
   const regBy = new Map(regs.map((r) => [`${r.worldDay}:${r.level}`, r]));
 
   const out: UpcomingTournamentDTO[] = [];
-  for (let d = today; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
+  // Kayıt turnuva gününün 00:00'ında kapanır → yalnız GELECEK günler (today+1) kaydedilebilir.
+  for (let d = today + 1; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
     const act = activityForDay(d);
     if (act.kind !== "TOURNAMENT") continue;
     const id = currentIdentity(human, careerQuarter(d, gs.careerStartDay)); // o günkü yaş kategorisi
+    if (!levelAllowedForCategory(act.level, id.ageCategory)) continue; // uluslararası yalnız U17+
     const reg = regBy.get(`${d}:${act.level}`);
     out.push({
       worldDay: d,
@@ -864,10 +874,12 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
-  if (worldDay < serverWorldDay()) throw new Error("Geçmiş bir turnuvaya kaydolamazsın.");
+  // Kayıt turnuva gününün 00:00'ında kapanır (bir gün öncesine kadar; oyun sahibi kuralı).
+  if (worldDay <= serverWorldDay()) throw new Error("Bu turnuvaya kayıt kapandı (turnuva günü). Bir gün öncesine kadar kaydolabilirsin.");
   const act = activityForDay(worldDay);
   if (act.kind !== "TOURNAMENT" || act.level !== level) throw new Error("O gün bu turnuva yok.");
   const id = currentIdentity(human, careerQuarter(worldDay, gs.careerStartDay));
+  if (!levelAllowedForCategory(level, id.ageCategory)) throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
   const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
@@ -1087,7 +1099,8 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     }
     const act = activityForDay(d);
     if (act.kind === "TOURNAMENT") {
-      const eligible = qualifies(act.qualification, humanRank);
+      const eligible =
+        qualifies(act.qualification, humanRank) && levelAllowedForCategory(act.level, cur.ageCategory);
       const isToday = d === worldDay; // bugün (dünya saati) → canlı oynanabilir
       if (eligible && isToday && !(firstDay && skipFirst)) break; // bugünün turnuvasında dur (Katıl/Geç)
       // M11.2: geçmiş (d < worldDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
@@ -1188,11 +1201,22 @@ export async function attendTournament(): Promise<AdvanceResult> {
   const act = activityForDay(gs.dayIndex);
   if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
   if (gs.dayIndex > serverWorldDay()) throw new Error("Bu turnuva günü henüz gelmedi (dünya saati).");
-  const cat = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)).categoryId;
-  const ranking = await buildRankingView(cat, quarterOf(gs.dayIndex), human.id);
+  const attendId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  if (!levelAllowedForCategory(act.level, attendId.ageCategory)) {
+    throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
+  }
+  const ranking = await buildRankingView(attendId.categoryId, quarterOf(gs.dayIndex), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) {
     throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
+  }
+  // M11.3b-2: bu ortak turnuva zaten çözüldüyse (başka oyuncu canlı oynadı/offline çözüldü) → canlı başlatma,
+  // günü ilerlet (kapsam-içiysen etkilerin çözücü tarafından uygulandı).
+  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
+  const scopeKey = tournamentScopeKey(act.level, country?.code ?? "??", human.club?.city ?? "", attendId.categoryId, gs.dayIndex);
+  if (await prisma.tournament.findUnique({ where: { scopeKey } })) {
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    return {};
   }
   await startLiveTournament(gs, human, act.level);
   return { live: true };
@@ -1600,6 +1624,8 @@ interface LiveState {
   quarter: number;
   week: number;
   seedKey: string;
+  scopeKey?: string; // M11.3b-2: ortak turnuva örneği anahtarı (dedup)
+  coHumanIds?: number[]; // M11.3b-2: sahadaki diğer kayıtlı gerçek oyuncular (bot gibi oynar, etki uygulanır)
   startTimeMs: number;
   humanId: number;
   combatants: LiveCombatant[];
@@ -1895,17 +1921,30 @@ export async function startLiveTournament(
   const week = monthOfQuarter(gs.dayIndex); // "hafta" alanı artık ayı (h1..h12) saklar
   const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)); // insanın yaş kategorisi
 
+  // M11.3b-2: ortak turnuva örneği — kapsam anahtarı + kapsam-içi diğer kayıtlı gerçek oyuncular.
+  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
+  const myCity = human.club?.city ?? "";
+  const myScope = geoScopeForLevel(level, country?.code ?? "??", myCity);
+  const scopeKey = tournamentScopeKey(level, country?.code ?? "??", myCity, base.categoryId, gs.dayIndex);
+
+  const regs = await prisma.registration.findMany({ where: { worldDay: gs.dayIndex, level } });
+  const coTactic = new Map(regs.map((r) => [r.playerId, r.tactic as Tactic]));
+  const coCat = new Map(regs.map((r) => [r.playerId, r.categoryId]));
+  const coRegPlayers = await prisma.player.findMany({
+    where: { id: { in: regs.filter((r) => r.playerId !== human.id).map((r) => r.playerId) }, isAI: false },
+    include: { skills: true, club: true, nationality: true },
+  });
+  // Kapsam-içi diğer gerçek oyuncular (aynı kategori + aynı coğrafi kapsam) → sahada BOT gibi (önceden-taktik).
+  const coHumans = coRegPlayers.filter(
+    (p) => coCat.get(p.id) === base.categoryId && geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope,
+  );
+
+  const aiNeeded = Math.max(0, FIELD_TARGET - 1 - coHumans.length);
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
     include: { skills: true },
-    take: AI_COUNT,
+    take: aiNeeded,
   });
-
-  const humanPsych = psychologyOf(human);
-  const humanConditionBonus =
-    psychologyCombatModifier(humanPsych) +
-    traitCombatModifier(parseTraits(human.traits)) +
-    equipmentCombatModifier(human.equipmentLevel);
 
   const snapshot = (
     p: {
@@ -1920,9 +1959,14 @@ export async function startLiveTournament(
       buildFactor: number;
       leftHanded: boolean;
       traits: string;
+      morale: number;
+      motivation: number;
+      confidence: number;
+      stress: number;
+      equipmentLevel: number;
       skills: SkillRow[];
     },
-    isHuman: boolean,
+    opts: { isHuman: boolean; realPlayer: boolean; tactic?: Tactic },
   ): LiveCombatant => {
     const ph = computePhysique(geneticsOf(p), currentAge(p.birthDate, quarter));
     const sk = rowsToSkills(p.skills);
@@ -1940,13 +1984,20 @@ export async function startLiveTournament(
       buildFactor: p.buildFactor,
       leftHanded: p.leftHanded,
       traits,
-      isHuman,
-      aiTactic: tacticFromTraits(traits),
-      conditionBonus: isHuman ? humanConditionBonus : undefined,
+      isHuman: opts.isHuman,
+      aiTactic: opts.tactic ?? tacticFromTraits(traits),
+      // Gerçek oyuncular (canlı + kapsam-içi bot) form katkısı alır; saf AI nötr.
+      conditionBonus: opts.realPlayer
+        ? psychologyCombatModifier(psychologyOf(p)) + traitCombatModifier(traits) + equipmentCombatModifier(p.equipmentLevel)
+        : undefined,
     };
   };
 
-  const combatants: LiveCombatant[] = [snapshot(human, true), ...aiPlayers.map((p) => snapshot(p, false))];
+  const combatants: LiveCombatant[] = [
+    snapshot(human, { isHuman: true, realPlayer: true }),
+    ...coHumans.map((p) => snapshot(p, { isHuman: false, realPlayer: true, tactic: coTactic.get(p.id) ?? "BALANCED" })),
+    ...aiPlayers.map((p) => snapshot(p, { isHuman: false, realPlayer: false })),
+  ];
   if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
   const dateKey = gs.currentDate.toISOString().slice(0, 10);
@@ -1967,6 +2018,7 @@ export async function startLiveTournament(
 
   const fatigue: Record<number, number> = {};
   fatigue[human.id] = human.fatigue;
+  for (const p of coHumans) fatigue[p.id] = p.fatigue;
   for (const p of aiPlayers) fatigue[p.id] = p.fatigue;
 
   const startTime = new Date(gs.currentDate);
@@ -1980,6 +2032,8 @@ export async function startLiveTournament(
     quarter,
     week,
     seedKey,
+    scopeKey,
+    coHumanIds: coHumans.map((p) => p.id),
     startTimeMs: startTime.getTime(),
     humanId: human.id,
     combatants,
@@ -2253,8 +2307,28 @@ async function finalizeLive(
     championId: ls.championId ?? ls.humanId,
     finalFatigue: ls.fatigue,
   };
-  // Canlı yol: tek human, scopeKey'siz (özel örnek). Ortak örneğe taşıma M11.3b-2.
-  const fin = await finalizeTournament(gs, [human], ls.level, base, outcome, ls.seedKey);
+  // M11.3b-2: ortak örnek. Başka biri (eşzamanlı/offline) zaten çözmüşse çift oluşturma → mevcut sonucu kullan.
+  const existing = ls.scopeKey ? await prisma.tournament.findUnique({ where: { scopeKey: ls.scopeKey } }) : null;
+  if (existing) {
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    const part = await prisma.tournamentParticipant.findFirst({
+      where: { tournamentId: existing.id, playerId: human.id },
+      select: { finalPosition: true },
+    });
+    const rank = await prisma.ranking.findUnique({
+      where: { playerId_categoryId_quarter: { playerId: human.id, categoryId: base.categoryId, quarter: quarterOf(gs.dayIndex) } },
+      select: { position: true },
+    });
+    ls.finalTournamentId = existing.id;
+    ls.earnedPoints = rankingPointsForPosition(part?.finalPosition ?? outcome.pools.length, ls.level);
+    ls.newRank = rank?.position ?? null;
+    return;
+  }
+  // Kapsam-içi diğer gerçek oyuncular da etki alır (Model A); humans[0]=canlı oyuncu (günü ilerler).
+  const coHumans = ls.coHumanIds?.length
+    ? await prisma.player.findMany({ where: { id: { in: ls.coHumanIds } } })
+    : [];
+  const fin = await finalizeTournament(gs, [human, ...coHumans], ls.level, base, outcome, ls.seedKey, { scopeKey: ls.scopeKey });
   ls.finalTournamentId = fin.id;
   ls.earnedPoints = fin.earnedPoints;
   ls.newRank = fin.newRank;

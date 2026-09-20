@@ -16,6 +16,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.3b-2 — Canlı insan ortak örneğe katılır + iki kural:** Bugünkü turnuvayı **canlı** oynayan oyuncunun
+  sahasına artık **kapsam-içi diğer kayıtlı gerçek oyuncular** da girer (bot gibi, önceden-taktikle); turnuva
+  ortak örnektir (`scopeKey` + dedup), sonuç + klasman + kişisel etkiler herkese yazılır. Zaten çözülmüş bir
+  ortak turnuva canlı başlatılmaz (mevcut sonuç okunur). İki kural: **uluslararası turnuvalar yalnız U17+**;
+  **kayıt turnuva gününün 00:00'ında kapanır** (yalnız gelecek günler kaydedilebilir). (Tarayıcı+DB ile
+  doğrulandı: canlı oynayan Ali + offline Veli **aynı** turnuvada — tek satır/24 katılımcı, ikisine ortak klasman.)
 - **M11.3b-1 — Ortak turnuva örneği (asıl çok-oyunculu çekirdek):** Bir turnuva günü artık **paylaşılan
   örnek**tir. Gruplama: **İl = ülke+şehir**, Türkiye/Open = ülke, uluslararası = dünya (her il kendi İl'ini
   oynar). Aynı kapsama kayıtlı **tüm gerçek oyuncular tek turnuvada** oynar (saha 24'e AI ile tamamlanır);
