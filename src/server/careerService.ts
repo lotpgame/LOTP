@@ -735,6 +735,9 @@ export interface CareerHeaderDTO {
   weapon: string;
   age: number;
   categoryId: string;
+  ageCategory: string; // "U21" (rozet)
+  city: string; // kulübün şehri (rozet)
+  nationalTeam: boolean; // kategori sıralaması ilk 4 → milli takım rozeti
   liveTournamentActive: boolean;
   quarter: number;
   month: number; // h1..h12
@@ -762,6 +765,11 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const act = activityForDay(gs.dayIndex);
   const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
 
+  // Kimlik başlığı rozetleri + turnuva uygunluğu için güncel kategori sıralaması (hep hesaplanır).
+  const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  const nationalTeam = humanRank != null && humanRank <= 4;
+
   let today: TodayDTO;
   if (act.kind === "TRAINING") {
     const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
@@ -771,8 +779,6 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
       trainingLabel: t(locale, `training.${(planArr[dayOfWeek(gs.dayIndex)] ?? "REST") as TrainingType}`),
     };
   } else {
-    const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
-    const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
     today = {
       dayName: dayLabel,
       kind: "TOURNAMENT",
@@ -796,6 +802,9 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     weapon: human.weapon,
     age: cur.age,
     categoryId: cur.categoryId,
+    ageCategory: cur.ageCategory,
+    city: human.club?.city ?? "",
+    nationalTeam,
     liveTournamentActive: gs.liveTournament != null,
     quarter,
     month: monthOfQuarter(gs.dayIndex),

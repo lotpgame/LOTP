@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { attendTournamentAction, clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
-import { GENDER_LABEL_TR, WEAPON_LABEL_TR, type Gender, type Weapon } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
@@ -20,14 +19,22 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   if (h.liveTournamentActive) redirect("/turnuva/canli");
   const locale = await getLocale();
 
-  const meta = `${h.code} · ${GENDER_LABEL_TR[h.gender as Gender]} · ${WEAPON_LABEL_TR[h.weapon as Weapon]} · ${h.age} yaş · ${h.categoryId}`;
   const dateLabel = `🌍 Q${h.quarter} · H${h.month} · ${h.dayName}`;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">
       {/* Dünya saati: işlenecek gün varsa otomatik "dünyaya yetiş" (buton yok). */}
       <AutoAdvance active={h.needsSync} />
-      <CareerNav name={h.name} meta={meta} locale={locale} />
+      <CareerNav
+        name={h.name}
+        locale={locale}
+        weapon={h.weapon}
+        gender={h.gender}
+        ageCategory={h.ageCategory}
+        age={h.age}
+        city={h.city}
+        nationalTeam={h.nationalTeam}
+      />
 
       {/* Antrenman haberi — son "İlerle"nin özeti (kazanımlar + kondisyon/keskinlik değişimi). */}
       {h.report && (

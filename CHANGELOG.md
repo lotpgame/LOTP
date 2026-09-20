@@ -15,6 +15,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
+### Değişti
+- **Görsel cila — profil başlığı birleştirildi:** Kariyer üst başlığı (`CareerNav`) artık zengin kimlik
+  kartı (avatar + isim + silah/cinsiyet/yaş kategorisi/şehir/milli takım rozetleri) + menü; profil sayfası
+  aynı kartı **tekrar etmiyor** (doğrudan durum/fizik/psikoloji/yeteneklerle başlar). Header DTO'ya
+  `ageCategory`, `city`, `nationalTeam` eklendi.
+
 ### Eklendi
 - **M11.4 — "Yokken neler oldu" özeti:** Offline'ken (dünya saati ilerlerken) otomatik oynanan turnuvalar
   artık kariyer sayfasında bir **özet kartı** olarak görünür (Hattrick-tarzı yakalama): turnuva adı, derecen /
