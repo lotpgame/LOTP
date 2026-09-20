@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
+import { TACTICS } from "@/engine/combat";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer } from "@/server/careerService";
+import { getCareer, getUpcomingTournaments } from "@/server/careerService";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,7 @@ export default async function TurnuvalarPage() {
   const c = await getCareer();
   if (!c) redirect("/");
   const locale = await getLocale();
+  const upcoming = await getUpcomingTournaments();
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
   const intlByMonth = new Map(c.seasonCalendar.filter((e) => e.month > 0).map((e) => [e.month, e]));
@@ -18,6 +21,70 @@ export default async function TurnuvalarPage() {
     <main>
       <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
       <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
+
+      {/* M10.2: Yaklaşan turnuvalar — önceden kayıt + taktik (ortak dünyada sunucu otomatik oynatır) */}
+      <section className="mt-5">
+        <h2 className="text-base font-semibold">{t(locale, "turnuvalar.upcoming")}</h2>
+        <p className="mt-1 text-xs opacity-60">{t(locale, "turnuvalar.upcomingNote")}</p>
+        <div className="mt-3 space-y-2.5">
+          {upcoming.length === 0 && <p className="text-sm opacity-60">{t(locale, "turnuvalar.noneUpcoming")}</p>}
+          {upcoming.map((u) => (
+            <div
+              key={`${u.worldDay}:${u.level}`}
+              className={`rounded-xl border p-3 ${
+                u.registered ? "border-emerald-500/60 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">{u.label}</div>
+                  <div className="text-xs opacity-60">
+                    Q{u.quarter} · H{u.month} · {u.dayName}
+                    {u.registered ? ` · ✓ ${t(locale, "turnuvalar.registered")}` : ""}
+                  </div>
+                </div>
+              </div>
+
+              {u.qualified ? (
+                <div className="mt-2 flex flex-wrap items-end gap-2">
+                  <form action={registerTournamentAction} className="flex items-end gap-2">
+                    <input type="hidden" name="worldDay" value={u.worldDay} />
+                    <input type="hidden" name="level" value={u.level} />
+                    <label className="text-xs">
+                      <span className="mb-0.5 block opacity-60">{t(locale, "turnuvalar.preTactic")}</span>
+                      <select
+                        name="tactic"
+                        defaultValue={u.tactic}
+                        className="rounded-lg border border-black/15 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
+                      >
+                        {TACTICS.map((tac) => (
+                          <option key={tac} value={tac}>
+                            {t(locale, `tactic.${tac}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-500">
+                      {u.registered ? t(locale, "turnuvalar.update") : t(locale, "turnuvalar.register")}
+                    </button>
+                  </form>
+                  {u.registered && (
+                    <form action={unregisterTournamentAction}>
+                      <input type="hidden" name="worldDay" value={u.worldDay} />
+                      <input type="hidden" name="level" value={u.level} />
+                      <button className="rounded-lg border border-black/15 px-3 py-1.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
+                        {t(locale, "turnuvalar.cancel")}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-2 text-xs opacity-60">🔒 {u.requirement}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="mt-4 space-y-2.5">
         {months.map((m) => {

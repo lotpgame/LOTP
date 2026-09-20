@@ -107,9 +107,27 @@ model Player {
   rankings       Ranking[]
   tournamentEntries TournamentParticipant[]
   achievements      Achievement[]
+  registrations     Registration[]
 
   @@index([nationalityId])
   @@index([gender, weapon]) // kategori/ranking sorguları için
+}
+
+/// Turnuva kaydı (M10.2) — oyuncu YAKLAŞAN bir turnuvaya önceden kaydolur ve taktiğini önceden
+/// verir (ortak dünyada turnuva sunucu tarafından otomatik oynanır; oyuncu offline olabilir).
+/// Turnuva örneği = (worldDay, level); kategori kayıt anındaki yaş kategorisidir.
+model Registration {
+  id         Int      @id @default(autoincrement())
+  playerId   Int
+  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  worldDay   Int // turnuvanın global dünya günü
+  level      String // IL | TURKIYE | OPEN | SATELLITE | EUROPEAN | GRAND_PRIX | WORLD_CUP
+  categoryId String // kayıt anındaki kategori (yaş ilerlerse eski kayıt yine geçerli)
+  tactic     String   @default("BALANCED") // önceden verilen taktik (offline oynanır); yoksa oyuncunun varsayılanı
+  createdAt  DateTime @default(now())
+
+  @@unique([playerId, worldDay, level])
+  @@index([worldDay, level, categoryId]) // M11: bir turnuvaya kayıtlı herkesi bulmak için
 }
 
 /// Kulüp — oyuncunun gelişim ortamı + koç (GDD 12, 13). M6: kariyer başına bir kulüp.

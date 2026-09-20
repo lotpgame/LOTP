@@ -9,10 +9,16 @@
  * Bu modül istemci-güvenlidir (next/headers YOK) → client bileşenleri de `t`/tipleri import edebilir.
  * Sunucu tarafı dil okuma `./server` içindedir.
  */
-export type Locale = "tr" | "en";
-export const LOCALES: Locale[] = ["tr", "en"];
+export type Locale = "tr" | "en" | "de" | "es" | "fr";
+export const LOCALES: Locale[] = ["tr", "en", "de", "es", "fr"];
 export const LOCALE_COOKIE = "engarde_locale";
-export const LOCALE_LABEL: Record<Locale, string> = { tr: "Türkçe", en: "English" };
+export const LOCALE_LABEL: Record<Locale, string> = {
+  tr: "Türkçe",
+  en: "English",
+  de: "Deutsch",
+  es: "Español",
+  fr: "Français",
+};
 
 type Dict = Record<string, string>;
 
@@ -233,8 +239,16 @@ const TR: Dict = {
   "gecmis.record": "{m} maç · {w}G-{l}M",
   // Turnuvalar
   "turnuvalar.title": "Turnuvalar",
-  "turnuvalar.intro": "Program her ay (H1–H12) tekrar eder. Turnuvaya kaydolmazsın — turnuva günü gelince alttaki İlerle seni orada durdurur, Katıl ile canlı oynarsın, Geç dersen o gün antrenman yaparsın.",
+  "turnuvalar.intro": "Program her ay (H1–H12) tekrar eder. Ortak dünyada turnuvalar takvim gününde otomatik oynanır — yaklaşan turnuvalara önceden kaydol ve taktiğini ver.",
   "turnuvalar.thisMonth": "bu ay",
+  "turnuvalar.upcoming": "Yaklaşan Turnuvalar",
+  "turnuvalar.upcomingNote": "Kaydol + taktiğini önceden ver. Turnuva günü gelince otomatik oynanır (offline olsan bile); taktik vermezsen varsayılan taktikle oynar.",
+  "turnuvalar.noneUpcoming": "Şu an yaklaşan turnuva yok.",
+  "turnuvalar.registered": "Kayıtlı",
+  "turnuvalar.preTactic": "Taktik",
+  "turnuvalar.register": "Kaydol",
+  "turnuvalar.update": "Güncelle",
+  "turnuvalar.cancel": "İptal",
   // Klasman
   "klasman.title": "Klasman",
   "klasman.ownRank": "{cat} klasmanında {n}. sıradasın.",
@@ -537,8 +551,16 @@ const EN: Dict = {
   "gecmis.noRivals": "Not enough matches yet.",
   "gecmis.record": "{m} matches · {w}W-{l}L",
   "turnuvalar.title": "Tournaments",
-  "turnuvalar.intro": "The program repeats every month (H1–H12). You don't register — when a tournament day comes, Advance stops you there; Enter to play live, or Skip to train that day.",
+  "turnuvalar.intro": "The program repeats every month (H1–H12). In the shared world tournaments run automatically on their day — register in advance for upcoming ones and set your tactic.",
   "turnuvalar.thisMonth": "this month",
+  "turnuvalar.upcoming": "Upcoming Tournaments",
+  "turnuvalar.upcomingNote": "Register + set your tactic in advance. It runs automatically on the day (even if you're offline); with no tactic it plays your default.",
+  "turnuvalar.noneUpcoming": "No upcoming tournaments right now.",
+  "turnuvalar.registered": "Registered",
+  "turnuvalar.preTactic": "Tactic",
+  "turnuvalar.register": "Register",
+  "turnuvalar.update": "Update",
+  "turnuvalar.cancel": "Cancel",
   "klasman.title": "Rankings",
   "klasman.ownRank": "You're ranked #{n} in the {cat} ranking.",
   "klasman.noRank": "You're not ranked in {cat} yet — it forms after your first tournament.",
@@ -641,11 +663,12 @@ const EN: Dict = {
   "idp.backHome": "🏠 Back to Career",
 };
 
-const DICT: Record<Locale, Dict> = { tr: TR, en: EN };
+// de/es/fr henüz çevrilmedi → şimdilik TR'ye düşer (çeviriler sonra eklenecek, kullanıcı isteği).
+const DICT: Record<Locale, Dict> = { tr: TR, en: EN, de: TR, es: TR, fr: TR };
 
 /** Çeviri. Anahtar yoksa TR'ye, o da yoksa anahtarın kendisine düşer. {n} gibi yer tutucular doldurulur. */
 export function t(locale: Locale, key: string, vars?: Record<string, string | number>): string {
-  let s = DICT[locale][key] ?? DICT.tr[key] ?? key;
+  let s = DICT[locale]?.[key] ?? DICT.tr[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));
   return s;
 }

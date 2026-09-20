@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createCareerAction, setLocaleAction } from "@/app/actions";
+import { createCareerAction } from "@/app/actions";
+import { LangSelect } from "@/app/LangSelect";
 import { GENDERS, PROFILES, TR_CITIES, WEAPONS } from "@/engine/domain";
-import { LOCALES, LOCALE_LABEL, t } from "@/i18n";
+import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { hasCareer } from "@/server/careerService";
 
@@ -21,23 +22,9 @@ export default async function Home() {
           <h1 className="text-3xl font-bold tracking-tight">Project Engarde</h1>
           <p className="mt-2 text-sm opacity-70">{t(locale, "create.tagline")}</p>
         </div>
-        {/* Dil seçimi — kariyer oluşturmadan önce */}
-        <div className="flex shrink-0 gap-1.5">
-          {LOCALES.map((loc) => (
-            <form key={loc} action={setLocaleAction}>
-              <input type="hidden" name="locale" value={loc} />
-              <button
-                className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
-                  locale === loc
-                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                    : "border-black/15 opacity-70 hover:opacity-100 dark:border-white/20"
-                }`}
-                title={LOCALE_LABEL[loc]}
-              >
-                {loc === "tr" ? "🇹🇷 TR" : "🇬🇧 EN"}
-              </button>
-            </form>
-          ))}
+        {/* Dil seçimi — açılır menü (kariyer oluşturmadan önce) */}
+        <div className="shrink-0">
+          <LangSelect current={locale} />
         </div>
       </div>
 

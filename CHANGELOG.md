@@ -10,6 +10,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **M10.2 — Turnuvaya kayıt + önceden taktik:** Turnuvalar sayfasına **"Yaklaşan Turnuvalar"** — önümüzdeki
+  turnuvalara **kaydol / güncelle / iptal** + **taktiğini önceden seç** (ortak dünyada turnuva sunucuca
+  otomatik oynanacak; offline'ken varsayılan/verilen taktikle). Uluslararası turnuvalar uygunluk (ilk16/ilk4)
+  kilidiyle. `Registration` modeli (playerId + worldDay + level + taktik). Otomatik oynatma → M11.
+- **Dil menüsü açılır kapanır + 5 dil (TR/EN/DE/ES/FR):** İlk ekran ve Ayarlar'daki dil seçimi butonlar
+  yerine **açılır menü** (`LangSelect`). Almanca/İspanyolca/Fransızca eklendi (çevirileri sonra; şimdilik
+  Türkçe'ye düşer). Yeni metinler artık yalnız Türkçe yazılıyor, tüm dillere sonra çevrilecek (kullanıcı kararı).
 - **M10.1a — Ortak dünya saati (temel):** `src/engine/worldclock.ts` — oyun zamanı **gerçek zamandan**
   türetilir (Hattrick): `worldDayIndex = floor((now − epoch) / gün)`, cron gerekmez. 1 oyun-günü = 1
   gerçek gün; epoch bir Pazartesi (gerçek Salı = İl turnuvası); `season.ts` ile hizalı; dev'de config ile

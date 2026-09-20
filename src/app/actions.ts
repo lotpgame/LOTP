@@ -7,8 +7,9 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { LOCALE_COOKIE, type Locale } from "@/i18n";
+import { LOCALE_COOKIE, LOCALES, type Locale } from "@/i18n";
 import { TACTICS, type Tactic } from "@/engine/combat";
+import { type TournamentLevel } from "@/engine/domain";
 import { type TrainingType } from "@/engine/training";
 import {
   advanceDay,
@@ -20,10 +21,12 @@ import {
   hasCareer,
   leaveLiveTournament,
   playLiveMatch,
+  registerTournament,
   resetCareer,
   setTrainingPlan,
   signInWithPhone,
   signOut,
+  unregisterTournament,
   upgradeEquipment,
 } from "@/server/careerService";
 
@@ -126,6 +129,24 @@ export async function signOutAction(): Promise<void> {
   redirect("/");
 }
 
+/** M10.2: Yaklaşan turnuvaya önceden taktikle kaydolur. */
+export async function registerTournamentAction(formData: FormData): Promise<void> {
+  const worldDay = Number(formData.get("worldDay"));
+  const level = String(formData.get("level") ?? "") as TournamentLevel;
+  const tactic = String(formData.get("tactic") ?? "BALANCED") as Tactic;
+  if (!TACTICS.includes(tactic)) throw new Error("Geçersiz taktik");
+  await registerTournament(worldDay, level, tactic);
+  revalidatePath("/kariyer/turnuvalar");
+}
+
+/** M10.2: Turnuva kaydını iptal eder. */
+export async function unregisterTournamentAction(formData: FormData): Promise<void> {
+  const worldDay = Number(formData.get("worldDay"));
+  const level = String(formData.get("level") ?? "") as TournamentLevel;
+  await unregisterTournament(worldDay, level);
+  revalidatePath("/kariyer/turnuvalar");
+}
+
 /** Antrenman haber kartını kapatır. */
 export async function clearReportAction(): Promise<void> {
   await clearReport();
@@ -134,9 +155,10 @@ export async function clearReportAction(): Promise<void> {
 
 /** Arayüz dilini değiştirir (cookie'ye yazar). */
 export async function setLocaleAction(formData: FormData): Promise<void> {
-  const locale = String(formData.get("locale") ?? "tr") as Locale;
+  const raw = String(formData.get("locale") ?? "tr") as Locale;
+  const locale: Locale = LOCALES.includes(raw) ? raw : "tr";
   const c = await cookies();
-  c.set(LOCALE_COOKIE, locale === "en" ? "en" : "tr", {
+  c.set(LOCALE_COOKIE, locale, {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",

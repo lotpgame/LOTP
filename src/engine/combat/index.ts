@@ -83,7 +83,10 @@ export interface MatchResult {
 }
 
 /** Maç sonu özet satırı için silaha göre kısa aksiyon kalıpları (dile göre). */
-const ACTION_LINES: Record<Locale, Record<Weapon, string[]>> = {
+// Maç anlatım bankaları yalnız TR/EN; diğer diller (de/es/fr) çeviri gelene kadar TR anlatımıyla oynar.
+const narrLocale = (l: Locale): "tr" | "en" => (l === "en" ? "en" : "tr");
+
+const ACTION_LINES: Record<"tr" | "en", Record<Weapon, string[]>> = {
   tr: {
     FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
     EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
@@ -102,7 +105,7 @@ const ACTION_LINES: Record<Locale, Record<Weapon, string[]>> = {
  */
 type Tempo = 1 | 2 | 3 | 4;
 
-const TOUCH_LINES_BY_TEMPO: Record<Locale, Record<Weapon, Record<Tempo, string[]>>> = {
+const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, string[]>>> = {
   tr: {
     FOIL: {
       1: ["basit hücumla göğse dokundu", "doğrudan atakla açığı buldu", "hızlı bir flèche ile öne atıldı", "temiz bir uzanışla tuşu aldı"],
@@ -189,7 +192,7 @@ function pickTempo(cat: AgeCategory, narr: SeededRng): Tempo {
 /** Bir tuşun anlatım satırını (zamanlı ataklı) üretir. */
 function touchPhrase(scorer: Combatant, cat: AgeCategory, narr: SeededRng, locale: Locale): string {
   const tempo = pickTempo(cat, narr);
-  return narr.pick(TOUCH_LINES_BY_TEMPO[locale][scorer.weapon][tempo]);
+  return narr.pick(TOUCH_LINES_BY_TEMPO[narrLocale(locale)][scorer.weapon][tempo]);
 }
 
 /** Bir tuşun "fencing time" süresi (sn) — periyot saatini ilerletir. */
@@ -327,7 +330,7 @@ export function simulateMatch(
   const winnerIsA = scoreA >= scoreB;
   const winner = winnerIsA ? a : b;
   const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
-  const act = narr.pick(ACTION_LINES[locale][winner.weapon]);
+  const act = narr.pick(ACTION_LINES[narrLocale(locale)][winner.weapon]);
   log.push(
     locale === "en"
       ? `🏁 ${winner.name} ${act} and won the match ${wScore}-${lScore}.`

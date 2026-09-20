@@ -797,6 +797,91 @@ export async function setTrainingPlan(slots: TrainingType[]): Promise<void> {
   await prisma.gameState.update({ where: { id: gs.id }, data: { trainingPlan: valid.join(",") } });
 }
 
+// ——— M10.2: Turnuva kaydı + önceden taktik (ortak dünya; turnuva sunucuca otomatik oynanır) ———
+
+const REGISTER_LOOKAHEAD_DAYS = 28; // önümüzdeki ~4 oyun-haftası kaydedilebilir
+
+export interface UpcomingTournamentDTO {
+  worldDay: number;
+  level: TournamentLevel;
+  label: string; // yerelleştirilmiş turnuva adı (yaş kategorisiyle)
+  categoryId: string;
+  dayName: string; // haftanın günü
+  quarter: number;
+  month: number; // h1..h12
+  qualified: boolean; // katılım hakkı (uluslararası ilk16/ilk4)
+  requirement: string;
+  registered: boolean;
+  tactic: string; // önceden verilen taktik (kayıtlıysa) ya da varsayılan
+}
+
+/** Önümüzdeki turnuvalar + kayıt durumu (mevcut kullanıcının insanı için). */
+export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]> {
+  const state = await loadState();
+  if (!state) return [];
+  const { gs, human } = state;
+  const locale = await getLocale();
+  const today = serverWorldDay();
+
+  // Uygunluk için mevcut kategori sıralaması (uluslararası kapıları).
+  const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+
+  const regs = await prisma.registration.findMany({
+    where: { playerId: gs.humanPlayerId, worldDay: { gte: today, lte: today + REGISTER_LOOKAHEAD_DAYS } },
+  });
+  const regBy = new Map(regs.map((r) => [`${r.worldDay}:${r.level}`, r]));
+
+  const out: UpcomingTournamentDTO[] = [];
+  for (let d = today; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
+    const act = activityForDay(d);
+    if (act.kind !== "TOURNAMENT") continue;
+    const id = currentIdentity(human, careerQuarter(d, gs.careerStartDay)); // o günkü yaş kategorisi
+    const reg = regBy.get(`${d}:${act.level}`);
+    out.push({
+      worldDay: d,
+      level: act.level,
+      label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
+      categoryId: id.categoryId,
+      dayName: t(locale, `day.${dayOfWeek(d)}`),
+      quarter: quarterOf(d),
+      month: monthOfQuarter(d),
+      qualified: !human.injuryDaysRemaining && qualifies(act.qualification, humanRank),
+      requirement: t(locale, `qual.${act.qualification}`),
+      registered: reg != null,
+      tactic: reg?.tactic ?? human.tactic,
+    });
+  }
+  return out;
+}
+
+/** Bir turnuvaya kaydolur (önceden taktikle). Uygun değilse hata. */
+export async function registerTournament(worldDay: number, level: TournamentLevel, tactic: Tactic): Promise<void> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
+  if (worldDay < serverWorldDay()) throw new Error("Geçmiş bir turnuvaya kaydolamazsın.");
+  const act = activityForDay(worldDay);
+  if (act.kind !== "TOURNAMENT" || act.level !== level) throw new Error("O gün bu turnuva yok.");
+  const id = currentIdentity(human, careerQuarter(worldDay, gs.careerStartDay));
+  const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  if (!qualifies(act.qualification, humanRank)) throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
+  await prisma.registration.upsert({
+    where: { playerId_worldDay_level: { playerId: gs.humanPlayerId, worldDay, level } },
+    create: { playerId: gs.humanPlayerId, worldDay, level, categoryId: id.categoryId, tactic },
+    update: { tactic, categoryId: id.categoryId },
+  });
+}
+
+/** Turnuva kaydını iptal eder. */
+export async function unregisterTournament(worldDay: number, level: TournamentLevel): Promise<void> {
+  const gs = await currentGameState();
+  if (!gs) throw new Error("Aktif kariyer yok.");
+  await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
+}
+
 async function buildRankingView(categoryId: string, quarter: number, humanId: number) {
   const rows = await prisma.ranking.findMany({
     where: { categoryId, quarter },
