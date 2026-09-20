@@ -739,6 +739,7 @@ export interface CareerHeaderDTO {
   city: string; // kulübün şehri (rozet)
   nationalTeam: boolean; // kategori sıralaması ilk 4 → milli takım rozeti
   liveTournamentActive: boolean;
+  year: number; // oyun-içi takvim yılı (ör. 2026)
   quarter: number;
   month: number; // h1..h12
   dayName: string; // Pazartesi..Pazar
@@ -806,6 +807,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     city: human.club?.city ?? "",
     nationalTeam,
     liveTournamentActive: gs.liveTournament != null,
+    year: gs.currentDate.getFullYear(),
     quarter,
     month: monthOfQuarter(gs.dayIndex),
     dayName: dayLabel,

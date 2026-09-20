@@ -19,7 +19,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   if (h.liveTournamentActive) redirect("/turnuva/canli");
   const locale = await getLocale();
 
-  const dateLabel = `🌍 Q${h.quarter} · H${h.month} · ${h.dayName}`;
+  const dateLabel = `🌍 ${h.year} · Q${h.quarter} · H${h.month} · ${h.dayName}`;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">

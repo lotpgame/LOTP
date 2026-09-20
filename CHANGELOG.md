@@ -16,6 +16,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **Sezon göstergesine yıl:** Profil "Sezon" kutusu ve alt çubuk artık **oyun-içi takvim yılını** gösterir
+  (ör. `2026 · Q1·H3`); yıl `currentDate`'ten gelir, kariyer ilerledikçe değişir. Header DTO'ya `year`.
 - **Kıta katmanı + 3-katmanlı klasman kapsamı:** Coğrafyaya **kıtalar** eklendi (FIE'nin 4 konfederasyonu:
   Avrupa / Asya-Okyanusya / Amerika / Afrika; `Country.continent`, `continentOfCountry`). Klasman filtresi
   artık **Dünya / Kıta / Ülke** 3 ana mod (kıta/ülke seçilince kapsam-içi 1..N sıralaması), sonra kategori
