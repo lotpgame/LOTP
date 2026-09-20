@@ -115,6 +115,12 @@ ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik d
 kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam TR/EN dil desteği** (arayüz + maç
 anlatımları; cookie tabanlı, oluşturma ekranından seçilebilir).
 
-Sonraki derinlik maddeleri ve V2 hedefleri: [`docs/ROADMAP.md`](docs/ROADMAP.md) (§G backlog,
-§B "Sonra"). Öne çıkanlar: AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
-gelişmiş taktik (counter/pressure, maç-arası değişim), multiplayer (PostgreSQL).
+**🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan
+dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar
+[`docs/ROADMAP.md`](docs/ROADMAP.md) §B2: **M9** kimlik + kalıcı DB (User + `Player.userId`, AI ortak;
+Postgres) → **M10** ortak dünya + sunucu saati → **M11** ortak turnuva simülasyonu + klasman → **M12**
+ölçek/servis. **M9.1 (kimlik/veri sahipliği) yapıldı:** çerez tabanlı hesap, kullanıcı-bazlı kariyer,
+ortak AI havuzu.
+
+Diğer derinlik maddeleri (§G backlog): AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
+gelişmiş taktik (counter/pressure).

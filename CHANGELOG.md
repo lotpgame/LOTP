@@ -10,6 +10,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **M9.1 — Kimlik + veri sahipliği (çok oyunculu temeli):** `User` modeli + **çerez tabanlı anonim
+  hesap**; `Player.userId` / `GameState.userId` (insan oyuncu kullanıcıya bağlı, **AI ortak/`null`**).
+  `loadState` / `hasCareer` / `createCareer` / `resetCareer` artık **mevcut kullanıcıya** göre çalışır
+  (eski tek-global `findFirst()` gitti; `resetCareer` yalnız kendi kariyerini siler, ortak dünyayı korur).
+  **AI havuzu ORTAK** — yalnız ilk kariyer oluşturmada üretilir, sonraki oyuncular aynı AI'lara karşı
+  oynar (ortak dünya hedefi). Migration `m9_user_ownership` (SQLite). Gerçek giriş (e-posta/şifre) +
+  Postgres → M9.2/M9.3.
 - **Kondisyon = Dayanıklılık'a bağlandı (gerçekçi model):** "Dayanıklılık" yeteneği artık ölü değil —
   **günlük toparlanmayı** ve **maç yorgunluğu direncini** yönetiyor (`conditioning.dailyRecovery`,
   `matchFatigueMultiplier`). Fit sporcu turnuvalar arası daha hızlı toparlar ve maçta daha az yorulur.

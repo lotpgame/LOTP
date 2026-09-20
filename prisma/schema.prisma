@@ -34,11 +34,29 @@ model Season {
   createdAt DateTime @default(now())
 }
 
+/// Kullanıcı hesabı (M9 — çok oyunculu temeli). Bir kişi = bir hesap = bir insan oyuncu.
+/// Ortak dünyada Ali/Mehmet/Jack ayrı kullanıcılardır; AI oyuncuların kullanıcısı YOKTUR
+/// (Player.userId null). Başta çerez tabanlı anonim (token); e-posta/şifre girişi M9.2'de eklenir.
+model User {
+  id           Int      @id @default(autoincrement())
+  token        String   @unique // çerezde tutulan gizli kimlik (anonim hesap)
+  email        String?  @unique // M9.2: kalıcı giriş
+  passwordHash String? // M9.2
+  createdAt    DateTime @default(now())
+
+  player    Player? // sahip olduğu insan oyuncu
+  gameState GameState? // kariyer durumu
+}
+
 /// Oyuncu — kariyer boyunca yaşayan merkezi kimlik (GDD 8, 22.5).
 /// Bu M0 iskeletidir; skill/psychology/ranking gibi ilişkiler sonraki milestone'larda eklenir.
 model Player {
   id   Int    @id @default(autoincrement())
   code String @unique // görünen kalıcı kimlik, örn. "P-000001" (GDD 7.4)
+
+  // Sahiplik (M9): insan oyuncu bir kullanıcıya bağlı; AI oyuncularda null (ortak).
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
 
   // Değişmez kimlik (GDD 7.33)
   firstName String
@@ -133,6 +151,9 @@ model PlayerSkill {
 model GameState {
   id            Int      @id @default(autoincrement())
   humanPlayerId Int      @unique
+  // Sahiplik (M9): bu kariyerin kullanıcısı. loadState artık çerezdeki kullanıcıya göre çözer.
+  userId        Int?     @unique
+  user          User?    @relation(fields: [userId], references: [id])
   seed          String // dünya üretimi/simülasyonu için ana tohum (GDD 20.29)
   currentDate   DateTime // oyun-içi tarih (gösterim)
   dayIndex      Int      @default(0) // 0-tabanlı global GÜN; quarter/ay/gün buradan türetilir

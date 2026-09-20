@@ -5,6 +5,7 @@
  * düz veriyle çağırır, sonucu kalıcılaştırır. Kritik hesap sunucuda (güvenlik). M1 dikey
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
+import { cookies } from "next/headers";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -308,9 +309,47 @@ export interface CareerDTO {
 
 // ---------- işlemler ----------
 
-/** Aktif kariyer var mı? (M1: tek kariyer) */
+// ——— Kullanıcı kimliği (M9): çerez tabanlı anonim hesap. Ortak dünyada her kişi ayrı User;
+// AI oyuncuların kullanıcısı yoktur (Player.userId null). E-posta/şifre girişi M9.2'de.
+const USER_COOKIE = "engarde_user";
+
+/** Çerezdeki token'dan mevcut kullanıcı id'sini çözer (yoksa null). Yalnız OKUR (çerez set etmez). */
+async function currentUserId(): Promise<number | null> {
+  const token = (await cookies()).get(USER_COOKIE)?.value;
+  if (!token) return null;
+  return (await prisma.user.findUnique({ where: { token }, select: { id: true } }))?.id ?? null;
+}
+
+/** Mevcut kullanıcıyı döndürür; yoksa oluşturur + çerezi set eder. YALNIZ server action/route'ta çağrılır. */
+async function ensureUserId(): Promise<number> {
+  const jar = await cookies();
+  const token = jar.get(USER_COOKIE)?.value;
+  if (token) {
+    const existing = await prisma.user.findUnique({ where: { token }, select: { id: true } });
+    if (existing) return existing.id;
+  }
+  const newToken = globalThis.crypto.randomUUID();
+  jar.set(USER_COOKIE, newToken, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365 * 5, // 5 yıl
+    httpOnly: true,
+    sameSite: "lax",
+  });
+  return (await prisma.user.create({ data: { token: newToken } })).id;
+}
+
+/** Aktif kariyer var mı? (mevcut kullanıcı için) */
 export async function hasCareer(): Promise<boolean> {
-  return (await prisma.gameState.count()) > 0;
+  const uid = await currentUserId();
+  if (uid == null) return false;
+  return (await prisma.gameState.count({ where: { userId: uid } })) > 0;
+}
+
+/** Mevcut kullanıcının GameState'i (yoksa null). findFirst yerine kullanıcı-bazlı erişim. */
+async function currentGameState() {
+  const uid = await currentUserId();
+  if (uid == null) return null;
+  return prisma.gameState.findUnique({ where: { userId: uid } });
 }
 
 /**
@@ -359,22 +398,24 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
       coach2Specialty: `${specs[2]},${specs[3]}`,
     };
   };
-  // Kulüp havuzu: oyuncunun şehri + birkaç farklı şehir (AI'lar bunlara dağıtılır → klasmanda kulüp).
+  // AI kulüplerinin dağıtılacağı diğer şehirler (ilk kariyer havuzu üretilirken).
   const otherCities = clubRng.shuffle(TR_CITIES.filter((c) => c !== data.city)).slice(0, 5);
-  const clubCities = [data.city, ...otherCities];
+
+  const userId = await ensureUserId(); // çerez + kullanıcı (yoksa oluştur, çerezi set eder)
 
   const humanPlayerId = await prisma.$transaction(async (tx) => {
-    // Kulüp havuzunu oluştur; oyuncu kendi şehrinin kulübüne bağlanır, AI'lar rastgele dağılır.
-    const clubIds: number[] = [];
-    let humanClubId = 0;
-    for (const city of clubCities) {
-      const cl = await tx.club.create({ data: makeClubData(city) });
-      clubIds.push(cl.id);
-      if (city === data.city) humanClubId = cl.id;
-    }
+    // AI havuzu ORTAK (ortak dünya hedefi): yalnız ilk kariyer üretiminde oluşturulur; sonraki
+    // kullanıcılar aynı AI'lara karşı oynar. (Tek dünya saati/paylaşılan turnuvalar → M10/M11.)
+    const aiExists = (await tx.player.count({ where: { isAI: true } })) > 0;
+
+    // Oyuncunun kulübü: şehrinde kulüp varsa ona bağlan (ortak), yoksa oluştur.
+    const cityClub = await tx.club.findFirst({ where: { city: data.city } });
+    const humanClubId = cityClub ? cityClub.id : (await tx.club.create({ data: makeClubData(data.city) })).id;
+
     const human = await tx.player.create({
       data: {
         code: "P-TEMP",
+        userId, // sahiplik (M9): insan oyuncu bu kullanıcıya bağlı
         firstName: data.firstName,
         lastName: data.lastName,
         gender: data.gender,
@@ -397,34 +438,42 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
       data: { code: formatPlayerCode(human.id) },
     });
 
-    for (let i = 0; i < aiSpecs.length; i++) {
-      const spec = aiSpecs[i];
-      const aiGenetics = generateGenetics(createRng(`${seed}:phys:ai:${i}`), spec.gender);
-      const ai = await tx.player.create({
-        data: {
-          code: "P-TEMP",
-          firstName: spec.firstName,
-          lastName: spec.lastName,
-          gender: spec.gender,
-          birthDate: spec.birthDate,
-          weapon: spec.weapon,
-          profile: spec.profile,
-          nationalityId: countryId,
-          isAI: true,
-          careerStartDate: GAME_START,
-          clubId: clubRng.pick(clubIds),
-          ...geneticsData(aiGenetics),
-          skills: { create: skillCreateData(spec.skills) },
-        },
-      });
-      await tx.player.update({
-        where: { id: ai.id },
-        data: { code: formatPlayerCode(ai.id) },
-      });
+    if (!aiExists) {
+      // Ortak AI havuzu + kulüpleri (yalnız bir kez): oyuncunun kulübü + diğer şehirler.
+      const clubIds: number[] = [humanClubId];
+      for (const city of otherCities) {
+        const cl = await tx.club.create({ data: makeClubData(city) });
+        clubIds.push(cl.id);
+      }
+      for (let i = 0; i < aiSpecs.length; i++) {
+        const spec = aiSpecs[i];
+        const aiGenetics = generateGenetics(createRng(`${seed}:phys:ai:${i}`), spec.gender);
+        const ai = await tx.player.create({
+          data: {
+            code: "P-TEMP",
+            firstName: spec.firstName,
+            lastName: spec.lastName,
+            gender: spec.gender,
+            birthDate: spec.birthDate,
+            weapon: spec.weapon,
+            profile: spec.profile,
+            nationalityId: countryId,
+            isAI: true, // userId yok → ortak
+            careerStartDate: GAME_START,
+            clubId: clubRng.pick(clubIds),
+            ...geneticsData(aiGenetics),
+            skills: { create: skillCreateData(spec.skills) },
+          },
+        });
+        await tx.player.update({
+          where: { id: ai.id },
+          data: { code: formatPlayerCode(ai.id) },
+        });
+      }
     }
 
     await tx.gameState.create({
-      data: { humanPlayerId: human.id, seed, currentDate: GAME_START },
+      data: { humanPlayerId: human.id, userId, seed, currentDate: GAME_START },
     });
     return human.id;
   });
@@ -433,7 +482,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
 }
 
 async function loadState() {
-  const gs = await prisma.gameState.findFirst();
+  const uid = await currentUserId();
+  if (uid == null) return null;
+  const gs = await prisma.gameState.findUnique({ where: { userId: uid } });
   if (!gs) return null;
   const human = await prisma.player.findUnique({
     where: { id: gs.humanPlayerId },
@@ -680,7 +731,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
 
 /** Haftalık antrenman planını kaydeder (sabit "İlerle" çubuğu bunu uygular). */
 export async function setTrainingPlan(slots: TrainingType[]): Promise<void> {
-  const gs = await prisma.gameState.findFirst();
+  const gs = await currentGameState();
   if (!gs) throw new Error("Aktif kariyer yok.");
   // 7 günlük plan (Pzt..Paz); geçersiz/eksik günler REST'e düşer.
   const valid = Array.from({ length: PLAN_DAYS }, (_, i) =>
@@ -947,7 +998,7 @@ export async function advanceDay(): Promise<AdvanceResult> {
 
 /** Antrenman haber kartını temizler (kullanıcı "✕" ile kapatınca). */
 export async function clearReport(): Promise<void> {
-  const gs = await prisma.gameState.findFirst();
+  const gs = await currentGameState();
   if (!gs) return;
   await prisma.gameState.update({ where: { id: gs.id }, data: { lastReport: null } });
 }
@@ -1012,7 +1063,7 @@ export interface CareerHistoryDTO {
 
 /** Kariyer geçmişi: başarılar, istatistikler ve rakiplikler (GDD 21, 22.36–22.37). */
 export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
-  const gs = await prisma.gameState.findFirst();
+  const gs = await currentGameState();
   if (!gs) return null;
   const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId } });
   if (!human) return null;
@@ -1106,7 +1157,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
     },
   });
   if (!tourn) return null;
-  const gs = await prisma.gameState.findFirst();
+  const gs = await currentGameState();
   const humanId = gs?.humanPlayerId ?? -1;
   const fieldSize = tourn.participants.length;
   const locale = await getLocale();
@@ -1157,18 +1208,18 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   };
 }
 
-/** Mevcut kariyeri ve tüm dünya verisini siler (yeni kariyer için). M1: tek kariyer. */
+/**
+ * Mevcut KULLANICININ kariyerini siler (yeni kariyer için). Ortak dünya verisi (AI havuzu, kulüpler,
+ * diğer kullanıcılar) KORUNUR — yalnız bu kullanıcının insan oyuncusu + durumu silinir. İnsan
+ * oyuncuyu silmek skill/ranking/achievement/turnuva-kaydını cascade ile temizler (schema onDelete).
+ */
 export async function resetCareer(): Promise<void> {
+  const uid = await currentUserId();
+  if (uid == null) return;
+  const gs = await prisma.gameState.findUnique({ where: { userId: uid }, select: { humanPlayerId: true } });
   await prisma.$transaction([
-    prisma.achievement.deleteMany(),
-    prisma.match.deleteMany(),
-    prisma.tournamentParticipant.deleteMany(),
-    prisma.tournament.deleteMany(),
-    prisma.ranking.deleteMany(),
-    prisma.playerSkill.deleteMany(),
-    prisma.gameState.deleteMany(),
-    prisma.player.deleteMany(),
-    prisma.club.deleteMany(),
+    prisma.gameState.deleteMany({ where: { userId: uid } }),
+    ...(gs ? [prisma.player.deleteMany({ where: { id: gs.humanPlayerId } })] : []),
   ]);
 }
 
@@ -1992,7 +2043,7 @@ export async function advanceLiveStage(): Promise<void> {
 
 /** Biten canlı turnuvayı temizler (kullanıcı kariyere döner). */
 export async function leaveLiveTournament(): Promise<void> {
-  const gs = await prisma.gameState.findFirst();
+  const gs = await currentGameState();
   if (!gs) return;
   await prisma.gameState.update({ where: { id: gs.id }, data: { liveTournament: null } });
 }

@@ -243,7 +243,10 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 > derinlik maddeleri §G backlog'da.
 
 **V2 — Çok Oyunculu / Ortak Dünya · ASENKRON (asıl hedef, bkz. §B2):**
-- [ ] **M9** — Kimlik + kalıcı DB (User + `Player.userId`, AI ortak; Postgres'e geçiş) ← SIRADAKİ
+- [~] **M9** — Kimlik + kalıcı DB ← DEVAM EDİYOR
+  - [x] **M9.1** — User + çerez hesabı + `Player.userId`/`GameState.userId`; loadState/create/reset kullanıcı-bazlı; AI havuzu ortak (SQLite)
+  - [ ] **M9.2** — Gerçek giriş (e-posta/şifre; anonim kariyeri hesaba bağla)
+  - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma
 - [ ] **M10** — Ortak dünya + sunucu saati (`World` singleton, "İlerle" kalkar, kayıt + önceden taktik)
 - [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
