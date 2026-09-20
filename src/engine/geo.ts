@@ -7,21 +7,47 @@
  */
 import { TR_CITIES } from "./domain";
 
+/**
+ * Kıtalar = FIE'nin 4 kıtasal konfederasyonu (Avrupa, Asya-Okyanusya, Amerika, Afrika).
+ * Klasman kapsamı: Dünya → Kıta → Ülke. Ülke turnuva/kıtasal hiyerarşisiyle uyumlu.
+ */
+export type ContinentCode = "EU" | "AS" | "AM" | "AF";
+
+export interface Continent {
+  code: ContinentCode;
+  name: string;
+}
+
+export const CONTINENTS: readonly Continent[] = [
+  { code: "EU", name: "Avrupa" },
+  { code: "AS", name: "Asya-Okyanusya" },
+  { code: "AM", name: "Amerika" },
+  { code: "AF", name: "Afrika" },
+];
+
 export interface Country {
   code: string; // ISO benzeri kısa kod (Country.code ile aynı), örn. "TR"
   name: string;
+  continent: ContinentCode; // bağlı olduğu kıta (FIE konfederasyonu)
   dialCode: string; // telefon ülke kodu, örn. "+90"
   cities: readonly string[]; // seçilebilir şehirler (sınırlı liste)
 }
 
 /**
- * Desteklenen ülkeler. Önce TR. Yeni ülke eklemek = buraya bir satır (kod + isim + dial + şehirler).
- * Büyük/eskrim ülkeleri öncelikli olarak sırayla açılacak.
+ * Desteklenen ülkeler. Önce TR (Avrupa). Yeni ülke eklemek = buraya bir satır
+ * (kod + isim + kıta + dial + şehirler). Büyük/eskrim ülkeleri sırayla açılacak.
  */
-export const COUNTRIES: readonly Country[] = [{ code: "TR", name: "Türkiye", dialCode: "+90", cities: TR_CITIES }];
+export const COUNTRIES: readonly Country[] = [
+  { code: "TR", name: "Türkiye", continent: "EU", dialCode: "+90", cities: TR_CITIES },
+];
 
 export function countryByCode(code: string): Country | undefined {
   return COUNTRIES.find((c) => c.code === code.toUpperCase());
+}
+
+/** Bir ülkenin kıtası (kod). Bilinmeyen ülke → undefined. */
+export function continentOfCountry(code: string): ContinentCode | undefined {
+  return countryByCode(code)?.continent;
 }
 
 export function citiesForCountry(code: string): readonly string[] {

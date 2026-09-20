@@ -105,10 +105,14 @@ export async function leaveLiveTournamentAction(): Promise<void> {
 }
 
 /** Klasman filtresi: seçilen kategorinin sıralamasını döndürür (çok oyunculuda dolu, V1'de çoğu boş). */
-export async function getCategoryRankingAction(categoryId: string, countryCode?: string) {
+export async function getCategoryRankingAction(
+  categoryId: string,
+  scope?: { continent?: string; country?: string },
+) {
   if (!/^[A-Z0-9]+-[MF]-(FL|EPE|KIL)$/.test(categoryId)) throw new Error("Geçersiz kategori");
-  if (countryCode && !/^[A-Z]{2}$/.test(countryCode)) throw new Error("Geçersiz ülke");
-  return getCategoryRanking(categoryId, countryCode);
+  if (scope?.country && !/^[A-Z]{2}$/.test(scope.country)) throw new Error("Geçersiz ülke");
+  if (scope?.continent && !/^(EU|AS|AM|AF)$/.test(scope.continent)) throw new Error("Geçersiz kıta");
+  return getCategoryRanking(categoryId, scope ?? {});
 }
 
 export async function resetCareerAction(): Promise<void> {

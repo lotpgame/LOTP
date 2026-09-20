@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { parsePhone } from "@/engine/geo";
+import { continentOfCountry, parsePhone } from "@/engine/geo";
 import { serverWorldDay } from "./world";
 import { prisma } from "@/db";
 import {
@@ -920,7 +920,13 @@ export async function unregisterTournament(worldDay: number, level: TournamentLe
   await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
 }
 
-async function buildRankingView(categoryId: string, quarter: number, humanId: number, countryCode?: string) {
+/** Klasman kapsamı: Dünya (varsayılan) / Kıta / Ülke (M-UI). */
+interface RankingScope {
+  continent?: string; // kıta kodu (EU/AS/AM/AF)
+  country?: string; // ülke kodu (TR…)
+}
+
+async function buildRankingView(categoryId: string, quarter: number, humanId: number, scope: RankingScope = {}) {
   const rows = await prisma.ranking.findMany({
     where: { categoryId, quarter },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
@@ -930,8 +936,16 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
     include: { club: true, nationality: true },
   });
   const byId = new Map(players.map((p) => [p.id, p]));
-  // countryCode verilirse yalnız o ülkenin oyuncuları (ülke-içi 1..N sıralaması); yoksa DÜNYA (dünya sırası).
-  const scoped = countryCode ? rows.filter((r) => byId.get(r.playerId)?.nationality.code === countryCode) : rows;
+  // Kapsam: ülke → o ülke; kıta → o kıtanın ülkeleri; yoksa DÜNYA. Ülke/kıta ise kapsam-içi 1..N sırası.
+  const narrowed = !!(scope.country || scope.continent);
+  const scoped = narrowed
+    ? rows.filter((r) => {
+        const code = byId.get(r.playerId)?.nationality.code;
+        if (!code) return false;
+        if (scope.country) return code === scope.country;
+        return continentOfCountry(code) === scope.continent;
+      })
+    : rows;
   return scoped.map((r, i) => {
     const p = byId.get(r.playerId);
     return {
@@ -939,18 +953,21 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
       name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
       clubName: p?.club?.name ?? "",
       points: roundSkill(r.points),
-      position: countryCode ? i + 1 : (r.position ?? i + 1),
+      position: narrowed ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,
     };
   });
 }
 
 /** Herhangi bir kategorinin bu quarter'daki sıralaması (Klasman filtresi). */
-export async function getCategoryRanking(categoryId: string, countryCode?: string): Promise<RankingRowDTO[]> {
+export async function getCategoryRanking(
+  categoryId: string,
+  scope: { continent?: string; country?: string } = {},
+): Promise<RankingRowDTO[]> {
   const state = await loadState();
   if (!state) return [];
   const { gs, human } = state;
-  return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id, countryCode || undefined);
+  return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id, scope);
 }
 
 // Kondisyon modeli: her AKTİF günde doğal toparlanma uygulanır (Dayanıklılık'a göre; conditioning.

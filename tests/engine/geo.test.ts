@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { citiesForCountry, countryByPhone, normalizePhone, parsePhone } from "@/engine/geo";
+import { CONTINENTS, citiesForCountry, continentOfCountry, countryByPhone, normalizePhone, parsePhone } from "@/engine/geo";
 
 describe("geo — ülke / telefon", () => {
   it("TR şehir listesi dolu ve İstanbul içeriyor", () => {
@@ -35,5 +35,11 @@ describe("geo — ülke / telefon", () => {
   it("parsePhone: bozuk biçim → format", () => {
     expect(parsePhone("123").reason).toBe("format");
     expect(parsePhone("abc").reason).toBe("format");
+  });
+
+  it("kıtalar FIE'nin 4 konfederasyonu; TR Avrupa'da", () => {
+    expect(CONTINENTS.map((c) => c.code).sort()).toEqual(["AF", "AM", "AS", "EU"]);
+    expect(continentOfCountry("TR")).toBe("EU");
+    expect(continentOfCountry("ZZ")).toBeUndefined();
   });
 });

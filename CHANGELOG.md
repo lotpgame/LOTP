@@ -15,6 +15,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
+### Eklendi
+- **Kıta katmanı + 3-katmanlı klasman kapsamı:** Coğrafyaya **kıtalar** eklendi (FIE'nin 4 konfederasyonu:
+  Avrupa / Asya-Okyanusya / Amerika / Afrika; `Country.continent`, `continentOfCountry`). Klasman filtresi
+  artık **Dünya / Kıta / Ülke** 3 ana mod (kıta/ülke seçilince kapsam-içi 1..N sıralaması), sonra kategori
+  (yaş/cinsiyet/silah). `buildRankingView` kıta/ülke kapsamı; `getCategoryRanking(categoryId, {continent?, country?})`.
+  (Şu an tek ülke TR/Avrupa; yeni ülkeler eklendikçe kıtalar dolacak.)
+
 ### Değişti
 - **Görsel cila (2. tur):** **Klasman** — kapsam seçici eklendi: 🌍 Dünya / ülke (İl-içi 1..N sıralaması);
   klasman aslında dünya geneli (kategori = yaş-cinsiyet-silah). **Kariyer Geçmişi** — turnuvalar için

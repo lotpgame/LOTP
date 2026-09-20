@@ -263,7 +263,9 @@ const TR: Dict = {
   "klasman.intl16": "✔ ilk 16",
   "klasman.rankings": "Klasmanlar",
   "klasman.world": "Dünya",
-  "klasman.filterHint": "Kapsam (Dünya / ülke) + kategori seç (yaş / cinsiyet / silah):",
+  "klasman.continent": "Kıta",
+  "klasman.country": "Ülke",
+  "klasman.filterHint": "Kapsam (Dünya / Kıta / Ülke) + kategori seç (yaş / cinsiyet / silah):",
   "klasman.worldNote": "🌍 Dünya / ülke sıralaması ileride (V2). GDD'de dünya klasmanı, kulüp sıralaması ve uluslararası ranking sistemi \"Gelecek Sürümler\" olarak planlı.",
   "country.TR": "Türkiye",
   // Ranking tablosu
