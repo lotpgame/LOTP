@@ -920,35 +920,37 @@ export async function unregisterTournament(worldDay: number, level: TournamentLe
   await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
 }
 
-async function buildRankingView(categoryId: string, quarter: number, humanId: number) {
+async function buildRankingView(categoryId: string, quarter: number, humanId: number, countryCode?: string) {
   const rows = await prisma.ranking.findMany({
     where: { categoryId, quarter },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
   });
   const players = await prisma.player.findMany({
     where: { id: { in: rows.map((r) => r.playerId) } },
-    include: { club: true },
+    include: { club: true, nationality: true },
   });
   const byId = new Map(players.map((p) => [p.id, p]));
-  return rows.map((r, i) => {
+  // countryCode verilirse yalnız o ülkenin oyuncuları (ülke-içi 1..N sıralaması); yoksa DÜNYA (dünya sırası).
+  const scoped = countryCode ? rows.filter((r) => byId.get(r.playerId)?.nationality.code === countryCode) : rows;
+  return scoped.map((r, i) => {
     const p = byId.get(r.playerId);
     return {
       playerId: r.playerId,
       name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
       clubName: p?.club?.name ?? "",
       points: roundSkill(r.points),
-      position: r.position ?? i + 1,
+      position: countryCode ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,
     };
   });
 }
 
 /** Herhangi bir kategorinin bu quarter'daki sıralaması (Klasman filtresi). */
-export async function getCategoryRanking(categoryId: string): Promise<RankingRowDTO[]> {
+export async function getCategoryRanking(categoryId: string, countryCode?: string): Promise<RankingRowDTO[]> {
   const state = await loadState();
   if (!state) return [];
   const { gs, human } = state;
-  return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id);
+  return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id, countryCode || undefined);
 }
 
 // Kondisyon modeli: her AKTİF günde doğal toparlanma uygulanır (Dayanıklılık'a göre; conditioning.
@@ -1296,6 +1298,8 @@ export interface CareerHistoryDTO {
     categoryId: string;
     date: string;
     position: number;
+    quarter: number; // oyun yılı (Q)
+    month: number; // H1..H12
   }[];
 }
 
@@ -1336,6 +1340,8 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       categoryId: e.tournament.categoryId,
       date: e.tournament.date.toISOString(),
       position: e.finalPosition ?? 0,
+      quarter: e.tournament.quarter,
+      month: e.tournament.week, // week alanı ayı (h1..h12) saklar
     }));
 
   // Rakiplikler: en çok karşılaşılan rakipler (GDD 22.36).

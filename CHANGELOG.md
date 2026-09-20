@@ -16,6 +16,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Değişti
+- **Görsel cila (2. tur):** **Klasman** — kapsam seçici eklendi: 🌍 Dünya / ülke (İl-içi 1..N sıralaması);
+  klasman aslında dünya geneli (kategori = yaş-cinsiyet-silah). **Kariyer Geçmişi** — turnuvalar için
+  **Dönem (Q) filtresi** + satırlarda Q/H etiketleri. **Turnuvalar** — "oynadığın turnuvalar → Kariyer
+  Geçmişi" bağlantısı. **Kulüp** — isim yanına ⚔️ logo. (`buildRankingView` ülke filtresi;
+  `getCategoryRanking(categoryId, countryCode?)`.)
 - **Görsel cila — profil başlığı birleştirildi:** Kariyer üst başlığı (`CareerNav`) artık zengin kimlik
   kartı (avatar + isim + silah/cinsiyet/yaş kategorisi/şehir/milli takım rozetleri) + menü; profil sayfası
   aynı kartı **tekrar etmiyor** (doğrudan durum/fizik/psikoloji/yeteneklerle başlar). Header DTO'ya

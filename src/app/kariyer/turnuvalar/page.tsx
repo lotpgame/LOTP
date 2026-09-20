@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
 import { TACTICS } from "@/engine/combat";
@@ -21,6 +22,15 @@ export default async function TurnuvalarPage() {
     <main>
       <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
       <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
+
+      {/* Oynanmış turnuvalar Kariyer Geçmişi'nde — buradan kolay erişim. */}
+      <Link
+        href="/kariyer/gecmis"
+        className="mt-3 flex items-center justify-between rounded-xl border border-black/10 px-3 py-2.5 text-sm transition hover:border-emerald-500 dark:border-white/15"
+      >
+        <span className="flex items-center gap-2 font-medium">📜 {t(locale, "turnuvalar.pastLink")}</span>
+        <span className="opacity-40">›</span>
+      </Link>
 
       {/* M10.2: Yaklaşan turnuvalar — önceden kayıt + taktik (ortak dünyada sunucu otomatik oynatır) */}
       <section className="mt-5">

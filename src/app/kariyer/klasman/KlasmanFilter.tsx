@@ -14,6 +14,7 @@ import {
   type Gender,
   type Weapon,
 } from "@/engine/domain";
+import { COUNTRIES } from "@/engine/geo";
 import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 
@@ -35,12 +36,13 @@ export function KlasmanFilter({
   const [age, setAge] = useState(age0);
   const [gender, setGender] = useState<Gender>(GENDER_FROM_CODE[gCode] ?? "MALE");
   const [weapon, setWeapon] = useState<Weapon>(WEAPON_FROM_CODE[wCode] ?? "FOIL");
+  const [scope, setScope] = useState<string>(""); // "" = 🌍 Dünya, veya ülke kodu ("TR")
   const [rows, setRows] = useState<RankingRowDTO[]>(initialRows);
   const [pending, startTransition] = useTransition();
 
-  const load = (a: string, g: Gender, w: Weapon) => {
+  const load = (a: string, g: Gender, w: Weapon, s: string) => {
     startTransition(async () => {
-      setRows(await getCategoryRankingAction(makeCategoryId(a as AgeCategory, g, w)));
+      setRows(await getCategoryRankingAction(makeCategoryId(a as AgeCategory, g, w), s || undefined));
     });
   };
 
@@ -49,12 +51,27 @@ export function KlasmanFilter({
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <select
+          value={scope}
+          onChange={(e) => {
+            setScope(e.target.value);
+            load(age, gender, weapon, e.target.value);
+          }}
+          className={selCls}
+        >
+          <option value="">🌍 {t(locale, "klasman.world")}</option>
+          {COUNTRIES.map((co) => (
+            <option key={co.code} value={co.code}>
+              {co.name}
+            </option>
+          ))}
+        </select>
         <select
           value={age}
           onChange={(e) => {
             setAge(e.target.value);
-            load(e.target.value, gender, weapon);
+            load(e.target.value, gender, weapon, scope);
           }}
           className={selCls}
         >
@@ -69,7 +86,7 @@ export function KlasmanFilter({
           onChange={(e) => {
             const g = e.target.value as Gender;
             setGender(g);
-            load(age, g, weapon);
+            load(age, g, weapon, scope);
           }}
           className={selCls}
         >
@@ -84,7 +101,7 @@ export function KlasmanFilter({
           onChange={(e) => {
             const w = e.target.value as Weapon;
             setWeapon(w);
-            load(age, gender, w);
+            load(age, gender, w, scope);
           }}
           className={selCls}
         >

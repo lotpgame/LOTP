@@ -15,8 +15,15 @@ export default async function KulupPage() {
       <h1 className="text-xl font-bold">{t(locale, "kulup.title")}</h1>
       {c.club ? (
         <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/15">
-          <div className="text-lg font-semibold">{c.club.name}</div>
-          <div className="text-sm opacity-70">{c.club.city}</div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 text-xl shadow dark:from-slate-500 dark:to-slate-700">
+              ⚔️
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-lg font-semibold">{c.club.name}</div>
+              <div className="text-sm opacity-70">🏛 {c.club.city}</div>
+            </div>
+          </div>
 
           <div className="mt-4 space-y-3 text-sm">
             <div className="flex items-center justify-between">
