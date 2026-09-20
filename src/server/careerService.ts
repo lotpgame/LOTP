@@ -716,6 +716,18 @@ export interface TrainingReport {
   injured: boolean; // bu ilerlemede sakatlandı mı
 }
 
+/** M11.4: "yokken neler oldu" — offline'ken otomatik oynanan bir turnuvanın özeti. */
+export interface AwayTournamentEntry {
+  tournamentId: number;
+  name: string; // "U21 İl Şampiyonası"
+  categoryId: string;
+  position: number; // senin derecen
+  fieldSize: number; // katılımcı sayısı
+  points: number; // kazanılan ranking puanı
+  newRank: number | null; // turnuva sonrası Quarter Ranking sıran
+  dateLabel: string; // "Q1 · H3"
+}
+
 export interface CareerHeaderDTO {
   name: string;
   code: string;
@@ -731,6 +743,7 @@ export interface CareerHeaderDTO {
   injuryDaysRemaining: number;
   today: TodayDTO; // bugünün etkinliği (çubuk Katıl/Geç için)
   report: TrainingReport | null; // son "dünyaya yetiş" antrenman haberi (varsa)
+  awayTournaments: AwayTournamentEntry[]; // M11.4: yokken otomatik oynanan turnuvalar (varsa)
   // M10 dünya saati: canAttend = bugünkü uygun turnuva "geldi" (Katıl/Geç); needsSync = işlenecek
   // gün var (otomatik dünyaya yetiş); caughtUp = dünyaya yetişildi, sonraki gün gerçek zamanda gelecek.
   canAttend: boolean;
@@ -791,6 +804,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     injuryDaysRemaining: human.injuryDaysRemaining,
     today,
     report: gs.lastReport ? (JSON.parse(gs.lastReport) as TrainingReport) : null,
+    awayTournaments: gs.awayReport ? (JSON.parse(gs.awayReport) as AwayTournamentEntry[]) : [],
     canAttend,
     needsSync,
     caughtUp: !arrived,
@@ -1186,6 +1200,23 @@ export async function clearReport(): Promise<void> {
   const gs = await currentGameState();
   if (!gs) return;
   await prisma.gameState.update({ where: { id: gs.id }, data: { lastReport: null } });
+}
+
+/** M11.4: "yokken neler oldu" kartını temizler. */
+export async function clearAwayReport(): Promise<void> {
+  const gs = await currentGameState();
+  if (!gs) return;
+  await prisma.gameState.update({ where: { id: gs.id }, data: { awayReport: null } });
+}
+
+/** M11.4: offline oynanan bir turnuvayı "yokken neler oldu" özetine ekler (birikimli JSON dizi). */
+async function appendAwayReport(gsId: number, entry: AwayTournamentEntry): Promise<void> {
+  const cur = await prisma.gameState.findUnique({ where: { id: gsId }, select: { awayReport: true } });
+  const list: AwayTournamentEntry[] = cur?.awayReport ? JSON.parse(cur.awayReport) : [];
+  list.push(entry);
+  // Uzun süre yokken şişmesin: son 30 turnuvayı tut.
+  const trimmed = list.slice(-30);
+  await prisma.gameState.update({ where: { id: gsId }, data: { awayReport: JSON.stringify(trimmed) } });
 }
 
 /**
@@ -2689,6 +2720,28 @@ async function autoResolveTournament(
   // sadece kendi günümü ilerlet (yeniden oynatma).
   const existing = await prisma.tournament.findUnique({ where: { scopeKey } });
   if (existing) {
+    // Etkiler çözücü tarafından uygulandı → yeniden oynatma. Yine de "yokken neler oldu"ya ekle.
+    const part = await prisma.tournamentParticipant.findFirst({
+      where: { tournamentId: existing.id, playerId: human.id },
+      select: { finalPosition: true },
+    });
+    if (part) {
+      const rank = await prisma.ranking.findUnique({
+        where: { playerId_categoryId_quarter: { playerId: human.id, categoryId: base.categoryId, quarter } },
+        select: { position: true },
+      });
+      const fieldSize = await prisma.tournamentParticipant.count({ where: { tournamentId: existing.id } });
+      await appendAwayReport(gs.id, {
+        tournamentId: existing.id,
+        name: existing.name,
+        categoryId: base.categoryId,
+        position: part.finalPosition ?? fieldSize,
+        fieldSize,
+        points: rankingPointsForPosition(part.finalPosition ?? fieldSize, level),
+        newRank: rank?.position ?? null,
+        dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
+      });
+    }
     await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
     return;
   }
@@ -2770,7 +2823,18 @@ async function autoResolveTournament(
   });
 
   // humans[0] = çözücü (günü ilerler); diğer kapsam-içi oyunculara da etki uygulanır (Model A).
-  await finalizeTournament(gs, humans, level, base, outcome, seedKey, { scopeKey });
+  const fin = await finalizeTournament(gs, humans, level, base, outcome, seedKey, { scopeKey });
+  // M11.4: çözücünün "yokken neler oldu" özetine ekle.
+  await appendAwayReport(gs.id, {
+    tournamentId: fin.id,
+    name: `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`,
+    categoryId: base.categoryId,
+    position: outcome.standings.find((s) => s.playerId === human.id)?.position ?? outcome.pools.length,
+    fieldSize: outcome.pools.length,
+    points: fin.earnedPoints,
+    newRank: fin.newRank,
+    dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
+  });
 }
 
 /**

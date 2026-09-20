@@ -16,6 +16,7 @@ import {
   advanceLiveStage,
   attendTournament,
   clearReport,
+  clearAwayReport,
   createCareer,
   getCategoryRanking,
   hasCareer,
@@ -150,6 +151,12 @@ export async function unregisterTournamentAction(formData: FormData): Promise<vo
 /** Antrenman haber kartını kapatır. */
 export async function clearReportAction(): Promise<void> {
   await clearReport();
+  revalidatePath("/kariyer", "layout");
+}
+
+/** "Yokken neler oldu" kartını kapatır (M11.4). */
+export async function clearAwayReportAction(): Promise<void> {
+  await clearAwayReport();
   revalidatePath("/kariyer", "layout");
 }
 

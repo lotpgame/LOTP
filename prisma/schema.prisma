@@ -189,6 +189,8 @@ model GameState {
   trainingPlan String @default("TECHNICAL,PHYSICAL,REST")
   // Son "İlerle"nin antrenman özeti (haber kartı): JSON — skill kazanımları + kondisyon/keskinlik değişimi.
   lastReport String?
+  // M11.4: "yokken neler oldu" — offline'ken otomatik oynanan turnuvaların özeti (JSON dizi). Görülünce temizlenir.
+  awayReport String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

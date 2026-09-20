@@ -16,6 +16,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **M11.4 — "Yokken neler oldu" özeti:** Offline'ken (dünya saati ilerlerken) otomatik oynanan turnuvalar
+  artık kariyer sayfasında bir **özet kartı** olarak görünür (Hattrick-tarzı yakalama): turnuva adı, derecen /
+  katılımcı, kazanılan puan, klasman sıran; her satır turnuva detayına (maç-içi event'ler) tıklanır. Kart ✕ ile
+  kapanır. `GameState.awayReport` (JSON, son 30 turnuva; migration). Çözücü ve sonradan senkronlayan katılımcı
+  için de yazılır.
 - **M11.3b-2 — Canlı insan ortak örneğe katılır + iki kural:** Bugünkü turnuvayı **canlı** oynayan oyuncunun
   sahasına artık **kapsam-içi diğer kayıtlı gerçek oyuncular** da girer (bot gibi, önceden-taktikle); turnuva
   ortak örnektir (`scopeKey` + dedup), sonuç + klasman + kişisel etkiler herkese yazılır. Zaten çözülmüş bir

@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { attendTournamentAction, clearReportAction, skipDayAction } from "@/app/actions";
+import { attendTournamentAction, clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
 import { GENDER_LABEL_TR, WEAPON_LABEL_TR, type Gender, type Weapon } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -52,6 +53,41 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
               </div>
             </div>
             <form action={clearReportAction}>
+              <button className="shrink-0 rounded-md px-2 py-1 text-xs opacity-50 transition hover:opacity-100" title="Kapat">
+                ✕
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* M11.4: "Yokken neler oldu" — sen offline'ken otomatik oynanan turnuvalar (Hattrick-tarzı yakalama). */}
+      {h.awayTournaments.length > 0 && (
+        <div className="mb-4 rounded-xl border border-sky-500/30 bg-sky-500/[0.08] p-3 text-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="font-medium">🗓️ Sen yokken · {h.awayTournaments.length} turnuva oynandı</div>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {h.awayTournaments.map((tr) => (
+                  <li key={tr.tournamentId}>
+                    <Link
+                      href={`/turnuva/${tr.tournamentId}`}
+                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md px-1 py-0.5 transition hover:bg-sky-500/10"
+                    >
+                      <span className="font-medium">{tr.name}</span>
+                      <span className="text-xs opacity-60">{tr.dateLabel}</span>
+                      <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
+                        {tr.position}. / {tr.fieldSize}
+                      </span>
+                      {tr.points > 0 && <span className="text-xs opacity-70">+{tr.points} puan</span>}
+                      {tr.newRank != null && <span className="text-xs opacity-70">· Klasman #{tr.newRank}</span>}
+                      <span className="text-xs opacity-40">›</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <form action={clearAwayReportAction}>
               <button className="shrink-0 rounded-md px-2 py-1 text-xs opacity-50 transition hover:opacity-100" title="Kapat">
                 ✕
               </button>
