@@ -172,6 +172,12 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
 - **Bitti:** dünya saati oyuncular offline iken ilerliyor; kayıt + önceden-taktik akışı çalışıyor.
 
 ### M11 — Ortak Turnuva Simülasyonu + Klasman (asıl multiplayer)
+> **Gün-içi zaman çizelgesi KİLİTLENDİ (oyun sahibi, 2026-09-20):** Turnuva kendi takvim gününde
+> tamamlanır (gerçek eskrim günü). Aşama saatleri **gün-içi oyun-saati** olarak tanımlanır (dünya saati
+> gerçek zamana çevirir → dev'de 8 sn/gün de üretimde 24 saat de aynı akış):
+> **Pul 10:00–11:00** → klasman/seeding · **Elemeler (Son 32→Çeyrek) 14:00–15:00** · **Yarı final + Final
+> 17:00–18:00** → sonuç. Sunucu "günün %X'i" bilgisinden vadesi gelen aşamayı çözer (lazy, cron yok);
+> maç araları bu aralıklara yayılır (replay temposu).
 - **Sunucu turnuvayı oynatır:** dünya saati gelince, o turnuvaya kayıtlı **tüm gerçek oyuncular + AI**
   tek pul/eleme sahasında; combat sunucuda; ortak sonuç + ortak Quarter Ranking. (Combat/turnuva
   motoru zaten hazır — çok-insanlı alana genişletilir.)
