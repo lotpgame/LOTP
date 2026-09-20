@@ -16,6 +16,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
 ### Eklendi
+- **Skor renkleri (eskrim cihazı gibi):** Maç skorlarında sol taraf **yeşil** 🟢, sağ taraf **kırmızı** 🔴
+  (canlı maç, replay ve pul özeti). Gerçek cihaz hissi; ilk izlenim için hoş dokunuş.
 - **#5 — Öncelik / Hak-yolu (silahları gerçekten ayıran motor):** Her mübadele artık **niyet + öncelik** ile
   çözülür (`combat/priority.ts`): **Hücum / Bekle-parat-riposte / Kontra**. **Ana etmenler: mesafe** (footwork
   + kulaç) **ve zamanlama** (timing). Silaha göre: **Epe** öncelik yok → kontra + **çift tuş** (imzası);

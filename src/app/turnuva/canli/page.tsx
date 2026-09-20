@@ -308,8 +308,10 @@ function MaclarPanel({
                   <span>
                     <span className="mr-1 opacity-60">{t(locale, "canli.matchN", { n: f.matchNo })} ·</span> {f.oppName}
                   </span>
-                  <span className="font-medium tabular-nums">
-                    {f.scoreHuman}–{f.scoreOpp}
+                  <span className="font-bold tabular-nums">
+                    <span className="text-emerald-600 dark:text-emerald-400">{f.scoreHuman}</span>
+                    <span className="mx-0.5 opacity-40">–</span>
+                    <span className="text-red-600 dark:text-red-400">{f.scoreOpp}</span>
                   </span>
                 </summary>
                 {m && (

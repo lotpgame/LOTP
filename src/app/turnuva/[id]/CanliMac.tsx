@@ -10,13 +10,24 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 
-/** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
-function lastRevealedScore(lines: string[]): string | null {
+/** Açıklanan son tuş satırından güncel skoru sayı çifti olarak çıkarır ("… 3–2" → {a:3,b:2}). */
+function lastRevealedScore(lines: string[]): { a: number; b: number } | null {
   for (let i = lines.length - 1; i >= 0; i--) {
     const m = lines[i].match(/(\d+)\s*[–-]\s*(\d+)/);
-    if (m) return `${m[1]} – ${m[2]}`;
+    if (m) return { a: Number(m[1]), b: Number(m[2]) };
   }
   return null;
+}
+
+/** Eskrim cihazı gibi: sol taraf YEŞİL, sağ taraf KIRMIZI skor. */
+function ScoreBox({ a, b }: { a: number | null; b: number | null }) {
+  return (
+    <span className="shrink-0 tabular-nums font-bold">
+      <span className="text-emerald-600 dark:text-emerald-400">{a ?? "•"}</span>
+      <span className="mx-1 opacity-40">–</span>
+      <span className="text-red-600 dark:text-red-400">{b ?? "•"}</span>
+    </span>
+  );
 }
 
 export interface CanliMacProps {
@@ -66,9 +77,7 @@ export function CanliMac({
       <div className="rounded-lg border border-black/10 dark:border-white/15">
         <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
           <span className={`min-w-0 truncate ${aWon ? "font-semibold" : "opacity-80"}`}>{aName}</span>
-          <span className="shrink-0 tabular-nums font-semibold">
-            {scoreA} – {scoreB}
-          </span>
+          <ScoreBox a={scoreA} b={scoreB} />
           <span className={`min-w-0 truncate text-right ${!aWon ? "font-semibold" : "opacity-80"}`}>{bName}</span>
         </div>
         <button
@@ -98,13 +107,16 @@ export function CanliMac({
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
         <span className={done && aWon ? "font-semibold" : "opacity-80"}>{aName}</span>
-        <span className="tabular-nums">
-          {done
-            ? `${scoreA} – ${scoreB}`
-            : started
-              ? (lastRevealedScore(log.slice(0, shown)) ?? "• • •")
-              : "vs"}
-        </span>
+        {done ? (
+          <ScoreBox a={scoreA} b={scoreB} />
+        ) : started ? (
+          (() => {
+            const s = lastRevealedScore(log.slice(0, shown));
+            return <ScoreBox a={s?.a ?? null} b={s?.b ?? null} />;
+          })()
+        ) : (
+          <span className="tabular-nums opacity-60">vs</span>
+        )}
         <span className={done && !aWon ? "font-semibold" : "opacity-80"}>{bName}</span>
       </div>
 

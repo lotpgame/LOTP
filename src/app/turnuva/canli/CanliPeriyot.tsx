@@ -8,13 +8,24 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 
-/** Açıklanan son tuş satırından güncel skoru çıkarır ("… 3–2" → "3 – 2"). */
-function lastRevealedScore(lines: string[]): string | null {
+/** Açıklanan son tuş satırından güncel skoru sayı çifti olarak çıkarır ("… 3–2" → {a:3,b:2}). */
+function lastRevealedScore(lines: string[]): { a: number; b: number } | null {
   for (let i = lines.length - 1; i >= 0; i--) {
     const m = lines[i].match(/(\d+)\s*[–-]\s*(\d+)/);
-    if (m) return `${m[1]} – ${m[2]}`;
+    if (m) return { a: Number(m[1]), b: Number(m[2]) };
   }
   return null;
+}
+
+/** Eskrim cihazı gibi: sol taraf YEŞİL, sağ taraf KIRMIZI skor. */
+export function ScoreBox({ a, b }: { a: number | null; b: number | null }) {
+  return (
+    <span className="tabular-nums font-bold">
+      <span className="text-emerald-600 dark:text-emerald-400">{a ?? "•"}</span>
+      <span className="mx-1 opacity-40">–</span>
+      <span className="text-red-600 dark:text-red-400">{b ?? "•"}</span>
+    </span>
+  );
 }
 
 export interface CanliPeriyotProps {
@@ -43,12 +54,17 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
     <>
     <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium">{aName} (sen)</span>
-        {/* Skor, açıklanan son tuşa göre canlı güncellenir (event geçtikçe). */}
-        <span className="tabular-nums font-semibold">
-          {done ? `${scoreHuman} – ${scoreOpp}` : (lastRevealedScore(log.slice(0, shown)) ?? "• • •")}
-        </span>
-        <span className="opacity-80">{oppName}</span>
+        <span className="font-medium text-emerald-700 dark:text-emerald-300">🟢 {aName} (sen)</span>
+        {/* Skor eskrim cihazı gibi: sen yeşil, rakip kırmızı. Canlıda son açıklanan tuşa göre güncellenir. */}
+        {done ? (
+          <ScoreBox a={scoreHuman} b={scoreOpp} />
+        ) : (
+          (() => {
+            const s = lastRevealedScore(log.slice(0, shown));
+            return <ScoreBox a={s?.a ?? null} b={s?.b ?? null} />;
+          })()
+        )}
+        <span className="text-red-700 dark:text-red-300">{oppName} 🔴</span>
       </div>
       <ul className="mt-2 space-y-0.5 text-xs opacity-80">
         {log.slice(0, shown).map((line, i) => (
