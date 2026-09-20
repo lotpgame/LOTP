@@ -15,6 +15,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   gerçek gün; epoch bir Pazartesi (gerçek Salı = İl turnuvası); `season.ts` ile hizalı; dev'de config ile
   hızlandırılır. Saf + 6 test. **Zaman modeli kilitlendi** (ROADMAP §B2/M10): 1 gerçek yıl = +4 yaş,
   kariyer ~5+ gerçek yıla yayılır; "Haftayı İlerle" kalkacak (M10.1b). Offline+kayıtlı → varsayılan/son taktik.
+  Sunucu tarafı ayar `src/server/world.ts` (`serverWorldDay`, `WORLD_MS_PER_DAY` env ile dev'de hızlandırma).
 - **M9.2b — Telefonla giriş + anonim kariyeri bağlama:** `/giris` sayfası — ülke koduyla telefon
   numarası → giriş. Kayıtlıysa o hesaba giriş (başka cihazdan aynı numara = aynı kariyer); boştaysa
   bu cihazdaki **anonim kariyeri telefona bağlar** (kaybolmaz). `User.phone` (E.164, benzersiz),
