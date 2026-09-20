@@ -317,7 +317,7 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
   - [x] **M10.1b** — Dünya saati oyuna bağlandı: "İlerle" kalktı (otomatik "dünyaya yetiş"); dünya günü gerçek zamandan; yaş `careerStartDay` çıpalı; oluşturma dünya anına sabit; bar 🌍 + Katıl/Geç. `GameState.careerStartDay`.
   - [x] **M10.2** — Turnuvaya **kayıt + önceden taktik**: Turnuvalar sayfasında "Yaklaşan Turnuvalar" (kaydol/güncelle/iptal + taktik seç; uygunluk kilidi). `Registration` modeli. (Otomatik oynatma M11.)
   - Not (geçici sınır → M11'de kalkacak): oyuncu turnuvaya girmezse kariyer o günde bekler (offline otomatik oynatma). Farklı dünya-quarter'ında katılan yeni oyuncu için AI eşleşmesi M11 (canlı dünya/yeni nesil).
-- [~] **M11** — Ortak turnuva simülasyonu + klasman (sunucu çizelgeye göre oynatır → replay + ortak klasman) ← DEVAM EDİYOR
+- [x] **M11** — Ortak turnuva simülasyonu + klasman (çizelge + offline otomatik + ortak örnek + canlı katılım + yokken özeti) ✅
   - [x] **M11.1** — Zaman çizelgesi motoru (saf): `src/engine/schedule/` — dakika-bazlı çizelge, periyot + taktik pencereleri, FIE-uyumlu sabitler. 12 test.
   - [x] **M11.2** — Çizelgeli offline otomatik oynatma + ortak Quarter Ranking: `autoResolveTournament` (insan önceden-taktik, AI stil) → `finalizeTournament`; `advanceDay` geçmiş+kayıtlı turnuvaları otomatik çözer, canlı "Katıl" yalnız bugün. Tarayıcıda doğrulandı.
   - [x] **M11.3a** — Birleşik periyot motoru + taktik kaynağı: `simulateBoutByPeriods` (saf); offline çözüm periyot-bazlı (log periyot kırılımlı + event'ler); `simulateTournament` `byPeriods` opsiyonu. 5 test. Tarayıcıda doğrulandı.
