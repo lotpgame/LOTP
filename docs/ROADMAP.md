@@ -155,6 +155,15 @@ Kim kimdir + veri sahipliği. İnsan verisi kullanıcıya bağlı; **dünya (AI 
 
 ### M10 — Ortak Dünya + Sunucu Saati
 Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağır tasarım).
+
+> **ZAMAN MODELİ KİLİTLENDİ (oyun sahibi, 2026-09-20):** Oyun zamanı = **gerçek zaman**.
+> **1 oyun-günü = 1 gerçek gün**; gün içi = gerçek saat. Haftalık program (Pzt/Sal/…/Paz)
+> **gerçek haftanın günlerine** oturur (gerçek Salı = İl turnuvası vb.). Yaşlanma: Q1–Q4
+> korunur, her Q = 84 gün ≈ 3 gerçek ay → **1 gerçek yıl = +4 yaş** (kariyer ~5+ gerçek yıl,
+> kalıcı Hattrick dünyası). `dayIndex` artık GLOBAL: `epoch`'tan geçen gerçek gün sayısı
+> (`worldDayIndex = floor((now − epoch) / gün)`), cron gerekmez. Offline + kayıtlı oyuncu:
+> **varsayılan ya da son verdiği taktikle** oynatılır, sonucu sonra görür. Dev'de gün uzunluğu
+> config'le hızlandırılır (gerçek gün beklemeden test).
 - **Tek dünya takvimi:** `World` (singleton) — dünya günü/saati; herkes içinde. `GameState`'in
   per-kariyer saati buraya taşınır. Per-kullanıcı kalan: kayıtlar, önceden-taktik, izlenmemiş sonuçlar.
 - **Merkezi saat:** dünya zamanını **sunucu** ilerletir (zamanlanmış iş / cron); offline ilerleme
@@ -253,7 +262,10 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
   - [ ] **M9.2c** — `User.country` kaynak; oluşturmada ülke seçimi kalkar (IP'den), şehir o ülkeden (dev'de TR sabit)
   - [ ] **M9.2d** — Google OAuth girişi (deploy'da; Google Cloud OAuth client = kullanıcı kurulumu) + IP ülke header'ı
   - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma (Google+IP burada gerçeklenir)
-- [ ] **M10** — Ortak dünya + sunucu saati (`World` singleton, "İlerle" kalkar, kayıt + önceden taktik)
+- [~] **M10** — Ortak dünya + sunucu saati (gerçek-zaman saati; "İlerle" kalkar) ← DEVAM EDİYOR
+  - [x] **M10.1a** — `worldclock.ts`: gerçek-zamandan dünya günü (saf + test); zaman modeli kilitlendi
+  - [ ] **M10.1b** — Dünya saatini oyuna bağla (per-kariyer dayIndex → global; "İlerle" kalkar; yaş/kategori world'e göre)
+  - [ ] **M10.2** — Turnuvaya kayıt + önceden taktik (offline → varsayılan/son taktik)
 - [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
 
