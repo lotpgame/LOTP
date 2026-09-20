@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **M9.2a — Coğrafya modeli (telefon → ülke → şehir):** `src/engine/geo.ts` — ülke-kodu→ülke eşlemesi
+  (`+90 → TR`), ülkeye ait sınırlı şehir listesi, telefon normalize + doğrulama (`parsePhone`). Ülkeler
+  **adım adım** eklenecek (önce TR; desteklenmeyen kod → "henüz eklenmedi"). Saf/test edilebilir (+6 test).
+  Sonraki: telefon tabanlı giriş (M9.2b) + oluşturma ekranında ülke otomatik (M9.2c). Gerçek SMS/OTP →
+  yayına alırken (SMS servisi kullanıcı hesabı gerektirir); geliştirmede dev kodu.
 - **M9.1 — Kimlik + veri sahipliği (çok oyunculu temeli):** `User` modeli + **çerez tabanlı anonim
   hesap**; `Player.userId` / `GameState.userId` (insan oyuncu kullanıcıya bağlı, **AI ortak/`null`**).
   `loadState` / `hasCareer` / `createCareer` / `resetCareer` artık **mevcut kullanıcıya** göre çalışır
