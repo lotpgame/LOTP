@@ -206,6 +206,29 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
 > de kısa bir pencerede taktik verir (**per-periyot, per-touch değil**); süre dolarsa o tarafın önceden-
 > taktiği. İnsan-insan maçında online olmayanın oyuncusu bot gibi önceden-taktikle oynar.
 
+> **ORTAK TURNUVA ÖRNEĞİ KİLİTLENDİ (oyun sahibi, 2026-09-20):** Turnuva = paylaşılan örnek (instance).
+> **Gruplama anahtarı (seviyeye göre):** İl → (ülke + ŞEHİR + kategori + gün); Türkiye → (ülke + kategori +
+> gün); Uluslararası (SATELLITE/EUROPEAN/GRAND_PRIX/WORLD_CUP) → (bölge/dünya + kategori + gün). Bir örneğe
+> kayıtlı **herkes aynı turnuvada** oynar. Saha 24'ün altındaysa **BOT (AI) ile tamamlanır**; gerçek oyuncu
+> arttıkça botlar azalır/silinir (saha büyürse bracket 32/64… bye'lı zaten hazır). **Sonuç TEK ve ortaktır**
+> (herkes aynısını görür). **Tembel çözüm:** turnuva saati geçince oyuna giren ilk kayıtlı oyuncu tetikler,
+> sonuç saklanır (cron yok); sonrakiler saklanan sonucu okur.
+>
+> **Maç motoru — periyot-bazlı, taraf başına taktik kaynağı (oyun sahibi modeli):** Her bout periyot periyot
+> çözülür; her periyot öncesi her tarafın taktiği KAYNAĞINDAN gelir (AI=stil, offline=önceden/default,
+> online=canlı seçim — maça ETKİ eder, kullanıcıyı tutan şey bu). Örn 15 tuş/3 periyot: P1 3-3 → online taktik
+> değişir + motor yeniden analiz → P2 7-4 → tekrar taktik → P3 9-6 (9-9 ise altın tuş). Aynı mekanizma iki-
+> online ve iki-offline için de. **Bir bout bir kez hesaplanır → saklanır → herkese aynı gösterilir.**
+> **V1 dürüst sadeleştirmesi:** aynı bout'ta AYNI ANDA iki online oyuncunun gerçek-zamanlı periyot senkronu
+> gerçek hosting/eşzamanlılık ister → **M12'ye ertelendi**; o zamana dek bout'u ilk oynayan online taraf sürer,
+> diğerinin önceden-taktiği kullanılır.
+>
+> **Kayıt kapanışı:** turnuva gününün 00:00'ında (bir gün öncesine kadar kaydolunur).
+> **Uluslararası yalnız U17+** (FIE: Satellite/GP/Dünya Kupası kıdemli devreleri; Kadet/Junior'da kıtasal/dünya
+> ŞAMPİYONALARI var — seviye soyutlamamız karşılar). U10/U12/U14'te uluslararası YOK.
+> **Offline oyuncu deneyimi:** sonradan girince turnuvayı GEÇMİŞ olarak sonuç + maç-içi event'leriyle görür
+> (yeniden izleme şart değil).
+
 ### M12 — Ölçek & Servis (canlı servise hazırlık)
 - Arka plan işleri + kuyruk; yedek/geri yükleme, izleme/log, oran sınırlama, moderasyon.
 - Hosting: kalıcı DB + always-on sunucu + cron; deploy hattı; maliyet/ölçek planı.
@@ -297,8 +320,9 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 - [~] **M11** — Ortak turnuva simülasyonu + klasman (sunucu çizelgeye göre oynatır → replay + ortak klasman) ← DEVAM EDİYOR
   - [x] **M11.1** — Zaman çizelgesi motoru (saf): `src/engine/schedule/` — dakika-bazlı çizelge, periyot + taktik pencereleri, FIE-uyumlu sabitler. 12 test.
   - [x] **M11.2** — Çizelgeli offline otomatik oynatma + ortak Quarter Ranking: `autoResolveTournament` (insan önceden-taktik, AI stil) → `finalizeTournament`; `advanceDay` geçmiş+kayıtlı turnuvaları otomatik çözer, canlı "Katıl" yalnız bugün. Tarayıcıda doğrulandı.
-  - [ ] **M11.3** — Canlı per-periyot oynatma (online): taraf başına taktik kaynağı (AI=stil, offline=önceden, online=canlı)
-  - [ ] **M11.4** — Replay + "yokken neler oldu" özeti
+  - [ ] **M11.3a** — Birleşik periyot motoru + taktik kaynağı: offline çözümü de periyot-bazlı olur (maç logu periyot kırılımı + event'ler); tek mekanizma (AI=stil, offline=önceden/default, online=canlı)
+  - [ ] **M11.3b** — Ortak turnuva örneği: gruplama (İl=ülke+şehir, Türkiye=ülke, uluslararası=bölge) + tek Tournament satırı (dedup) + saha = kayıtlı gerçek oyuncular + AI dolgu; uluslararası U17+; kayıt gün-00:00 kapanır
+  - [ ] **M11.4** — "Yokken neler oldu" özeti (offline oyuncu geçmiş turnuvayı sonuç + event'leriyle görür)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
 
 > Not: V2'ye geçmeden tek-kişilik çekirdeği cilalarken **yalnız ortak dünyaya taşınacak**
