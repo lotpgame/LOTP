@@ -245,11 +245,14 @@ okundu, görevler net) 2) girdi/çıktı tanımlı 3) bağımlılıklar tanıml�
 **V2 — Çok Oyunculu / Ortak Dünya · ASENKRON (asıl hedef, bkz. §B2):**
 - [~] **M9** — Kimlik + kalıcı DB ← DEVAM EDİYOR
   - [x] **M9.1** — User + çerez hesabı + `Player.userId`/`GameState.userId`; loadState/create/reset kullanıcı-bazlı; AI havuzu ortak (SQLite)
-  - [x] **M9.2a** — Coğrafya modeli (telefon ülke kodu → ülke → sınırlı şehir listesi; `parsePhone`)
-  - [x] **M9.2b** — Telefonla giriş (`/giris`, `User.phone`); anonim kariyeri telefona bağlama; **OTP yok (dev)**
-  - [ ] **M9.2c** — Oluşturma ekranında ülke telefondan otomatik + şehir o ülkeden (çoklu ülke gelince)
-  - [ ] **M9.2d** — Gerçek OTP/SMS (yayına alırken; SMS servisi kullanıcı hesabı gerektirir)
-  - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma
+  - [x] **M9.2a** — Coğrafya modeli (ülke → sınırlı şehir listesi; ülkeler adım adım, önce TR)
+  - [x] **M9.2b** — Çerez/telefon tabanlı **dev girişi** (geçici; kalıcı yöntem aşağıda). Anonim kariyeri bağlama mantığı hazır.
+  - **AUTH KARARI (2026-09-20):** Kalıcı giriş = **Google OAuth (ücretsiz)**; **ülke IP'den otomatik + kilitli**
+    (Almanya IP → Türkiye karakteri açamaz; yalnız açılmış ülkelerden oyuncu girer → "adım adım ülke" ile birebir).
+    Şehir küçük liste (önemsiz). Telefon/SMS → ileride **opsiyonel** "doğrulanmış ülke" katmanı.
+  - [ ] **M9.2c** — `User.country` kaynak; oluşturmada ülke seçimi kalkar (IP'den), şehir o ülkeden (dev'de TR sabit)
+  - [ ] **M9.2d** — Google OAuth girişi (deploy'da; Google Cloud OAuth client = kullanıcı kurulumu) + IP ülke header'ı
+  - [ ] **M9.3** — PostgreSQL'e geçiş + yayına alma (Google+IP burada gerçeklenir)
 - [ ] **M10** — Ortak dünya + sunucu saati (`World` singleton, "İlerle" kalkar, kayıt + önceden taktik)
 - [ ] **M11** — Ortak turnuva simülasyonu + klasman (sunucu oynatır, oyuncu replay izler)
 - [ ] **M12** — Ölçek & servis (arka plan tiki, yedek/izleme, hosting)
