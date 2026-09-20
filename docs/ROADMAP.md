@@ -185,6 +185,21 @@ Zamanın mantığı **oyuncu-güdümlüden sunucu-güdümlüye** döner (en ağ�
   "yokken neler oldu" özeti (maçlar, klasman, davet).
 - **Bitti:** iki gerçek oyuncu aynı turnuvada gerçekten eşleşip sonuç/klasman paylaşıyor.
 
+> **DAKİKA-BAZLI ZAMAN ÇİZELGESİ + PERİYOT TAKTİK KAYNAĞI KİLİTLENDİ (oyun sahibi, 2026-09-20):**
+> Turnuva deterministik bir zaman çizgisidir; her maçın kesin [başlangıç–bitiş] dilimi vardır (sunucu
+> gün-dakikasından çözer). **Periyot = 3 dk; periyot arası = 30 sn** (taktik değişim penceresi).
+> **Pul:** 11:00 başlar; oyuncunun maçları SIRALI (11:05 m1 → 1 dk ara → m2 …); 5 tuş ~3 dk, tuşa erken
+> ulaşınca erken biter. **Eleme:** 14:00; 15 tuş = 3 periyot = 3×3dk + 2×30sn ≈ **10 dk**, 10 tuş (U10) =
+> 2 periyot ≈ **6,5 dk**; erken cap → erken biter AMA sonraki tur kendi saatinde/sabit arayla (1-2 dk)
+> başlar. **Yarı+Final:** 17:00. Saatler gün-içi "oyun-dakikası";
+> dünya saati gerçek zamana çevirir (üretim gerçek saat, dev sıkışık).
+>
+> **Periyot taktiğinin kaynağı her taraf için bağımsız** (AI/offline/online tek mekanizma):
+> AI → stili; **offline insan → önceden verdiği/varsayılan taktik (bot gibi, sabit)**; **online insan →
+> her periyot arası canlı seçer** (single'daki gibi). İki oyuncu da online → her periyot arasında ikisi
+> de kısa bir pencerede taktik verir (**per-periyot, per-touch değil**); süre dolarsa o tarafın önceden-
+> taktiği. İnsan-insan maçında online olmayanın oyuncusu bot gibi önceden-taktikle oynar.
+
 ### M12 — Ölçek & Servis (canlı servise hazırlık)
 - Arka plan işleri + kuyruk; yedek/geri yükleme, izleme/log, oran sınırlama, moderasyon.
 - Hosting: kalıcı DB + always-on sunucu + cron; deploy hattı; maliyet/ölçek planı.
