@@ -1241,6 +1241,30 @@ export async function clearAwayReport(): Promise<void> {
   await prisma.gameState.update({ where: { id: gs.id }, data: { awayReport: null } });
 }
 
+/** Geri bildirim / hata bildirimi kaydeder (test haftası). Giriş yoksa da çalışır (playerName null). */
+export async function submitFeedback(input: { message: string; page?: string; kind?: string }): Promise<void> {
+  const message = (input.message ?? "").trim().slice(0, 2000);
+  if (!message) return;
+  const kind = input.kind === "error" ? "error" : "feedback";
+  let userToken: string | null = null;
+  let playerName: string | null = null;
+  try {
+    userToken = (await cookies()).get(USER_COOKIE)?.value ?? null;
+    const state = await loadState();
+    if (state) playerName = `${state.human.firstName} ${state.human.lastName}`;
+  } catch {
+    // giriş/kariyer yoksa sorun değil — anonim de bildirebilir
+  }
+  await prisma.feedback.create({
+    data: { kind, message, page: input.page?.slice(0, 200) || null, playerName, userToken },
+  });
+}
+
+/** Sahibi için: son geri bildirimler (en yeni önce). */
+export async function getFeedback(limit = 200) {
+  return prisma.feedback.findMany({ orderBy: { createdAt: "desc" }, take: limit });
+}
+
 /** M11.4: offline oynanan bir turnuvayı "yokken neler oldu" özetine ekler (birikimli JSON dizi). */
 async function appendAwayReport(gsId: number, entry: AwayTournamentEntry): Promise<void> {
   const cur = await prisma.gameState.findUnique({ where: { id: gsId }, select: { awayReport: true } });

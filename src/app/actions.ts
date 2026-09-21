@@ -17,6 +17,7 @@ import {
   attendTournament,
   clearReport,
   clearAwayReport,
+  submitFeedback,
   createCareer,
   getCategoryRanking,
   hasCareer,
@@ -163,6 +164,15 @@ export async function clearReportAction(): Promise<void> {
 export async function clearAwayReportAction(): Promise<void> {
   await clearAwayReport();
   revalidatePath("/kariyer", "layout");
+}
+
+/** Geri bildirim / hata bildirimi gönderir (test haftası). */
+export async function submitFeedbackAction(formData: FormData): Promise<void> {
+  await submitFeedback({
+    message: String(formData.get("message") ?? ""),
+    page: String(formData.get("page") ?? ""),
+    kind: String(formData.get("kind") ?? "feedback"),
+  });
 }
 
 /** Arayüz dilini değiştirir (cookie'ye yazar). */

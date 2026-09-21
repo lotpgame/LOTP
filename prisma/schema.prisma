@@ -299,3 +299,16 @@ model Ranking {
   @@unique([playerId, categoryId, quarter])
   @@index([categoryId, quarter])
 }
+
+/// Geri bildirim / hata bildirimi (test haferi). Oyuncular "bildir" ile yazar; sahibi okur.
+model Feedback {
+  id         Int      @id @default(autoincrement())
+  kind       String   @default("feedback") // feedback | error
+  message    String
+  page       String? // bildirim hangi sayfada yapıldı (pathname)
+  playerName String? // varsa oyuncu adı
+  userToken  String? // varsa kullanıcı çerez token'ı (kim bildirdi)
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}

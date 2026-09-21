@@ -3,6 +3,10 @@
 Eskrim temalı, metin-tabanlı kariyer ve yönetim simülasyonu (Hattrick / Championship
 Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yönetir.
 
+> 🟢 **Canlı (test haftası):** https://lotp-one.vercel.app — arkadaşlarla ortak dünya testi.
+> Her sayfada sağ altta **💬 Bildir** butonu var (hata/fikir). Bildirimler gizli-anahtarlı
+> panoda toplanır: `/geribildirim?key=…` (anahtar Vercel env `FEEDBACK_ADMIN_KEY`).
+
 - **Yol haritası / teknik plan:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — nasıl ve hangi
   sırayla inşa ediliyor (mimari kararlar + M0–M8 aşamaları).
 - Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)

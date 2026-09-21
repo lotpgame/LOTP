@@ -23,6 +23,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
 
 ### Eklendi
+- **Geri bildirim / hata bildirme sistemi (test haftası):** Her kariyer sayfasında sağ altta yüzen
+  **"💬 Bildir"** butonu — arkadaşların bir hata, gariplik veya fikir yazıp gönderebilir (kim + hangi
+  sayfa otomatik kaydolur). Bir sayfa çökerse **dostça hata ekranı** (`error.tsx`) çıkar: "Tekrar dene" +
+  tek tıkla **otomatik hata bildir**. Bildirimler **Neon**'da `Feedback` tablosunda toplanır; yalnız senin
+  görebildiğin gizli-anahtarlı pano: **`/geribildirim?key=…`** (anahtar Vercel env `FEEDBACK_ADMIN_KEY`).
 - **Skor renkleri (eskrim cihazı gibi):** Maç skorlarında sol taraf **yeşil** 🟢, sağ taraf **kırmızı** 🔴
   (canlı maç, replay ve pul özeti). Gerçek cihaz hissi; ilk izlenim için hoş dokunuş.
 - **#5 — Öncelik / Hak-yolu (silahları gerçekten ayıran motor):** Her mübadele artık **niyet + öncelik** ile

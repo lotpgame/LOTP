@@ -6,6 +6,7 @@ import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
 import { AutoAdvance } from "./AutoAdvance";
 import { CareerNav } from "./CareerNav";
+import { FeedbackWidget } from "./FeedbackWidget";
 
 const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 
@@ -104,6 +105,9 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
       )}
 
       {children}
+
+      {/* Test haftası: yüzen geri bildirim / hata bildirme butonu. */}
+      <FeedbackWidget />
 
       {/* Sabit alt çubuk — sayfalar arası değişmez (gün-bazlı zaman sürücüsü). Online'da otomatik akar. */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-black/80">
