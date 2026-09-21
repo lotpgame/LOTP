@@ -78,5 +78,8 @@ Bu belge sade tutulur: **[SENDE]** = senin yapman gereken (hesap/karar), **[BEND
 - [x] **D2 — Vercel'e yayın** ✅ (2026-09-21): GitHub repo **alkanyus/LOTP** (Legends of the Piste); Vercel import;
       env: DATABASE_URL(pooled Neon) + WORLD_MS_PER_DAY=3600000 + WORLD_EPOCH_MS. **CANLI: https://lotp-one.vercel.app**
       Production'da uçtan uca doğrulandı (kariyer oluşturma Vercel→Neon çalışıyor). GitHub'a push → Vercel otomatik redeploy.
-- [ ] **D3 — Arkadaşlarla ilk test** ← sıradaki. ÖNCE: (a) Neon DB'yi SIFIRLA (test kariyerleri temizlensin, temiz dünya);
-      (b) dünya saati cadence'ini kesinleştir (şu an 1 oyun günü = 1 saat); (c) arkadaşlara linki + "telefonla giriş" anlat.
+- [x] **D3 hazır** ✅ (2026-09-21): Neon sıfırlandı (temiz dünya); **başlangıç yaşı 8 (U10)**, doğum tarihi alanı
+      kaldırıldı (Test 1); **saat 1 oyun günü = 1 gerçek gün** (WORLD_MS_PER_DAY=86400000). Canlı doğrulandı
+      (yeni kariyer U10·8 yaş). **Davet aşaması:** link https://lotp-one.vercel.app — arkadaşlar karakter yaratıp
+      telefonla giriş yapar; aynı şehir+silah → aynı İl turnuvası; turnuvalar Salı/Perşembe/Cumartesi.
+      NOT (Test 2, gelecek hafta): başlangıç yaşını büyüt (`START_AGE` 8→16) + Neon'u tekrar sıfırla.
