@@ -75,5 +75,8 @@ Bu belge sade tutulur: **[SENDE]** = senin yapman gereken (hesap/karar), **[BEND
       kariyer/turnuva işlemleri uzak Postgres'te 5 sn'yi aşıyordu). `prisma db push` ile şema Neon'a yüklendi.
       Yerelde uçtan uca doğrulandı: kariyer oluştur + gün ilerleme + turnuva çözümü, sıfır hata.
       NOT: yerel `.env`'de DOĞRUDAN (pooler'sız) URL var; Vercel'de POOLED URL kullanılacak.
-- [ ] D2 — Vercel'e yayın  ← **sıradaki** ([SENDE] GitHub repo + Vercel hesabı; env: DATABASE_URL(pooled) + WORLD_*)
-- [ ] D3 — Arkadaşlarla ilk test
+- [x] **D2 — Vercel'e yayın** ✅ (2026-09-21): GitHub repo **alkanyus/LOTP** (Legends of the Piste); Vercel import;
+      env: DATABASE_URL(pooled Neon) + WORLD_MS_PER_DAY=3600000 + WORLD_EPOCH_MS. **CANLI: https://lotp-one.vercel.app**
+      Production'da uçtan uca doğrulandı (kariyer oluşturma Vercel→Neon çalışıyor). GitHub'a push → Vercel otomatik redeploy.
+- [ ] **D3 — Arkadaşlarla ilk test** ← sıradaki. ÖNCE: (a) Neon DB'yi SIFIRLA (test kariyerleri temizlensin, temiz dünya);
+      (b) dünya saati cadence'ini kesinleştir (şu an 1 oyun günü = 1 saat); (c) arkadaşlara linki + "telefonla giriş" anlat.
