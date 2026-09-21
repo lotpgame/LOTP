@@ -37,7 +37,7 @@ import {
   type SkillValue,
 } from "@/engine/skill";
 import { applyTraining, TRAINING_TYPES, type TrainingType } from "@/engine/training";
-import { createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
+import { START_AGE, createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
 import {
   MATCH_FORMATS,
   PERIOD_SECONDS,
@@ -131,6 +131,8 @@ import {
 
 /** Oyun başlangıç tarihi (deterministik referans). */
 const GAME_START = new Date("2026-01-01T00:00:00.000Z");
+// Herkes START_AGE yaşında başlar → sabit doğum tarihi (GAME_START yılından START_AGE yıl önce).
+const START_BIRTHDATE = new Date(Date.UTC(GAME_START.getUTCFullYear() - START_AGE, 0, 1));
 const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı)
 const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
@@ -412,7 +414,7 @@ export async function signOut(): Promise<void> {
  */
 export async function createCareer(input: unknown): Promise<{ humanPlayerId: number }> {
   const data = createPlayerSchema.parse(input); // geçersizse fırlatır
-  const identity = deriveIdentity(data, GAME_START);
+  const identity = deriveIdentity({ gender: data.gender, weapon: data.weapon, birthDate: START_BIRTHDATE }, GAME_START);
   const seed = globalThis.crypto.randomUUID();
   const countryId = await ensureCountry("TR", "Türkiye");
 
@@ -474,7 +476,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         firstName: data.firstName,
         lastName: data.lastName,
         gender: data.gender,
-        birthDate: data.birthDate,
+        birthDate: START_BIRTHDATE,
         weapon: data.weapon,
         profile: data.profile,
         nationalityId: countryId,

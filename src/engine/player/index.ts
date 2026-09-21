@@ -21,13 +21,15 @@ import type { SeededRng } from "../probability";
 import { LAST_NAMES, firstNamesFor } from "./names";
 
 /** Oyuncu oluşturma girdisi — sunucu tarafında doğrulanır (GDD 7.27, güvenlik: Zod). */
+// Herkes SABİT yaşta başlar (kariyeri sıfırdan inşa etme). Test 1 = 8 (U10). Test 2'de değiştirilir.
+export const START_AGE = 8;
+
 export const createPlayerSchema = z.object({
   firstName: z.string().trim().min(1, "Ad zorunlu").max(30),
   lastName: z.string().trim().min(1, "Soyad zorunlu").max(30),
   gender: z.enum(["MALE", "FEMALE"]),
   weapon: z.enum(["FOIL", "EPEE", "SABRE"]),
   profile: z.enum(["BALANCED", "TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"]),
-  birthDate: z.coerce.date(),
   city: z.string().trim().min(1, "Şehir zorunlu").max(30), // kulübün bulunduğu şehir (GDD 13)
 });
 
@@ -41,7 +43,7 @@ export interface DerivedIdentity {
 }
 
 export function deriveIdentity(
-  input: Pick<CreatePlayerInput, "gender" | "weapon" | "birthDate">,
+  input: { gender: Gender; weapon: Weapon; birthDate: Date },
   gameDate: Date,
 ): DerivedIdentity {
   const age = computeAge(input.birthDate, gameDate);

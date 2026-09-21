@@ -72,10 +72,7 @@ export default async function Home() {
           </Field>
         </div>
 
-        <Field label={t(locale, "create.birthDate")} hint={t(locale, "create.birthHint")}>
-          <input type="date" name="birthDate" required max="2018-01-01" defaultValue="2018-01-01" className={inputCls} />
-        </Field>
-
+        {/* Doğum tarihi alanı kaldırıldı — herkes 8 yaşında (U10) başlar, kariyerini yıllar içinde inşa eder. */}
         <Field label={t(locale, "create.weapon")}>
           <select name="weapon" required defaultValue="FOIL" className={inputCls}>
             {WEAPONS.map((w) => (

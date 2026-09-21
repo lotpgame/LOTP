@@ -16,13 +16,12 @@ describe("Player Engine", () => {
       gender: "MALE",
       weapon: "EPEE",
       profile: "BALANCED",
-      birthDate: "2010-05-20",
       city: "İstanbul",
     });
     expect(res.success).toBe(true);
     if (res.success) {
       expect(res.data.firstName).toBe("Ahmet"); // trim
-      expect(res.data.birthDate).toBeInstanceOf(Date);
+      expect(res.data.city).toBe("İstanbul");
     }
   });
 
@@ -33,7 +32,6 @@ describe("Player Engine", () => {
       gender: "MALE",
       weapon: "EPEE",
       profile: "BALANCED",
-      birthDate: "2010-05-20",
       city: "İstanbul",
     }).success).toBe(false);
 
@@ -43,7 +41,6 @@ describe("Player Engine", () => {
       gender: "OTHER", // geçersiz enum
       weapon: "EPEE",
       profile: "BALANCED",
-      birthDate: "2010-05-20",
       city: "İstanbul",
     }).success).toBe(false);
   });
