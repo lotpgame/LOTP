@@ -9,6 +9,7 @@
  * ile yükler (bkz. scripts/*).
  */
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
 function createPrismaClient(): PrismaClient {
@@ -18,8 +19,12 @@ function createPrismaClient(): PrismaClient {
       "DATABASE_URL tanımlı değil. .env dosyasını oluşturun (bkz. .env.example).",
     );
   }
-  const adapter = new PrismaBetterSqlite3({ url });
-  return new PrismaClient({ adapter });
+  // URL şemasına göre sürücü: postgres:// → Neon/Postgres (pg); file: → yerel SQLite (better-sqlite3).
+  const isPostgres = url.startsWith("postgres://") || url.startsWith("postgresql://");
+  const adapter = isPostgres ? new PrismaPg({ connectionString: url }) : new PrismaBetterSqlite3({ url });
+  // İşlem zaman aşımı: kariyer oluşturma/turnuva sonu çok sorgulu; Postgres'te (özellikle uzak/yerel
+  // geliştirmede ağ gecikmesiyle) 5 sn'lik varsayılan yetmez. Aynı-bölge (Vercel+Neon) prod'da zaten hızlı.
+  return new PrismaClient({ adapter, transactionOptions: { maxWait: 10_000, timeout: 30_000 } });
 }
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };

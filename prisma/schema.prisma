@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 /// Ülke — oyuncu/kulüp/turnuva tarafından paylaşılır (GDD 22.41).

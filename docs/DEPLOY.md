@@ -70,6 +70,10 @@ Bu belge sade tutulur: **[SENDE]** = senin yapman gereken (hesap/karar), **[BEND
 
 ## Şu anki durum
 
-- [ ] D1 — Postgres'e geçiş  ← **sıradaki**; başlamak için: Neon connection string [SENDE]
-- [ ] D2 — Vercel'e yayın
+- [x] **D1 — Postgres'e geçiş** ✅ (2026-09-21): Neon DB açıldı; şema `provider=postgresql` + `@prisma/adapter-pg`;
+      `client.ts` URL şemasına göre sürücü seçer (postgres→pg, file→sqlite) + işlem zaman aşımı 30 sn (çok-sorgulu
+      kariyer/turnuva işlemleri uzak Postgres'te 5 sn'yi aşıyordu). `prisma db push` ile şema Neon'a yüklendi.
+      Yerelde uçtan uca doğrulandı: kariyer oluştur + gün ilerleme + turnuva çözümü, sıfır hata.
+      NOT: yerel `.env`'de DOĞRUDAN (pooler'sız) URL var; Vercel'de POOLED URL kullanılacak.
+- [ ] D2 — Vercel'e yayın  ← **sıradaki** ([SENDE] GitHub repo + Vercel hesabı; env: DATABASE_URL(pooled) + WORLD_*)
 - [ ] D3 — Arkadaşlarla ilk test

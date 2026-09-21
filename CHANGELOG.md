@@ -15,6 +15,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
   ROADMAP'e işlendi. Bundan sonra tasarım kararları FIE kurallarına karşı kontrol edilecek (kullanıcı kuralı).
 
+### Değişti
+- **Deploy D1 — PostgreSQL'e geçiş (Neon):** Veritabanı SQLite'tan **Neon PostgreSQL**'e taşındı. Şema
+  `provider = postgresql`; `@prisma/adapter-pg` + `pg` eklendi; `client.ts` DATABASE_URL şemasına göre sürücü
+  seçer (postgres→pg, file→better-sqlite3). Prisma işlem zaman aşımı **30 sn**'ye çıkarıldı (kariyer oluşturma
+  ve turnuva sonu çok-sorgulu; uzak Postgres'te varsayılan 5 sn yetmiyordu). Şema `prisma db push` ile Neon'a
+  yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
+
 ### Eklendi
 - **Skor renkleri (eskrim cihazı gibi):** Maç skorlarında sol taraf **yeşil** 🟢, sağ taraf **kırmızı** 🔴
   (canlı maç, replay ve pul özeti). Gerçek cihaz hissi; ilk izlenim için hoş dokunuş.
