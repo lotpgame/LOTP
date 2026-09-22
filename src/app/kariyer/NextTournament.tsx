@@ -23,6 +23,15 @@ function hhmmTR(ms: number): string {
   return new Date(ms).toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: "2-digit", minute: "2-digit" });
 }
 
+/** TR takvim günü anahtarı (YYYY-MM-DD) — "Bugün/Yarın" kararı gerçek tarihe göre verilir. */
+function dateKeyTR(ms: number): string {
+  return new Date(ms).toLocaleDateString("en-CA", { timeZone: "Europe/Istanbul" });
+}
+
+function weekdayTR(ms: number): string {
+  return new Date(ms).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", weekday: "long" });
+}
+
 function fmtRemaining(ms: number): string {
   const totalMin = Math.floor(ms / 60000);
   const d = Math.floor(totalMin / 1440);
@@ -46,7 +55,15 @@ export function NextTournament({ info, variant }: { info: NextTournamentInfo; va
   }, []);
 
   const hhmm = hhmmTR(info.startMs);
-  const dayLabel = info.isToday ? "Bugün" : info.daysUntil === 1 ? "Yarın" : info.dayName;
+  // Etiket gerçek TR takvimine göre: 19:00 geçişi yüzünden "sonraki oyun günü" çoğu zaman bu akşamdır.
+  const dayLabel =
+    now == null
+      ? info.dayName // SSR / mount öncesi: nötr (oyun günü adı)
+      : dateKeyTR(info.startMs) === dateKeyTR(now)
+        ? "Bugün"
+        : dateKeyTR(info.startMs) === dateKeyTR(now + 86_400_000)
+          ? "Yarın"
+          : weekdayTR(info.startMs);
   const openNow = now != null && now >= info.startMs;
   const remaining = now == null ? null : Math.max(0, info.startMs - now);
 
