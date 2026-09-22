@@ -7,7 +7,8 @@
  */
 import { cookies } from "next/headers";
 import { continentOfCountry, parsePhone } from "@/engine/geo";
-import { serverWorldDay } from "./world";
+import { serverWorldDay, worldClockConfig } from "./world";
+import { worldDayStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -756,6 +757,51 @@ export interface CareerHeaderDTO {
   canAttend: boolean;
   needsSync: boolean;
   caughtUp: boolean;
+  nextTournament: NextTournamentDTO | null; // sıradaki turnuva + gerçek başlama anı (bilgi/geri sayım)
+}
+
+/** Sıradaki turnuva bilgisi (gösterim + canlı geri sayım). `startMs` = gerçek zamanda gün geçiş anı. */
+export interface NextTournamentDTO {
+  level: TournamentLevel;
+  label: string; // "U10 İl Şampiyonası"
+  dayName: string; // haftanın günü (oyun takvimi)
+  startMs: number; // turnuva gününün gerçek zamanda başladığı/başlayacağı an (her akşam gün geçişi)
+  daysUntil: number; // kaç oyun günü sonra (0 = bugün)
+  isToday: boolean;
+  qualified: boolean; // katılım hakkı (yaş/uygunluk/sakatlık)
+  requirement: string; // uygun değilse şart metni
+}
+
+/**
+ * Bugünden itibaren ilk (yaş kategorisine uygun) turnuvayı ve gerçek başlama anını bulur.
+ * Saf: ranking pozisyonu (humanRank) dışarıdan verilir (tekrar sorgu yok).
+ */
+function findNextTournament(
+  worldDay: number,
+  careerStartDay: number,
+  human: { gender: string; weapon: string; birthDate: Date },
+  humanRank: number | null,
+  injured: boolean,
+  locale: Locale,
+): NextTournamentDTO | null {
+  const cfg = worldClockConfig();
+  for (let d = worldDay; d <= worldDay + 14; d++) {
+    const act = activityForDay(d);
+    if (act.kind !== "TOURNAMENT") continue;
+    const id = currentIdentity(human, careerQuarter(d, careerStartDay));
+    if (!levelAllowedForCategory(act.level, id.ageCategory)) continue; // uluslararası yalnız U17+
+    return {
+      level: act.level,
+      label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
+      dayName: t(locale, `day.${dayOfWeek(d)}`),
+      startMs: worldDayStartMs(d, cfg),
+      daysUntil: d - worldDay,
+      isToday: d === worldDay,
+      qualified: !injured && qualifies(act.qualification, humanRank),
+      requirement: t(locale, `qual.${act.qualification}`),
+    };
+  }
+  return null;
 }
 
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
@@ -822,7 +868,20 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     canAttend,
     needsSync,
     caughtUp: !arrived,
+    nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale),
   };
+}
+
+/** Sıradaki turnuva + gerçek başlama anı (Turnuvalar sayfası kartı için). */
+export async function getNextTournament(): Promise<NextTournamentDTO | null> {
+  const state = await loadState();
+  if (!state) return null;
+  const { gs, human } = state;
+  const locale = await getLocale();
+  const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
+  const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
+  return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale);
 }
 
 /** Haftalık antrenman planını kaydeder (sabit "İlerle" çubuğu bunu uygular). */

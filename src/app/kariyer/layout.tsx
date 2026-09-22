@@ -7,6 +7,7 @@ import { getCareerHeader } from "@/server/careerService";
 import { AutoAdvance } from "./AutoAdvance";
 import { CareerNav } from "./CareerNav";
 import { FeedbackWidget } from "./FeedbackWidget";
+import { NextTournament } from "./NextTournament";
 
 const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 
@@ -121,6 +122,10 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                   ? `🏆 ${h.today.label}${h.today.qualified ? "" : ` · 🔒 ${h.today.requirement}`}`
                   : `🎯 ${h.today.trainingLabel}`}
             </div>
+            {/* Antrenman günlerinde: bir sonraki turnuva ne zaman (gerçek saat + geri sayım). */}
+            {!h.injured && h.today.kind === "TRAINING" && h.nextTournament && (
+              <NextTournament info={h.nextTournament} variant="bar" />
+            )}
           </div>
 
           {h.canAttend ? (

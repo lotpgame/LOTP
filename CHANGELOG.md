@@ -10,6 +10,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Değişti
+- **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi
+  19:00 TR (16:00 UTC) → her oyun günü (ve o günün turnuvası) **her akşam TR 19:00**'da başlar; oyun
+  günü/haftanın-günü gerçek güne oturur (oyun Salı = gerçek Salı, İl akşam açılır). Kod değil env değeri;
+  DB'ye dokunmaz. (Yerel `.env` + Vercel env aynı değere ayarlanır.)
 - **M11 çizelgesi FIE'ye göre düzeltildi:** Periyot arası **30 sn → 1 dk** (FIE-doğru; online oyuncuya
   daha rahat taktik değişim penceresi). Eleme süresi buna göre 15 tuş ≈ **11 dk**, 10 tuş ≈ **7 dk**.
   Beraberlik "altın tuş" basitleştirmesi ve pul maçlarının sıralı gösterimi FIE denetim notu olarak
@@ -23,6 +27,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
 
 ### Eklendi
+- **Sıradaki turnuva göstergesi + gerçek saat (test haftası):** Turnuvalar sayfasının üstünde vurgulu
+  kart — **sıradaki turnuva adı + gün + TR saati + canlı geri sayım** ("⌛ 4 saat 36 dakika kaldı" /
+  "🟢 Şu an açık"); antrenman günlerinde alt çubukta tek satırlık ipucu ("⏰ Sıradaki: … Salı 19:00").
+  Saat, dünya saatinden hesaplanır (`worldDayStartMs`), istemcide 30 sn'de bir tazelenir. Yalnız görüntü —
+  DB'ye dokunmaz. `NextTournament` bileşeni + `getNextTournament`/`getCareerHeader.nextTournament`.
 - **Geri bildirim / hata bildirme sistemi (test haftası):** Her kariyer sayfasında sağ altta yüzen
   **"💬 Bildir"** butonu — arkadaşların bir hata, gariplik veya fikir yazıp gönderebilir (kim + hangi
   sayfa otomatik kaydolur). Bir sayfa çökerse **dostça hata ekranı** (`error.tsx`) çıkar: "Tekrar dene" +

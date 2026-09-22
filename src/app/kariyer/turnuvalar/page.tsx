@@ -4,7 +4,8 @@ import { registerTournamentAction, unregisterTournamentAction } from "@/app/acti
 import { TACTICS } from "@/engine/combat";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer, getUpcomingTournaments } from "@/server/careerService";
+import { getCareer, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
+import { NextTournament } from "../NextTournament";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function TurnuvalarPage() {
   if (!c) redirect("/");
   const locale = await getLocale();
   const upcoming = await getUpcomingTournaments();
+  const next = await getNextTournament();
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
   const intlByMonth = new Map(c.seasonCalendar.filter((e) => e.month > 0).map((e) => [e.month, e]));
@@ -22,6 +24,16 @@ export default async function TurnuvalarPage() {
     <main>
       <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
       <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
+
+      {/* Sıradaki turnuva + gerçek saat + canlı geri sayım (her akşam gün geçişi). */}
+      {next && (
+        <div className="mt-4">
+          <NextTournament info={next} variant="card" />
+          <p className="mt-1.5 text-xs opacity-55">
+            Turnuvalar her akşam gün geçişinde açılır · Salı → İl · Perşembe → Türkiye · Cumartesi → Open
+          </p>
+        </div>
+      )}
 
       {/* Oynanmış turnuvalar Kariyer Geçmişi'nde — buradan kolay erişim. */}
       <Link
