@@ -19,7 +19,7 @@ export default async function Home() {
     <main className="mx-auto w-full max-w-lg px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Project Engarde</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Legends of the Piste</h1>
           <p className="mt-2 text-sm opacity-70">{t(locale, "create.tagline")}</p>
         </div>
         {/* Dil seçimi — açılır menü (kariyer oluşturmadan önce) */}

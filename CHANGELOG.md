@@ -26,6 +26,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ve turnuva sonu çok-sorgulu; uzak Postgres'te varsayılan 5 sn yetmiyordu). Şema `prisma db push` ile Neon'a
   yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
 
+### Değişti
+- **Oyun adı: "Project Engarde" → "Legends of the Piste"** (tarayıcı sekmesi başlığı, ana ekran başlığı,
+  alt bilgi). Sadece görünen isim; kod/DB etkilenmez.
+
 ### Eklendi
 - **Sıradaki turnuva göstergesi + gerçek saat (test haftası):** Turnuvalar sayfasının üstünde vurgulu
   kart — **sıradaki turnuva adı + gün + TR saati + canlı geri sayım** ("⌛ 4 saat 36 dakika kaldı" /
