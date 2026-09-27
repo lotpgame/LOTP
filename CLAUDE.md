@@ -47,6 +47,16 @@ Buna göre davranırım:
 - `README.md`: kurulum/çalıştırma adımları, proje durumu güncel tutulur.
 - Bu güncelleme, işi bitiren commit'in **parçasıdır** — ayrı bırakılmaz, unutulmaz.
 
+### ⭐ Zorunlu kural: her değişiklik GitHub'a kaydedilir
+
+**Repo: https://github.com/alkanyus/LOTP (`origin`, branch `master`).** (Kullanıcı kuralı.)
+- Yaptığımız her anlamlı iş bitince: `git add` → `git commit` (açıklayıcı Türkçe mesaj) →
+  **`git push origin master`**. Yerel değişiklik GitHub'da yedeksiz kalmaz.
+- Push, işi bitiren adımın **parçasıdır** — README/CHANGELOG güncellemesiyle aynı commit'te gider.
+- Commit öncesi `git status` ile ne eklendiğine bakılır; `.env` ve sır içeren dosyalar
+  **asla** commit edilmez (bkz. §6).
+- `git status` temiz + `origin/master` ile 0 fark = "kaydedildi" demektir.
+
 ---
 
 ## 3. Teknoloji Seçimi ve Gerekçesi
