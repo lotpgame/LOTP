@@ -36,6 +36,7 @@ const TR: Dict = {
   // Alt çubuk
   "bar.ilerle": "İlerle →",
   "bar.katil": "🏆 Katıl",
+  "bar.liveGo": "Turnuvaya Git",
   "bar.gec": "Geç · antren ⏭",
   "bar.injured": "🩹 Sakat — {n} gün",
   "bar.training": "Antrenman",
@@ -388,6 +389,7 @@ const EN: Dict = {
   "nav.menu": "Menu",
   "bar.ilerle": "Advance →",
   "bar.katil": "🏆 Enter",
+  "bar.liveGo": "Go to tournament",
   "bar.gec": "Skip · train ⏭",
   "bar.injured": "🩹 Injured — {n} days",
   "bar.training": "Training",

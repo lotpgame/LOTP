@@ -8,6 +8,16 @@
 import { TR_CITIES } from "./domain";
 
 /**
+ * ISO ülke kodundan bayrak emojisi (ör. "TR" → 🇹🇷). İki harfi bölgesel-gösterge sembollerine çevirir.
+ * Kod metni yerine bayrak göstermek için (kimlik rozeti, klasman).
+ */
+export function countryFlag(code: string): string {
+  const cc = (code || "").toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return "🏳️";
+  return String.fromCodePoint(...[...cc].map((ch) => 127397 + ch.charCodeAt(0)));
+}
+
+/**
  * Kıtalar = FIE'nin 4 kıtasal konfederasyonu (Avrupa, Asya-Okyanusya, Amerika, Afrika).
  * Klasman kapsamı: Dünya → Kıta → Ülke. Ülke turnuva/kıtasal hiyerarşisiyle uyumlu.
  */

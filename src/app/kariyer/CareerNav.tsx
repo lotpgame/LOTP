@@ -75,7 +75,8 @@ export function CareerNav({ name, locale, weapon, gender, ageCategory, age, city
               <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
                 {ageCategory} · {age} {t(locale, "common.age")}
               </span>
-              {city && <span className={badge}>🏛 {city}</span>}
+              {/* Ülke bayrağı + şehir (V1 TR-only; çok ülkeli fazda gerçek koddan üretilir). */}
+              {city && <span className={badge}>🇹🇷 {city}</span>}
               {nationalTeam && (
                 <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-semibold text-red-700 dark:text-red-300">
                   🇹🇷 {t(locale, "common.nationalTeam")}

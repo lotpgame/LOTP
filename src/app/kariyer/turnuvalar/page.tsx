@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
+import { attendTournamentAction, registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
 import { TACTICS } from "@/engine/combat";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
+import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
 import { NextTournament } from "../NextTournament";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,9 @@ export default async function TurnuvalarPage() {
   const locale = await getLocale();
   const upcoming = await getUpcomingTournaments();
   const next = await getNextTournament();
+  const header = await getCareerHeader();
+  // #5a: turnuva zamanı geldiyse burada CANLI görünür ve giriş buradan yapılır (alt çubukta Katıl yok).
+  const liveNow = header?.canAttend && header.today.kind === "TOURNAMENT" ? header.today : null;
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
   const intlByMonth = new Map(c.seasonCalendar.filter((e) => e.month > 0).map((e) => [e.month, e]));
@@ -25,8 +28,24 @@ export default async function TurnuvalarPage() {
       <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
       <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
 
+      {/* #5a: turnuva CANLI — giriş buradan (alt çubukta Katıl yok). Bugünkü uygun turnuva açık. */}
+      {liveNow && (
+        <div className="mt-4 rounded-xl border border-red-500/50 bg-red-500/10 p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-red-600 dark:text-red-400">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" /> CANLI
+          </div>
+          <div className="mt-1 text-lg font-bold">🏆 {liveNow.label}</div>
+          <p className="mt-1 text-sm opacity-70">Turnuva başladı — şimdi girip maçlarını oyna.</p>
+          <form action={attendTournamentAction} className="mt-3">
+            <button className="w-full rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500">
+              🔴 Turnuvaya Gir
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* Sıradaki turnuva + gerçek saat + canlı geri sayım (her akşam gün geçişi). */}
-      {next && (
+      {!liveNow && next && (
         <div className="mt-4">
           <NextTournament info={next} variant="card" />
           <p className="mt-1.5 text-xs opacity-55">

@@ -48,6 +48,7 @@ export default async function KulupPage() {
                 { name: c.club.coach2Name, spec: c.club.coach2Specialty },
               ].map((co, i) => (
                 <div key={i} className="rounded-lg border border-black/10 p-3 dark:border-white/15">
+                  <div className="text-xs opacity-50">🎓 Antrenör</div>
                   <div className="text-sm font-medium">{co.name}</div>
                   <div className="mt-0.5 text-xs opacity-60">
                     {t(locale, "kulup.specialty")}:{" "}

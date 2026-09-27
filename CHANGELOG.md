@@ -58,6 +58,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Oyun adı: "Project Engarde" → "Legends of the Piste"** (tarayıcı sekmesi başlığı, ana ekran başlığı,
   alt bilgi). Sadece görünen isim; kod/DB etkilenmez.
 
+### Değişti (playtest turu 2 — NOTLAR #1-#9)
+- **Ülke bayrağı:** kimlik rozetinde/klasmanda/oluşturmada ülke kodu yerine **🇹🇷 bayrak** (`countryFlag` helper; çok ülkeli fazda gerçek koddan).
+- **Kondisyon en fazla %99:** hiç kimse asla tam %100 taze değil — günlük toparlanma/dinlenme/sakatlık kondisyonu 99'a getirir (yorgunluk tabanı 1). Antrenman etkisi zaten akşam 19:00'da işlenir.
+- **Antrenman sayfası iconları:** Bugün 📅 · Kondisyon 🔋 · Form 🎯 (profil ile aynı).
+- **Koç → Antrenör:** kulüp antrenörleri artık gerçek **ad-soyad** + **"🎓 Antrenör"** unvanı ("… Hoca" kalktı).
+- **Turnuva girişi Turnuvalar sekmesinden (#5a):** alt çubukta **"Katıl" butonu KALKTI**; turnuva zamanı geldiğinde Turnuvalar sayfasında **🔴 CANLI** kartı + "Turnuvaya Gir"; biten turnuva zaten Geçmiş'te. Alt çubukta yalnız "Turnuvaya Git" yönlendirmesi + "Geç".
+
 ### Eklendi
 - **Faz 4 — Trait sistemi yeniden tasarımı (GDD 10, NOTLAR #21):**
   - **Genişletilmiş set:** 15 trait, 3 kategori (Karakter/Psikolojik/Rekabetçi) — GDD 10.5'ten (Disiplinli, Çalışkan,

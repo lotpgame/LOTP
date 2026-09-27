@@ -444,8 +444,10 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   const clubRng = createRng(`${seed}:club`);
   const SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
   const COACH_NAMES = ["Ahmet", "Kemal", "Selim", "Hasan", "Murat", "Emre", "Cem", "Okan", "Tuna", "Barış"];
-  // Bir kulüp: 2 antrenör (eşit yetenek). Her hocaya 4 antrenman türünden 2'si düşer → ikisi
-  // birlikte 4 türü de kapsar (dengeli kulüp portresi, GDD 13). Uzmanlıklar CSV saklanır.
+  const COACH_SURNAMES = ["Yıldız", "Demir", "Şahin", "Aydın", "Kaya", "Çelik", "Arslan", "Doğan", "Koç", "Yılmaz"];
+  const coachFullName = () => `${clubRng.pick(COACH_NAMES)} ${clubRng.pick(COACH_SURNAMES)}`;
+  // Bir kulüp: 2 antrenör (eşit yetenek). Her antrenöre 4 antrenman türünden 2'si düşer → ikisi
+  // birlikte 4 türü de kapsar (dengeli kulüp portresi, GDD 13). Uzmanlıklar CSV saklanır. (Unvan "Antrenör" — UI'da.)
   const makeClubData = (city: string) => {
     const specs = clubRng.shuffle(SPECIALTIES); // 4 türü karıştır, 2+2 böl
     const skill = clubRng.int(45, 85);
@@ -453,10 +455,10 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
       name: `${city} Eskrim Kulübü`,
       city,
       facility: clubRng.int(45, 85),
-      coachName: `${clubRng.pick(COACH_NAMES)} Hoca`,
+      coachName: coachFullName(),
       coachSkill: skill,
       coachSpecialty: `${specs[0]},${specs[1]}`,
-      coach2Name: `${clubRng.pick(COACH_NAMES)} Hoca`,
+      coach2Name: coachFullName(),
       coach2Specialty: `${specs[2]},${specs[3]}`,
     };
   };
@@ -1182,9 +1184,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // bir kez.) Turnuvaya katılmadığın gün de PLANINDAKİ seans uygulanır (Dinlenme koyabilirsin).
   const applySession = (type: TrainingType): boolean => {
     // Doğal günlük toparlanma — Dayanıklılık'a göre (fit sporcu daha hızlı toparlar).
-    fatigue = clamp(fatigue - dailyRecovery(skills.endurance.current), 0, 100);
+    // Kondisyon en fazla %99'a çıkar (yorgunluk tabanı 1): hiç kimse asla tam %100 taze değildir (kullanıcı).
+    fatigue = clamp(fatigue - dailyRecovery(skills.endurance.current), 1, 100);
     if (type === "REST") {
-      fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 0, 100);
+      fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 1, 100);
       restSessions++;
     } else {
       // İki antrenörün uzmanlıkları (her biri 2 tür) birlikte 4 türü kapsar → bu türde uzman
@@ -1224,7 +1227,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
     if (d > eventDay) break; // etkinliği (19:00) gelmemiş günü işleme — bekle (sıradaki turnuva sayaçta)
     if (injuryDays > 0) {
-      fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
+      fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 1, 100);
       injuryDays--;
       d++;
       firstDay = false;

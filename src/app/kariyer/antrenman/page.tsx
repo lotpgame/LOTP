@@ -27,9 +27,9 @@ export default async function AntrenmanPage() {
       <h1 className="text-xl font-bold">{t(locale, "antrenman.title")}</h1>
 
       <section className="mt-3 grid grid-cols-3 gap-2.5">
-        <Stat label={t(locale, "antrenman.today")} value={c.dayName} />
-        <Stat label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
+        <Stat icon="📅" label={t(locale, "antrenman.today")} value={c.dayName} />
+        <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
+        <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
 
       {c.injured && (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { attendTournamentAction, clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
+import { clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
@@ -130,16 +130,18 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           </div>
 
           {h.canAttend ? (
-            // Uygun turnuva günü geldi → Katıl / Geç
-            <div className="flex shrink-0 gap-2">
+            // Turnuva zamanı — giriş TURNUVALAR sekmesinden (canlı). Alt çubukta "Katıl" YOK (#5a).
+            // "Geç" = oynamadan antrenman etkisi al, sonraki güne geç.
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href="/kariyer/turnuvalar"
+                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500"
+              >
+                🔴 {t(locale, "bar.liveGo")}
+              </Link>
               <form action={skipDayAction}>
                 <button className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
                   {t(locale, "bar.gec")}
-                </button>
-              </form>
-              <form action={attendTournamentAction}>
-                <button className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500">
-                  {t(locale, "bar.katil")}
                 </button>
               </form>
             </div>

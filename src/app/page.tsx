@@ -58,7 +58,7 @@ export default async function Home() {
         <div className="grid grid-cols-2 gap-4">
           <Field label={t(locale, "create.country")}>
             <select name="country" disabled defaultValue="TR" className={`${inputCls} opacity-70`}>
-              <option value="TR">Türkiye</option>
+              <option value="TR">🇹🇷 Türkiye</option>
             </select>
           </Field>
           <Field label={t(locale, "create.city")} hint={t(locale, "create.cityHint")}>
