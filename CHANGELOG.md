@@ -59,6 +59,17 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   alt bilgi). Sadece görünen isim; kod/DB etkilenmez.
 
 ### Eklendi
+- **Faz 4 — Trait sistemi yeniden tasarımı (GDD 10, NOTLAR #21):**
+  - **Genişletilmiş set:** 15 trait, 3 kategori (Karakter/Psikolojik/Rekabetçi) — GDD 10.5'ten (Disiplinli, Çalışkan,
+    Tembel, Sabırlı, Sabırsız, Soğukkanlı, Baskıya Dayanıklı, Özgüvenli, Hassas, Kaygılı, Agresif, Mücadeleci,
+    Risk Alan, Kontrollü, Hırslı).
+  - **Kademeli açılım** (kullanıcı kararı): 8–10 yaş **1 trait** → 11'de **2** → 12+ **3** (max 3). Plan doğuşta
+    üretilir, yaşla açılır; önceki "doğuşta 2 rastgele trait" kalktı.
+  - **Zıt-çift kuralı** (GDD 10.28): zıt trait'ler birlikte verilmez (Çalışkan+Tembel, Agresif+Kontrollü…) — 500
+    planda 0 ihlal doğrulandı. Eski "Tembel+Çalışkan aynı anda" hatası giderildi.
+  - **Davranışsal etkiler** (GDD 10.22/10.24): trait'ler antrenman verimi ve combat gücüne küçük modifier verir
+    (güç bonusu değil); pozitif/negatif karışık (Hassas/Kaygılı/Tembel −). **AI oyuncular da** trait alır (10.41).
+  - Yoğunluk 0–4 (GDD 10.6) ve trait evrimi/olayla değişim (10.31–37) → V2 olarak not edildi.
 - **Sıradaki turnuva göstergesi + gerçek saat (test haftası):** Turnuvalar sayfasının üstünde vurgulu
   kart — **sıradaki turnuva adı + gün + TR saati + canlı geri sayım** ("⌛ 4 saat 36 dakika kaldı" /
   "🟢 Şu an açık"); antrenman günlerinde alt çubukta tek satırlık ipucu ("⏰ Sıradaki: … Salı 19:00").

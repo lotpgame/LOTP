@@ -98,7 +98,10 @@ import {
   sessionSharpnessDelta,
 } from "@/engine/conditioning";
 import {
-  generateTraits,
+  activeTraitKeys,
+  encodeTraitPlan,
+  generateTraitPlan,
+  parseTraitPlan,
   traitCombatModifier,
   traitTrainingMultiplier,
   type TraitKey,
@@ -436,7 +439,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   });
 
   // Trait + kulüp/koç (GDD 10, 12, 13) + fiziksel genetik (GDD 2.7) — deterministik.
-  const traits = generateTraits(createRng(`${seed}:traits`), 2);
+  const traitPlan = generateTraitPlan(createRng(`${seed}:traits`));
   const humanGenetics = generateGenetics(createRng(`${seed}:phys:human`), data.gender);
   const clubRng = createRng(`${seed}:club`);
   const SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
@@ -485,7 +488,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         nationalityId: countryId,
         isAI: false,
         careerStartDate: GAME_START,
-        traits: traits.join(","),
+        traits: encodeTraitPlan(traitPlan),
         balance: STARTING_BALANCE,
         clubId: humanClubId,
         ...geneticsData(humanGenetics),
@@ -521,6 +524,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
             isAI: true, // userId yok → ortak
             careerStartDate: GAME_START,
             clubId: clubRng.pick(clubIds),
+            traits: encodeTraitPlan(generateTraitPlan(createRng(`${seed}:aitraits:${i}`))), // AI de karaktere sahip (GDD 10.41)
             ...geneticsData(aiGenetics),
             skills: { create: skillCreateData(spec.skills) },
           },
@@ -554,8 +558,9 @@ async function loadState() {
   return { gs, human };
 }
 
-function parseTraits(csv: string): TraitKey[] {
-  return csv ? (csv.split(",").filter(Boolean) as TraitKey[]) : [];
+/** Kalıcı trait planından, oyuncunun O YAŞTA aktif trait anahtarları (kademeli açılım). */
+function activeTraitsOf(csv: string, age: number): TraitKey[] {
+  return activeTraitKeys(parseTraitPlan(csv), age);
 }
 
 /** AI'nın maç taktiğini karakterinden türetir (GDD 18.63: AI stile sahip olabilir). */
@@ -670,7 +675,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     seasonNo: careerQuarter(gs.dayIndex, gs.careerStartDay),
     nationalTeam,
     overall: roundSkill(overall(skills)),
-    traits: parseTraits(human.traits), // trait ANAHTARLARI; UI dile göre çevirir
+    traits: activeTraitsOf(human.traits, age), // o yaşta aktif trait ANAHTARLARI; UI dile göre çevirir
 
     psychology: {
       morale: roundSkill(human.morale),
@@ -1150,7 +1155,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
   const psych = psychologyOf(human);
   const envMult =
-    traitTrainingMultiplier(parseTraits(human.traits)) *
+    traitTrainingMultiplier(activeTraitsOf(human.traits, age)) *
     psychologyTrainingMultiplier(psych) *
     (human.club ? clubTrainingMultiplier(human.club.facility) : 1) *
     equipmentTrainingMultiplier(human.equipmentLevel);
@@ -2148,7 +2153,7 @@ export async function startLiveTournament(
     const sk = rowsToSkills(p.skills);
     const skills: Record<string, number> = {};
     for (const def of SKILLS) skills[def.key] = sk[def.key].current;
-    const traits = parseTraits(p.traits);
+    const traits = activeTraitsOf(p.traits, age); // o yaşta aktif trait'ler (kademeli açılım)
     // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel).
     const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
     return {
@@ -2931,7 +2936,7 @@ async function autoResolveTournament(
   const toCombatant = (p: CombatantRow, isHuman: boolean): Combatant => {
     const age = currentAge(p.birthDate, quarter);
     const ph = computePhysique(geneticsOf(p), age);
-    const traits = parseTraits(p.traits);
+    const traits = activeTraitsOf(p.traits, age); // o yaşta aktif trait'ler (kademeli açılım)
     // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel, oyuncu+gün tohumlu).
     const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
     const conditionBonus =

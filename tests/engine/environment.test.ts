@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "@/engine/probability";
 import {
-  generateTraits,
+  TRAITS,
+  activeTraitKeys,
+  generateTraitPlan,
   traitCombatModifier,
   traitTrainingMultiplier,
 } from "@/engine/trait";
@@ -22,12 +24,28 @@ describe("Trait Engine", () => {
     expect(traitCombatModifier(["AGGRESSIVE"])).toBeGreaterThan(0);
     expect(traitCombatModifier(["DISCIPLINED"])).toBe(0);
   });
-  it("generateTraits deterministik, istenen sayıda ve tekrarsız", () => {
-    const a = generateTraits(createRng("t"), 2);
-    const b = generateTraits(createRng("t"), 2);
-    expect(a).toEqual(b);
-    expect(a).toHaveLength(2);
-    expect(new Set(a).size).toBe(2);
+  it("generateTraitPlan deterministik, max 3, tekrarsız ve ZIT-ÇİFT içermez", () => {
+    const a = generateTraitPlan(createRng("t"));
+    const b = generateTraitPlan(createRng("t"));
+    expect(a).toEqual(b); // deterministik
+    expect(a.length).toBeLessThanOrEqual(3);
+    const keys = a.map((e) => e.key);
+    expect(new Set(keys).size).toBe(keys.length); // tekrarsız
+    // zıt-çift yok (Disiplinli+Tembel gibi aynı anda olamaz)
+    for (const k of keys) {
+      const opp = TRAITS[k].opposite;
+      if (opp) expect(keys).not.toContain(opp);
+    }
+  });
+  it("kademeli açılım: 8-10 yaş 1 trait, 11'de 2, 12'de 3", () => {
+    // Zıt-çift filtresi bazen <3 üretebilir; birçok tohumdan tam 3'lük bir plan bul.
+    let plan = generateTraitPlan(createRng("x"));
+    for (let i = 0; plan.length < 3 && i < 50; i++) plan = generateTraitPlan(createRng(`x${i}`));
+    expect(plan.length).toBe(3);
+    expect(activeTraitKeys(plan, 8)).toHaveLength(1);
+    expect(activeTraitKeys(plan, 10)).toHaveLength(1);
+    expect(activeTraitKeys(plan, 11)).toHaveLength(2);
+    expect(activeTraitKeys(plan, 12)).toHaveLength(3);
   });
 });
 
