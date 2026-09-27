@@ -11,25 +11,17 @@ export default async function ProfilPage() {
   if (!c) redirect("/");
   const locale = await getLocale();
 
-  const gameDate = new Date(c.currentDate);
-  const year = gameDate.getFullYear();
-  const date = gameDate.toLocaleDateString(locale === "en" ? "en-GB" : "tr-TR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
   return (
     <main>
       {/* Kimlik afişi üstteki başlıkta (CareerNav); burada tekrar edilmez. */}
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat icon="📅" label={t(locale, "profil.season")} value={`${year} · Q${c.quarter}·H${c.month}`} />
+        <Stat icon="📅" label={t(locale, "profil.season")} value={`Sezon ${c.seasonNo}`} />
         <Stat icon="⭐" label={t(locale, "profil.overall")} value={c.overall.toFixed(1)} />
         <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
         <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
-      <p className="mt-2 text-xs opacity-50">{c.dayName} · {date}</p>
+      <p className="mt-2 text-xs opacity-50">📅 {c.dateLabel}</p>
 
       {c.injured && (
         <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">

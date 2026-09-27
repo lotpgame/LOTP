@@ -79,8 +79,10 @@ export function activityForDay(dayIndex: number): DayActivity {
       return { kind: "TOURNAMENT", level: "TURKIYE", qualification: "OPEN" };
     case 4: // Cuma
       return { kind: "TRAINING", slot: 2 };
-    case 5: // Cumartesi
-      return { kind: "TOURNAMENT", level: "OPEN", qualification: "OPEN" };
+    case 5: // Cumartesi — Open 2 HAFTADA BİR (dönüşümlü); ara haftalarda antrenman (#23)
+      return Math.floor(dayIndex / DAYS_PER_MONTH) % 2 === 0
+        ? { kind: "TOURNAMENT", level: "OPEN", qualification: "OPEN" }
+        : { kind: "TRAINING", slot: 3 };
     default: {
       // Pazar: uluslararası varsa turnuva, yoksa antrenman (4. seans)
       const intl = INTERNATIONAL_BY_MONTH[monthOfQuarter(dayIndex)];

@@ -8,7 +8,7 @@
 import { cookies } from "next/headers";
 import { continentOfCountry, parsePhone } from "@/engine/geo";
 import { serverWorldDay, worldClockConfig } from "./world";
-import { worldDayStartMs } from "@/engine/worldclock";
+import { worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -303,6 +303,8 @@ export interface CareerDTO {
   quarter: number; // oyun yılı
   month: number; // h1..h12 (oyun ayı)
   dayName: string; // Pazartesi..Pazar
+  dateLabel: string; // GERÇEK takvim tarihi, TR
+  seasonNo: number; // kariyer sezonu
   nationalTeam: boolean; // kategori sıralaması ilk 4 (GDD 17.32)
   overall: number;
   // Gelişim çevresi (M6)
@@ -658,6 +660,14 @@ export async function getCareer(): Promise<CareerDTO | null> {
     quarter,
     month,
     dayName: dayLabel,
+    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
+      timeZone: "Europe/Istanbul",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      weekday: "long",
+    }),
+    seasonNo: careerQuarter(gs.dayIndex, gs.careerStartDay),
     nationalTeam,
     overall: roundSkill(overall(skills)),
     traits: parseTraits(human.traits), // trait ANAHTARLARI; UI dile göre çevirir
@@ -747,6 +757,8 @@ export interface CareerHeaderDTO {
   quarter: number;
   month: number; // h1..h12
   dayName: string; // Pazartesi..Pazar
+  dateLabel: string; // GERÇEK takvim tarihi, TR ("27 Eylül 2026 Pazar") — Q/H yerine ana gösterim
+  seasonNo: number; // kariyer sezonu (yaş/klasman için; 1'den başlar)
   injured: boolean;
   injuryDaysRemaining: number;
   today: TodayDTO; // bugünün etkinliği (çubuk Katıl/Geç için)
@@ -794,7 +806,7 @@ function findNextTournament(
       level: act.level,
       label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
-      startMs: worldDayStartMs(d, cfg),
+      startMs: worldEventStartMs(d, cfg), // turnuva o günün 19:00'ında başlar
       daysUntil: d - worldDay,
       isToday: d === worldDay,
       qualified: !injured && qualifies(act.qualification, humanRank),
@@ -860,6 +872,14 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     quarter,
     month: monthOfQuarter(gs.dayIndex),
     dayName: dayLabel,
+    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
+      timeZone: "Europe/Istanbul",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      weekday: "long",
+    }),
+    seasonNo: careerQuarter(gs.dayIndex, gs.careerStartDay),
     injured,
     injuryDaysRemaining: human.injuryDaysRemaining,
     today,

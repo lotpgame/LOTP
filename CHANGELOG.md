@@ -27,6 +27,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
 
 ### Değişti
+- **Faz 2 — takvim modeli (NOTLAR #22/#23), Slice 1–3:**
+  - **Gün 00:00'da döner, etkinlik akşam 19:00'da** — `worldclock`'a `EVENT_HOUR`/`worldEventStartMs`/
+    `eventDayIndex` + `world.ts` `serverEventDay`/`serverEventStartMs` eklendi (gün sınırı ile etkinlik saati ayrıldı).
+  - **Gerçek takvim tarihi gösterimi** — "Q1·H1" kalktı; alt çubuk + profil "📅 28 Eylül 2026 Pazartesi"
+    (TR, cihaz konumundan bağımsız); profil kartı "Sezon N". "Sıradaki turnuva" saati 19:00 etkinlik anına bağlandı.
+  - **Open turnuvalar dönüşümlü (#23):** bir hafta var, bir hafta yok (İl + Türkiye her hafta kalır).
 - **Faz 1 — playtest ayarları (NOTLAR #27/#17/#18):**
   - **Taktik isimleri sadeleşti:** "Baskı kur / Dengeli / Bekle & karşıla" → **Atak / Dengeli / Defans**
     (iç mantık aynı; yalnız görünen etiketler + açıklama).
