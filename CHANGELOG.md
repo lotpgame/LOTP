@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi
+- **Katkı kuralları + risk listesi (dış katkı başlangıcı):** `CONTRIBUTING.md` (branch → PR → squash
+  merge akışı, **canlı veri koruma** — yalnız eklemeli şema, oyuncu ilerlemesi sıfırlanmaz, "bitti" tanımı,
+  güvenlik/KVKK), `.github/pull_request_template.md` (kontrol listesi) ve `docs/ROADMAP.md` **§H Riskler &
+  Zayıf Noktalar** (R1 doğrulamasız telefon girişi → Google OAuth, R2 Postgres/SQLite migration tutarsızlığı,
+  R3 canlı yedek, R4 CI, R5 büyük `careerService`, R6 canlı turnuva blob'u, R7–R9). Kod değişikliği yok.
+
 ### Değişti
 - **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi
   19:00 TR (16:00 UTC) → her oyun günü (ve o günün turnuvası) **her akşam TR 19:00**'da başlar; oyun

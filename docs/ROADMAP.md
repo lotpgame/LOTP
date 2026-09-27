@@ -362,3 +362,40 @@ bağlanan derinlik maddeleri. Buraya yazılır ki hiçbiri kaybolmasın.
 - **Yaş kategorisi ilerlemesi** (2026-09-13): rekabet kategorisi hâlâ **sabit** (yaş +1 gösterilir
   ama U17→U21 geçişi yok). Kategori ilerlemesi, kategori boşaldıkça yeni AI üretimi gerektirir;
   yukarıdaki emeklilik/yeniden-üretim ile birlikte **M8/Future**.
+
+---
+
+## H. Riskler & Zayıf Noktalar (izleniyor)
+
+Kod incelemesiyle (2026-09-28, dış katkıcı analizi) tespit edilen riskler. Çözülünce ✅ ile işaretlenir,
+çözüm yazılır. Öncelik: 🔴 yüksek · 🟠 orta · 🟡 düşük. Katkı kuralları: [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+
+- 🔴 **R1 — Telefonla giriş doğrulamasız (hesap ele geçirme).** `signInWithPhone` numarayı OTP'siz kabul
+  ediyor: kayıtlı bir numarayı yazan herkes o hesabın çerezini alır. Site canlı olduğu için açık gerçek.
+  **Kimse kilitlenmez:** kimlik 5 yıllık çerez token'ı; telefon yalnız cihazlar arası bağlantı → doğrulama
+  eklenince mevcut cihazlarda oynamaya devam edilir. SMS sağlayıcısı kurulu değil.
+  **Yapılacak:** (a) hızlı önlem — telefonla giriş yalnız "bu cihazı numaraya bağla" olsun, kayıtlı başka
+  hesaba giriş kapalı; (b) kalıcı — **Google OAuth + IP'den ülke** (M9.2d, 2026-09-20 kararı; Google Cloud
+  OAuth client proje sahibinde). Geçişte mevcut çerez kullanıcısı bir kez "Google ile bağla" der, kariyer korunur.
+- 🔴 **R2 — Şema/migration tutarsızlığı.** `schema.prisma` → `postgresql`, ama `prisma/migrations/` ve
+  `migration_lock.toml` → `sqlite`; canlı Neon şeması `prisma db push` ile kurulmuş. `migrate deploy`
+  kullanılamaz, canlı şemanın geçmişi yok; yıkıcı bir `db push` veri silebilir.
+  **Yapılacak:** Postgres için temiz baseline migration (`migrate diff` → `migrate resolve --applied`),
+  sonra şema değişiklikleri `migrate deploy` ile. Canlı DB'ye dokunduğu için yedek + proje sahibiyle birlikte.
+  O zamana kadar: yalnız eklemeli şema değişikliği (CONTRIBUTING.md §2).
+- 🟠 **R3 — Canlı DB yedeği yok.** `npm run db:backup` yalnız yerel SQLite'ı kopyalar. **Yapılacak:** şema
+  değişikliği öncesi Neon restore noktası / `pg_dump`; düzenli yedek (M12).
+- 🟠 **R4 — CI yok.** `master`'a push = canlı; lint/test/build kontrolü otomatik değil.
+  **Yapılacak:** GitHub Actions (lint + test + build) her PR ve push'ta.
+- 🟠 **R5 — `src/server/careerService.ts` ~3.200 satır.** Kimlik, kariyer, antrenman, turnuva, canlı turnuva,
+  ekipman, geri bildirim tek dosyada → çakışma ve regresyon riski büyüyor. **Yapılacak:** büyük tek refactor
+  değil; ilgili özelliğe dokunulduğunda o parça ayrı modüle (`server/auth.ts`, `server/liveTournament.ts` …).
+- 🟠 **R6 — Canlı turnuva durumu JSON blob (`GameState.liveTournament`).** Tek oyuncuda sorun değil; ortak
+  turnuvada (M11) aynı anda iki istek aynı blob'u yazarsa son yazan kazanır. **Yapılacak:** M11'de ortak
+  turnuva durumu kendi tablolarına (`Tournament`/`Match`) + güncellemelerde işlem/kilit.
+- 🟡 **R7 — Geri bildirim panosu `?key=` ile korunuyor.** Anahtar URL'de → tarayıcı geçmişi/log'da kalır.
+  Test haftası için yeterli; kalıcı çözüm giriş (R1) sonrası rol tabanlı erişim.
+- 🟡 **R8 — Kişisel veri (KVKK/GDPR).** Telefon numarası ve geri bildirimde çerez token'ı saklanıyor;
+  gizlilik metni / silme talebi yok. Açık duyurudan önce: aydınlatma metni + hesap silme akışı.
+- 🟡 **R9 — Arka plan işi izlemesi.** M12'deki otomatik dünya tiki (Cron) sessizce durursa turnuvalar
+  çözülmez ve kimse fark etmez. **Yapılacak:** tik başarısını kaydet + gecikme/başarısızlıkta uyarı.

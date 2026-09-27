@@ -56,6 +56,9 @@ Buna göre davranırım:
 - Commit öncesi `git status` ile ne eklendiğine bakılır; `.env` ve sır içeren dosyalar
   **asla** commit edilmez (bkz. §6).
 - `git status` temiz + `origin/master` ile 0 fark = "kaydedildi" demektir.
+- **Dış katkılar** (başka geliştirici/agent) branch + PR ile gelir → [`CONTRIBUTING.md`](CONTRIBUTING.md).
+  Her iki akışta da geçerli: **canlı oyuncu verisi korunur** (yalnız eklemeli şema, sıfırlama yok —
+  CONTRIBUTING.md §2). Bilinen riskler: `docs/ROADMAP.md` §H.
 
 ---
 
