@@ -85,8 +85,9 @@ model Player {
   motivation Float  @default(65)
   confidence Float  @default(50)
   stress     Float  @default(20)
-  equipmentLevel Int   @default(1) // 1–5 (GDD 15)
-  balance        Float @default(0) // para (GDD 16)
+  equipmentLevel Int   @default(1) // 1–5 (GDD 15, eski genel seviye)
+  ownedEquipment String @default("") // Gladius ürün id'leri (CSV) — sahip olunan ekipman (GDD 15)
+  balance        Float @default(0) // Denar bakiyesi (turnuva ödülü + mağaza) (GDD 16)
   experience     Int   @default(0) // tecrübe (XP) — turnuva + antrenman; combat'a küçük katkı (#28)
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE

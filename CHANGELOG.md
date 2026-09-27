@@ -67,6 +67,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Turnuva girişi Turnuvalar sekmesinden (#5a):** alt çubukta **"Katıl" butonu KALKTI**; turnuva zamanı geldiğinde Turnuvalar sayfasında **🔴 CANLI** kartı + "Turnuvaya Gir"; biten turnuva zaten Geçmiş'te. Alt çubukta yalnız "Turnuvaya Git" yönlendirmesi + "Geç".
 
 ### Eklendi
+- **Gladius ekipman mağazası (Denar ekonomisi):** Ekipman sayfası gerçek mağaza — marka **GLADIUS**, **Denar (Đ)**
+  ile alışveriş. Katalog: silah/maske/kordon/maske kordonu/kıyafet/plastron/lamé/ayakkabı/çorap/çanta.
+  Her ürün maça **çok çok az** katkı verir (~+0.003, tek yerde **tunable** — `GLADIUS_ITEMS`). Satın al → sahiplik
+  (✓ Sahipsin), Denar düşer; combat'a `equipmentCombatBonus` (ihmal edilebilir). `Player.ownedEquipment` (Neon'a
+  push). Denar bakiyesi = oyuncu balance'ı (turnuva ödülü). Ürün görselleri şimdilik emoji (gerçek görsel → V2).
 - **#28 — Tecrübe (XP) + turnuva puan ayrımı:** **Open turnuvalar klasman puanı VERMEZ** (yalnız tecrübe);
   **İl/Türkiye/uluslararası** şampiyonalar klasman puanı + tecrübe verir. Her turnuva tecrübe (XP) kazandırır
   (havuzda elense bile katılım tecrübesi); **antrenman** da tecrübe verir (~seans başı 4, turnuvanın ~1/10'u).

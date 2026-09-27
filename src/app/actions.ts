@@ -15,6 +15,7 @@ import {
   advanceDay,
   advanceLiveStage,
   attendTournament,
+  buyEquipment,
   clearReport,
   clearAwayReport,
   submitFeedback,
@@ -82,6 +83,12 @@ export async function setTrainingPlanAction(formData: FormData): Promise<void> {
 
 export async function upgradeEquipmentAction(): Promise<void> {
   await upgradeEquipment();
+  revalidatePath("/kariyer/ekipman");
+}
+
+/** Gladius mağazasından ürün satın alır (Denar ile). */
+export async function buyEquipmentAction(formData: FormData): Promise<void> {
+  await buyEquipment(String(formData.get("itemId") ?? ""));
   revalidatePath("/kariyer/ekipman");
 }
 

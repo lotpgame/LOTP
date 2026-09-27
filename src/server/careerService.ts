@@ -131,6 +131,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
+import { encodeOwned, equipmentCombatBonus, itemById, parseOwned } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -331,6 +332,7 @@ export interface CareerDTO {
     coach2Specialty: string;
   } | null;
   equipmentLevel: number;
+  ownedEquipment: string[]; // sahip olunan Gladius ürün id'leri
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
@@ -706,6 +708,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
         }
       : null,
     equipmentLevel: human.equipmentLevel,
+    ownedEquipment: parseOwned(human.ownedEquipment),
     balance: roundSkill(human.balance),
     equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
     canUpgradeEquipment:
@@ -1431,6 +1434,22 @@ export async function upgradeEquipment(): Promise<void> {
   await prisma.player.update({
     where: { id: human.id },
     data: { equipmentLevel: human.equipmentLevel + 1, balance: { decrement: cost } },
+  });
+}
+
+/** Gladius mağazasından bir ürün satın alır (Denar ile). Zaten sahipse/parası yoksa uygun hata. */
+export async function buyEquipment(itemId: string): Promise<void> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { human } = state;
+  const item = itemById(itemId);
+  if (!item) throw new Error("Ürün bulunamadı.");
+  const owned = parseOwned(human.ownedEquipment);
+  if (owned.includes(item.id)) return; // zaten sahipsin
+  if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
+  await prisma.player.update({
+    where: { id: human.id },
+    data: { balance: { decrement: item.denar }, ownedEquipment: encodeOwned([...owned, item.id]) },
   });
 }
 
@@ -2169,6 +2188,7 @@ export async function startLiveTournament(
       confidence: number;
       stress: number;
       equipmentLevel: number;
+      ownedEquipment: string;
       experience: number;
       skills: SkillRow[];
     },
@@ -2200,6 +2220,7 @@ export async function startLiveTournament(
         psychologyCombatModifier(psychologyOf(p)) +
         traitCombatModifier(traits) +
         equipmentCombatModifier(p.equipmentLevel) +
+        equipmentCombatBonus(parseOwned(p.ownedEquipment)) + // Gladius ekipman (çok küçük)
         experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
         mood,
     };
@@ -2884,6 +2905,7 @@ interface CombatantRow {
   confidence: number;
   stress: number;
   equipmentLevel: number;
+  ownedEquipment: string;
   experience: number;
   skills: SkillRow[];
 }
@@ -2980,6 +3002,7 @@ async function autoResolveTournament(
       psychologyCombatModifier(psychologyOf(p)) +
       traitCombatModifier(traits) +
       equipmentCombatModifier(p.equipmentLevel) +
+      equipmentCombatBonus(parseOwned(p.ownedEquipment)) + // Gladius ekipman (çok küçük)
       experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
       mood;
     return {
