@@ -7,7 +7,7 @@
  */
 import { cookies } from "next/headers";
 import { continentOfCountry, parsePhone } from "@/engine/geo";
-import { serverWorldDay, worldClockConfig } from "./world";
+import { serverEventDay, serverWorldDay, worldClockConfig } from "./world";
 import { worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
@@ -851,10 +851,11 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     };
   }
 
-  const worldDay = serverWorldDay();
-  const arrived = gs.dayIndex <= worldDay; // bugün gerçek zamanda "geldi" mi
-  const isToday = gs.dayIndex === worldDay; // canlı "Katıl" yalnız BUGÜN'ün turnuvasında
-  const canAttend = isToday && today.kind === "TOURNAMENT" && today.qualified === true;
+  const worldDay = serverWorldDay(); // 00:00 bugün — sıradaki turnuva/tarih için
+  const eventDay = serverEventDay(); // etkinliği (19:00) gelmiş en son gün — işleme/canlı-katıl için
+  const arrived = gs.dayIndex <= eventDay; // bu günün etkinliği (19:00) geldi mi → işlenecek
+  const isLive = gs.dayIndex === eventDay; // canlı "Katıl" yalnız etkinliği yeni gelen turnuvada
+  const canAttend = isLive && today.kind === "TOURNAMENT" && today.qualified === true;
   // Geçmiş turnuva (kayıtlıysa offline oynanır, değilse kaçırılır) + antrenman/iyileşme → otomatik işlenir.
   const needsSync = arrived && !canAttend;
   return {
@@ -1135,12 +1136,14 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const age = cur.age;
   const ranking = await buildRankingView(cur.categoryId, startQuarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  const worldDay = serverWorldDay(); // dünyaya kadar ilerle (gerçek zaman tavanı)
+  // Etkinliği (19:00) gerçekleşmiş EN SON güne kadar işle: gün 00:00'da döner ama o günün turnuvası/
+  // antrenmanı 19:00'da olur → 19:00'dan önce o gün işlenmez (kullanıcı bekler, sıradaki turnuva sayaçta).
+  const eventDay = serverEventDay();
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean) as TrainingType[];
 
   // M11.2: bu ilerlemede geçilecek turnuvalara önceden kayıt (offline otomatik oynatma için).
   const regRows = await prisma.registration.findMany({
-    where: { playerId: human.id, worldDay: { gte: gs.dayIndex, lte: worldDay } },
+    where: { playerId: human.id, worldDay: { gte: gs.dayIndex, lte: eventDay } },
   });
   const regByDay = new Map(regRows.map((r) => [`${r.worldDay}:${r.level}`, r]));
 
@@ -1214,7 +1217,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // skipFirst=true (Geç): baştaki turnuvayı antrenmanla geçip sonraki turnuvaya kadar ilerle.
   let firstDay = true;
   for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
-    if (d > worldDay) break; // gerçek zamanı geçemeyiz — dünyaya yetiştik, bekle
+    if (d > eventDay) break; // etkinliği (19:00) gelmemiş günü işleme — bekle (sıradaki turnuva sayaçta)
     if (injuryDays > 0) {
       fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 0, 100);
       injuryDays--;
@@ -1226,11 +1229,11 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     if (act.kind === "TOURNAMENT") {
       const eligible =
         qualifies(act.qualification, humanRank) && levelAllowedForCategory(act.level, cur.ageCategory);
-      const isToday = d === worldDay; // bugün (dünya saati) → canlı oynanabilir
-      if (eligible && isToday && !(firstDay && skipFirst)) break; // bugünün turnuvasında dur (Katıl/Geç)
-      // M11.2: geçmiş (d < worldDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
+      const isLive = d === eventDay; // etkinliği en son gelen gün → canlı oynanabilir (19:00 geçti)
+      if (eligible && isLive && !(firstDay && skipFirst)) break; // canlı turnuvada dur (Katıl/Geç)
+      // M11.2: geçmiş (d < eventDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
       const reg = regByDay.get(`${d}:${act.level}`);
-      if (eligible && !isToday && reg) {
+      if (eligible && !isLive && reg) {
         pendingAuto = { level: act.level }; // taktikler kayıtlardan okunur (ortak çözüm)
         break; // döngüden çık; antrenmanı persist et, sonra turnuvayı oynat
       }
@@ -1366,7 +1369,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (human.injuryDaysRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
   const act = activityForDay(gs.dayIndex);
   if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
-  if (gs.dayIndex > serverWorldDay()) throw new Error("Bu turnuva günü henüz gelmedi (dünya saati).");
+  if (gs.dayIndex > serverEventDay()) throw new Error("Turnuva saati henüz gelmedi — bugün 19:00'da başlar.");
   const attendId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   if (!levelAllowedForCategory(act.level, attendId.ageCategory)) {
     throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");

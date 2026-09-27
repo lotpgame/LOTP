@@ -6,6 +6,18 @@ import { SkillsByCategory, Stat, StatBar } from "./parts";
 
 export const dynamic = "force-dynamic";
 
+/** Küçük tam sayıyı Roma rakamına çevirir (sezon göstergesi: I, II, III…). */
+function toRoman(n: number): string {
+  if (n <= 0) return String(n);
+  const map: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"],
+    [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let out = "";
+  for (const [v, s] of map) while (n >= v) { out += s; n -= v; }
+  return out;
+}
+
 export default async function ProfilPage() {
   const c = await getCareer();
   if (!c) redirect("/");
@@ -16,7 +28,7 @@ export default async function ProfilPage() {
       {/* Kimlik afişi üstteki başlıkta (CareerNav); burada tekrar edilmez. */}
       {/* Durum özeti — Kondisyon = 100−yorgunluk (dolu başlar, antrenmanla azalır). */}
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat icon="📅" label={t(locale, "profil.season")} value={`Sezon ${c.seasonNo}`} />
+        <Stat icon="📅" label={t(locale, "profil.season")} value={toRoman(c.seasonNo)} />
         <Stat icon="⭐" label={t(locale, "profil.overall")} value={c.overall.toFixed(1)} />
         <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
         <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
