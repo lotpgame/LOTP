@@ -2,6 +2,7 @@ import { LangSelect } from "@/app/LangSelect";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
+import { ThemeSettings } from "../ThemeSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,14 @@ export default async function AyarlarPage() {
         <p className="mt-1 text-xs opacity-60">{t(locale, "settings.languageNote")}</p>
         <div className="mt-3">
           <LangSelect current={locale} />
+        </div>
+      </section>
+
+      {/* Görünüm — kişiye özel arka fon + yazı rengi */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold">🎨 Görünüm</h2>
+        <div className="mt-3">
+          <ThemeSettings />
         </div>
       </section>
 

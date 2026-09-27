@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeApplier } from "./ThemeApplier";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <ThemeApplier />
         <div className="flex-1">{children}</div>
         <footer className="border-t border-black/10 py-3 text-center text-xs opacity-40 dark:border-white/10">
           Legends of the Piste · V1 — eskrim kariyer simülasyonu
