@@ -59,7 +59,13 @@ import {
   type TournamentMatch,
   type TournamentOutcome,
 } from "@/engine/tournament";
-import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
+import {
+  TRAINING_XP,
+  experienceCombatModifier,
+  experienceForTournament,
+  rankEntries,
+  rankingPointsForPosition,
+} from "@/engine/ranking";
 import {
   DAYS_PER_MONTH,
   DAYS_PER_QUARTER,
@@ -310,6 +316,7 @@ export interface CareerDTO {
   seasonNo: number; // kariyer sezonu
   nationalTeam: boolean; // kategori sıralaması ilk 4 (GDD 17.32)
   overall: number;
+  experience: number; // birikmiş tecrübe (XP) — #28
   // Gelişim çevresi (M6)
   traits: string[]; // Türkçe etiketler
   psychology: { morale: number; motivation: number; confidence: number; stress: number };
@@ -677,6 +684,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     seasonNo: careerQuarter(gs.dayIndex, gs.careerStartDay),
     nationalTeam,
     overall: roundSkill(overall(skills)),
+    experience: human.experience,
     traits: activeTraitsOf(human.traits, age), // o yaşta aktif trait ANAHTARLARI; UI dile göre çevirir
 
     psychology: {
@@ -1180,6 +1188,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   let d = gs.dayIndex;
   let restSessions = 0;
   let injuredNow = false;
+  let xpGained = 0; // #28: antrenman tecrübesi (turnuvanın ~1/10'u/seans)
   // M11.2: geçmiş bir turnuvaya kayıtlıysak, döngü orada durur ve bunu doldururuz (persist sonrası oynatılır).
   let pendingAuto: { level: TournamentLevel } | null = null;
 
@@ -1200,6 +1209,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 1, 100);
       restSessions++;
     } else {
+      xpGained += TRAINING_XP; // #28: her antrenman seansı küçük tecrübe verir
       // İki antrenörün uzmanlıkları (her biri 2 tür) birlikte 4 türü kapsar → bu türde uzman
       // hoca varsa bonus uygulanır (yoksa temel koçluk).
       const clubSpecs = human.club
@@ -1302,6 +1312,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       data: {
         fatigue,
         sharpness,
+        experience: { increment: xpGained }, // #28: antrenman tecrübesi
         morale: nextPsych.morale,
         motivation: nextPsych.motivation,
         confidence: nextPsych.confidence,
@@ -1838,6 +1849,7 @@ interface LiveState {
   championId?: number;
   finalTournamentId?: number;
   earnedPoints?: number; // bu turnuvadan kazanılan ranking puanı
+  earnedXp?: number; // bu turnuvadan kazanılan tecrübe (#28)
   newRank?: number | null; // turnuva sonrası Quarter Ranking sırası
   liveMatch?: LiveMatchProgress; // devam eden insan eleme maçı (periyot periyot)
   // Son kullanıcı aksiyonu: "play" ise ekranda izlenecek taze bir maç var → sıradaki aksiyon
@@ -2157,6 +2169,7 @@ export async function startLiveTournament(
       confidence: number;
       stress: number;
       equipmentLevel: number;
+      experience: number;
       skills: SkillRow[];
     },
     opts: { isHuman: boolean; tactic?: Tactic },
@@ -2187,6 +2200,7 @@ export async function startLiveTournament(
         psychologyCombatModifier(psychologyOf(p)) +
         traitCombatModifier(traits) +
         equipmentCombatModifier(p.equipmentLevel) +
+        experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
         mood,
     };
   };
@@ -2519,6 +2533,10 @@ async function finalizeLive(
     });
     ls.finalTournamentId = existing.id;
     ls.earnedPoints = rankingPointsForPosition(part?.finalPosition ?? outcome.pools.length, ls.level);
+    // Turnuva başkası tarafından çözülmüş olsa da oyuncu katıldı → tecrübesini al (#28).
+    const xp = experienceForTournament(part?.finalPosition ?? outcome.pools.length, ls.level);
+    await prisma.player.update({ where: { id: human.id }, data: { experience: { increment: xp } } });
+    ls.earnedXp = xp;
     ls.newRank = rank?.position ?? null;
     return;
   }
@@ -2529,6 +2547,7 @@ async function finalizeLive(
   const fin = await finalizeTournament(gs, [human, ...coHumans], ls.level, base, outcome, ls.seedKey, { scopeKey: ls.scopeKey });
   ls.finalTournamentId = fin.id;
   ls.earnedPoints = fin.earnedPoints;
+  ls.earnedXp = fin.earnedXp;
   ls.newRank = fin.newRank;
 }
 
@@ -2595,6 +2614,8 @@ export interface LiveTournamentDTO {
   finalPosition?: number;
   finalTournamentId?: number;
   earnedPoints?: number; // kazanılan ranking puanı (klasman)
+  earnedXp?: number; // kazanılan tecrübe (#28)
+  givesRankingPoints?: boolean; // bu turnuva klasman puanı veriyor mu (Open vermez)
   newRank?: number | null; // turnuva sonrası Quarter Ranking sırası
 }
 
@@ -2788,6 +2809,8 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     dto.finalPosition = ls.standings.find((s) => s.playerId === ls.humanId)?.position;
     dto.finalTournamentId = ls.finalTournamentId;
     dto.earnedPoints = ls.earnedPoints;
+    dto.earnedXp = ls.earnedXp;
+    dto.givesRankingPoints = ls.level !== "OPEN";
     dto.newRank = ls.newRank;
   }
   return dto;
@@ -2861,6 +2884,7 @@ interface CombatantRow {
   confidence: number;
   stress: number;
   equipmentLevel: number;
+  experience: number;
   skills: SkillRow[];
 }
 
@@ -2956,6 +2980,7 @@ async function autoResolveTournament(
       psychologyCombatModifier(psychologyOf(p)) +
       traitCombatModifier(traits) +
       equipmentCombatModifier(p.equipmentLevel) +
+      experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
       mood;
     return {
       id: p.id,
@@ -3022,7 +3047,7 @@ async function finalizeTournament(
   outcome: TournamentOutcome,
   seedKey: string,
   opts: { scopeKey?: string } = {},
-): Promise<{ id: number; earnedPoints: number; newRank: number | null }> {
+): Promise<{ id: number; earnedPoints: number; earnedXp: number; newRank: number | null }> {
   const quarter = quarterOf(gs.dayIndex);
   const week = monthOfQuarter(gs.dayIndex); // Tournament.week alanı artık ayı saklar
   const categoryId = base.categoryId;
@@ -3101,6 +3126,7 @@ async function finalizeTournament(
         data: {
           sharpness: ph.sharpness,
           balance: { increment: ph.prize },
+          experience: { increment: experienceForTournament(ph.position, level) }, // #28: turnuva tecrübesi
           morale: ph.postPsych.morale,
           motivation: ph.postPsych.motivation,
           confidence: ph.postPsych.confidence,
@@ -3162,6 +3188,7 @@ async function finalizeTournament(
   return {
     id: txResult.id,
     earnedPoints: rankingPointsForPosition(positionByPlayer.get(resolver.id) ?? outcome.pools.length, level),
+    earnedXp: experienceForTournament(positionByPlayer.get(resolver.id) ?? outcome.pools.length, level),
     newRank: txResult.resolverNewRank,
   };
 }

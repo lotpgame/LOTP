@@ -83,6 +83,14 @@ export default async function TurnuvalarPage() {
                     📅 {u.dateLabel}
                     {u.registered ? ` · ✓ ${t(locale, "turnuvalar.registered")}` : ""}
                   </div>
+                  {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}
+                  <div className="mt-0.5 text-[11px] font-medium">
+                    {u.level === "OPEN" ? (
+                      <span className="text-sky-600 dark:text-sky-400">✨ Tecrübe kazandırır (klasman puanı yok)</span>
+                    ) : (
+                      <span className="text-emerald-600 dark:text-emerald-400">🏅 Klasman puanı + tecrübe</span>
+                    )}
+                  </div>
                 </div>
               </div>
 

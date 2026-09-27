@@ -14,8 +14,9 @@ import type { TournamentLevel } from "../domain";
  * elenen puan almaz).
  */
 export const POINT_TABLES: Record<TournamentLevel, Record<number, number>> = {
+  // OPEN klasman puanı VERMEZ (yalnız tecrübe) — kullanıcı kararı #28. Klasman = şampiyonalar.
+  OPEN: {},
   IL: { 1: 5, 2: 3.5, 3: 2.5, 5: 1.5, 9: 1.0, 17: 0.5 },
-  OPEN: { 1: 6, 2: 4.5, 3: 3.5, 5: 2.5, 9: 1.5, 17: 1.0 },
   TURKIYE: { 1: 12, 2: 9, 3: 7, 5: 5, 9: 3, 17: 2, 33: 1 },
   SATELLITE: { 1: 16, 2: 13, 3: 10, 5: 7, 9: 5, 17: 3, 33: 2 },
   GRAND_PRIX: { 1: 24, 2: 20, 3: 16, 5: 12, 9: 8, 17: 5, 33: 3 },
@@ -23,12 +24,45 @@ export const POINT_TABLES: Record<TournamentLevel, Record<number, number>> = {
   WORLD_CUP: { 1: 40, 2: 34, 3: 28, 5: 20, 9: 14 },
 };
 
-/** Bir dereceye (position) karşılık gelen ranking puanı. Tanımsız derece → 0. */
+/** Bir dereceye (position) karşılık gelen KLASMAN puanı. Open → 0 (tecrübe verir). Tanımsız derece → 0. */
 export function rankingPointsForPosition(
   position: number,
-  level: TournamentLevel = "OPEN",
+  level: TournamentLevel = "IL",
 ): number {
   return POINT_TABLES[level][position] ?? 0;
+}
+
+/** Bu seviye klasman (Quarter Ranking) puanı veriyor mu? Open vermez; şampiyonalar verir (#28). */
+export function levelGivesRankingPoints(level: TournamentLevel): boolean {
+  return level !== "OPEN";
+}
+
+// ——— Tecrübe (XP) — #28: her turnuva tecrübe verir (Open en çok grind); antrenman ~1/10 ———
+
+const XP_BASE: Record<TournamentLevel, number> = {
+  OPEN: 35,
+  IL: 28,
+  TURKIYE: 45,
+  SATELLITE: 50,
+  GRAND_PRIX: 60,
+  EUROPEAN: 65,
+  WORLD_CUP: 75,
+};
+
+/** Dereceye göre tecrübe çarpanı; havuzda elense bile KATILIM tecrübesi (0.3). */
+const XP_POS_FACTOR: Record<number, number> = { 1: 1, 2: 0.85, 3: 0.72, 5: 0.58, 9: 0.48, 17: 0.42, 33: 0.38 };
+
+/** Bir turnuvadan kazanılan tecrübe (position = final derece; pool-out → katılım tecrübesi). */
+export function experienceForTournament(position: number, level: TournamentLevel): number {
+  return Math.round(XP_BASE[level] * (XP_POS_FACTOR[position] ?? 0.3));
+}
+
+/** Bir antrenman seansının tecrübesi (turnuvanın ~1/10'u). */
+export const TRAINING_XP = 4;
+
+/** Birikmiş tecrübenin combat'a katkısı — deneyimli sporcu maçı daha iyi okur. Küçük, tavanlı (+3). */
+export function experienceCombatModifier(xp: number): number {
+  return Math.min(Math.max(xp, 0) / 400, 3);
 }
 
 export interface RankingEntry {

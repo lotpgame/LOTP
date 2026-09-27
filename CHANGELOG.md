@@ -67,6 +67,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Turnuva girişi Turnuvalar sekmesinden (#5a):** alt çubukta **"Katıl" butonu KALKTI**; turnuva zamanı geldiğinde Turnuvalar sayfasında **🔴 CANLI** kartı + "Turnuvaya Gir"; biten turnuva zaten Geçmiş'te. Alt çubukta yalnız "Turnuvaya Git" yönlendirmesi + "Geç".
 
 ### Eklendi
+- **#28 — Tecrübe (XP) + turnuva puan ayrımı:** **Open turnuvalar klasman puanı VERMEZ** (yalnız tecrübe);
+  **İl/Türkiye/uluslararası** şampiyonalar klasman puanı + tecrübe verir. Her turnuva tecrübe (XP) kazandırır
+  (havuzda elense bile katılım tecrübesi); **antrenman** da tecrübe verir (~seans başı 4, turnuvanın ~1/10'u).
+  Tecrübe combat'a **küçük, tavanlı (+3)** katkı verir (deneyimli sporcu). Turnuva sonucunda ve Turnuvalar
+  kartlarında **ne kazandırdığı** yazılı (🏅 klasman puanı vs ✨ tecrübe); profilde birikmiş tecrübe. `Player.experience`
+  alanı eklendi (Neon'a push'landı). 141 test yeşil.
 - **Faz 4 — Trait sistemi yeniden tasarımı (GDD 10, NOTLAR #21):**
   - **Genişletilmiş set:** 15 trait, 3 kategori (Karakter/Psikolojik/Rekabetçi) — GDD 10.5'ten (Disiplinli, Çalışkan,
     Tembel, Sabırlı, Sabırsız, Soğukkanlı, Baskıya Dayanıklı, Özgüvenli, Hassas, Kaygılı, Agresif, Mücadeleci,

@@ -1,19 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { rankEntries, rankingPointsForPosition } from "@/engine/ranking";
+import {
+  experienceCombatModifier,
+  experienceForTournament,
+  levelGivesRankingPoints,
+  rankEntries,
+  rankingPointsForPosition,
+} from "@/engine/ranking";
 
 describe("Ranking Engine", () => {
   it("seviyeye göre puan tabloları (GDD 17.82–17.88)", () => {
-    // Open (varsayılan)
-    expect(rankingPointsForPosition(1)).toBe(6);
-    expect(rankingPointsForPosition(5)).toBe(2.5);
-    // İl daha düşük, Türkiye daha yüksek
+    // Open KLASMAN PUANI VERMEZ (#28) — yalnız tecrübe
+    expect(rankingPointsForPosition(1, "OPEN")).toBe(0);
+    expect(levelGivesRankingPoints("OPEN")).toBe(false);
+    // Şampiyonalar puan verir
     expect(rankingPointsForPosition(1, "IL")).toBe(5);
     expect(rankingPointsForPosition(1, "TURKIYE")).toBe(12);
     expect(rankingPointsForPosition(1, "WORLD_CUP")).toBe(40);
+    expect(levelGivesRankingPoints("TURKIYE")).toBe(true);
     // puansız derece
     expect(rankingPointsForPosition(9, "EUROPEAN")).toBe(10);
     expect(rankingPointsForPosition(33, "EUROPEAN")).toBe(0); // Avrupa'da son 64 yok
-    expect(rankingPointsForPosition(999)).toBe(0);
+    expect(rankingPointsForPosition(999, "IL")).toBe(0);
+  });
+
+  it("tecrübe (XP): Open en çok grind verir; şampiyon > pool-out; antrenman küçük; combat tavanı +3", () => {
+    expect(experienceForTournament(1, "OPEN")).toBeGreaterThan(experienceForTournament(99, "OPEN")); // şampiyon > katılım
+    expect(experienceForTournament(99, "OPEN")).toBeGreaterThan(0); // pool-out bile katılım tecrübesi
+    expect(experienceCombatModifier(100000)).toBe(3); // tavan
+    expect(experienceCombatModifier(0)).toBe(0);
   });
 
   it("rankEntries puana göre sıralar ve pozisyon atar", () => {

@@ -87,6 +87,7 @@ model Player {
   stress     Float  @default(20)
   equipmentLevel Int   @default(1) // 1–5 (GDD 15)
   balance        Float @default(0) // para (GDD 16)
+  experience     Int   @default(0) // tecrübe (XP) — turnuva + antrenman; combat'a küçük katkı (#28)
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE
 

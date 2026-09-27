@@ -33,7 +33,9 @@ export default async function ProfilPage() {
         <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
         <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
       </section>
-      <p className="mt-2 text-xs opacity-50">📅 {c.dateLabel}</p>
+      <p className="mt-2 text-xs opacity-50">
+        📅 {c.dateLabel} · ✨ {c.experience} tecrübe
+      </p>
 
       {c.injured && (
         <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">

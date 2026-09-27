@@ -546,11 +546,21 @@ function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
         <div className="mt-1 text-sm opacity-70">{t(locale, "canli.champion", { name: tour.championName ?? "?" })}</div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2.5">
+      <div className="mt-3 grid grid-cols-3 gap-2.5">
         <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
-          <div className="text-xs opacity-60">{t(locale, "canli.earned")}</div>
-          <div className="font-semibold text-emerald-600">
-            {tour.earnedPoints != null && tour.earnedPoints > 0 ? `+${tour.earnedPoints}` : "0"}
+          <div className="text-xs opacity-60">🏅 {t(locale, "canli.earned")}</div>
+          {tour.givesRankingPoints ? (
+            <div className="font-semibold text-emerald-600">
+              {tour.earnedPoints != null && tour.earnedPoints > 0 ? `+${tour.earnedPoints}` : "0"}
+            </div>
+          ) : (
+            <div className="text-xs font-medium opacity-50">Open · puan yok</div>
+          )}
+        </div>
+        <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
+          <div className="text-xs opacity-60">✨ Tecrübe</div>
+          <div className="font-semibold text-sky-600 dark:text-sky-400">
+            {tour.earnedXp != null && tour.earnedXp > 0 ? `+${tour.earnedXp}` : "0"}
           </div>
         </div>
         <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
