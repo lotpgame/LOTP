@@ -69,6 +69,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
     planda 0 ihlal doğrulandı. Eski "Tembel+Çalışkan aynı anda" hatası giderildi.
   - **Davranışsal etkiler** (GDD 10.22/10.24): trait'ler antrenman verimi ve combat gücüne küçük modifier verir
     (güç bonusu değil); pozitif/negatif karışık (Hassas/Kaygılı/Tembel −). **AI oyuncular da** trait alır (10.41).
+  - **Yaş-havuzlu üretim (gelişim psikolojisi):** her trait yaşına-uygun havuzdan gelir — Çocukluk (mizaç/çalışma),
+    Ergenlik öncesi (rekabet/öz-denetim), Ergenlik (psikoloji + ahlak). 10 yaşındaki çocuk "Hilekâr" olmaz.
+  - **Ahlak/Sportmenlik ekseni (yeni):** **Dürüst / Hilekâr / Çirkef** (gamesmanship). "Küçük ama riskli":
+    çirkef/hilekâr rakibin sükûnetini bozar (özellikle Hassas/Kaygılı'ya) ama kendine risk bindirir —
+    Soğukkanlı/Baskıya Dayanıklı/Dürüst rakibe **zarar** eder. Combat'a rakip-etkileşimli "Sportmenlik" modifier'ı
+    (`incomingGamesmanshipPenalty`). Doğrulandı: hassas rakip NET +0.62, nötr ~0, soğukkanlı −0.58. Bilimsel
+    temel: itibar/dolaylı karşılıklılık + ostrasizm (kısa vade kazanç, uzun vade dışlanma → itibar sistemi V2).
   - Yoğunluk 0–4 (GDD 10.6) ve trait evrimi/olayla değişim (10.31–37) → V2 olarak not edildi.
 - **Sıradaki turnuva göstergesi + gerçek saat (test haftası):** Turnuvalar sayfasının üstünde vurgulu
   kart — **sıradaki turnuva adı + gün + TR saati + canlı geri sayım** ("⌛ 4 saat 36 dakika kaldı" /

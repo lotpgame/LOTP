@@ -18,7 +18,7 @@ import {
   type SeededRng,
 } from "../probability";
 import type { PlayerSkills } from "../skill";
-import type { TraitKey } from "../trait";
+import { incomingGamesmanshipPenalty, traitSelfRisk, type TraitKey } from "../trait";
 import { physiqueCombatEdge, type PhysicalProfile } from "../physique";
 import { t, type Locale } from "@/i18n";
 import { tacticChaos, tacticStrengthMod, type Tactic } from "./tactics";
@@ -279,6 +279,19 @@ function buildMatchup(a: Combatant, b: Combatant): Matchup {
     esB.modifiers.push({ label: "Taktik", value: tmodB });
     esB.total = Math.round((esB.total + tmodB) * 10) / 10;
   }
+  // Gamesmanship (çirkef/hilekâr): rakibi bozar (rakibin sükûneti azaltır) + kendine risk bindirir.
+  // Küçük ama riskli: nötr rakipte ~kendi riskini karşılar, hassas rakipte kâr, soğukkanlıda zarar.
+  const gpA = incomingGamesmanshipPenalty(b.traits ?? [], a.traits ?? []) + traitSelfRisk(a.traits ?? []);
+  const gpB = incomingGamesmanshipPenalty(a.traits ?? [], b.traits ?? []) + traitSelfRisk(b.traits ?? []);
+  if (gpA > 0.05) {
+    esA.modifiers.push({ label: "Sportmenlik", value: -Math.round(gpA * 10) / 10 });
+    esA.total = Math.round((esA.total - gpA) * 10) / 10;
+  }
+  if (gpB > 0.05) {
+    esB.modifiers.push({ label: "Sportmenlik", value: -Math.round(gpB * 10) / 10 });
+    esB.total = Math.round((esB.total - gpB) * 10) / 10;
+  }
+
   // Kaos: (eski model — öncelik motoru geldi, artık döngüde kullanılmıyor; geriye uyum için tutulur).
   const chaos = clamp(tacticChaos(tacticA) + tacticChaos(tacticB), 0, 0.45);
 

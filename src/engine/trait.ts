@@ -9,6 +9,7 @@
  * - Zıt-çift kuralı (GDD 10.28): zıt trait'ler birlikte verilmez (Disiplinli+Tembel gibi).
  * - Yoğunluk 0–4 (GDD 10.6) V2 — V1'de her trait sabit "belirgin" şiddette; etkiler küçük tutulur.
  */
+import { clamp } from "./domain";
 import type { SeededRng } from "./probability";
 
 export type TraitKey =
@@ -29,9 +30,13 @@ export type TraitKey =
   | "COMPETITIVE"
   | "RISK_TAKER"
   | "CONTROLLED"
-  | "AMBITIOUS";
+  | "AMBITIOUS"
+  // Ahlak / Sportmenlik (ergenlikte belirir — GDD 10 + gelişim psikolojisi)
+  | "HONEST"
+  | "DECEITFUL"
+  | "NASTY";
 
-export type TraitCategory = "CHARACTER" | "PSYCH" | "COMPETITIVE";
+export type TraitCategory = "CHARACTER" | "PSYCH" | "COMPETITIVE" | "MORAL";
 
 export interface TraitDef {
   key: TraitKey;
@@ -44,6 +49,12 @@ export interface TraitDef {
   combatMod: number;
   /** Zıt trait (aynı anda verilmez, GDD 10.28). */
   opposite?: TraitKey;
+  /** Gamesmanship: rakibin sükûnetini bozma gücü (0–1.2). RAKİBE etki eder (combat'ta). */
+  gamesmanship?: number;
+  /** Gamesmanship'in kendine bindirdiği risk (kendi gücüne − puan). "küçük ama riskli". */
+  selfRisk?: number;
+  /** Sükûnet: rakibin gamesmanship baskısına direnç katkısı (+ direnir, − kırılır). */
+  composure?: number;
 }
 
 export const TRAITS: Record<TraitKey, TraitDef> = {
@@ -54,17 +65,21 @@ export const TRAITS: Record<TraitKey, TraitDef> = {
   PATIENT: { key: "PATIENT", label: "Sabırlı", category: "CHARACTER", description: "Taktiksel, bekleme gerektiren maçlarda kontrollü; küçük combat avantajı.", trainingMult: 1.0, combatMod: 0.6, opposite: "IMPATIENT" },
   IMPATIENT: { key: "IMPATIENT", label: "Sabırsız", category: "CHARACTER", description: "Erken saldırır, acele eder; toparlanma/verim biraz düşük.", trainingMult: 0.97, combatMod: -0.3, opposite: "PATIENT" },
   // — Psikolojik —
-  CALM: { key: "CALM", label: "Soğukkanlı", category: "PSYCH", description: "Baskı altında sakin kalır; kritik anlarda avantaj.", trainingMult: 1.0, combatMod: 1.0, opposite: "ANXIOUS" },
-  PRESSURE_PROOF: { key: "PRESSURE_PROOF", label: "Baskıya Dayanıklı", category: "PSYCH", description: "Final, son vuruş, eşitlik gibi kritik anlarda güçlü.", trainingMult: 1.0, combatMod: 1.0 },
-  CONFIDENT: { key: "CONFIDENT", label: "Özgüvenli", category: "PSYCH", description: "Momentumu korur, yenilgiden çabuk toparlar.", trainingMult: 1.0, combatMod: 0.6, opposite: "SENSITIVE" },
-  SENSITIVE: { key: "SENSITIVE", label: "Hassas", category: "PSYCH", description: "Başarısızlıktan çok etkilenir; psikolojik dalgalanmaya açık.", trainingMult: 1.0, combatMod: -0.6, opposite: "CONFIDENT" },
-  ANXIOUS: { key: "ANXIOUS", label: "Kaygılı", category: "PSYCH", description: "Baskı altında zorlanır; kritik anlarda dezavantaj.", trainingMult: 1.0, combatMod: -0.6, opposite: "CALM" },
+  CALM: { key: "CALM", label: "Soğukkanlı", category: "PSYCH", description: "Baskı altında sakin kalır; kritik anlarda avantaj. Rakibin oyununa (çirkef/hilekâr) gelmez.", trainingMult: 1.0, combatMod: 1.0, opposite: "ANXIOUS", composure: 1.0 },
+  PRESSURE_PROOF: { key: "PRESSURE_PROOF", label: "Baskıya Dayanıklı", category: "PSYCH", description: "Final, son vuruş, eşitlik gibi kritik anlarda güçlü. Provokasyona dirençli.", trainingMult: 1.0, combatMod: 1.0, composure: 1.0 },
+  CONFIDENT: { key: "CONFIDENT", label: "Özgüvenli", category: "PSYCH", description: "Momentumu korur, yenilgiden çabuk toparlar.", trainingMult: 1.0, combatMod: 0.6, opposite: "SENSITIVE", composure: 0.5 },
+  SENSITIVE: { key: "SENSITIVE", label: "Hassas", category: "PSYCH", description: "Başarısızlıktan çok etkilenir; provokasyona/çirkefliğe açık (rakibin oyununa gelir).", trainingMult: 1.0, combatMod: -0.6, opposite: "CONFIDENT", composure: -1.0 },
+  ANXIOUS: { key: "ANXIOUS", label: "Kaygılı", category: "PSYCH", description: "Baskı altında zorlanır; kritik anlarda dezavantaj; provokasyona açık.", trainingMult: 1.0, combatMod: -0.6, opposite: "CALM", composure: -1.0 },
   // — Rekabetçi —
   AGGRESSIVE: { key: "AGGRESSIVE", label: "Agresif", category: "COMPETITIVE", description: "Maçta baskı kurar, çok atağa çıkar; risk de yüksek.", trainingMult: 1.0, combatMod: 1.5, opposite: "CONTROLLED" },
   COMPETITIVE: { key: "COMPETITIVE", label: "Mücadeleci", category: "COMPETITIVE", description: "Pes etmez, zorlu maçlarda direnir.", trainingMult: 1.0, combatMod: 0.8 },
   RISK_TAKER: { key: "RISK_TAKER", label: "Risk Alan", category: "COMPETITIVE", description: "Cesur hamleler yapar; bazen kazandırır, bazen açık verir.", trainingMult: 1.0, combatMod: 0.5 },
   CONTROLLED: { key: "CONTROLLED", label: "Kontrollü", category: "COMPETITIVE", description: "Riskten kaçınır, rakibin hatasını bekler; sağlam ama fırsat kaçırabilir.", trainingMult: 1.0, combatMod: 0.8, opposite: "AGGRESSIVE" },
   AMBITIOUS: { key: "AMBITIOUS", label: "Hırslı", category: "COMPETITIVE", description: "Gelişime aç, hedef odaklı; antrenmana biraz katkı.", trainingMult: 1.05, combatMod: 0.5 },
+  // — Ahlak / Sportmenlik (gamesmanship KÜÇÜK + RİSKLİ; eskrim saygı sporu → itibar/dışlanma V2) —
+  HONEST: { key: "HONEST", label: "Dürüst", category: "MORAL", description: "Fair-play; itibarı yüksek, rakibin oyununa gelmez. Oyun-kurma avantajı yok.", trainingMult: 1.0, combatMod: 0, opposite: "DECEITFUL", composure: 0.5 },
+  DECEITFUL: { key: "DECEITFUL", label: "Hilekâr", category: "MORAL", description: "Kurnazlık (zamanlama oyunları, itiraz) — rakibi bozabilir ama kendi de risk alır; itibar düşer (uzun vadede dışlanma).", trainingMult: 1.0, combatMod: 0, opposite: "HONEST", gamesmanship: 0.9, selfRisk: 0.5 },
+  NASTY: { key: "NASTY", label: "Çirkef", category: "MORAL", description: "Rakibin sinirini bozar (özellikle hassas/kaygılı rakibe) ama kendi stresini artırır; itibar düşer, zamanla dışlanır.", trainingMult: 1.0, combatMod: 0, gamesmanship: 1.2, selfRisk: 0.7 },
 };
 
 export const TRAIT_KEYS = Object.keys(TRAITS) as TraitKey[];
@@ -73,6 +88,7 @@ export const TRAIT_CATEGORY_LABEL: Record<TraitCategory, string> = {
   CHARACTER: "Karakter",
   PSYCH: "Psikolojik",
   COMPETITIVE: "Rekabetçi",
+  MORAL: "Ahlak / Sportmenlik",
 };
 
 /** Kademeli açılım: bir trait planı kaydı — hangi yaşta açılır. */
@@ -85,18 +101,38 @@ export interface TraitPlanEntry {
 export const TRAIT_UNLOCK_AGES = [8, 11, 12] as const;
 
 /**
- * Doğuşta trait PLANI üretir (max 3, zıt-çift YOK). Deterministik (rng). Yaşla açılır (activeTraitKeys).
+ * YAŞA-UYGUN HAVUZLAR (gelişim psikolojisi): mizaç → rekabet/öz-denetim → psikoloji/ahlak.
+ * Her açılım kendi penceresinden gelir → 10 yaşındaki çocuk "Hilekâr" olmaz; karakter yaşla oturur.
+ * (Oyun akışı için ergenlik penceresi ~12'ye sıkıştırıldı; gerçekte 14–16.)
+ */
+const TRAIT_POOLS: TraitKey[][] = [
+  // Çocukluk (mizaç, çalışma alışkanlığı)
+  ["HARDWORKING", "LAZY", "DISCIPLINED", "AMBITIOUS"],
+  // Ergenlik öncesi (rekabet, öz-denetim, erken özgüven)
+  ["COMPETITIVE", "PATIENT", "IMPATIENT", "CONFIDENT", "RISK_TAKER"],
+  // Ergenlik (psikoloji + ahlak/sportmenlik: risk, baskı, dürüst/hilekâr/çirkef)
+  ["AGGRESSIVE", "CONTROLLED", "CALM", "ANXIOUS", "SENSITIVE", "PRESSURE_PROOF", "HONEST", "DECEITFUL", "NASTY"],
+];
+
+/**
+ * Doğuşta trait PLANI üretir (max 3). Her trait yaşına-uygun havuzdan; zıt-çift YOK (GDD 10.28).
+ * Deterministik (rng). Yaşla açılır (activeTraitKeys).
  */
 export function generateTraitPlan(rng: SeededRng): TraitPlanEntry[] {
-  const pool = rng.shuffle([...TRAIT_KEYS]);
   const chosen: TraitKey[] = [];
-  for (const key of pool) {
-    if (chosen.length >= TRAIT_UNLOCK_AGES.length) break;
-    const opp = TRAITS[key].opposite;
-    if (opp && chosen.includes(opp)) continue; // zıt-çift kuralı (GDD 10.28)
-    chosen.push(key);
+  const plan: TraitPlanEntry[] = [];
+  for (let stage = 0; stage < TRAIT_UNLOCK_AGES.length; stage++) {
+    const pool = rng.shuffle([...(TRAIT_POOLS[stage] ?? TRAIT_KEYS)]);
+    for (const key of pool) {
+      if (chosen.includes(key)) continue;
+      const opp = TRAITS[key].opposite;
+      if (opp && chosen.includes(opp)) continue; // zıt-çift kuralı
+      chosen.push(key);
+      plan.push({ key, unlockAge: TRAIT_UNLOCK_AGES[stage] });
+      break;
+    }
   }
-  return chosen.map((key, i) => ({ key, unlockAge: TRAIT_UNLOCK_AGES[i] }));
+  return plan;
 }
 
 /** Verilen yaşta AKTİF trait anahtarları (unlockAge ≤ yaş). */
@@ -116,6 +152,30 @@ export function traitCombatModifier(traits: readonly TraitKey[]): number {
 
 export function traitLabels(traits: readonly TraitKey[]): string[] {
   return traits.map((t) => TRAITS[t]?.label ?? t);
+}
+
+// ——— Gamesmanship / sükûnet (rakip etkileşimi + kendi riski) ———
+
+function sumField(traits: readonly TraitKey[], f: "gamesmanship" | "composure" | "selfRisk"): number {
+  return traits.reduce((acc, t) => acc + (TRAITS[t]?.[f] ?? 0), 0);
+}
+
+/** Kendi gamesmanship davranışının kendine bindirdiği risk (combat gücüne − puan). */
+export function traitSelfRisk(traits: readonly TraitKey[]): number {
+  return sumField(traits, "selfRisk");
+}
+
+/**
+ * Rakibin gamesmanship'inin (çirkef/hilekâr) BENİM gücüme cezası — kendi sükûnetim azaltır.
+ * "küçük ama riskli": nötr rakipte ~kendi selfRisk'ini karşılar; hassas rakipte kâr, soğukkanlıda zarar.
+ */
+export function incomingGamesmanshipPenalty(
+  oppTraits: readonly TraitKey[],
+  ownTraits: readonly TraitKey[],
+): number {
+  const g = sumField(oppTraits, "gamesmanship");
+  if (g <= 0) return 0;
+  return clamp(g * 0.6 - sumField(ownTraits, "composure") * 0.6, 0, 1.5);
 }
 
 // ——— Kalıcılık kodlaması: "KEY:unlockAge" virgülle ———
