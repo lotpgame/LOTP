@@ -933,6 +933,7 @@ export interface UpcomingTournamentDTO {
   label: string; // yerelleştirilmiş turnuva adı (yaş kategorisiyle)
   categoryId: string;
   dayName: string; // haftanın günü
+  dateLabel: string; // GERÇEK tarih + 19:00 saati (TR)
   quarter: number;
   month: number; // h1..h12
   qualified: boolean; // katılım hakkı (uluslararası ilk16/ilk4)
@@ -959,6 +960,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
   });
   const regBy = new Map(regs.map((r) => [`${r.worldDay}:${r.level}`, r]));
 
+  const cfg = worldClockConfig();
   const out: UpcomingTournamentDTO[] = [];
   // Kayıt turnuva gününün 00:00'ında kapanır → yalnız GELECEK günler (today+1) kaydedilebilir.
   for (let d = today + 1; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
@@ -973,6 +975,14 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
+      dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
+        timeZone: "Europe/Istanbul",
+        day: "numeric",
+        month: "long",
+        weekday: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       quarter: quarterOf(d),
       month: monthOfQuarter(d),
       qualified: !human.injuryDaysRemaining && qualifies(act.qualification, humanRank),

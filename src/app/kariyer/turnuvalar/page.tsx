@@ -80,7 +80,7 @@ export default async function TurnuvalarPage() {
                 <div className="min-w-0">
                   <div className="text-sm font-medium">{u.label}</div>
                   <div className="text-xs opacity-60">
-                    Q{u.quarter} · H{u.month} · {u.dayName}
+                    📅 {u.dateLabel}
                     {u.registered ? ` · ✓ ${t(locale, "turnuvalar.registered")}` : ""}
                   </div>
                 </div>
