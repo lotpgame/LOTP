@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import { CONTINENTS, citiesForCountry, continentOfCountry, countryByPhone, normalizePhone, parsePhone } from "@/engine/geo";
 
 describe("geo — ülke / telefon", () => {
-  it("TR şehir listesi dolu ve İstanbul içeriyor", () => {
+  it("TR eskrim şehir listesi (küratörlü) İstanbul + Kocaeli içerir", () => {
     const cities = citiesForCountry("TR");
-    expect(cities.length).toBeGreaterThan(50);
+    expect(cities.length).toBeGreaterThanOrEqual(6); // AI havuzu için yeterli; küratörlü set
     expect(cities).toContain("İstanbul");
+    expect(cities).toContain("Kocaeli");
   });
 
   it("telefonu normalize eder (boşluk/tire/00 → +)", () => {
