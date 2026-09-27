@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { countryFlag } from "@/engine/geo";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -14,7 +13,7 @@ export default async function KlasmanPage() {
 
   const myRank = c.ranking.find((r) => r.isHuman)?.position ?? null;
   const ageCat = c.categoryId.split("-")[0];
-  const catName = `${countryFlag("TR")} ${t(locale, `gender.${c.gender}`)} ${t(locale, `weapon.${c.weapon}`)} ${ageCat}`;
+  const catName = `${t(locale, "country.TR")} ${t(locale, `gender.${c.gender}`)} ${t(locale, `weapon.${c.weapon}`)} ${ageCat}`;
 
   return (
     <main>

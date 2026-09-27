@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { t, type Locale } from "@/i18n";
+import { Flag } from "./Flag";
 
 interface NavItem {
   href: string;
@@ -75,11 +76,15 @@ export function CareerNav({ name, locale, weapon, gender, ageCategory, age, city
               <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-300">
                 {ageCategory} · {age} {t(locale, "common.age")}
               </span>
-              {/* Ülke bayrağı + şehir (V1 TR-only; çok ülkeli fazda gerçek koddan üretilir). */}
-              {city && <span className={badge}>🇹🇷 {city}</span>}
+              {/* Ülke bayrağı (görsel) + şehir (V1 TR-only; çok ülkeli fazda gerçek koddan). */}
+              {city && (
+                <span className={`${badge} inline-flex items-center gap-1`}>
+                  <Flag code="TR" /> {city}
+                </span>
+              )}
               {nationalTeam && (
-                <span className="rounded-full bg-red-500/20 px-2 py-0.5 font-semibold text-red-700 dark:text-red-300">
-                  🇹🇷 {t(locale, "common.nationalTeam")}
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 font-semibold text-red-700 dark:text-red-300">
+                  <Flag code="TR" /> {t(locale, "common.nationalTeam")}
                 </span>
               )}
             </div>

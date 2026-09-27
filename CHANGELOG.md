@@ -59,7 +59,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   alt bilgi). Sadece görünen isim; kod/DB etkilenmez.
 
 ### Değişti (playtest turu 2 — NOTLAR #1-#9)
-- **Ülke bayrağı:** kimlik rozetinde/klasmanda/oluşturmada ülke kodu yerine **🇹🇷 bayrak** (`countryFlag` helper; çok ülkeli fazda gerçek koddan).
+- **Ülke bayrağı (gerçek görsel):** kimlik rozetinde (şehir + milli takım) ülke bayrağı **görsel** olarak gösterilir (`Flag` bileşeni, flagcdn). Emoji bayrağı Windows'ta "TR" harfleri olarak göründüğü için görsel kullanıldı; tüm platform/ülkelerde çalışır.
 - **Kondisyon en fazla %99:** hiç kimse asla tam %100 taze değil — günlük toparlanma/dinlenme/sakatlık kondisyonu 99'a getirir (yorgunluk tabanı 1). Antrenman etkisi zaten akşam 19:00'da işlenir.
 - **Antrenman sayfası iconları:** Bugün 📅 · Kondisyon 🔋 · Form 🎯 (profil ile aynı).
 - **Koç → Antrenör:** kulüp antrenörleri artık gerçek **ad-soyad** + **"🎓 Antrenör"** unvanı ("… Hoca" kalktı).
