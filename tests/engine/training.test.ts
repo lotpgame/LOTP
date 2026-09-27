@@ -7,7 +7,7 @@ const baseSkills = () =>
   generateStartingSkills(createRng("trainee"), { age: 15, profile: "BALANCED" });
 
 describe("Training Engine", () => {
-  it("teknik antrenman teknik skill'leri geliştirir, diğerlerini değiştirmez", () => {
+  it("teknik antrenman en çok teknik'i geliştirir; diğer gruplara küçük çapraz katkı (#18)", () => {
     const skills = baseSkills();
     const { skills: next, gains } = applyTraining(skills, {
       type: "TECHNICAL",
@@ -18,9 +18,13 @@ describe("Training Engine", () => {
       expect(next[k].current).toBeGreaterThan(skills[k].current);
       expect(gains[k]).toBeGreaterThan(0);
     }
-    for (const k of skillKeysOf("PHYSICAL")) {
-      expect(next[k].current).toBe(skills[k].current);
-    }
+    // Çapraz katkı: fiziksel de biraz gelişir ama teknik'ten belirgin şekilde az.
+    const grown = (keys: readonly string[]) =>
+      keys.reduce((a, k) => a + (next[k as keyof typeof next].current - skills[k as keyof typeof skills].current), 0);
+    const tech = grown(skillKeysOf("TECHNICAL"));
+    const phys = grown(skillKeysOf("PHYSICAL"));
+    expect(phys).toBeGreaterThan(0);
+    expect(tech).toBeGreaterThan(phys);
   });
 
   it("antrenman yorgunluk üretir, REST toparlar", () => {

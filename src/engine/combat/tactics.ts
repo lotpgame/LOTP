@@ -22,9 +22,9 @@ export type Tactic = "OFFENSIVE" | "BALANCED" | "DEFENSIVE";
 export const TACTICS: readonly Tactic[] = ["OFFENSIVE", "BALANCED", "DEFENSIVE"];
 
 export const TACTIC_LABEL_TR: Record<Tactic, string> = {
-  OFFENSIVE: "Baskı kur",
+  OFFENSIVE: "Atak",
   BALANCED: "Dengeli",
-  DEFENSIVE: "Bekle & karşıla",
+  DEFENSIVE: "Defans",
 };
 
 export const TACTIC_DESC_TR: Record<Tactic, string> = {

@@ -27,6 +27,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yüklendi; kariyer/gün-ilerleme/turnuva-çözümü uçtan uca doğrulandı. (`.env` commit'lenmez.)
 
 ### Değişti
+- **Faz 1 — playtest ayarları (NOTLAR #27/#17/#18):**
+  - **Taktik isimleri sadeleşti:** "Baskı kur / Dengeli / Bekle & karşıla" → **Atak / Dengeli / Defans**
+    (iç mantık aynı; yalnız görünen etiketler + açıklama).
+  - **Başlangıç profili artık gerçekten yön veriyor (#17):** seçilen grup (Teknik/Fiziksel/Mental/Taktik)
+    başlangıç yeteneklerinde rastgeleliğin üstünde bir ağırlık alır (bonus +0.20, diğerleri −0.05, sapma
+    ±0.08) → "fiziksel" seçen artık güvenilir şekilde fiziksel çıkar, ama oyuncular yine farklılaşır.
+  - **Antrenman çapraz katkı (#18):** çalışılan grup tam gelişir, diğer gruplara küçük yan kazanım
+    (birincil stimulusun %12'si) → teknik çalışınca mentale/taktiğe/fiziğe de az miktarda katkı gelir.
+    Denge simülasyonu korundu (kazanma eğrisi + gelişim sağlıklı).
 - **Oyun adı: "Project Engarde" → "Legends of the Piste"** (tarayıcı sekmesi başlığı, ana ekran başlığı,
   alt bilgi). Sadece görünen isim; kod/DB etkilenmez.
 

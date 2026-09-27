@@ -86,8 +86,11 @@ export function generateStartingSkills(
 
   const result = {} as PlayerSkills;
   for (const def of SKILLS) {
-    const skillVar = rng.float(-0.12, 0.12);
-    const profBonus = profileCategory ? (def.category === profileCategory ? 0.12 : -0.03) : 0;
+    // #17: profil sinyali rastgele sapmanın ÜSTÜNDE olmalı — yoksa "fiziksel" seçen oyuncunun
+    // teknik'i şans eseri daha yüksek çıkabiliyordu. Seçilen grup +0.20, diğerleri −0.05; sapma ±0.08
+    // → seçilen kategori güvenilir şekilde en güçlü, ama oyuncular yine farklılaşır (makul rastgelelik).
+    const skillVar = rng.float(-0.08, 0.08);
+    const profBonus = profileCategory ? (def.category === profileCategory ? 0.2 : -0.05) : 0;
     const t = clamp(playerTalent + skillVar + profBonus, 0, 1);
     // Yetişkin (gizli) potansiyel: 42..90 — çoğu 45-65, elit ~80-86, olağanüstü ~86-90 (nadir).
     const potential = clamp(42 + t * (HARD_CEILING - 42), 42, HARD_CEILING);

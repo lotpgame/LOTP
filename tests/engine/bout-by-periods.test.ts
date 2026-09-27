@@ -51,7 +51,7 @@ describe("simulateBoutByPeriods (M11.3a)", () => {
       tacticA: (p) => tactics[p - 1],
     });
     const p1 = r.log.find((l) => l.includes("1. Periyot"));
-    expect(p1).toContain("Baskı kur"); // P1 kaynağı OFFENSIVE (yeni etiket)
+    expect(p1).toContain("Atak"); // P1 kaynağı OFFENSIVE (yeni etiket)
   });
 
   it("U10 (10 tuş / 2 periyot): 1. periyot 5 tuş tavanıyla biter", () => {

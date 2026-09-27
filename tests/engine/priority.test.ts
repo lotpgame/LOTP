@@ -44,7 +44,7 @@ describe("priority — öncelik/hak-yolu motoru (#5)", () => {
     expect(winsWithTiming).toBeGreaterThan(winsNeutral);
   });
 
-  it("pickIntent: Baskı kur → çoğu ATTACK; Bekle&karşıla → çoğu DEFEND", () => {
+  it("pickIntent: Atak → çoğu ATTACK; Defans → çoğu DEFEND", () => {
     let atk = 0;
     let def = 0;
     for (let i = 0; i < 400; i++) {

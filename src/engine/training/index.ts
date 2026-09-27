@@ -36,6 +36,9 @@ const BASE_FATIGUE: Record<TrainingType, number> = {
 };
 
 const PRIMARY_STIMULUS = 0.6;
+// #18: çapraz katkı — çalışılan grup tam gelişir, diğer gruplar bunun küçük bir oranı kadar (yan kazanım).
+// Örn. teknik çalışınca teknik +0.2 iken mental/taktik/fiziksel'e +~0.02 gelir. Antrenman daha bütünsel hissettirir.
+const SPILL_FRACTION = 0.12;
 
 export interface TrainingResult {
   skills: PlayerSkills;
@@ -84,12 +87,13 @@ export function applyTraining(
   const next: PlayerSkills = { ...skills };
   const gains: Partial<Record<SkillKey, number>> = {};
   for (const def of SKILLS) {
-    if (def.category !== type) continue;
+    // Çalışılan grup tam stimulus; diğer gruplar SPILL_FRACTION kadar (#18 çapraz katkı).
+    const spill = def.category === type ? 1 : SPILL_FRACTION;
     const before = next[def.key].current;
     const skillMult = opts.skillMultipliers?.[def.key] ?? 1;
     // Yaşa uygun tavan: 10 yaşındaki oyuncu yetişkin potansiyeline gelişemez (GDD 9.35).
     const ageCap = skillAgeCeiling(next[def.key].potential, next[def.key].floor, age);
-    next[def.key] = growSkill(next[def.key], stimulus * skillMult, factor, ageCap);
+    next[def.key] = growSkill(next[def.key], stimulus * spill * skillMult, factor, ageCap);
     const delta = next[def.key].current - before;
     if (delta > 0) gains[def.key] = Math.round(delta * 100) / 100;
   }
