@@ -4,6 +4,7 @@ import { GLADIUS_ITEMS, type EquipmentSlot } from "@/engine/equipment";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
+import { DenarMark } from "../DenarMark";
 
 export const dynamic = "force-dynamic";
 
@@ -33,8 +34,8 @@ export default async function EkipmanPage() {
     <main>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">{t(locale, "ekipman.title")}</h1>
-        <span className="rounded-full border border-black/10 px-3 py-1 text-sm font-medium dark:border-white/15">
-          🪙 Đ {c.balance.toFixed(0)}
+        <span className="flex items-center gap-1.5 rounded-full border border-black/10 px-3 py-1 text-sm font-medium dark:border-white/15">
+          <DenarMark size={16} /> {c.balance.toFixed(0)}
         </span>
       </div>
 
@@ -88,7 +89,7 @@ export default async function EkipmanPage() {
                 <div className="text-xs opacity-60">{item.desc}</div>
 
                 <div className="mt-auto flex items-center justify-between border-t border-black/10 pt-2.5 dark:border-white/10" style={{ marginTop: "0.75rem" }}>
-                  <span className="text-sm font-semibold">Đ {item.denar}</span>
+                  <span className="flex items-center gap-1 text-sm font-semibold"><DenarMark size={14} /> {item.denar}</span>
                   {isOwned ? (
                     <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">✓ Sahipsin</span>
                   ) : (

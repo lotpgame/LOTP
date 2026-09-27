@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { resetCareerAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
+import { DenarMark } from "../DenarMark";
 
 const SOUND_KEY = "engarde_sound";
 
@@ -49,11 +50,15 @@ export function CareerResetButton({
   label,
   warning,
   danger,
+  cost = 0,
+  canAfford = true,
 }: {
   locale: Locale;
   label: string;
   warning: string;
   danger?: boolean;
+  cost?: number;
+  canAfford?: boolean;
 }) {
   const [confirm, setConfirm] = useState(false);
   if (!confirm) {
@@ -73,19 +78,38 @@ export function CareerResetButton({
   return (
     <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
       <p className="text-sm">{warning}</p>
-      <div className="mt-2 flex gap-2">
-        <form action={resetCareerAction}>
-          <button className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500">
-            {t(locale, "settings.deleteConfirm")}
+      {cost > 0 && (
+        <p className="mt-1 flex items-center gap-1 text-xs opacity-70">
+          Silme ücreti: <DenarMark size={13} /> {cost}
+        </p>
+      )}
+      {canAfford ? (
+        <div className="mt-2 flex gap-2">
+          <form action={resetCareerAction}>
+            <button className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500">
+              {t(locale, "settings.deleteConfirm")}
+            </button>
+          </form>
+          <button
+            onClick={() => setConfirm(false)}
+            className="rounded-lg border border-black/15 px-4 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
+          >
+            {t(locale, "settings.cancel")}
           </button>
-        </form>
-        <button
-          onClick={() => setConfirm(false)}
-          className="rounded-lg border border-black/15 px-4 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-        >
-          {t(locale, "settings.cancel")}
-        </button>
-      </div>
+        </div>
+      ) : (
+        <div className="mt-2">
+          <p className="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
+            Yetersiz Denar — gerekli: <DenarMark size={13} /> {cost}. Turnuvalardan kazan.
+          </p>
+          <button
+            onClick={() => setConfirm(false)}
+            className="mt-2 rounded-lg border border-black/15 px-4 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
+          >
+            {t(locale, "settings.cancel")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

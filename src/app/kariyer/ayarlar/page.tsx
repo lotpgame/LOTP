@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
 import { LangSelect } from "@/app/LangSelect";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
+import { CAREER_RESET_COST, getCareer } from "@/server/careerService";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
 import { ThemeSettings } from "../ThemeSettings";
 
@@ -8,6 +10,9 @@ export const dynamic = "force-dynamic";
 
 export default async function AyarlarPage() {
   const locale = await getLocale();
+  const c = await getCareer();
+  if (!c) redirect("/");
+  const canAfford = c.balance >= CAREER_RESET_COST;
 
   return (
     <main>
@@ -48,6 +53,8 @@ export default async function AyarlarPage() {
               locale={locale}
               label={t(locale, "settings.newCareer")}
               warning={t(locale, "settings.deleteWarning")}
+              cost={CAREER_RESET_COST}
+              canAfford={canAfford}
             />
             <p className="mt-1 text-xs opacity-50">{t(locale, "settings.newCareerNote")}</p>
           </div>
@@ -56,6 +63,8 @@ export default async function AyarlarPage() {
               locale={locale}
               label={t(locale, "settings.deleteCareer")}
               warning={t(locale, "settings.deleteWarning")}
+              cost={CAREER_RESET_COST}
+              canAfford={canAfford}
               danger
             />
           </div>

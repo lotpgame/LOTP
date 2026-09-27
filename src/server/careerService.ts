@@ -1632,10 +1632,20 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
  * diğer kullanıcılar) KORUNUR — yalnız bu kullanıcının insan oyuncusu + durumu silinir. İnsan
  * oyuncuyu silmek skill/ranking/achievement/turnuva-kaydını cascade ile temizler (schema onDelete).
  */
+/** Kariyeri silmenin/yeniden başlamanın Denar bedeli — sık reroll'u caydıran sink (tunable, GDD 16). */
+export const CAREER_RESET_COST = 250;
+
 export async function resetCareer(): Promise<void> {
   const uid = await currentUserId();
   if (uid == null) return;
   const gs = await prisma.gameState.findUnique({ where: { userId: uid }, select: { humanPlayerId: true } });
+  if (gs) {
+    const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId }, select: { balance: true } });
+    // Denar kapısı: yeterli bakiye yoksa silinemez (kullanıcı kararı — kariyer silme Denar gerektirir).
+    if (human && human.balance < CAREER_RESET_COST) {
+      throw new Error(`Kariyeri silmek için en az ${CAREER_RESET_COST} Denar gerekir. Turnuvalardan Denar kazan.`);
+    }
+  }
   await prisma.$transaction([
     prisma.gameState.deleteMany({ where: { userId: uid } }),
     ...(gs ? [prisma.player.deleteMany({ where: { id: gs.humanPlayerId } })] : []),

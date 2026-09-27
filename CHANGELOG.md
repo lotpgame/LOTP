@@ -67,6 +67,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Turnuva girişi Turnuvalar sekmesinden (#5a):** alt çubukta **"Katıl" butonu KALKTI**; turnuva zamanı geldiğinde Turnuvalar sayfasında **🔴 CANLI** kartı + "Turnuvaya Gir"; biten turnuva zaten Geçmiş'te. Alt çubukta yalnız "Turnuvaya Git" yönlendirmesi + "Geç".
 
 ### Eklendi
+- **Denar özel işareti (Đ + kılıç):** "D" harfinin ortasından eskrim kılıcı geçen özel para simgesi (`DenarMark`
+  SVG, currentColor). Bakiye + fiyatlar + silme ücretinde kullanılır.
+- **Kariyer silme Denar ücreti (NOTLAR #30):** "Yeni Kariyer" / "Kariyeri Sil" artık **Denar gerektirir**
+  (`CAREER_RESET_COST` = 250, tunable) — sık reroll'u caydırır. Ayarlar ücreti gösterir; yetersizse net uyarı
+  ("Turnuvalardan kazan"). Sunucuda da kapılı.
+- **Turnuvalar "Sezon programı" kartı:** eski "H1–H12" aylık grid kalktı (gerçek tarih modeliyle uyumsuzdu) →
+  tek sade haftalık program kartı (etkinlik 19:00, Open iki haftada bir).
 - **Gladius ekipman mağazası (Denar ekonomisi):** Ekipman sayfası gerçek mağaza — marka **GLADIUS**, **Denar (Đ)**
   ile alışveriş. Katalog: silah/maske/kordon/maske kordonu/kıyafet/plastron/lamé/ayakkabı/çorap/çanta.
   Her ürün maça **çok çok az** katkı verir (~+0.003, tek yerde **tunable** — `GLADIUS_ITEMS`). Satın al → sahiplik
