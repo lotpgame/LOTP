@@ -50,12 +50,12 @@ describe("schedule — periyot ve taktik pencereleri", () => {
 });
 
 describe("schedule — havuz planı", () => {
-  it("ilk maç 11:05'te, sonra 4 dk tempoyla (3 dk maç + 1 dk ara)", () => {
+  it("ilk maç 19:05'te, sonra 4 dk tempoyla (3 dk maç + 1 dk ara)", () => {
     const plan = poolPlan(3);
     expect(plan).toHaveLength(3);
-    expect(formatDayMinute(plan[0].startMinute)).toBe("11:05");
-    expect(formatDayMinute(plan[1].startMinute)).toBe("11:09");
-    expect(formatDayMinute(plan[2].startMinute)).toBe("11:13");
+    expect(formatDayMinute(plan[0].startMinute)).toBe("19:05");
+    expect(formatDayMinute(plan[1].startMinute)).toBe("19:09");
+    expect(formatDayMinute(plan[2].startMinute)).toBe("19:13");
     expect(plan.every((m) => m.phase === "POOL" && m.periods === 1)).toBe(true);
   });
 
@@ -65,7 +65,7 @@ describe("schedule — havuz planı", () => {
 });
 
 describe("schedule — eleme planı", () => {
-  it("çeyrek finale kadar 14:00 bloğu; yarı+final 17:00 bloğu", () => {
+  it("çeyrek finale kadar 19:45 bloğu; yarı+final 20:30 bloğu", () => {
     const rounds: MatchSpec[] = [
       { phase: "DE", round: "Son 16", periods: 3 },
       { phase: "DE", round: "Çeyrek Final", periods: 3 },
@@ -73,17 +73,17 @@ describe("schedule — eleme planı", () => {
       { phase: "DE", round: "Final", periods: 3 },
     ];
     const plan = dePlan(rounds);
-    expect(formatDayMinute(plan[0].startMinute)).toBe("14:00"); // Son 16
-    // Çeyrek: 14:00 + 11 dk maç + 2 dk ara = 14:13
-    expect(formatDayMinute(plan[1].startMinute)).toBe("14:13");
-    expect(formatDayMinute(plan[2].startMinute)).toBe("17:00"); // Yarı Final
-    expect(formatDayMinute(plan[3].startMinute)).toBe("17:13"); // Final
+    expect(formatDayMinute(plan[0].startMinute)).toBe("19:45"); // Son 16
+    // Çeyrek: 19:45 + 11 dk maç + 2 dk ara = 19:58
+    expect(formatDayMinute(plan[1].startMinute)).toBe("19:58");
+    expect(formatDayMinute(plan[2].startMinute)).toBe("20:30"); // Yarı Final
+    expect(formatDayMinute(plan[3].startMinute)).toBe("20:43"); // Final
   });
 
   it("erken elenen oyuncu için kısa plan (yalnız oynadığı turlar)", () => {
     const plan = dePlan([{ phase: "DE", round: "Son 32", periods: 3 }]);
     expect(plan).toHaveLength(1);
-    expect(formatDayMinute(plan[0].startMinute)).toBe("14:00");
+    expect(formatDayMinute(plan[0].startMinute)).toBe("19:45");
   });
 });
 

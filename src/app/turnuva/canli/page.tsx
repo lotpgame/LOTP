@@ -137,17 +137,6 @@ function MatchCard({
   );
 }
 
-/** Tek "Devam/İlerle" butonu (server action) — üstte, durum çubuğunun altında. */
-function AdvanceButton({ locale, labelKey }: { locale: Locale; labelKey: string }) {
-  return (
-    <form action={advanceLiveStageAction} className="mt-3">
-      <button className="w-full rounded-lg bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
-        {t(locale, labelKey)}
-      </button>
-    </form>
-  );
-}
-
 export default async function CanliTurnuvaPage() {
   const tour = await getLiveTournament();
   if (!tour) redirect("/kariyer"); // aktif turnuva yok
@@ -237,8 +226,24 @@ export default async function CanliTurnuvaPage() {
         </div>
       </div>
 
-      {/* İlerleme butonu — reytingin hemen altında (kullanıcı tercihi) */}
-      {advanceKey && <AdvanceButton locale={locale} labelKey={advanceKey} />}
+      {/* #25: aşama geçişleri OTOMATİK — manuel "geç/devam" butonu yok. Kısa bekleme sonra sistem ilerler;
+          kullanıcı yalnız maç aralarında taktik seçer. Aşamaları sekmelerden geri inceleyebilir. */}
+      {advanceKey && (
+        <div className="mt-3">
+          <Countdown
+            seconds={stage === "KO_DRAW" ? 7 : stage === "POOL_INTRO" ? 6 : 5}
+            action={advanceLiveStageAction}
+            label={t(
+              locale,
+              stage === "POOL_INTRO"
+                ? "canli.autoPool"
+                : stage === "KO_DRAW"
+                  ? "canli.autoBracket"
+                  : "canli.autoContinue",
+            )}
+          />
+        </div>
+      )}
 
       {/* Aşamalı sekmeler — aynı anda tek bölüm; sekmeler ilerledikçe açılır (spoiler yok) */}
       <TournamentTabs key={stage} tabs={tabs} defaultTab={liveTab} panels={panels} lockedMsg={t(locale, "canli.tabLocked")} />

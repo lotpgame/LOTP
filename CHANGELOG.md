@@ -37,6 +37,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
     etkinliğini ancak **o günün 19:00'ı geçince** işler (`serverEventDay`). Gün 00:00'da döner ama turnuva/
     antrenman akşam olur → sabah "bugün 19:00'da İl · ⌛ …" görünür, otomatik ileri gitmez. Doğrulandı.
   - **Sezon göstergesi roma rakamı** (Sezon kartı "I, II, III…").
+- **Faz 3 — canlı turnuva otomatik akış (NOTLAR #25):** Manuel "geç/devam/finallere geç" butonları **kaldırıldı**;
+  aşama geçişleri (pul başlangıcı, klasman, eleme kurası) artık **otomatik** ilerler (kısa "…" bekleme, `Countdown`).
+  Kullanıcı yalnız **maç aralarında taktik** seçer. Turnuva-içi saat **19:00**'a çekildi (14:00 yerine) ve Schedule
+  Engine anları akşama alındı (pul 19:05'ten, elemeler ~19:45'ten). Yerelde uçtan uca doğrulandı (pul→klasman→bracket
+  hepsi otomatik, butonsuz). 139 test yeşil.
 - **Faz 1 — playtest ayarları (NOTLAR #27/#17/#18):**
   - **Taktik isimleri sadeleşti:** "Baskı kur / Dengeli / Bekle & karşıla" → **Atak / Dengeli / Defans**
     (iç mantık aynı; yalnız görünen etiketler + açıklama).

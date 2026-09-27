@@ -2202,7 +2202,7 @@ export async function startLiveTournament(
   for (const p of aiPlayers) fatigue[p.id] = p.fatigue;
 
   const startTime = new Date(gs.currentDate);
-  startTime.setUTCHours(14, 0, 0, 0); // turnuva 14:00 başlar (immersion)
+  startTime.setUTCHours(19, 0, 0, 0); // turnuva 19:00 başlar (gün 00:00 döner, etkinlik akşam — #25)
 
   const ls: LiveState = {
     version: 1,
