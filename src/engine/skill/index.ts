@@ -51,7 +51,8 @@ export const HARD_CEILING = 90;
  */
 export function maturity(age: number): number {
   if (age >= 26) return 1;
-  return clamp(0.3 + (age - 8) * (0.7 / 18), 0.3, 1);
+  // 8 yaşta ~%15 (çiçeği burnunda çocuk → düşük başlar, 90'lara giden uzun yolculuk), 26'da tam kapasite.
+  return clamp(0.15 + (age - 8) * (0.85 / 18), 0.15, 1);
 }
 
 /**
@@ -84,20 +85,29 @@ export function generateStartingSkills(
   // Oyuncunun genel yeteneği (0–1), düşüğe eğimli → çoğu orta, elit nadir (GDD 2.7, 9.11).
   const playerTalent = Math.pow(rng.next(), 2.3);
 
+  // #17: profil SIFIR-TOPLAM uzmanlaşma — seçilen grup yükselir, diğerleri o kadar düşer, GENEL ORTALAMA
+  // sabit kalır (profil seni güçlendirmez, yönlendirir). Zero-sum: perSkillBonus toplamı = 0.
+  const totalSkills = SKILLS.length;
+  const matchedCount = profileCategory ? SKILLS.filter((s) => s.category === profileCategory).length : 0;
+  const PROFILE_TILT = 0.5; // seçilen gruba ham eğim; sıfır-toplam olduğundan genel ortalama korunur
+
   const result = {} as PlayerSkills;
   for (const def of SKILLS) {
-    // #17: profil sinyali rastgele sapmanın ÜSTÜNDE olmalı — yoksa "fiziksel" seçen oyuncunun
-    // teknik'i şans eseri daha yüksek çıkabiliyordu. Seçilen grup +0.20, diğerleri −0.05; sapma ±0.08
-    // → seçilen kategori güvenilir şekilde en güçlü, ama oyuncular yine farklılaşır (makul rastgelelik).
+    const isProf = profileCategory != null && def.category === profileCategory;
+    // Sıfır-toplam dağıtım: seçilen grup +tilt*(diğer oran), diğerleri −tilt*(seçilen oran) → toplam 0.
+    const profBonus = profileCategory
+      ? (isProf ? PROFILE_TILT : 0) - PROFILE_TILT * (matchedCount / totalSkills)
+      : 0;
     const skillVar = rng.float(-0.08, 0.08);
-    const profBonus = profileCategory ? (def.category === profileCategory ? 0.2 : -0.05) : 0;
     const t = clamp(playerTalent + skillVar + profBonus, 0, 1);
     // Yetişkin (gizli) potansiyel: 42..90 — çoğu 45-65, elit ~80-86, olağanüstü ~86-90 (nadir).
     const potential = clamp(42 + t * (HARD_CEILING - 42), 42, HARD_CEILING);
-    const floor = round2(clamp(8 + rng.float(0, 8), 5, 25));
+    const floor = round2(clamp(3 + rng.float(0, 6), 3, 20));
     // Başlangıç yaşa uygun: o yaştaki tavanın bir kısmı → 8'de düşük başlar, yaşla açılır.
     const ageCap = skillAgeCeiling(potential, floor, age);
-    const current = clamp(floor + rng.float(0.4, 0.75) * (ageCap - floor), floor, ageCap);
+    // Başlangıç çarpanı DAR tutulur (0.5–0.66): 8 yaşta profil eğimi görünen değerde belirgin kalsın
+    // (eski geniş 0.4–0.75 aralığı eğimi gizliyordu). Genel ortalama korunur (çarpan tüm skill'lerde aynı dağılım).
+    const current = clamp(floor + rng.float(0.5, 0.66) * (ageCap - floor), floor, ageCap);
     result[def.key] = {
       current: round2(current),
       potential: round2(potential),

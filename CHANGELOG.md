@@ -30,9 +30,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Faz 1 — playtest ayarları (NOTLAR #27/#17/#18):**
   - **Taktik isimleri sadeleşti:** "Baskı kur / Dengeli / Bekle & karşıla" → **Atak / Dengeli / Defans**
     (iç mantık aynı; yalnız görünen etiketler + açıklama).
-  - **Başlangıç profili artık gerçekten yön veriyor (#17):** seçilen grup (Teknik/Fiziksel/Mental/Taktik)
-    başlangıç yeteneklerinde rastgeleliğin üstünde bir ağırlık alır (bonus +0.20, diğerleri −0.05, sapma
-    ±0.08) → "fiziksel" seçen artık güvenilir şekilde fiziksel çıkar, ama oyuncular yine farklılaşır.
+  - **Başlangıç profili artık gerçekten yön veriyor (#17) — sıfır-toplam uzmanlaşma:** seçilen grup
+    (Teknik/Fiziksel/Mental/Taktik) belirgin şekilde ağır basar, diğer gruplar o kadar düşer, **genel ortalama
+    korunur** (profil seni güçlendirmez, uzmanlaştırır). Doğrulandı: seçilen kategori ~%86–94 en yüksek,
+    genel ortalama dengeli profille aynı. 8 yaşta görünür olması için başlangıç çarpanı daraltıldı.
+  - **U10 başlangıç değerleri gerçekçi düşürüldü:** 8 yaş çocuk artık ~8–13 reyting ile başlıyor (eskiden
+    ~20–25 fazla yüksekti). Olgunlaşma eğrisi 8 yaşta %30→%15, taban (floor) 8–16→3–9. Yetişkinde tavan
+    (26 yaş, potansiyele kadar ~90) korunur → 90'lara giden uzun bir gelişim yolculuğu. Denge sim korundu.
   - **Antrenman çapraz katkı (#18):** çalışılan grup tam gelişir, diğer gruplara küçük yan kazanım
     (birincil stimulusun %12'si) → teknik çalışınca mentale/taktiğe/fiziğe de az miktarda katkı gelir.
     Denge simülasyonu korundu (kazanma eğrisi + gelişim sağlıklı).
