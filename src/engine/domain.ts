@@ -57,8 +57,8 @@ export const TOURNAMENT_PRESTIGE: Record<TournamentLevel, number> = {
  * kulüp/aktivite olan şehirler. Seçilen şehir oyuncunun kulübünü ve İl Şampiyonası kapsamını belirler.
  */
 export const TR_CITIES: readonly string[] = [
-  "İstanbul", "Ankara", "İzmir", "Bursa", "Kocaeli",
-  "Antalya", "Konya", "Trabzon", "Erzurum", "Mersin",
+  "İstanbul", "Ankara", "İzmir", "Bursa", "Kocaeli", "Antalya",
+  "Konya", "Trabzon", "Erzurum", "Mersin", "Balıkesir", "Adıyaman",
 ] as const;
 
 export const WEAPONS: readonly Weapon[] = ["FOIL", "EPEE", "SABRE"] as const;

@@ -67,9 +67,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Turnuva girişi Turnuvalar sekmesinden (#5a):** alt çubukta **"Katıl" butonu KALKTI**; turnuva zamanı geldiğinde Turnuvalar sayfasında **🔴 CANLI** kartı + "Turnuvaya Gir"; biten turnuva zaten Geçmiş'te. Alt çubukta yalnız "Turnuvaya Git" yönlendirmesi + "Geç".
 
 ### Değişti
-- **Şehir listesi eskrim şehirlerine indirildi:** 81 il yerine 10 şehir (İstanbul, Ankara, İzmir, Bursa,
-  Kocaeli, Antalya, Konya, Trabzon, Erzurum, Mersin) — başlangıç seti, sonra editlenir. Kulüp/İl Şampiyonası
-  kapsamı bu şehirlerden.
+- **Şehir listesi eskrim şehirlerine indirildi:** 81 il yerine 12 şehir (İstanbul, Ankara, İzmir, Bursa,
+  Kocaeli, Antalya, Konya, Trabzon, Erzurum, Mersin, Balıkesir, Adıyaman) — başlangıç seti, sonra editlenir.
+  Kulüp/İl Şampiyonası kapsamı bu şehirlerden.
 
 ### Eklendi
 - **Denar özel işareti (Đ + kılıç):** "D" harfinin ortasından eskrim kılıcı geçen özel para simgesi (`DenarMark`
