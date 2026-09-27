@@ -6,8 +6,9 @@
  */
 import { useEffect } from "react";
 
-export const THEME_BG_KEY = "lotp.theme.bg";
-export const THEME_FG_KEY = "lotp.theme.fg";
+import { THEME_BG_KEY, THEME_FG_KEY } from "./themeKeys";
+
+export { THEME_BG_KEY, THEME_FG_KEY };
 
 /** Kayıtlı tema renklerini <html> stiline yazar (yoksa temizler → sistem varsayılanı). */
 export function applyTheme(bg: string | null, fg: string | null): void {

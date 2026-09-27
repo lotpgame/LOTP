@@ -10,6 +10,18 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Tasarım sistemi "Pist Konsolu" — temel + ikonlar + yeni navigasyon** (`docs/tasarim/pist-konsolu.md`):
+  eskrim cihazından gelen görsel dil (tema-türevli yüzey token'ları, sinyal renkleri, Barlow Condensed
+  başlık fontu, tabular rakamlar). **Kendi SVG ikon setimiz** (`src/app/ui/Icon.tsx`) — kabukta emoji kalmadı.
+  **Navigasyon:** telefonda altta 5 sekme (Profil · Antrenman · Turnuvalar · Klasman · Daha fazla),
+  masaüstünde sol sidebar; açılır menü kalktı. İnce kimlik şeridi (maske-oval avatar). Gün çubuğu tek
+  dokunuşla Turnuvalar'a götürür; tıklanabilir satırlarda ok işareti. "Bildir" artık menüde (yüzen buton
+  yok), gönderim hatası görünür.
+
+### Düzeltildi
+- **Gövde fontu Arial'dı** (Geist yükleniyor ama kullanılmıyordu) → Geist Sans; Türkçe karakterler için `latin-ext`.
+- **Kişisel tema** (Ayarlar → Görünüm) başlık, alt çubuk ve geri bildirim panelinde çalışmıyordu (sabit
+  beyaz yüzeyler) → tüm yüzeyler temadan türer; tema ilk boyamadan önce uygulanır (yanıp sönme yok).
 - **Katkı kuralları + risk listesi (dış katkı başlangıcı):** `CONTRIBUTING.md` (branch → PR → squash
   merge akışı, **canlı veri koruma** — yalnız eklemeli şema, oyuncu ilerlemesi sıfırlanmaz, "bitti" tanımı,
   güvenlik/KVKK), `.github/pull_request_template.md` (kontrol listesi) ve `docs/ROADMAP.md` **§H Riskler &

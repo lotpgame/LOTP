@@ -7,6 +7,7 @@
  * Geri sayım yalnız istemcide (mount sonrası) hesaplanır → hydration uyumsuzluğu olmaz.
  */
 import { useEffect, useState } from "react";
+import { Icon } from "@/app/ui/Icon";
 
 export interface NextTournamentInfo {
   level: string;
@@ -69,9 +70,12 @@ export function NextTournament({ info, variant }: { info: NextTournamentInfo; va
 
   if (variant === "bar") {
     return (
-      <span className="mt-0.5 block truncate text-xs opacity-70">
-        ⏰ Sıradaki: {info.label} · {dayLabel} {hhmm}
-        {!openNow && remaining != null ? ` (${fmtRemaining(remaining)})` : ""}
+      <span className="flex min-w-0 items-center gap-1.5 text-[13px] text-steel">
+        <Icon name="tournament" size={15} className="shrink-0" />
+        <span className="truncate">
+          {info.label} · {dayLabel} <span className="num">{hhmm}</span>
+          {!openNow && remaining != null ? ` · ${fmtRemaining(remaining)}` : ""}
+        </span>
       </span>
     );
   }
