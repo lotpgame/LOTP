@@ -35,13 +35,14 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 | [#6](https://github.com/alkanyus/LOTP/pull/6) | Turnuvalar: 3 butonlu taktik seçimi, net kayıt durumu | #5 |
 | [#7](https://github.com/alkanyus/LOTP/pull/7) | Yeni giriş ekranı (sporcu oluşturma) | #6 |
 | [#8](https://github.com/alkanyus/LOTP/pull/8) | Klasman: sıralama kulesi | #7 |
-| [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** |
 | [#11](https://github.com/alkanyus/LOTP/pull/11) | Giriş ekranı masaüstünde iki sütun (solda vitrin, sağda form) | #8 |
 | [#12](https://github.com/alkanyus/LOTP/pull/12) | Antrenman planı: ikonlu 5'li seçim, "Kaydedilmedi" uyarısı | #11 |
 | [#14](https://github.com/alkanyus/LOTP/pull/14) | Kalan sayfalarda emoji temizliği (Geçmiş, Kulüp, Ayarlar …) + stil katmanı düzeltmesi | #12 |
+| [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** (+ #14) |
+| [#16](https://github.com/alkanyus/LOTP/pull/16) | Pul kağıdı yeniden çizildi (FIE düzeni, kendi satır + sütun işaretli) | #9 |
 
-PR'lar zincirli: her biri bir öncekinin üstüne kurulu, sırayla merge edilir. #9 ile #11 ikisi de #8'in
-üstünde; #11, #12 ve #14 renk kararını beklemez.
+PR'lar zincirli: her biri bir öncekinin üstüne kurulu, tablodaki sırayla merge edilir. #9 zincirin sonuna
+(#14'ün üstüne) taşındı; #9 ve #16 renk kararını (Madde 2) bekler, üstlerindekiler beklemez.
 
 ## Senden beklenenler (Yusuf)
 
@@ -151,10 +152,9 @@ Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar sen
 ## Osman tarafının sıradaki işleri
 
 1. Hook gelince #2 merge → sonra #3 … #8, #11, #12, #14 sırayla merge. Her biri canlıya çıkar, şema değişmez.
-2. #9: Madde 2 cevaplanınca merge.
+2. #9 ve #16: Madde 2 cevaplanınca merge (önce #9, sonra #16).
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
-   - pul kağıdı
    - beyaz lamba (flöre/kılıç geçersiz tuş)
 
 ## Karar günlüğü
