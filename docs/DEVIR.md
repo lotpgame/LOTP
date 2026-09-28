@@ -43,9 +43,10 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 | [#14](https://github.com/alkanyus/LOTP/pull/14) | Kalan sayfalarda emoji temizliği (Geçmiş, Kulüp, Ayarlar …) + stil katmanı düzeltmesi | #12 |
 | [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** (+ #14) |
 | [#16](https://github.com/alkanyus/LOTP/pull/16) | Pul kağıdı yeniden çizildi (FIE düzeni, kendi satır + sütun işaretli) | #9 |
+| [#18](https://github.com/alkanyus/LOTP/pull/18) | Manşet cümleleri ("U10 İl Şampiyonası: … şampiyon!") + WhatsApp'ta paylaş | #16 |
 
 PR'lar zincirli: her biri bir öncekinin üstüne kurulu, tablodaki sırayla merge edilir. #9 zincirin sonuna
-(#14'ün üstüne) taşındı; #9 ve #16 renk kararını (Madde 2) bekler, üstlerindekiler beklemez.
+(#14'ün üstüne) taşındı; #9, #16 ve #18 renk kararını (Madde 2) bekler, üstlerindekiler beklemez.
 
 ## Senden beklenenler (Yusuf)
 
@@ -126,7 +127,7 @@ Taslak (WhatsApp için, istediğin gibi değiştir):
 
 > Oyunun görünümü yenilendi. Menü artık telefonda altta, bilgisayarda solda. "Profil"in adı "Bugün" oldu;
 > yeteneklerin aynı sayfanın altında. Canlı maçta artık hep soldasın ve kırmızısın, gerçek eskrim cihazındaki
-> gibi. Kariyerin ve ilerlemen aynen duruyor. Bir sorun görürsen "Bildir" butonunu kullan.
+> gibi. Turnuva bitince sonucunu WhatsApp'ta paylaşabilirsin. Kariyerin ve ilerlemen aynen duruyor. Bir sorun görürsen "Bildir" butonunu kullan.
 
 **Cevap:** (duyuruyu sen mi atacaksın, metin uygun mu?)
 
@@ -157,7 +158,7 @@ Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar sen
 ## Osman tarafının sıradaki işleri
 
 1. Hook gelince #2 merge → sonra #3 … #8, #11, #12, #14 sırayla merge. Her biri canlıya çıkar, şema değişmez.
-2. #9 ve #16: Madde 2 cevaplanınca merge (önce #9, sonra #16).
+2. #9, #16, #18: Madde 2 cevaplanınca bu sırayla merge.
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
    - beyaz lamba (flöre/kılıç geçersiz tuş)
