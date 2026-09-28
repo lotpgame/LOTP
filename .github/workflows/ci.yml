@@ -1,0 +1,48 @@
+# CI — her PR ve master push'unda lint + test + build (ROADMAP §H R4).
+# Build gerçek veritabanına bağlanmaz (tüm sayfalar dinamik); DATABASE_URL yalnız Prisma için sahte değer.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci # postinstall → prisma generate
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  # Vercel (Hobby) yalnız proje sahibinin commit'lerini otomatik yayınlar. Dış katkıcının merge'ü
+  # canlıya bu Deploy Hook ile çıkar — yalnız CI yeşilse. Proje sahibinin kendi push'ları zaten
+  # Vercel Git entegrasyonuyla yayınlanır (çift deploy olmasın diye atlanır).
+  # Secret: repo Settings → Secrets and variables → Actions → VERCEL_DEPLOY_HOOK (Vercel → Settings → Git → Deploy Hooks).
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.actor != 'alkanyus'
+    runs-on: ubuntu-latest
+    env:
+      HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+    steps:
+      - name: Vercel deploy hook
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error::VERCEL_DEPLOY_HOOK secret yok — bu merge canlıya ÇIKMADI (proje sahibinin sonraki push'unu bekler)."
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Canlı yayın tetiklendi."

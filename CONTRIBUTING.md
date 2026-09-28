@@ -21,8 +21,10 @@ ile gelir; böylece her değişiklik tek parça, geri alınabilir ve CI'dan geç
 6. **Merge sonrası:** branch hem yerelde hem GitHub'da silinir. Uzun yaşayan branch yok —
    `master` = canlı sürüm, her zaman.
 
-> `master`'a merge = **canlıya çıkış** (Vercel otomatik yayınlar). Önizleme ortamı kullanılmıyor;
-> bu yüzden aşağıdaki "Canlı veri koruma" kuralları zorunludur.
+> `master`'a merge = **canlıya çıkış**. CI (`.github/workflows/ci.yml`) lint + test + build'i geçince
+> dış katkıcı merge'ünü Vercel Deploy Hook ile yayınlar (secret `VERCEL_DEPLOY_HOOK`); CI kırmızıysa
+> yayın olmaz. Merge sonrası GitHub → Actions'ta "deploy" adımının yeşil olduğuna bakılır.
+> Önizleme ortamı kullanılmıyor; bu yüzden aşağıdaki "Canlı veri koruma" kuralları zorunludur.
 
 ---
 

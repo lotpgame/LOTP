@@ -385,8 +385,11 @@ Kod incelemesiyle (2026-09-28, dış katkıcı analizi) tespit edilen riskler. �
   O zamana kadar: yalnız eklemeli şema değişikliği (CONTRIBUTING.md §2).
 - 🟠 **R3 — Canlı DB yedeği yok.** `npm run db:backup` yalnız yerel SQLite'ı kopyalar. **Yapılacak:** şema
   değişikliği öncesi Neon restore noktası / `pg_dump`; düzenli yedek (M12).
-- 🟠 **R4 — CI yok.** `master`'a push = canlı; lint/test/build kontrolü otomatik değil.
-  **Yapılacak:** GitHub Actions (lint + test + build) her PR ve push'ta.
+- ✅ **R4 — CI yok.** `master`'a push = canlı; lint/test/build kontrolü otomatik değildi.
+  **Çözüm (2026-09-28):** `.github/workflows/ci.yml` — her PR ve `master` push'unda lint + test + build.
+  Dış katkıcı merge'leri Vercel'e **Deploy Hook** ile çıkar (Hobby plan yalnız proje sahibinin commit'lerini
+  yayınlar); secret `VERCEL_DEPLOY_HOOK` yoksa CI kırmızı olur → "canlıya çıkmadı" görünür. Not: proje sahibinin
+  kendi push'ları CI'yı beklemeden Vercel'e gider (CI yalnız uyarır).
 - 🟠 **R5 — `src/server/careerService.ts` ~3.200 satır.** Kimlik, kariyer, antrenman, turnuva, canlı turnuva,
   ekipman, geri bildirim tek dosyada → çakışma ve regresyon riski büyüyor. **Yapılacak:** büyük tek refactor
   değil; ilgili özelliğe dokunulduğunda o parça ayrı modüle (`server/auth.ts`, `server/liveTournament.ts` …).

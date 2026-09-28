@@ -14,6 +14,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **CI (GitHub Actions):** `.github/workflows/ci.yml` — her PR ve `master` push'unda lint + test + build
+  (sahte `DATABASE_URL`, gerçek DB'ye bağlanmaz). Dış katkıcı merge'leri CI yeşilse Vercel Deploy Hook ile
+  canlıya çıkar (secret `VERCEL_DEPLOY_HOOK`; yoksa CI bunu kırmızıyla bildirir). ROADMAP §H R4 ✅.
 - **Pul kağıdı yeniden çizildi:** gerçek FIE pul kağıdı düzeni, yeni tasarım dilinde — köşegen taralı, galibiyet
   hücreleri ("V5") kalın ve köşede küçük işaret, mağlubiyetler soluk. **Kendi satırın ve sütunun** koyu zeminle
   (artı gibi) işaretli: satır = senin rakiplere karşı sonuçların, sütun = rakiplerin sana karşı. Telefonda ad
