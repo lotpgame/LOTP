@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
+  Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
+  çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp
+  sönen lamba. Ödül etiketi (klasman puanı / tecrübe). Açıklamalar ve haftalık program "Nasıl işler?" altında.
+  Sunucu aksiyonları değişmedi.
 - **GLADIUS mağazası yenilendi + kendi ekipman ikonlarımız:** emoji yerine elle çizilmiş SVG ikonlar
   (maske, beden ve maske kordonu, ceket, plastron, lamé, ayakkabı, çorap, çanta; silah ikonu oyuncunun
   silahına göre) ve GLADIUS monogramı — hiçbir gerçek marka/ürün görselinden kopya değil. "Kit x/10"

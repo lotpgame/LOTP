@@ -47,7 +47,11 @@ export type IconName =
   | "shoes"
   | "socks"
   | "bag"
-  | "gladius";
+  | "gladius"
+  // Taktikler
+  | "attack"
+  | "balanced"
+  | "defence";
 
 const PATHS: Record<IconName, ReactNode> = {
   // Takvim yaprağı + bugünün noktası
@@ -216,6 +220,14 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 1.5V6M15.4 10.8a4 4 0 1 0 .1 4.6V13h-3" />
     </>
   ),
+
+  // ——— Taktikler ———
+  // Atak: ileri giden namlu-ok
+  attack: <path d="M4 20L19 5M12 5h7v7" />,
+  // Dengeli: terazi
+  balanced: <path d="M12 4v16M8.5 20h7M5 8h14M5 8l-2.5 5a2.5 2.5 0 0 0 5 0zM19 8l-2.5 5a2.5 2.5 0 0 0 5 0z" />,
+  // Defans: kalkan
+  defence: <path d="M12 3l7.5 3v5.5c0 4.5-3.1 7.9-7.5 9.5-4.4-1.6-7.5-5-7.5-9.5V6z" />,
 };
 
 export function Icon({ name, size = 20, className }: { name: IconName; size?: number; className?: string }) {

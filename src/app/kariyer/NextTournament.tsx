@@ -61,11 +61,14 @@ export function NextTournament({
   variant,
   locale,
   registered,
+  registerHref = "/kariyer/turnuvalar",
 }: {
   info: NextTournamentInfo;
   variant: "card" | "bar";
   locale: Locale;
   registered?: boolean;
+  /** "Kaydol" nereye götürsün (Turnuvalar sayfasının kendisinde: listedeki yere kaydırır). */
+  registerHref?: string;
 }) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -138,7 +141,7 @@ export function NextTournament({
             {t(locale, "next.registered")}
           </span>
         ) : (
-          <Link href="/kariyer/turnuvalar" className="btn-ink press shrink-0">
+          <Link href={registerHref} className="btn-ink press shrink-0">
             {t(locale, "next.register")}
             <Icon name="chevron-right" size={16} />
           </Link>
