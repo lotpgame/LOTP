@@ -25,13 +25,23 @@ type ScopeLevel = "world" | "continent" | "country";
 const GENDER_FROM_CODE: Record<string, Gender> = { M: "MALE", F: "FEMALE" };
 const WEAPON_FROM_CODE: Record<string, Weapon> = { FL: "FOIL", EPE: "EPEE", KIL: "SABRE" };
 
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+function Chip({
+  on,
+  onClick,
+  children,
+  className = "",
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={on}
-      className={`press flex min-h-11 shrink-0 items-center rounded-md border px-3 text-[14px] ${
+      className={`press flex min-h-11 shrink-0 items-center justify-center rounded-md border px-3 text-[14px] ${className} ${
         on ? "border-ink bg-ink font-semibold text-arena-0" : "border-line bg-arena-1 text-steel"
       }`}
     >
@@ -128,12 +138,14 @@ export function KlasmanFilter({
         </select>
       )}
 
-      {/* Yaş çipleri: mobilde yatay kaydırma yerine ALT SATIRA sarar (U10-U12-U14-U17, sonra U21-Büyükler) */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* Yaş çipleri: sabit 5'li grid → U10-U12-U14-U17-U21 üst satıra tam sığar; Büyükler alt satırda tam genişlik.
+          Mobilde yatay kaydırma yok. */}
+      <div className="grid grid-cols-5 gap-1.5">
         {AGES.map((a) => (
           <Chip
             key={a}
             on={age === a}
+            className={a === "SENIOR" ? "col-span-5" : ""}
             onClick={() => {
               setAge(a);
               load(a, gender, weapon, level, continent, country);

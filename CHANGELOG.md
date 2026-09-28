@@ -90,8 +90,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Kod değişikliği yok.
 
 ### Düzeltildi
-- **Klasman (mobil):** yaş kategorisi çipleri (U10-U12-U14-U17…) yatay kaydırma yerine artık **alt satıra sarar**
-  → küçük ekranda hepsi görünür, yana kaydırmaya gerek yok.
+- **Klasman (mobil):** yaş kategorileri artık **5'li grid** — U10-U12-U14-U17-U21 üst satıra tam sığar,
+  Büyükler alt satırda tam genişlik. Yatay kaydırma kalktı. Etiketler sade U-kodu: "U14 Yıldızlar"→"U14",
+  "Gençler"→"U21".
 
 ### Değişti
 - **Ekonomi dengesi (kazanç ↓↓ + gerçekçi fiyatlar):** Turnuva ödülleri çok düşürüldü — bir oyuncu
