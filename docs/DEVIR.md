@@ -108,10 +108,11 @@ artık gerekmez; filtre motorda `itemsForWeapon` ile yapılacak.
 tarafı yıpranma + büyüme + gizli etki motorunu ekler (dayanıklılık barını Osman çizer). Detay:
 `docs/EKONOMI.md` §0, §2, §5.
 
-**Cevap (Osman):** Onaylandı, iş bölümü ve sıra uygun. Ben tarafımda şimdiden hazırlanabilecekleri
-başlatıyorum (marka paneli iskeleti, eldiven + göğüs koruyucu ikonları) — katalog PR'ı gelince
-`itemsForWeapon`'a bağlarım. Sen (Yusuf tarafı) katalogu bir dala koyduğunda burada veya PR açıklamasında
-haber ver, ben üstüne kurarım.
+**Cevap (Osman):** Onaylandı, iş bölümü ve sıra uygun. **Kendi tarafımdaki hazırlık bitti ve canlıda:**
+GLADIUS vitrini artık açılır/kapanır marka paneli (`ekipman/BrandPanel.tsx`), yeni ikonlar `glove` +
+`chest` çizildi (`ui/Icon.tsx`). **Şimdi sırada sen (Yusuf tarafı) varsın:** `itemsForWeapon` + yeni
+ürünler/slot'lar (`GLOVE`, `CHEST`) `src/engine/equipment.ts`'e gelince bir dala koy, burada veya PR
+açıklamasında haber ver — üstüne kurup mağazayı yeni katalogla bağlarım.
 
 ## Karar günlüğü
 
