@@ -16,12 +16,12 @@ export default async function AyarlarPage() {
 
   return (
     <main>
-      <h1 className="text-xl font-bold">⚙️ {t(locale, "settings.title")}</h1>
+      <h1 className="display text-[28px]">{t(locale, "settings.title")}</h1>
 
       {/* Dil */}
       <section className="mt-5">
-        <h2 className="text-lg font-semibold">🌐 {t(locale, "settings.language")}</h2>
-        <p className="mt-1 text-xs opacity-60">{t(locale, "settings.languageNote")}</p>
+        <h2 className="display text-[22px]">{t(locale, "settings.language")}</h2>
+        <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.languageNote")}</p>
         <div className="mt-3">
           <LangSelect current={locale} />
         </div>
@@ -29,7 +29,7 @@ export default async function AyarlarPage() {
 
       {/* Görünüm — kişiye özel arka fon + yazı rengi */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">🎨 Görünüm</h2>
+        <h2 className="display text-[22px]">{t(locale, "settings.appearance")}</h2>
         <div className="mt-3">
           <ThemeSettings />
         </div>
@@ -37,8 +37,8 @@ export default async function AyarlarPage() {
 
       {/* Ses */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">🔊 {t(locale, "settings.sound")}</h2>
-        <p className="mt-1 text-xs opacity-60">{t(locale, "settings.soundNote")}</p>
+        <h2 className="display text-[22px]">{t(locale, "settings.sound")}</h2>
+        <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.soundNote")}</p>
         <div className="mt-3">
           <SoundToggle locale={locale} />
         </div>
@@ -46,7 +46,7 @@ export default async function AyarlarPage() {
 
       {/* Kariyer */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">👤 {t(locale, "settings.career")}</h2>
+        <h2 className="display text-[22px]">{t(locale, "settings.career")}</h2>
         <div className="mt-3 flex flex-col gap-3">
           <div>
             <CareerResetButton
@@ -56,7 +56,7 @@ export default async function AyarlarPage() {
               cost={CAREER_RESET_COST}
               canAfford={canAfford}
             />
-            <p className="mt-1 text-xs opacity-50">{t(locale, "settings.newCareerNote")}</p>
+            <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
           </div>
           <div>
             <CareerResetButton

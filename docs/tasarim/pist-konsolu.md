@@ -46,9 +46,10 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 11. **Navigasyon:** telefonda alt 5 sekme (Bugün, Antrenman, Turnuvalar, Klasman, Daha fazla); masaüstünde
     (lg ≥ 1024 px) sol sidebar. İkisi `CareerNav.tsx`'teki tek `MAIN`/`MORE` tanımından. Aktif sayfa:
     kırmızı "en-garde" çizgisi + `aria-current`. Bildir menüde (yüzen buton yok).
-12. **Özel sınıflar kendi `display`'ini koyar** (`.btn-ink`, `.btn-ghost` …, `@layer utilities` içinde,
-    Tailwind'in `hidden`/`lg:hidden`'ından sonra gelir → onu ezer). Böyle bir öğeyi ekran boyuna göre
-    gizlemek için sarmalayıcı `div`'e `lg:hidden` ver.
+12. **Özel sınıflar `@layer components` içinde** (`.panel`, `.btn-ink`, `.btn-ghost`, `.kicker`, `.num` …) →
+    Tailwind utility'leri her zaman üstün gelir: `btn-ghost text-sig-red`, `panel border-ink`, `btn-ink lg:hidden`
+    doğrudan çalışır. Bu sınıfları `@layer utilities`'e geri taşıma (orada kaynak sırası utility'leri eziyordu;
+    düzeltmeden önce `lg:hidden` ve renk/kenar değiştiricileri sessizce etkisizdi).
 13. **Masaüstü (lg):** tek dar telefon sütunu bırakma. Giriş = iki sütun (sol vitrin `sticky h-svh`, sağ form).
     Sabit yükseklikli flex sütunda çocuklara `shrink-0` + `justify-center-safe` + `overflow-y-auto` —
     yoksa `overflow-hidden` taşıyan skor bandı alçak ekranda (1280×720) ezilir.
@@ -106,6 +107,12 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   onay ikonu; temiz durumda buton pasif. Kelime değerli `Stat` → `word` (dar başlık fontu; mono gün adı
   390 px'te taşıyordu). Yerelde uçtan uca test: seç → Kaydedilmedi → kaydet → Kaydedildi → yenile → kalıcı.
 
+- **Emoji temizliği (kalan sayfalar):** Geçmiş (`Stat` + yeni ikonlar `trophy`/`podium`/`medal`, turnuva satırı
+  kule dili: 1. `prio`, 2–3 `steel` kenar; önem yıldızı = `rating` ikonu), Kulüp (nötr arma = `club` ikonu,
+  tesis = `Segments`), Ayarlar (segment, tehlikeli işlem `sig-red`), hata sayfası, geri bildirim panosu
+  (lamba + yazı), telefonla giriş onayı. Kalan tek emoji kaynağı: motorun maç anlatımı (`src/engine/combat`,
+  `src/server/careerService.ts`) — Yusuf'un alanı. Metin içindeki ok (→, ←) tipografidir, ikon değil.
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
@@ -115,9 +122,9 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 Pul kağıdı yeniden çizimi · manşet cümleleri (+ WhatsApp paylaşım metni, kullanıcı kendisi gönderir) ·
 canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
 tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
-kartı · eleme ağacı yatay kaydırma · Kulüp arması (nötr kalkan) · Instagram içi tarayıcı uyarısı ·
+kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince) ·
-Geçmiş sayfası sıralama kulesi tarzı.
+tema ayarları bileşeni (`ThemeSettings`) yeni stile.
 
 ## Bilerek yapılmayanlar
 

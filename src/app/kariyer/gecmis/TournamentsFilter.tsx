@@ -2,8 +2,9 @@
 
 /** Oynanan turnuvalar listesi + Quarter (oyun yılı) filtresi (M11.4/UI). En yeni önce. */
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
+import { Icon } from "@/app/ui/Icon";
 
 export interface HistoryTournament {
   id: number;
@@ -16,10 +17,9 @@ export interface HistoryTournament {
   month: number;
 }
 
-const POSITION_BADGE: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
-function placementLabel(pos: number): string {
-  if (pos === 0) return "—";
-  return POSITION_BADGE[pos] ? `${POSITION_BADGE[pos]} ${pos}.` : `${pos}.`;
+// Derece kenarı — klasman kulesiyle aynı dil: 1. altın (tek prestij rengi), 2–3 çelik.
+function placementEdge(pos: number): string {
+  return pos === 1 ? "bg-prio" : pos === 2 || pos === 3 ? "bg-steel" : "";
 }
 
 export function TournamentsFilter({ tournaments, locale }: { tournaments: HistoryTournament[]; locale: Locale }) {
@@ -33,58 +33,60 @@ export function TournamentsFilter({ tournaments, locale }: { tournaments: Histor
 
   return (
     <>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <span className="text-xs opacity-60">{t(locale, "gecmis.filter")}</span>
-        <button
-          onClick={() => setQ("all")}
-          className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-            q === "all" ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-black/10 opacity-70 hover:opacity-100 dark:bg-white/10"
-          }`}
-        >
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[13px] text-steel">{t(locale, "gecmis.filter")}</span>
+        <Chip on={q === "all"} onClick={() => setQ("all")}>
           {t(locale, "gecmis.filterAll")}
-        </button>
+        </Chip>
         {quarters.map((qq) => (
-          <button
-            key={qq}
-            onClick={() => setQ(qq)}
-            className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-              q === qq ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-black/10 opacity-70 hover:opacity-100 dark:bg-white/10"
-            }`}
-          >
+          <Chip key={qq} on={q === qq} onClick={() => setQ(qq)}>
             Q{qq}
-          </button>
+          </Chip>
         ))}
       </div>
 
       <ul className="mt-3 space-y-2">
-        {shown.map((tour) => (
-          <li key={tour.id}>
-            <Link
-              href={`/turnuva/${tour.id}`}
-              className="flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-black/[0.015] px-3 py-2.5 text-sm transition hover:border-emerald-500/40 hover:bg-emerald-500/5 dark:border-white/15 dark:bg-white/[0.02]"
-            >
-              <span className="min-w-0">
-                <span className="block truncate font-medium">{tour.name}</span>
-                <span className="text-xs opacity-50">
-                  {tour.level} · Q{tour.quarter} · H{tour.month} · {new Date(tour.date).toLocaleDateString(dateLoc)}
+        {shown.map((tour) => {
+          const edge = placementEdge(tour.position);
+          return (
+            <li key={tour.id}>
+              <Link
+                href={`/turnuva/${tour.id}`}
+                className="panel press relative flex min-h-14 items-center justify-between gap-3 overflow-hidden px-3 py-2.5"
+              >
+                {edge && <span className={`absolute inset-y-0 left-0 w-[3px] ${edge}`} aria-hidden="true" />}
+                <span className="min-w-0">
+                  <span className="block truncate text-[15px] font-medium">{tour.name}</span>
+                  <span className="text-[13px] text-steel">
+                    {tour.level} · Q{tour.quarter} · H{tour.month} · {new Date(tour.date).toLocaleDateString(dateLoc)}
+                  </span>
                 </span>
-              </span>
-              <span className="flex shrink-0 items-center gap-2">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    tour.position >= 1 && tour.position <= 3
-                      ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                      : "bg-black/10 opacity-70 dark:bg-white/15"
-                  }`}
-                >
-                  {placementLabel(tour.position)}
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className={`num text-[17px] ${tour.position >= 1 && tour.position <= 3 ? "font-semibold" : "text-steel"}`}>
+                    {tour.position === 0 ? "—" : `${tour.position}.`}
+                  </span>
+                  <Icon name="chevron-right" size={18} className="text-steel" />
                 </span>
-                <span className="opacity-40">›</span>
-              </span>
-            </Link>
-          </li>
-        ))}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </>
+  );
+}
+
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`press flex min-h-11 shrink-0 items-center rounded-md border px-3 text-[14px] ${
+        on ? "border-ink bg-ink font-semibold text-arena-0" : "border-line bg-arena-1 text-steel"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

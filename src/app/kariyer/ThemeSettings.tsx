@@ -101,7 +101,7 @@ export function ThemeSettings() {
           onClick={reset}
           className="rounded-lg border border-black/15 px-3 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
         >
-          ↺ Sistem varsayılanı
+          Sistem varsayılanı
         </button>
       </div>
 

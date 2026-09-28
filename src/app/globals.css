@@ -134,7 +134,9 @@ dialog.modal {
   padding: 0;
 }
 
-@layer utilities {
+/* Bileşen sınıfları "components" katmanında: Tailwind utility'leri (text-*, border-*, lg:hidden …) her zaman
+   üstün gelir. "utilities" içindeyken kaynak sırası yüzünden onları eziyordu (örn. .btn-ghost + text-sig-red). */
+@layer components {
   .num {
     font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums lining-nums;

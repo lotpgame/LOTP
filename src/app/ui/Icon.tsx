@@ -37,6 +37,10 @@ export type IconName =
   | "chevron-right"
   | "chevron-down"
   | "info"
+  // Kariyer geçmişi
+  | "trophy"
+  | "medal"
+  | "podium"
   // GLADIUS ekipman yuvaları
   | "mask"
   | "cord"
@@ -140,6 +144,17 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 7.5V12l3 2" />
     </>
   ),
+  // Kupa (şampiyonluk)
+  trophy: <path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5.5a2.5 2.5 0 0 0 2.5 4M16 6h2.5a2.5 2.5 0 0 1-2.5 4M12 13v4M9 17h6l.5 3h-7z" />,
+  // Kurdeleli madalya (final)
+  medal: (
+    <>
+      <path d="M8 3l4 7.5L16 3" />
+      <circle cx="12" cy="15.5" r="4.5" />
+    </>
+  ),
+  // Kürsü: ortada 1., solda 2., sağda 3. (madalya = ilk 3)
+  podium: <path d="M3 20v-7h6M9 20V8h6v12M15 15h6v5M2.5 20h19" />,
   rating: <path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />,
   condition: (
     <>

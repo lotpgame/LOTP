@@ -26,6 +26,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ("Kaydedilmedi" + kırmızı lamba; kaydedince "Kaydedildi"), kaydedecek bir şey yoksa buton pasif. Sayfanın geri
   kalanı yeni tasarıma geçti (başlıklar, sakatlık kutusu, "Hangi antrenman neyi geliştirir?" paneli, emoji'ler
   kalktı). "Bugün" kartındaki gün adı artık kartı taşırmıyor. Plan kaydetme mantığı ve sunucu aksiyonu aynı.
+- **Kalan sayfalarda emoji temizliği + yeni tasarım:** Kariyer Geçmişi (istatistiklerde kendi ikonlarımız:
+  kupa, kürsü, madalya; turnuva listesinde 1. altın / 2–3 çelik kenar, madalya emojisi yok; başarı yıldızları
+  ikon), Kulüp (nötr arma, tesis kalitesi segmentli), Ayarlar (ses segmenti, "Kariyeri Sil" kırmızı, sabit
+  Türkçe metinler çeviriye taşındı), hata sayfası, telefonla giriş onayı, geri bildirim panosu. Çeviri
+  metinlerinden emoji'ler kalktı (canlı maç metinleri canlı maç PR'ında). Kullanılmayan `klasman.nt4/intl16/
+  worldNote` silindi. Motorun ürettiği maç anlatımındaki semboller (🏁 ⏱ 🏅) motor tarafında, dokunulmadı.
 - **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
   Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
   çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp
@@ -52,6 +58,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yok), gönderim hatası görünür.
 
 ### Düzeltildi
+- **Stil sınıfları utility'leri eziyordu:** `.panel`, `.btn-ink`, `.btn-ghost`, `.kicker` … `@layer utilities`
+  yerine `@layer components`'ta. Önceden üstlerine yazılan renk/kenar/gizleme sınıfları sessizce etkisizdi
+  (turnuvalarda kayıtlı kartın vurgusu, ekipmanda pasif buton rengi, seviye etiketlerinin rengi).
 - **Gövde fontu Arial'dı** (Geist yükleniyor ama kullanılmıyordu) → Geist Sans; Türkçe karakterler için `latin-ext`.
 - **Kişisel tema** (Ayarlar → Görünüm) başlık, alt çubuk ve geri bildirim panelinde çalışmıyordu (sabit
   beyaz yüzeyler) → tüm yüzeyler temadan türer; tema ilk boyamadan önce uygulanır (yanıp sönme yok).

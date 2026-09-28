@@ -68,14 +68,11 @@ export default async function Home() {
 
           <Steps locale={locale} className="mt-8 hidden lg:grid" />
 
-          {/* Masaüstünde form zaten yanda görünür → atlama butonu yalnız telefonda.
-              Sarmalayıcı şart: .btn-ink kendi display'ini koyar, lg:hidden'ı ezer. */}
-          <div className="mt-auto lg:hidden">
-            <a href="#olustur" className="btn-ink press h-12 w-full text-[16px]">
-              {t(locale, "landing.cta")}
-              <Icon name="chevron-down" size={18} />
-            </a>
-          </div>
+          {/* Masaüstünde form zaten yanda görünür → atlama butonu yalnız telefonda */}
+          <a href="#olustur" className="btn-ink press mt-auto h-12 w-full text-[16px] lg:hidden">
+            {t(locale, "landing.cta")}
+            <Icon name="chevron-down" size={18} />
+          </a>
         </div>
       </section>
 
