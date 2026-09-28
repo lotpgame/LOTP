@@ -8,6 +8,8 @@ import { getLiveTournament, type LiveTournamentDTO } from "@/server/careerServic
 import { CanliMac } from "../[id]/CanliMac";
 import { PulKagidi } from "../[id]/PulKagidi";
 import { Icon, type IconName } from "@/app/ui/Icon";
+import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
+import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
 import { CanliPeriyot } from "./CanliPeriyot";
 import { SideScore } from "./matchParts";
 import { Countdown } from "./Countdown";
@@ -559,16 +561,25 @@ function KoDraw({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
 }
 
 /** Turnuva bitiş ekranı — sonuç + klasman + eve dön (tüm tablo butonu yok; sekmelerden gezilir). */
-function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
+async function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
+  const me = tour.seeding?.find((s) => s.isHuman);
+  const headline = buildHeadline(locale, {
+    name: tour.playerName,
+    tournament: tour.name,
+    position: tour.finalPosition ?? 0,
+    fieldSize: tour.standings?.length,
+    pool: me ? { wins: me.wins, losses: me.matches - me.wins, indicator: me.indicator } : null,
+    lastBout: lastBoutFrom(tour.played),
+  });
   return (
     <div>
-      <div className={`panel p-5 text-center ${tour.finalPosition === 1 ? "border-prio" : ""}`}>
-        <div className="kicker">{t(locale, "canli.doneTitle")}</div>
-        <div className={`display mt-2 text-[40px] ${tour.finalPosition === 1 ? "text-prio" : ""}`}>{positionLabel(locale, tour.finalPosition)}</div>
-        <div className="mt-2 text-[14px] text-steel">{t(locale, "canli.champion", { name: tour.championName ?? "?" })}</div>
-      </div>
+      <HeadlineCard h={headline} kicker={t(locale, "canli.doneTitle")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
+        {!headline.champion && tour.championName && (
+          <p className="mt-1 text-[14px] text-steel">{t(locale, "canli.champion", { name: tour.championName })}</p>
+        )}
+      </HeadlineCard>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-5 grid grid-cols-3 gap-2">
         <div className="panel px-3 py-2.5 text-center">
           <div className="text-[12px] text-steel">{t(locale, "canli.earned")}</div>
           {tour.givesRankingPoints ? (

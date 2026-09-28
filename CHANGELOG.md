@@ -17,6 +17,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **CI (GitHub Actions):** `.github/workflows/ci.yml` — her PR ve `master` push'unda lint + test + build
   (sahte `DATABASE_URL`, gerçek DB'ye bağlanmaz). Dış katkıcı merge'leri CI yeşilse Vercel Deploy Hook ile
   canlıya çıkar (secret `VERCEL_DEPLOY_HOOK`; yoksa CI bunu kırmızıyla bildirir). ROADMAP §H R4 ✅.
+- **Manşet cümleleri + WhatsApp paylaşımı:** turnuva sonucu gazete manşeti olarak ("U10 İl Şampiyonası: Deniz Aksoy
+  şampiyon!", "… son 16'da", "… bronz madalya"), altında son maç, pul özeti ve katılımcı sayısı. Turnuva bitiş
+  ekranında ve geçmiş turnuva sayfasının en üstünde **"WhatsApp'ta paylaş"** — hazır metin + oyunun adresi; mesajı
+  oyuncu kendisi gönderir. Bugün'deki "Sen yokken" turnuva satırları da manşet cümlesiyle. Şampiyonlukta altın blok.
+  Cümleler motor metni değil, mevcut sonuç verisinden çeviri şablonlarıyla kuruluyor (Türkçe ek hatası olmasın diye
+  isimlere ek getirilmiyor). Birim testleri eklendi (`tests/ui/headlineText.test.ts`).
+- **Turnuva sekme rayı:** telefonda aktif sekme (örn. sondaki "Sonuç") artık ekran dışında kalmıyor.
 - **Pul kağıdı yeniden çizildi:** gerçek FIE pul kağıdı düzeni, yeni tasarım dilinde — köşegen taralı, galibiyet
   hücreleri ("V5") kalın ve köşede küçük işaret, mağlubiyetler soluk. **Kendi satırın ve sütunun** koyu zeminle
   (artı gibi) işaretli: satır = senin rakiplere karşı sonuçların, sütun = rakiplerin sana karşı. Telefonda ad

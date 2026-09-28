@@ -6,6 +6,7 @@ import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
+import { buildHeadline } from "@/app/ui/headlineText";
 import { NextTournament } from "./NextTournament";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
 
@@ -130,7 +131,9 @@ export default async function BugunPage() {
                 <li key={tr.tournamentId}>
                   <Link href={`/turnuva/${tr.tournamentId}`} className="flex min-h-12 items-center gap-2 rounded-md px-1 active:bg-arena-2">
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-[15px] font-medium">{tr.name}</div>
+                      <div className="text-[15px] font-medium leading-snug">
+                        {buildHeadline(locale, { name: h.name, tournament: tr.name, position: tr.position }).title}
+                      </div>
                       <div className="flex flex-wrap gap-x-2 text-[13px] text-steel">
                         <span>{tr.dateLabel}</span>
                         <span className="num text-ink">

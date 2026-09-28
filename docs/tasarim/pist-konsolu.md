@@ -127,14 +127,20 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   (V/TS/TR/Ind/Sıra) `border-l-2` ile ayrı, başlıkta `title` açıklaması. Tablo `num font-normal`: rakamlar mono ama
   kalın yalnız V, sıra ve galibiyet. Ad sütunu `w-full` → masaüstünde tablo paneli doldurur, telefonda kayar.
 
+- **Manşet:** `ui/headlineText.ts` (saf: `buildHeadline`, `lastBoutFrom`, `headlineShareText`; testli) + `ui/HeadlineCard.tsx`
+  (üst 2 px mürekkep çizgi, kicker, `display` 26 px başlık, 14 px alt satır; şampiyonlukta solda 6 px `prio` blok;
+  `whatsAppHref` → `https://wa.me/?text=…`, adres isteğin host'undan). Şablon kuralı: değişken isme ek yok
+  (`{tournament}: {name} …`, `{opp} karşısında`), tur ekleri sabit anahtarlarda (`son 16'da`, `son 64'te`). Kullanım:
+  canlı bitiş ekranı, `/turnuva/[id]` üstü, Bugün "Sen yokken" satırları. Dosya adları bilerek farklı (`headlineText` /
+  `HeadlineCard`): Windows'ta büyük/küçük harf duyarsız → `headline.ts` + `Headline.tsx` import karışır.
+
 ## Sırada
 
 P0 tamamlandı (P0-4 onay bekliyor). Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Manşet cümleleri (+ WhatsApp paylaşım metni, kullanıcı kendisi gönderir) ·
-canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
+Canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
 tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince) ·

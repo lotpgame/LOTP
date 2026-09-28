@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "@/app/ui/Icon";
 
 /**
@@ -22,6 +22,12 @@ export function TournamentTabs({
   const [active, setActive] = useState(defaultTab);
   const [toast, setToast] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Telefonda ray yatay kayar: aktif sekme (örn. sondaki "Sonuç") ekran dışında kalmasın.
+  useEffect(() => {
+    navRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [active]);
 
   function onTab(id: string, locked: boolean) {
     if (locked) {
@@ -36,7 +42,7 @@ export function TournamentTabs({
 
   return (
     <div className="mt-4">
-      <nav className="-mx-4 flex gap-1 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0" role="tablist">
+      <nav ref={navRef} className="-mx-4 flex gap-1 overflow-x-auto border-b border-line px-4 sm:mx-0 sm:px-0" role="tablist">
         {tabs.map((tb) => {
           const on = tb.id === active && !tb.locked;
           return (

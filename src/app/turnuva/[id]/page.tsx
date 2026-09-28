@@ -6,6 +6,8 @@ import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 import { PulKagidi } from "./PulKagidi";
+import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
+import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
 
 function positionLabel(locale: Locale, pos: number): string {
   switch (pos) {
@@ -44,6 +46,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   const yourDE = yourMatches.filter((m) => m.phase === "DE");
   const firstDeRound = yourDE[0]?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
+  const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
+  const headline = buildHeadline(locale, {
+    name: tour.standings.find((s) => s.isHuman)?.name ?? "",
+    tournament: tour.name,
+    position: tour.yourPosition,
+    fieldSize: tour.standings.length,
+    pool: myPool ? { wins: myPool.wins, losses: myPool.losses, indicator: myPool.indicator } : null,
+    lastBout: lastBoutFrom(tour.matches),
+  });
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
@@ -53,6 +64,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       <h1 className="mt-2 text-2xl font-bold">{tour.name}</h1>
       <p className="text-[14px] text-steel">{tour.categoryId}</p>
+
+      <div className="mt-5">
+        <HeadlineCard h={headline} kicker={t(locale, "idp.result")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
+          <p className="mt-1 text-[14px] text-steel">
+            {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
+            {!headline.champion && t(locale, "canli.champion", { name: tour.championName })}
+          </p>
+        </HeadlineCard>
+      </div>
 
       <section className="mt-6">
         <h2 className="text-lg font-semibold">{t(locale, "idp.yourMatches")}</h2>
@@ -94,15 +114,6 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           </>
         )}
       </section>
-
-      <div className="mt-8 panel p-4">
-        <div className="text-[14px] text-steel">{t(locale, "idp.result")}</div>
-        <div className="text-xl font-semibold">{positionLabel(locale, tour.yourPosition)}</div>
-        <div className="mt-1 text-[14px] text-steel">
-          {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
-          {t(locale, "canli.champion", { name: tour.championName })}
-        </div>
-      </div>
 
       {/* Pul kağıtları (poule) */}
       <section className="mt-8">
