@@ -52,16 +52,18 @@ Gerçek sıralama: **iletken yelek (lamé) en pahalı** → silah → maske → 
 
 | Ürün | Đ | | Ürün | Đ |
 |---|--:|---|---|--:|
-| Elektrikli Yelek (kılıç)* | 550 | | Ayakkabı | 280 |
-| Elektrikli Yelek (flöre)* | 450 | | Eldiven | 150 |
-| Silah | 400 | | Vücut kablosu | 100 |
-| Maske (kılıç) | 320 | | Göğüs koruyucu | 90 |
-| Maske (flöre/epe) | 250 | | Plastron | 80 |
-| Ceket + Pantolon | 300 | | Maske kablosu | 50 |
+| Elektrikli Yelek (kılıç)* | 550 | | Maske (flöre/epe) | 260 |
+| Elektrikli Yelek (flöre)* | 500 | | Eldiven | 150 |
+| Ceket + Pantolon** | 420 | | Vücut kablosu | 100 |
+| Silah | 400 | | Göğüs koruyucu | 90 |
+| Maske (kılıç) | 320 | | Plastron | 80 |
+| Ayakkabı | 280 | | Maske kablosu | 50 |
 | | | | Çorap | 30 |
 
 *(*) "Lamé" yerine net Türkçe: **Elektrikli Yelek** (iletken). Epe'de YOK. Gerçek fiyat sırası korunur.*
+*(**) Gerçek dünyada ceket+pantolon takımı silahtan pahalıdır (Yusuf, 28.09) → sıralama: yelek > takım > silah.*
 **Tam takım:** Flöre ≈ 2.180 · Kılıç ≈ 2.360 · Epe ≈ 1.630 Đ.
+*(Not: canlıya şimdi alınan generic katalogda tek "Elektrikli Yelek" 500; silaha özel ayrım genişletilmiş katalogla release'te.)*
 
 ### Yıpranma + büyüme (kodla, RELEASE'te aç)
 - **Yıpranma (dayanıklılık):** her ürünün 0–100 dayanıklılığı; kullandıkça (turnuva/antrenman) düşer.

@@ -90,6 +90,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Kod değişikliği yok.
 
 ### Değişti
+- **Ekonomi dengesi (kazanç ↓ + gerçekçi fiyatlar):** Turnuva ödülleri büyük ölçüde düşürüldü
+  (şampiyonun 1 sezonu ≈ ~1 tam takım; eski ~12.300 Đ → ~2.300). Malzeme fiyatları gerçek oranlara
+  göre yeniden düzenlendi: **Elektrikli Yelek (eski "Lamé", en pahalı) > Ceket+Pantolon > Silah**.
+  Ayrıntılı denge + para kazanma planı: [`docs/EKONOMI.md`](docs/EKONOMI.md). Şema/veri değişmedi.
 - **Ayarlar → tek "Yeni Başla" butonu:** "Yeni Kariyer" ve "Kariyeri Sil" aynı işi yapıyordu (ikisi de
   kariyeri sıfırlıyordu) → tek **"Yeni Başla"** butonunda birleştirildi (silme zaten içinde; Denar bedeli aynı).
 - **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi

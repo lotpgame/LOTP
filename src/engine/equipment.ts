@@ -34,16 +34,19 @@ export interface GladiusItem {
  * tek tek ayarlanır. Toplam (hepsi alınsa) ~0.02 → pratikte ihmal edilebilir.
  */
 export const GLADIUS_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-weapon", slot: "WEAPON", name: "Gladius Silah", desc: "Elektrikli silah (silahına uygun)", icon: "sword", denar: 320, combatBonus: 0.004 },
-  { id: "gl-mask", slot: "MASK", name: "Gladius Maske", desc: "Koruyucu maske", icon: "mask", denar: 180, combatBonus: 0.003 },
-  { id: "gl-cord", slot: "CORD", name: "Gladius Body Cord", desc: "Beden kordonu", icon: "plug-connected", denar: 90, combatBonus: 0.002 },
-  { id: "gl-maskcord", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Flöre/kılıç için", icon: "plug", denar: 60, combatBonus: 0.002 },
-  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Kıyafet", desc: "Alt + üst takım", icon: "shirt", denar: 240, combatBonus: 0.003 },
-  { id: "gl-plastron", slot: "PLASTRON", name: "Gladius Plastron", desc: "Kıyafet altına", icon: "shield-half", denar: 70, combatBonus: 0.002 },
-  { id: "gl-lame", slot: "LAME", name: "Gladius Lamé", desc: "Yelek (flöre/kılıç)", icon: "shield-bolt", denar: 150, combatBonus: 0.003 },
-  { id: "gl-shoes", slot: "SHOES", name: "Gladius Ayakkabı", desc: "Ayak tekniği / denge", icon: "shoe", denar: 200, combatBonus: 0.004 },
+  // Fiyatlar gerçek oranlara göre (docs/EKONOMI.md, 28.09): iletken yelek en pahalı >
+  // ceket+pantolon > silah > maske > ayakkabı > ... Etki (combatBonus) şimdilik minik ve GİZLİ;
+  // "orta & adil" etki + yıpranma release'te gelir (docs/EKONOMI.md §0, §2).
+  { id: "gl-lame", slot: "LAME", name: "Gladius Elektrikli Yelek", desc: "İletken yelek — ceketin üzerine (flöre/kılıç)", icon: "shield-bolt", denar: 500, combatBonus: 0.003 },
+  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Ceket + Pantolon", desc: "Beyaz koruyucu takım (alt + üst)", icon: "shirt", denar: 420, combatBonus: 0.003 },
+  { id: "gl-weapon", slot: "WEAPON", name: "Gladius Silah", desc: "Elektrikli silah (silahına uygun)", icon: "sword", denar: 400, combatBonus: 0.004 },
+  { id: "gl-mask", slot: "MASK", name: "Gladius Maske", desc: "Koruyucu maske", icon: "mask", denar: 300, combatBonus: 0.003 },
+  { id: "gl-shoes", slot: "SHOES", name: "Gladius Ayakkabı", desc: "Ayak tekniği / denge", icon: "shoe", denar: 280, combatBonus: 0.004 },
+  { id: "gl-bag", slot: "BAG", name: "Gladius Çanta", desc: "Marka logolu taşıma çantası", icon: "briefcase", denar: 150, combatBonus: 0, cosmetic: true },
+  { id: "gl-cord", slot: "CORD", name: "Gladius Body Cord", desc: "Beden kordonu", icon: "plug-connected", denar: 100, combatBonus: 0.002 },
+  { id: "gl-plastron", slot: "PLASTRON", name: "Gladius Plastron", desc: "Kıyafet altına (koltuk altı koruyucu)", icon: "shield-half", denar: 80, combatBonus: 0.002 },
+  { id: "gl-maskcord", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Flöre/kılıç için", icon: "plug", denar: 50, combatBonus: 0.002 },
   { id: "gl-socks", slot: "SOCKS", name: "Gladius Çorap", desc: "Uzun eskrim çorabı", icon: "socks", denar: 30, combatBonus: 0.001 },
-  { id: "gl-bag", slot: "BAG", name: "Gladius Çanta", desc: "Marka logolu taşıma çantası", icon: "briefcase", denar: 120, combatBonus: 0, cosmetic: true },
 ];
 
 export function itemById(id: string): GladiusItem | undefined {
