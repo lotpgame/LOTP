@@ -153,7 +153,8 @@ Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar sen
   "⏱ Süre doldu", "🏅 Altın tuş!" satırlarını üretiyor. Arayüzün geri kalanında emoji kalmadı; istersen bu
   sembolleri kaldırabilirsin. Arayüz zaten kazananı ve altın tuşu ayrıca gösteriyor.
 - **Ayarlar'da iki buton aynı işi yapıyor:** "Yeni Kariyer" ve "Kariyeri Sil" ikisi de `resetCareerAction`'ı
-  çağırıyor. Bilerek mi?
+  çağırıyor. Bilerek mi? → ✅ ÇÖZÜLDÜ (Yusuf/Claude, 28.09): tek **"Yeni Başla"** butonuna indirildi.
+  Dokunulan dosyalar: `src/app/kariyer/ayarlar/page.tsx` + `src/i18n/index.ts` (settings.newCareer*).
 - **Kullanılmayan çeviri anahtarı:** `ekipman.marketNote` hiçbir yerde kullanılmıyor.
 
 ## Osman tarafının sıradaki işleri

@@ -55,18 +55,9 @@ export default async function AyarlarPage() {
               warning={t(locale, "settings.deleteWarning")}
               cost={CAREER_RESET_COST}
               canAfford={canAfford}
-            />
-            <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
-          </div>
-          <div>
-            <CareerResetButton
-              locale={locale}
-              label={t(locale, "settings.deleteCareer")}
-              warning={t(locale, "settings.deleteWarning")}
-              cost={CAREER_RESET_COST}
-              canAfford={canAfford}
               danger
             />
+            <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
           </div>
         </div>
       </section>

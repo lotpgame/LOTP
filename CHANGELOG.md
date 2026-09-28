@@ -90,6 +90,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Kod değişikliği yok.
 
 ### Değişti
+- **Ayarlar → tek "Yeni Başla" butonu:** "Yeni Kariyer" ve "Kariyeri Sil" aynı işi yapıyordu (ikisi de
+  kariyeri sıfırlıyordu) → tek **"Yeni Başla"** butonunda birleştirildi (silme zaten içinde; Denar bedeli aynı).
 - **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi
   19:00 TR (16:00 UTC) → her oyun günü (ve o günün turnuvası) **her akşam TR 19:00**'da başlar; oyun
   günü/haftanın-günü gerçek güne oturur (oyun Salı = gerçek Salı, İl akşam açılır). Kod değil env değeri;
