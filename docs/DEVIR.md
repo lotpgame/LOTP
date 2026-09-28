@@ -41,6 +41,7 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 | [#11](https://github.com/alkanyus/LOTP/pull/11) | Giriş ekranı masaüstünde iki sütun (solda vitrin, sağda form) | #8 |
 | [#12](https://github.com/alkanyus/LOTP/pull/12) | Antrenman planı: ikonlu 5'li seçim, "Kaydedilmedi" uyarısı | #11 |
 | [#14](https://github.com/alkanyus/LOTP/pull/14) | Kalan sayfalarda emoji temizliği (Geçmiş, Kulüp, Ayarlar …) + stil katmanı düzeltmesi | #12 |
+| [#20](https://github.com/alkanyus/LOTP/pull/20) | 7 günlük hafta şeridi (Bugün + Turnuvalar): turnuva etiketleri, kayıt işareti, plan ikonları | #14 |
 | [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** (+ #14) |
 | [#16](https://github.com/alkanyus/LOTP/pull/16) | Pul kağıdı yeniden çizildi (FIE düzeni, kendi satır + sütun işaretli) | #9 |
 | [#18](https://github.com/alkanyus/LOTP/pull/18) | Manşet cümleleri ("U10 İl Şampiyonası: … şampiyon!") + WhatsApp'ta paylaş | #16 |
@@ -161,8 +162,8 @@ Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar sen
 
 ## Osman tarafının sıradaki işleri
 
-1. Hook gelince #2 merge → sonra #3 … #8, #11, #12, #14 sırayla merge. Her biri canlıya çıkar, şema değişmez.
-2. #9, #16, #18: Madde 2 cevaplanınca bu sırayla merge.
+1. Hook gelince #2 merge → sonra #3 … #8, #11, #12, #14, #20 sırayla merge. Her biri canlıya çıkar, şema değişmez.
+2. #9, #16, #18: Madde 2 cevaplanınca bu sırayla merge (#9 o zaman #20'nin üstüne alınır).
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
    - beyaz lamba (flöre/kılıç geçersiz tuş)
