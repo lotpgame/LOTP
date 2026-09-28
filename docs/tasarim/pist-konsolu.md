@@ -43,7 +43,7 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 9. **Hareket:** yalnız `globals.css`'teki tek blok (`@supports` + `prefers-reduced-motion`): `anim-lamp`,
    `anim-check`, `anim-live`. JS animasyon kütüphanesi yok.
 10. **Metin:** dokunulan her görünür metin `t()` anahtarı olur (TR önce, sonra EN; DE/ES/FR TR'ye düşer).
-11. **Navigasyon:** telefonda alt 5 sekme (Profil, Antrenman, Turnuvalar, Klasman, Daha fazla); masaüstünde
+11. **Navigasyon:** telefonda alt 5 sekme (Bugün, Antrenman, Turnuvalar, Klasman, Daha fazla); masaüstünde
     (lg ≥ 1024 px) sol sidebar. İkisi `CareerNav.tsx`'teki tek `MAIN`/`MORE` tanımından. Aktif sayfa:
     kırmızı "en-garde" çizgisi + `aria-current`. Bildir menüde (yüzen buton yok).
 
@@ -65,10 +65,15 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   10 parçalı gösterge + durum yazısı (Dinç/Yorgun…, trafik lambası rengi yok). ⏳ Ölçek (U10=30, U12=45, U14=60,
   U17=80, üstü 100) taslak — Yusuf onaylayacak (`bands.ts`).
 
+- **P0-7 GLADIUS mağazası:** kendi çizdiğimiz 9 yuva ikonu (maske, beden/maske kordonu, ceket, plastron, lamé,
+  ayakkabı, çorap, çanta) + silah ikonu oyuncunun silahına göre + GLADIUS monogramı. "Kit x/10" şeridi, gruplar
+  (Silah ve kordonlar · Koruma · Ayak · Aksesuar), "+0.003" çipi yerine prestij notu, yetmeyen Denar görünür
+  yazı ("Eksik: Đ 120"), epede maske kordonu/lamé için "Epede gerekmez" bilgisi (satın alma serbest).
+  Ürün adları `t("gladius.<id>.name")`, yoksa motor adı. Eski ekipman seviyesi tıklayınca açılır.
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
-7. GLADIUS mağazası: kendi ekipman ikonlarımız, "Prestij", eksik Denar görünür, kit x/10
 8. Turnuvalar: taktik seçimi (segment), net kayıt durumu, geri sayım kartı
 9. Giriş ekranı: koyu vitrin + statik demo skor bandı, 3 adım, silah kartları
 10. Klasman: F1 sıralama kulesi (timing tower) tarzı

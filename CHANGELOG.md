@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **GLADIUS mağazası yenilendi + kendi ekipman ikonlarımız:** emoji yerine elle çizilmiş SVG ikonlar
+  (maske, beden ve maske kordonu, ceket, plastron, lamé, ayakkabı, çorap, çanta; silah ikonu oyuncunun
+  silahına göre) ve GLADIUS monogramı — hiçbir gerçek marka/ürün görselinden kopya değil. "Kit x/10"
+  tamamlama şeridi, gruplu liste, Denar yetmiyorsa eksik tutar görünür yazıyla, epede gerekmeyen parçalar
+  için bilgi notu. Satın alma mantığı değişmedi.
 - **"Bugün" ekranı (eski Profil) + yeni değer gösterimi:** dönen oyuncu önce bugünün görevini, sıradaki
   turnuvayı (büyük geri sayım, kayıt durumu, Kaydol) ve "Sen yokken" özetini görür (antrenman raporu +
   yokken oynanan turnuvalar tek panelde; artık her sayfanın tepesinde değil). Yetenekler **pist rayıyla**

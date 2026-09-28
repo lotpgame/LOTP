@@ -36,15 +36,26 @@ export type IconName =
   | "close"
   | "chevron-right"
   | "chevron-down"
-  | "info";
+  | "info"
+  // GLADIUS ekipman yuvaları
+  | "mask"
+  | "cord"
+  | "mask-cord"
+  | "jacket"
+  | "plastron"
+  | "lame"
+  | "shoes"
+  | "socks"
+  | "bag"
+  | "gladius";
 
 const PATHS: Record<IconName, ReactNode> = {
-  // Pist şeridi + orta çizgi + oyuncu noktası
+  // Takvim yaprağı + bugünün noktası
   today: (
     <>
-      <rect x="2" y="8.5" width="20" height="7" rx="1.5" />
-      <path d="M12 8.5v7M6 8.5v7M18 8.5v7" strokeOpacity=".45" />
-      <circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none" />
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M4 10h16M8.5 3v4M15.5 3v4" />
+      <circle cx="12" cy="15" r="1.9" fill="currentColor" stroke="none" />
     </>
   ),
   // Antrenör panosu
@@ -87,8 +98,8 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   feedback: <path d="M4 5.5h16v10.5H10l-6 4.5z" />,
-  // Flöre: düz ince namlu, küçük çanak
-  foil: <path d="M9.5 14.5L21 3M6.5 12.5l5 5M8.5 15.5l-5.5 5.5" />,
+  // Flöre: düz ince namlu, KÜÇÜK çanak
+  foil: <path d="M9.5 14.5L21 3M6.8 13.2a3.2 3.2 0 0 0 4 4M8.5 15.5l-5.5 5.5" />,
   // Epe: düz namlu, büyük derin çanak
   epee: <path d="M10.5 13.5L21 3M5 11a7 7 0 0 0 8 8M8.5 15.5l-5.5 5.5" />,
   // Kılıç: hafif kavisli namlu + D şeklinde el koruması
@@ -154,6 +165,55 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
+
+  // ——— GLADIUS ekipman yuvaları (kurgusal marka; gerçek ürünlerden kopya değil) ———
+  // Maske: önden oval tel + önlük
+  mask: (
+    <>
+      <ellipse cx="12" cy="10" rx="6" ry="7" />
+      <path d="M6.6 7h10.8M6 10h12M6.6 13h10.8M9 4v12M12 3v14M15 4v12" strokeWidth="1" strokeOpacity=".7" />
+      <path d="M8.6 16.6L7.2 21h9.6l-1.4-4.4" />
+    </>
+  ),
+  // Beden kordonu: sarmal kablo + 3 uçlu fiş
+  cord: (
+    <>
+      <path d="M2 12c1.2-2.6 3-2.6 3 0s1.8 2.6 3 0 1.8-2.6 3 0 1.8 2.6 3 0" />
+      <rect x="14" y="8.5" width="4.5" height="7" rx="1" />
+      <path d="M18.5 10h3M18.5 12h3M18.5 14h3" />
+    </>
+  ),
+  // Maske kordonu: kısa sarmal + mandal
+  "mask-cord": <path d="M2.5 12c1.2-2.6 3-2.6 3 0s1.8 2.6 3 0 1.8-2.6 3 0M11.5 12h2.5l6-4M14 12l6 4" />,
+  // Ceket: yüksek yaka + yana kaymış kapanma çizgisi
+  jacket: <path d="M9 3.5h6l1.2 2 3.8 2-1.5 5-2.5-1V21H8V11.5l-2.5 1L4 7.5l3.8-2zM9 3.5c.4 1.4 1.5 2.2 3 2.2s2.6-.8 3-2.2M14.5 6v15" />,
+  // Plastron: tek kol + göğüs yarısı, çapraz kayış
+  plastron: <path d="M12 3.5H9l-5 4 1.5 5 2.5-1V21h4zM12 7.5l5.5 2.5-1 2" />,
+  // Lamé: kolsuz yelek + çapraz tarama
+  lame: (
+    <>
+      <path d="M8.5 3.5h7l2 3.5V21h-11V7zM8.5 3.5c.5 2 1.8 3 3.5 3s3-1 3.5-3" />
+      <path d="M7 14l5-5M7 18.5l8-8M10.5 20.5l6.5-6.5" strokeWidth="1" strokeOpacity=".7" />
+    </>
+  ),
+  // Ayakkabı: düz taban, güçlendirilmiş burun
+  shoes: <path d="M3 17v-4l3-.8 3.2-4.7h3l1 3 5 1.5c2 .6 3.3 1.9 3.3 3.6V17zM3 17v1.5h18.5V17M17 12.3v4.7" />,
+  // Diz çorabı
+  socks: <path d="M9 3h6v10.5l3.4 3.4a2.5 2.5 0 0 1-3.5 3.5l-4.9-4.9L9 14zM9 6.5h6M9 9h6" />,
+  // Uzun silah çantası
+  bag: (
+    <>
+      <rect x="2" y="9" width="20" height="7.5" rx="3.75" />
+      <path d="M9 9V7.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V9M5.5 12.75h13" />
+    </>
+  ),
+  // GLADIUS monogramı: çanak halkası içinde G, üstten geçen namlu
+  gladius: (
+    <>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 1.5V6M15.4 10.8a4 4 0 1 0 .1 4.6V13h-3" />
     </>
   ),
 };
