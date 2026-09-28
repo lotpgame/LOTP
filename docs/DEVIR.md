@@ -38,9 +38,10 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 | [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** |
 | [#11](https://github.com/alkanyus/LOTP/pull/11) | Giriş ekranı masaüstünde iki sütun (solda vitrin, sağda form) | #8 |
 | [#12](https://github.com/alkanyus/LOTP/pull/12) | Antrenman planı: ikonlu 5'li seçim, "Kaydedilmedi" uyarısı | #11 |
+| [#14](https://github.com/alkanyus/LOTP/pull/14) | Kalan sayfalarda emoji temizliği (Geçmiş, Kulüp, Ayarlar …) + stil katmanı düzeltmesi | #12 |
 
 PR'lar zincirli: her biri bir öncekinin üstüne kurulu, sırayla merge edilir. #9 ile #11 ikisi de #8'in
-üstünde; #11 ve #12 renk kararını beklemez.
+üstünde; #11, #12 ve #14 renk kararını beklemez.
 
 ## Senden beklenenler (Yusuf)
 
@@ -136,13 +137,23 @@ Taslak (WhatsApp için, istediğin gibi değiştir):
 - **Ekipman ikonları:** biz çizdik (PR #5, kendi GLADIUS seti). PBT sitesinden vektör çıkarmana gerek yok.
   Marka ürünlerini kopyalamak telif riski taşıyor.
 
+## Senin alanında fark ettiklerimiz (acil değil, bilgi için)
+
+Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar senin:
+
+- **Maç anlatımında emoji:** `src/engine/combat/index.ts` ve `src/server/careerService.ts` "🏁 … maçı kazandı",
+  "⏱ Süre doldu", "🏅 Altın tuş!" satırlarını üretiyor. Arayüzün geri kalanında emoji kalmadı; istersen bu
+  sembolleri kaldırabilirsin. Arayüz zaten kazananı ve altın tuşu ayrıca gösteriyor.
+- **Ayarlar'da iki buton aynı işi yapıyor:** "Yeni Kariyer" ve "Kariyeri Sil" ikisi de `resetCareerAction`'ı
+  çağırıyor. Bilerek mi?
+- **Kullanılmayan çeviri anahtarı:** `ekipman.marketNote` hiçbir yerde kullanılmıyor.
+
 ## Osman tarafının sıradaki işleri
 
-1. Hook gelince #2 merge → sonra #3 … #8, #11, #12 sırayla merge. Her biri canlıya çıkar, şema değişmez.
+1. Hook gelince #2 merge → sonra #3 … #8, #11, #12, #14 sırayla merge. Her biri canlıya çıkar, şema değişmez.
 2. #9: Madde 2 cevaplanınca merge.
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
-   - geçmiş / kulüp / ayarlar sayfalarında kalan emoji'ler
    - pul kağıdı
    - beyaz lamba (flöre/kılıç geçersiz tuş)
 
