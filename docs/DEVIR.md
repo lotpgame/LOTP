@@ -36,8 +36,11 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 | [#7](https://github.com/alkanyus/LOTP/pull/7) | Yeni giriş ekranı (sporcu oluşturma) | #6 |
 | [#8](https://github.com/alkanyus/LOTP/pull/8) | Klasman: sıralama kulesi | #7 |
 | [#9](https://github.com/alkanyus/LOTP/pull/9) | Canlı maç: skor bandı, cihaz renkleri | **Madde 2** |
+| [#11](https://github.com/alkanyus/LOTP/pull/11) | Giriş ekranı masaüstünde iki sütun (solda vitrin, sağda form) | #8 |
+| [#12](https://github.com/alkanyus/LOTP/pull/12) | Antrenman planı: ikonlu 5'li seçim, "Kaydedilmedi" uyarısı | #11 |
 
-PR'lar zincirli: her biri bir öncekinin üstüne kurulu, sırayla merge edilir.
+PR'lar zincirli: her biri bir öncekinin üstüne kurulu, sırayla merge edilir. #9 ile #11 ikisi de #8'in
+üstünde; #11 ve #12 renk kararını beklemez.
 
 ## Senden beklenenler (Yusuf)
 
@@ -135,12 +138,10 @@ Taslak (WhatsApp için, istediğin gibi değiştir):
 
 ## Osman tarafının sıradaki işleri
 
-1. Hook gelince #2 merge → sonra #3 … #8 sırayla merge. Her biri canlıya çıkar, şema değişmez.
+1. Hook gelince #2 merge → sonra #3 … #8, #11, #12 sırayla merge. Her biri canlıya çıkar, şema değişmez.
 2. #9: Madde 2 cevaplanınca merge.
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
-   - masaüstünde giriş ekranı iki sütun
-   - antrenman planı yeni stil
    - geçmiş / kulüp / ayarlar sayfalarında kalan emoji'ler
    - pul kağıdı
    - beyaz lamba (flöre/kılıç geçersiz tuş)
