@@ -18,6 +18,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   bandı (kırmızı sol / yeşil sağ) ve örnek maç anlatımı, "Sporcunu oluştur" butonu, 3 adım. Form: büyük
   silah kartları (ikon + kısa kural), cinsiyet segmenti, profil çipleri; ülke seçimi yerine bilgi çipi.
   Oluşturma mantığı değişmedi. Marka adı Türkçe büyük harf kuralından korundu ("PİSTE" değil "PISTE").
+- **Giriş ekranı masaüstünde iki sütun:** bilgisayarda (1024 px ve üstü) solda koyu vitrin + 3 adım sabit
+  durur, sağda sporcu oluşturma formu görünür; "Sporcunu oluştur" atlama butonu yalnız telefonda. Telefon
+  görünümü ve oluşturma mantığı değişmedi. 1024×768, 1280×720 ve 1440×900'de kontrol edildi.
 - **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
   Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
   çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp

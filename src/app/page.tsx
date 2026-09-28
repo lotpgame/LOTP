@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createCareerAction } from "@/app/actions";
 import { LangSelect } from "@/app/LangSelect";
 import { GENDERS, PROFILES, TR_CITIES, WEAPONS } from "@/engine/domain";
-import { t } from "@/i18n";
+import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { hasCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
@@ -24,6 +24,7 @@ const STEPS: { icon: IconName; key: string }[] = [
 /**
  * Giriş ekranı — davet linkiyle telefondan gelen yeni oyuncunun ilk gördüğü sayfa.
  * Önce oyunu göster (koyu vitrin + örnek skor bandı + maç anlatımı), sonra 3 adım, sonra form.
+ * Masaüstünde (lg) iki sütun: solda vitrin + 3 adım sabit durur, sağda form kayar.
  * Vitrindeki isimler ve skor örnektir (gerçek sporcu değil); veri okumaz, yazmaz.
  */
 export default async function Home() {
@@ -31,21 +32,21 @@ export default async function Home() {
   const locale = await getLocale();
 
   return (
-    <main>
+    <main className="lg:grid lg:grid-cols-2">
       {/* ——— Vitrin (her zaman koyu) ——— */}
-      <section data-scope="console" className="mesh relative">
-        <div className="mx-auto flex min-h-[58svh] w-full max-w-lg flex-col px-4 pt-5 pb-6 sm:px-6">
+      <section data-scope="console" className="mesh relative lg:sticky lg:top-0 lg:h-svh lg:self-start">
+        <div className="mx-auto flex min-h-[58svh] w-full max-w-lg flex-col px-4 pt-5 pb-6 sm:px-6 lg:h-full lg:min-h-0 lg:max-w-xl lg:justify-center-safe lg:overflow-y-auto lg:px-12 lg:py-10 lg:*:shrink-0">
           <div className="flex items-start justify-between gap-3">
             <span className="kicker">{t(locale, "landing.kicker")}</span>
             <LangSelect current={locale} />
           </div>
           {/* lang="en": marka adı İngilizce — Türkçe büyük harf kuralı "PİSTE" yapmasın */}
-          <h1 lang="en" className="display mt-4 text-[40px] leading-[0.9]">
+          <h1 lang="en" className="display mt-4 text-[40px] leading-[0.9] lg:text-[72px]">
             Legends
             <br />
             of the Piste
           </h1>
-          <p className="mt-3 text-[15px] text-console-steel">{t(locale, "landing.lead")}</p>
+          <p className="mt-3 text-[15px] text-console-steel lg:text-[17px]">{t(locale, "landing.lead")}</p>
 
           <ScoreBug
             className="mt-5 border border-console-line"
@@ -65,28 +66,24 @@ export default async function Home() {
             <li className="border-l-2 border-sig-red pl-2.5 font-medium">{t(locale, "landing.demo4")}</li>
           </ol>
 
-          <a href="#olustur" className="btn-ink press mt-auto h-12 w-full text-[16px]">
-            {t(locale, "landing.cta")}
-            <Icon name="chevron-down" size={18} />
-          </a>
+          <Steps locale={locale} className="mt-8 hidden lg:grid" />
+
+          {/* Masaüstünde form zaten yanda görünür → atlama butonu yalnız telefonda.
+              Sarmalayıcı şart: .btn-ink kendi display'ini koyar, lg:hidden'ı ezer. */}
+          <div className="mt-auto lg:hidden">
+            <a href="#olustur" className="btn-ink press h-12 w-full text-[16px]">
+              {t(locale, "landing.cta")}
+              <Icon name="chevron-down" size={18} />
+            </a>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto w-full max-w-lg px-4 sm:px-6">
-        {/* ——— 3 adım ——— */}
-        <ol className="grid grid-cols-3 gap-2 pt-6">
-          {STEPS.map((s, i) => (
-            <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-md border border-line bg-arena-1">
-                <Icon name={s.icon} size={22} />
-              </span>
-              <span className="num text-[12px] text-steel">0{i + 1}</span>
-              <span className="text-[13px] leading-snug">{t(locale, s.key)}</span>
-            </li>
-          ))}
-        </ol>
+      <div className="mx-auto w-full max-w-lg px-4 sm:px-6 lg:py-12">
+        {/* ——— 3 adım (telefonda; masaüstünde vitrinde) ——— */}
+        <Steps locale={locale} className="pt-6 lg:hidden" />
 
-        <PisteLine className="my-6" />
+        <PisteLine className="my-6 lg:hidden" />
 
         {/* ——— Sporcu oluşturma ——— */}
         <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
@@ -185,6 +182,22 @@ const inputCls =
 
 const segCls =
   "flex min-h-11 items-center justify-center rounded-[5px] text-[15px] text-steel peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-arena-0 peer-focus-visible:ring-2 peer-focus-visible:ring-ink";
+
+function Steps({ locale, className }: { locale: Locale; className: string }) {
+  return (
+    <ol className={`grid grid-cols-3 gap-2 ${className}`}>
+      {STEPS.map((s, i) => (
+        <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
+          <span className="flex h-11 w-11 items-center justify-center rounded-md border border-line bg-arena-1">
+            <Icon name={s.icon} size={22} />
+          </span>
+          <span className="num text-[12px] text-steel">0{i + 1}</span>
+          <span className="text-[13px] leading-snug">{t(locale, s.key)}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (

@@ -46,6 +46,12 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 11. **Navigasyon:** telefonda alt 5 sekme (Bugün, Antrenman, Turnuvalar, Klasman, Daha fazla); masaüstünde
     (lg ≥ 1024 px) sol sidebar. İkisi `CareerNav.tsx`'teki tek `MAIN`/`MORE` tanımından. Aktif sayfa:
     kırmızı "en-garde" çizgisi + `aria-current`. Bildir menüde (yüzen buton yok).
+12. **Özel sınıflar kendi `display`'ini koyar** (`.btn-ink`, `.btn-ghost` …, `@layer utilities` içinde,
+    Tailwind'in `hidden`/`lg:hidden`'ından sonra gelir → onu ezer). Böyle bir öğeyi ekran boyuna göre
+    gizlemek için sarmalayıcı `div`'e `lg:hidden` ver.
+13. **Masaüstü (lg):** tek dar telefon sütunu bırakma. Giriş = iki sütun (sol vitrin `sticky h-svh`, sağ form).
+    Sabit yükseklikli flex sütunda çocuklara `shrink-0` + `justify-center-safe` + `overflow-y-auto` —
+    yoksa `overflow-hidden` taşıyan skor bandı alçak ekranda (1280×720) ezilir.
 
 ## Uygulandı
 
@@ -91,6 +97,9 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   U10 · U12 · U14 Yıldızlar · U17 · Gençler · Büyükler; silah; cinsiyet), 44 px. Liste = **sıralama kulesi**
   (`RankingTower` in `parts.tsx`; kullanılmayan eski `RankingTable` yerine): 1. altın kenar, 2–3 çelik,
   kendi satırın kırmızı kenar + SEN etiketi ve aşağıdaysan alt çubuğun üstüne yapışır (sticky).
+
+- **Giriş ekranı masaüstü:** lg'de iki sütun — solda vitrin (başlık 72 px) + 3 adım sabit, sağda form; atlama
+  butonu yalnız telefonda (sarmalayıcıyla, bkz. kural 12). 1024×768 · 1280×720 · 1440×900 · 390 kontrol edildi.
 
 ## Sırada (P0)
 
