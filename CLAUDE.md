@@ -59,6 +59,8 @@ Buna göre davranırım:
 - **Dış katkılar** (başka geliştirici/agent) branch + PR ile gelir → [`CONTRIBUTING.md`](CONTRIBUTING.md).
   Her iki akışta da geçerli: **canlı oyuncu verisi korunur** (yalnız eklemeli şema, sıfırlama yok —
   CONTRIBUTING.md §2). Bilinen riskler: `docs/ROADMAP.md` §H.
+- 📬 **Devir notu: [`docs/DEVIR.md`](docs/DEVIR.md)** — Osman tarafından bekleyen kararlar ve işler.
+  Oturum başında oku; açık madde varsa önce kullanıcıya söyle, cevapları dosyaya yazıp push et.
 
 ---
 

@@ -15,6 +15,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   güvenlik/KVKK), `.github/pull_request_template.md` (kontrol listesi) ve `docs/ROADMAP.md` **§H Riskler &
   Zayıf Noktalar** (R1 doğrulamasız telefon girişi → Google OAuth, R2 Postgres/SQLite migration tutarsızlığı,
   R3 canlı yedek, R4 CI, R5 büyük `careerService`, R6 canlı turnuva blob'u, R7–R9). Kod değişikliği yok.
+- **Devir notu (Yusuf ↔ Osman):** `docs/DEVIR.md` — bekleyen kararlar (Deploy Hook, canlı maç taraf renkleri,
+  yaş grubu ölçeği, telefon girişi güvenliği), testçi duyurusu taslağı, çakışma notu ve karar günlüğü;
+  `docs/tasarim/onizleme/` altında UI PR'larının telefon + masaüstü önizlemeleri. `CLAUDE.md`'ye işaret satırı.
+  Kod değişikliği yok.
 
 ### Değişti
 - **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi
