@@ -14,6 +14,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Ekipman mağazası: marka paneli + 2 yeni ikon (hazırlık):** GLADIUS vitrini artık açılır/kapanır bir
+  panel (`BrandPanel.tsx`) — Yusuf'un "her marka kendi panelinde" kararına göre, ileride başka markalar
+  (Leon, PBT…) eklenince yanına yeni bir panel konur. Şimdilik tek marka, varsayılan açık. Kendi ikon
+  setimize **eldiven** ve **göğüs koruyucu** eklendi (`Icon.tsx`: `glove`, `chest`) — Yusuf'un genişletilmiş
+  katalog isteğinde bu iki ürün için ikon yoktu. Motor tarafındaki katalog (`itemsForWeapon`, yeni ürünler)
+  henüz gelmedi; bu PR yalnız hazırlık, ürün listesi/fiyat değişmedi.
 - **7 günlük hafta şeridi (Bugün + Turnuvalar):** bugünden itibaren 7 gün tek bakışta — turnuva günleri kısa
   seviye etiketiyle (İL / TR / OPEN …) ve kayıt işaretiyle (✓ kayıtlısın, ○ kayıt yok, kilit = katılım hakkın
   yok, örn. sakatken), antrenman günleri haftalık plandaki seansın ikonuyla. Bugün mürekkep çerçeve + kırmızı

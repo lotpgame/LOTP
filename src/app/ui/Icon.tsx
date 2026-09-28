@@ -53,6 +53,8 @@ export type IconName =
   | "socks"
   | "bag"
   | "gladius"
+  | "glove"
+  | "chest"
   // Taktikler
   | "attack"
   | "balanced"
@@ -236,6 +238,22 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="13" r="8" />
       <path d="M12 1.5V6M15.4 10.8a4 4 0 1 0 .1 4.6V13h-3" />
+    </>
+  ),
+
+  // Eldiven: gauntlet — mitt + ayrık başparmak + geniş manşet (jacket/plastron ile aynı yükseklik)
+  glove: (
+    <>
+      <path d="M8 21v-9.5a2.7 2.7 0 0 1 2-2.6V6a2.5 2.5 0 0 1 5 0v3.6c2 .3 3.5 1.3 3.5 2.6V21z" />
+      <path d="M7 13c-1.7.3-3 1.2-3 2.4v1.3a1 1 0 0 0 1 1h2.5" />
+      <path d="M8 21h10.5" />
+    </>
+  ),
+  // Göğüs koruyucu: yuvarlak omuzlu kalkan plakası + orta bağlantı
+  chest: (
+    <>
+      <path d="M9 4.5a5 5 0 0 1 3-1 5 5 0 0 1 3 1c1.3 1 2 2.6 2 4.5v7c0 3.2-2.2 5.6-5 7-2.8-1.4-5-3.8-5-7V9c0-1.9.7-3.5 2-4.5z" />
+      <path d="M12 3.5v18" strokeWidth="1" strokeOpacity=".7" />
     </>
   ),
 

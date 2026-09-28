@@ -6,6 +6,7 @@ import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
+import { BrandPanel } from "./BrandPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -102,39 +103,22 @@ export default async function EkipmanPage() {
         </span>
       </div>
 
-      {/* GLADIUS vitrini: marka + kit tamamlama şeridi */}
-      <section className="panel mt-4 p-4">
-        <div className="flex items-center gap-3">
-          <Icon name="gladius" size={40} className="shrink-0" />
-          <div className="min-w-0">
-            <div className="font-display text-[24px] font-bold leading-none tracking-[0.3em]">GLADIUS</div>
-            <div className="mt-1 text-[13px] text-steel">{t(locale, "ekipman.brandSub")}</div>
-          </div>
-        </div>
-        <div className="mt-4 flex items-baseline justify-between">
-          <span className="kicker">{t(locale, "ekipman.kit")}</span>
-          <span className="num text-[15px]">
-            {ownedCount}/{GLADIUS_ITEMS.length}
-          </span>
-        </div>
-        <div className="mt-1.5 flex gap-[3px]" aria-hidden="true">
-          {GLADIUS_ITEMS.map((i) => (
-            <span key={i.id} className={`h-2 flex-1 rounded-[2px] ${owned.has(i.id) ? "bg-ink" : "bg-line"}`} />
-          ))}
-        </div>
-        <p className="mt-3 text-[13px] text-steel">{t(locale, "ekipman.prestigeNote")}</p>
-      </section>
-
-      {GROUPS.map((g) => {
-        const items = GLADIUS_ITEMS.filter((i) => g.slots.includes(i.slot));
-        if (items.length === 0) return null;
-        return (
-          <section key={g.key} className="mt-6">
-            <h2 className="kicker mb-2">{t(locale, `ekipman.group.${g.key}`)}</h2>
-            <ul className="grid gap-2.5 sm:grid-cols-2">{items.map(card)}</ul>
-          </section>
-        );
-      })}
+      {/* Marka paneli — açılır/kapanır (bkz. BrandPanel.tsx). Şimdilik tek marka: GLADIUS.
+          Yeni bir marka geldiğinde burada bir <BrandPanel> daha eklenir. */}
+      <div className="mt-4">
+        <BrandPanel icon="gladius" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={GLADIUS_ITEMS.length} locale={locale}>
+          {GROUPS.map((g) => {
+            const items = GLADIUS_ITEMS.filter((i) => g.slots.includes(i.slot));
+            if (items.length === 0) return null;
+            return (
+              <section key={g.key}>
+                <h2 className="kicker mb-2">{t(locale, `ekipman.group.${g.key}`)}</h2>
+                <ul className="grid gap-2.5 sm:grid-cols-2">{items.map(card)}</ul>
+              </section>
+            );
+          })}
+        </BrandPanel>
+      </div>
 
       {/* Eski genel ekipman seviyesi (küçük genel katkı) — ayrıntı, tıklayınca açılır */}
       <details className="panel group mt-6">

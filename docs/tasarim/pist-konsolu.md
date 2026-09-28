@@ -140,6 +140,14 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   canlı bitiş ekranı, `/turnuva/[id]` üstü, Bugün "Sen yokken" satırları. Dosya adları bilerek farklı (`headlineText` /
   `HeadlineCard`): Windows'ta büyük/küçük harf duyarsız → `headline.ts` + `Headline.tsx` import karışır.
 
+- **Ekipman marka paneli (hazırlık):** `ekipman/BrandPanel.tsx` — `.panel group` üstünde `<details>`, aynı
+  `chevron-down` + `group-open:rotate-180` deseni (antrenman/turnuvalar/klasman ile aynı). Yeni marka =
+  yeni bir `<BrandPanel>`; katalog verisi hâlâ motor tarafında (`GLADIUS_ITEMS`), bileşen yalnız kabuk.
+  Yeni ikonlar `glove`, `chest` — jacket/plastron ile aynı yükseklikte (3–21 viewBox), tek ana path + 1
+  ince aksan çizgisi. Kontrol: `<details>`'te tek eleman `offsetHeight`/`content-visibility` ölçümü
+  yanıltıcı (Chromium kapalıyken elemente kendi boyutunu geri verebilir) — gerçek sinyal
+  `document.documentElement.scrollHeight` (sayfa toplamı) veya ekran görüntüsü.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
