@@ -10,6 +10,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **"Bugün" ekranı (eski Profil) + yeni değer gösterimi:** dönen oyuncu önce bugünün görevini, sıradaki
+  turnuvayı (büyük geri sayım, kayıt durumu, Kaydol) ve "Sen yokken" özetini görür (antrenman raporu +
+  yokken oynanan turnuvalar tek panelde; artık her sayfanın tepesinde değil). Yetenekler **pist rayıyla**
+  gösterilir: ray yaş grubu ölçeğiyle dolar (8 yaşındaki sporcuda boş çubuk yok), gerçek 0–100 değer yazılı,
+  kategori ortalaması + en güçlü yetenek işaretli. Kondisyon/form 10 parçalı gösterge + durum yazısı
+  (Dinç/Yorgun…). Fizik ve psikoloji tıklayınca açılır. Menüde "Profil" → "Bugün". Ölçek değerleri taslak
+  (`src/app/ui/bands.ts`, antrenör onayı bekleniyor).
 - **Tasarım sistemi "Pist Konsolu" — temel + ikonlar + yeni navigasyon** (`docs/tasarim/pist-konsolu.md`):
   eskrim cihazından gelen görsel dil (tema-türevli yüzey token'ları, sinyal renkleri, Barlow Condensed
   başlık fontu, tabular rakamlar). **Kendi SVG ikon setimiz** (`src/app/ui/Icon.tsx`) — kabukta emoji kalmadı.

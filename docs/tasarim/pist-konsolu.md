@@ -56,11 +56,18 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 - **P0-3 Navigasyon:** telefon alt sekmeler + "Daha fazla" alt sayfası, masaüstü sol sidebar, ince kimlik
   şeridi (maske-oval avatar), gün çubuğu tek dokunuşla Turnuvalar'a, Bildir menüde (portal pencere).
 
+- **P0-5 Bugün ekranı** (eski Profil, menüde "Bugün"): bugünün görevi (antrenman/turnuva/sakatlık) → sıradaki
+  turnuva kartı (seviye etiketi, büyük geri sayım, kayıt lambası / Kaydol) → "Sen yokken" (antrenman raporu +
+  yokken oynanan turnuvalar tek panel, tek kapatma) → Reyting/Kondisyon/Form → Yetenekler → Fizik/Psikoloji
+  (tıklayınca açılır). Raporlar artık her sayfanın tepesinde değil.
+- **P0-6 Değer gösterimi:** `ui/Piste.tsx` (PisteRail, PisteLine, Segments) + `ui/bands.ts`. Yetenek rayı yaş grubu
+  ölçeğiyle dolar, gerçek 0–100 değer yazılı; kategori ortalaması, en güçlü yetenekte altın nokta. Kondisyon/form
+  10 parçalı gösterge + durum yazısı (Dinç/Yorgun…, trafik lambası rengi yok). ⏳ Ölçek (U10=30, U12=45, U14=60,
+  U17=80, üstü 100) taslak — Yusuf onaylayacak (`bands.ts`).
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
-5. Profil → "Bugün" ekranı: görevler, sıradaki turnuva, "sen yokken" tek yerde
-6. Değerler: boş çubuk yerine yaş grubu ölçekli pist rayı *(ölçek değerleri Yusuf'tan)*
 7. GLADIUS mağazası: kendi ekipman ikonlarımız, "Prestij", eksik Denar görünür, kit x/10
 8. Turnuvalar: taktik seçimi (segment), net kayıt durumu, geri sayım kartı
 9. Giriş ekranı: koyu vitrin + statik demo skor bandı, 3 adım, silah kartları

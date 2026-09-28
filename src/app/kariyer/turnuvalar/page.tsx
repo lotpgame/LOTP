@@ -45,7 +45,7 @@ export default async function TurnuvalarPage() {
       {/* Sıradaki turnuva + gerçek saat + canlı geri sayım (her akşam gün geçişi). */}
       {!liveNow && next && (
         <div className="mt-4">
-          <NextTournament info={next} variant="card" />
+          <NextTournament info={next} variant="card" locale={locale} />
           <p className="mt-1.5 text-xs opacity-55">
             Turnuvalar her akşam gün geçişinde açılır · Salı → İl · Perşembe → Türkiye · Cumartesi → Open
           </p>

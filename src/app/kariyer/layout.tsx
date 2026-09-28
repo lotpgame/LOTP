@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
+import { skipDayAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
@@ -8,8 +8,6 @@ import { Icon } from "@/app/ui/Icon";
 import { AutoAdvance } from "./AutoAdvance";
 import { CareerNav } from "./CareerNav";
 import { NextTournament } from "./NextTournament";
-
-const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 
 // Kariyer verisine bağlı: her istekte taze.
 export const dynamic = "force-dynamic";
@@ -72,7 +70,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                 {t(locale, "bar.syncing")}
               </span>
             ) : !h.injured && h.today.kind === "TRAINING" && h.nextTournament ? (
-              <NextTournament info={h.nextTournament} variant="bar" />
+              <NextTournament info={h.nextTournament} variant="bar" locale={locale} />
             ) : (
               <span className="text-[13px] text-steel">{t(locale, "bar.caughtUp")}</span>
             )}
@@ -99,85 +97,6 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           nationalTeam={h.nationalTeam}
           ticker={ticker}
         />
-
-        {/* Antrenman haberi — son "dünyaya yetiş"in özeti (kazanımlar + kondisyon/form değişimi). */}
-        {h.report && (
-          <section className="panel mb-4 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="kicker">{t(locale, "report.title", { n: h.report.days })}</div>
-                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[14px]">
-                  {h.report.gains.length > 0 ? (
-                    h.report.gains.map((g) => (
-                      <span key={g.label} className="font-medium">
-                        <span className="num">+{g.delta.toFixed(1)}</span> {g.label}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-steel">{t(locale, "report.none")}</span>
-                  )}
-                </div>
-                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-steel">
-                  <span className="inline-flex items-center gap-1">
-                    <Icon name="condition" size={15} /> {t(locale, "report.condition")} <span className="num">{fmtDelta(h.report.conditionDelta)}</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Icon name="form" size={15} /> {t(locale, "report.form")} <span className="num">{fmtDelta(h.report.sharpnessDelta)}</span>
-                  </span>
-                  {h.report.injured && (
-                    <span className="inline-flex items-center gap-1 font-medium text-sig-red">
-                      <Icon name="injury" size={15} /> {t(locale, "report.injured")}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <form action={clearReportAction}>
-                <button className="-mt-1 -mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-steel active:bg-arena-2" aria-label={t(locale, "common.close")}>
-                  <Icon name="close" size={18} />
-                </button>
-              </form>
-            </div>
-          </section>
-        )}
-
-        {/* M11.4: "Yokken neler oldu" — sen offline'ken otomatik oynanan turnuvalar (Hattrick-tarzı yakalama). */}
-        {h.awayTournaments.length > 0 && (
-          <section className="panel mb-4 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="kicker">{t(locale, "away.title", { n: h.awayTournaments.length })}</div>
-                <ul className="mt-2 flex flex-col">
-                  {h.awayTournaments.map((tr) => (
-                    <li key={tr.tournamentId}>
-                      <Link
-                        href={`/turnuva/${tr.tournamentId}`}
-                        className="flex min-h-11 items-center gap-2 rounded-md px-1 active:bg-arena-2"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-[15px] font-medium">{tr.name}</div>
-                          <div className="flex flex-wrap gap-x-2 text-[13px] text-steel">
-                            <span>{tr.dateLabel}</span>
-                            <span className="num text-ink">
-                              {tr.position}. / {tr.fieldSize}
-                            </span>
-                            {tr.points > 0 && <span>{t(locale, "away.points", { n: tr.points })}</span>}
-                            {tr.newRank != null && <span>{t(locale, "away.rank", { n: tr.newRank })}</span>}
-                          </div>
-                        </div>
-                        <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <form action={clearAwayReportAction}>
-                <button className="-mt-1 -mr-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-steel active:bg-arena-2" aria-label={t(locale, "common.close")}>
-                  <Icon name="close" size={18} />
-                </button>
-              </form>
-            </div>
-          </section>
-        )}
 
         {children}
       </div>

@@ -4,7 +4,8 @@ import { SKILLS } from "@/engine/skill";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
-import { CATEGORY_ICON, SkillsByCategory, Stat } from "../parts";
+import { Icon } from "@/app/ui/Icon";
+import { CATEGORY_ICON, SkillsByCategory, Stat, conditionState, formState } from "../parts";
 import { TrainingPlanForm } from "./TrainingPlanForm";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +28,9 @@ export default async function AntrenmanPage() {
       <h1 className="text-xl font-bold">{t(locale, "antrenman.title")}</h1>
 
       <section className="mt-3 grid grid-cols-3 gap-2.5">
-        <Stat icon="📅" label={t(locale, "antrenman.today")} value={c.dayName} />
-        <Stat icon="🔋" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} />
-        <Stat icon="🎯" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} />
+        <Stat icon="calendar" label={t(locale, "antrenman.today")} value={c.dayName} />
+        <Stat icon="condition" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} state={conditionState(locale, 100 - c.fatigue)} />
+        <Stat icon="form" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} state={formState(locale, c.sharpness)} />
       </section>
 
       {c.injured && (
@@ -56,7 +57,7 @@ export default async function AntrenmanPage() {
             return (
               <div key={info.cat} className="rounded-xl border border-black/10 bg-black/[0.015] p-3 dark:border-white/15 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <span>{CATEGORY_ICON[info.cat]}</span>
+                  <Icon name={CATEGORY_ICON[info.cat]} size={18} className="text-steel" />
                   {t(locale, `category.${info.cat}`)}
                 </div>
                 <div className="mt-1 flex flex-wrap gap-1">
@@ -84,7 +85,7 @@ export default async function AntrenmanPage() {
         <h2 className="text-lg font-semibold">{t(locale, "antrenman.currentSkills")}</h2>
         <p className="mt-1 text-xs opacity-60">{t(locale, "antrenman.currentSkillsNote")}</p>
         <div className="mt-3">
-          <SkillsByCategory skills={c.skills} locale={locale} />
+          <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
         </div>
       </section>
     </main>
