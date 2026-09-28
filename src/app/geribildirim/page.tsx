@@ -44,8 +44,9 @@ export default async function GeriBildirimPage({
               }`}
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs opacity-60">
-                <span className={f.kind === "error" ? "font-medium text-red-600 dark:text-red-400" : ""}>
-                  {f.kind === "error" ? "🐞 HATA" : "💬 fikir"}
+                <span className={`inline-flex items-center gap-1.5 ${f.kind === "error" ? "font-semibold text-sig-red" : ""}`}>
+                  <span className={`lamp h-2 w-2 ${f.kind === "error" ? "lamp-red" : "bg-steel"}`} aria-hidden="true" />
+                  {f.kind === "error" ? "HATA" : "fikir"}
                 </span>
                 {f.playerName && <span>· {f.playerName}</span>}
                 {f.page && <span>· {f.page}</span>}

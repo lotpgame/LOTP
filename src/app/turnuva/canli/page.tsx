@@ -7,7 +7,9 @@ import { getLocale } from "@/i18n/server";
 import { getLiveTournament, type LiveTournamentDTO } from "@/server/careerService";
 import { CanliMac } from "../[id]/CanliMac";
 import { PulKagidi } from "../[id]/PulKagidi";
+import { Icon, type IconName } from "@/app/ui/Icon";
 import { CanliPeriyot } from "./CanliPeriyot";
+import { SideScore } from "./matchParts";
 import { Countdown } from "./Countdown";
 import { TournamentTabs } from "./TournamentTabs";
 
@@ -56,6 +58,8 @@ function lastPeriodStart(log: string[]): number {
   return 0;
 }
 
+const TACTIC_ICON: Record<string, IconName> = { OFFENSIVE: "attack", BALANCED: "balanced", DEFENSIVE: "defence" };
+
 /** Taktik seçim ızgarası (pul ilk maçı / eleme 1. periyot / devre arası). */
 function TacticGrid({ locale }: { locale: Locale }) {
   return (
@@ -65,10 +69,13 @@ function TacticGrid({ locale }: { locale: Locale }) {
           key={tac}
           name="tactic"
           value={tac}
-          className="rounded-lg border border-black/15 p-3 text-left transition hover:border-emerald-500 hover:bg-emerald-500/10 dark:border-white/20"
+          className="press flex min-h-14 items-start gap-3 rounded-md border border-line bg-arena-0 p-3 text-left active:border-ink sm:flex-col sm:gap-1.5"
         >
-          <span className="text-sm font-medium">{t(locale, `tactic.${tac}`)}</span>
-          <span className="mt-1 block text-xs opacity-70">{t(locale, `tacticDesc.${tac}`)}</span>
+          <Icon name={TACTIC_ICON[tac] ?? "balanced"} size={22} className="mt-0.5 shrink-0" />
+          <span>
+            <span className="font-display text-[18px] font-bold uppercase leading-none">{t(locale, `tactic.${tac}`)}</span>
+            <span className="mt-1 block text-[13px] text-steel">{t(locale, `tacticDesc.${tac}`)}</span>
+          </span>
         </button>
       ))}
     </form>
@@ -84,12 +91,12 @@ function PendingPanel({ tour, locale }: { tour: LiveTournamentDTO; locale: Local
       ? `${p.round}${p.matchNo ? ` · ${t(locale, "canli.matchN", { n: p.matchNo })}` : ""}`
       : `${t(locale, "canli.eleme")} · ${p.round}`;
   return (
-    <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
-      <div className="text-sm opacity-70">
+    <div className="panel border-ink p-4">
+      <div className="kicker">
         {p.timeLabel} · {label}
       </div>
-      <h2 className="mt-1 text-lg font-semibold">{t(locale, "canli.nextMatch", { opp: p.oppName })}</h2>
-      <p className="mt-1 text-sm opacity-70">
+      <h2 className="mt-1.5 font-display text-[22px] font-bold leading-tight">{t(locale, "canli.nextMatch", { opp: p.oppName })}</h2>
+      <p className="mt-1 text-[14px] text-steel">
         {p.phase === "DE" ? t(locale, "canli.tacticHintDE") : t(locale, "canli.tacticHintPool")}
       </p>
       <TacticGrid locale={locale} />
@@ -118,10 +125,11 @@ function MatchCard({
     : `${t(locale, "canli.eleme")} · ${m.round}`;
   return (
     <div>
-      <div className="mb-1 text-xs font-medium opacity-60">
+      <div className="kicker mb-1.5">
         {m.timeLabel} · {label}
       </div>
       <CanliMac
+        youSide="left"
         aName={m.aName}
         bName={m.bName}
         scoreA={m.scoreA}
@@ -198,32 +206,23 @@ export default async function CanliTurnuvaPage() {
       {/* Başlık */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{tour.name}</h1>
-          <p className="text-sm opacity-70">
+          <h1 className="font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
+          <p className="text-[13px] text-steel">
             {tour.categoryId} · {t(locale, `phase.${tour.phase}`)}
           </p>
         </div>
         {(stage === "POOL" || stage === "WAIT_POOL") && (
-          <div className="rounded-lg border border-black/10 px-3 py-1.5 text-sm tabular-nums dark:border-white/15">
+          <div className="num rounded-md border border-line bg-arena-1 px-3 py-1.5 text-[14px]">
             {t(locale, "canli.poolCounter", { p: Math.min(tour.poolPlayed, tour.poolTotal), n: tour.poolTotal })}
           </div>
         )}
       </div>
 
       {/* Oyuncu durumu — turnuva boyunca güncel */}
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
-          <div className="text-xs opacity-60">🔋 {t(locale, "profil.condition")}</div>
-          <div className="font-semibold tabular-nums">%{tour.player.condition}</div>
-        </div>
-        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
-          <div className="text-xs opacity-60">🎯 {t(locale, "profil.form")}</div>
-          <div className="font-semibold tabular-nums">%{tour.player.sharpness}</div>
-        </div>
-        <div className="rounded-lg border border-black/10 px-2 py-1.5 dark:border-white/15">
-          <div className="text-xs opacity-60">⭐ {t(locale, "profil.overall")}</div>
-          <div className="font-semibold tabular-nums">{tour.player.overall.toFixed(1)}</div>
-        </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <MiniStat icon="condition" label={t(locale, "profil.condition")} value={`%${tour.player.condition}`} />
+        <MiniStat icon="form" label={t(locale, "profil.form")} value={`%${tour.player.sharpness}`} />
+        <MiniStat icon="rating" label={t(locale, "profil.overall")} value={tour.player.overall.toFixed(1)} />
       </div>
 
       {/* #25: aşama geçişleri OTOMATİK — manuel "geç/devam" butonu yok. Kısa bekleme sonra sistem ilerler;
@@ -251,18 +250,36 @@ export default async function CanliTurnuvaPage() {
   );
 }
 
+function MiniStat({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+  return (
+    <div className="panel px-2.5 py-2">
+      <div className="flex items-center gap-1 text-[12px] text-steel">
+        <Icon name={icon} size={14} /> {label}
+      </div>
+      <div className="num mt-0.5 text-[17px]">{value}</div>
+    </div>
+  );
+}
+
 /** Sabit pul maçları listesi satırı (oynandı / sıradaki / kilitli). */
 function FixtureRow({ no, opp, right, tone, locale }: { no: number; opp: string; right?: string; tone: "current" | "locked"; locale: Locale }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${
-        tone === "current" ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 opacity-50 dark:border-white/15"
+      className={`flex min-h-12 items-center justify-between gap-2 rounded-md border px-3 text-[14px] ${
+        tone === "current" ? "border-ink bg-arena-1" : "border-line text-steel"
       }`}
     >
-      <span>
-        <span className="mr-1 opacity-60">{t(locale, "canli.matchN", { n: no })} ·</span> {opp}
+      <span className="flex min-w-0 items-center gap-1.5">
+        {tone === "locked" && <Icon name="lock" size={14} className="shrink-0" />}
+        <span className="shrink-0 text-steel">{t(locale, "canli.matchN", { n: no })} ·</span>
+        <span className="truncate">{opp}</span>
       </span>
-      <span className="text-xs opacity-70">{right}</span>
+      {right && (
+        <span className="flex shrink-0 items-center gap-1.5 text-[13px] font-medium">
+          <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
+          {right}
+        </span>
+      )}
     </div>
   );
 }
@@ -289,7 +306,7 @@ function MaclarPanel({
 
   return (
     <section>
-      <h2 className="text-lg font-semibold">{t(locale, "canli.poolMatches")}</h2>
+      <h2 className="kicker mb-1">{t(locale, "canli.poolMatches")}</h2>
       <div className="mt-3 space-y-3">
         {fixtures.map((f, i) => {
           const key = f.matchNo;
@@ -308,19 +325,18 @@ function MaclarPanel({
           if (f.done) {
             const m = poolMatches[i];
             return (
-              <details key={key} className="rounded-lg border border-black/10 dark:border-white/15">
-                <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm">
-                  <span>
-                    <span className="mr-1 opacity-60">{t(locale, "canli.matchN", { n: f.matchNo })} ·</span> {f.oppName}
+              <details key={key} className="panel group">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-3 text-[14px] [&::-webkit-details-marker]:hidden">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Icon name={f.scoreHuman > f.scoreOpp ? "check" : "close"} size={15} className="shrink-0 text-steel" />
+                    <span className="shrink-0 text-steel">{t(locale, "canli.matchN", { n: f.matchNo })} ·</span>
+                    <span className="truncate">{f.oppName}</span>
                   </span>
-                  <span className="font-bold tabular-nums">
-                    <span className="text-emerald-600 dark:text-emerald-400">{f.scoreHuman}</span>
-                    <span className="mx-0.5 opacity-40">–</span>
-                    <span className="text-red-600 dark:text-red-400">{f.scoreOpp}</span>
-                  </span>
+                  {/* Sen soldasın (kırmızı), rakip sağda (yeşil) — renk kazananı söylemez, ikon söyler */}
+                  <SideScore a={f.scoreHuman} b={f.scoreOpp} />
                 </summary>
                 {m && (
-                  <div className="border-t border-black/10 p-2 dark:border-white/15">
+                  <div className="border-t border-line p-2">
                     <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
                   </div>
                 )}
@@ -347,17 +363,20 @@ function KagitPanel({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
   const others = sheets.filter((s) => s.poolNumber !== tour.humanPoolNumber);
   return (
     <section>
-      <h2 className="text-lg font-semibold">{t(locale, "canli.poolSheets")}</h2>
-      <p className="mt-1 text-xs opacity-60">{t(locale, "canli.poolSheetsNote")}</p>
+      <h2 className="kicker mb-1">{t(locale, "canli.poolSheets")}</h2>
+      <p className="mt-1 text-[13px] text-steel">{t(locale, "canli.poolSheetsNote")}</p>
       {mine && (
         <div className="mt-3">
           <PulKagidi sheet={mine} locale={locale} />
         </div>
       )}
       {tour.phase !== "POOL" && others.length > 0 && (
-        <details className="mt-4 rounded-lg border border-black/10 p-3 dark:border-white/15">
-          <summary className="cursor-pointer text-sm font-medium opacity-80">{t(locale, "canli.otherPools")}</summary>
-          <div className="mt-3 space-y-5">
+        <details className="panel group mt-4">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-3 text-[14px] [&::-webkit-details-marker]:hidden">
+            {t(locale, "canli.otherPools")}
+            <Icon name="chevron-down" size={16} className="text-steel transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="space-y-5 px-3 pb-3">
             {others.map((sheet) => (
               <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
             ))}
@@ -372,15 +391,20 @@ function KagitPanel({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale 
 function PoolIntro({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   const intro = tour.poolIntro;
   return (
-    <section className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-4">
-      <h2 className="text-lg font-semibold">{t(locale, "canli.poolIntroTitle")}</h2>
-      <p className="mt-1 text-sm opacity-80">{t(locale, "canli.poolIntroHint")}</p>
+    <section className="panel p-4">
+      <h2 className="kicker mb-1">{t(locale, "canli.poolIntroTitle")}</h2>
+      <p className="mt-1 text-[14px] text-steel">{t(locale, "canli.poolIntroHint")}</p>
       {intro && (
         <>
-          <div className="mt-3 text-sm font-medium opacity-70">{t(locale, "round.pool", { n: intro.poolNumber })}</div>
-          <ul className="mt-2 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
+          <div className="mt-3 font-display text-[17px] font-bold uppercase">{t(locale, "round.pool", { n: intro.poolNumber })}</div>
+          <ul className="mt-2 overflow-hidden rounded-md border border-line">
             {intro.members.map((mem, i) => (
-              <li key={i} className={`px-3 py-2 text-sm ${mem.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
+              <li
+                key={i}
+                className={`relative flex min-h-11 items-center gap-2 border-b border-line px-3 text-[14px] last:border-b-0 ${mem.isHuman ? "bg-arena-2 font-semibold" : ""}`}
+              >
+                {mem.isHuman && <span className="absolute inset-y-0 left-0 w-[3px] bg-sig-red" aria-hidden="true" />}
+                <span className="num w-5 text-steel">{i + 1}</span>
                 {mem.name}
               </li>
             ))}
@@ -395,11 +419,11 @@ function PoolIntro({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
 function Standings({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   return (
     <section>
-      <h2 className="text-lg font-semibold">{t(locale, "canli.seedingTitle")}</h2>
+      <h2 className="kicker mb-1">{t(locale, "canli.seedingTitle")}</h2>
       <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-[14px]">
           <thead>
-            <tr className="text-xs opacity-60">
+            <tr className="kicker">
               <th className="py-1 pr-2 text-left font-medium">#</th>
               <th className="py-1 pr-2 text-left font-medium">{t(locale, "klasman.player")}</th>
               <th className="py-1 px-2 text-center font-medium">{t(locale, "klasman.winLoss")}</th>
@@ -409,16 +433,16 @@ function Standings({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
           </thead>
           <tbody>
             {tour.seeding?.map((s) => (
-              <tr key={s.seedRank} className={`border-t border-black/5 dark:border-white/10 ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
-                <td className="py-1.5 pr-2 tabular-nums opacity-60">{s.seedRank}</td>
-                <td className="py-1.5 pr-2">{s.name}</td>
-                <td className="py-1.5 px-2 text-center tabular-nums">
+              <tr key={s.seedRank} className={`border-t border-line ${s.isHuman ? "bg-arena-2 font-semibold" : ""}`}>
+                <td className={`num py-2 pr-2 pl-1 ${s.isHuman ? "border-l-[3px] border-sig-red" : ""}`}>{s.seedRank}</td>
+                <td className="py-2 pr-2">{s.name}</td>
+                <td className="num py-2 px-2 text-center">
                   {s.wins}-{s.matches - s.wins}
                 </td>
-                <td className="py-1.5 px-2 text-center tabular-nums">
+                <td className="num py-2 px-2 text-center">
                   {s.indicator > 0 ? `+${s.indicator}` : s.indicator}
                 </td>
-                <td className="py-1.5 pl-2 text-right tabular-nums opacity-70">{s.touchesScored}</td>
+                <td className="num py-2 pl-2 text-right text-steel">{s.touchesScored}</td>
               </tr>
             ))}
           </tbody>
@@ -447,7 +471,7 @@ function ElemelerPanel({
     <>
       {history.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold">{t(locale, "canli.deMatches")}</h2>
+          <h2 className="kicker mb-1">{t(locale, "canli.deMatches")}</h2>
           <div className="mt-3 space-y-3">
             {history.map((m, i) => (
               <MatchCard key={i} m={m} index={i} locale={locale} />
@@ -461,7 +485,7 @@ function ElemelerPanel({
       {stage === "DE" &&
         (tour.liveMatch ? (
           <section className={history.length > 0 ? "mt-6" : ""}>
-            <div className="mb-1 text-xs font-medium opacity-60">
+            <div className="kicker mb-1.5">
               {t(locale, "canli.eleme")} ·{" "}
               {t(locale, "canli.periodEnded", { round: tour.liveMatch.round, n: tour.liveMatch.periodsPlayed })}
             </div>
@@ -475,15 +499,15 @@ function ElemelerPanel({
               instantThrough={tour.liveMatch.prevLen}
               locale={locale}
               afterDone={
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4">
-                  <h2 className="text-lg font-semibold">
+                <div className="panel border-ink p-4">
+                  <h2 className="font-display text-[20px] font-bold leading-tight">
                     {t(locale, "canli.break", {
                       n: tour.liveMatch.nextPeriod,
                       a: tour.liveMatch.scoreHuman,
                       b: tour.liveMatch.scoreOpp,
                     })}
                   </h2>
-                  <p className="mt-1 text-sm opacity-70">{t(locale, "canli.breakHint", { n: tour.liveMatch.totalPeriods })}</p>
+                  <p className="mt-1 text-[14px] text-steel">{t(locale, "canli.breakHint", { n: tour.liveMatch.totalPeriods })}</p>
                   <TacticGrid locale={locale} />
                 </div>
               }
@@ -510,27 +534,25 @@ function ElemelerPanel({
 function KoDraw({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   return (
     <section>
-      <h2 className="text-lg font-semibold">{t(locale, "canli.koDrawTitle", { round: tour.roundName ?? "" })}</h2>
-      <p className="mt-1 text-xs opacity-60">{t(locale, "canli.drawNote")}</p>
+      <h2 className="kicker mb-1">{t(locale, "canli.koDrawTitle", { round: tour.roundName ?? "" })}</h2>
+      <p className="mt-1 text-[13px] text-steel">{t(locale, "canli.drawNote")}</p>
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {tour.roundDraw?.map((d, i) => {
           const mine = d.aIsHuman || d.bIsHuman;
           return (
             <div
               key={i}
-              className={`rounded-lg border p-2 text-xs ${
-                mine ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
-              }`}
+              className={`rounded-md border px-3 py-2 text-[14px] ${mine ? "border-ink bg-arena-1" : "border-line"}`}
             >
-              <div className={`truncate ${d.aIsHuman ? "font-semibold" : ""}`}>{d.aName}</div>
-              <div className="my-0.5 text-center opacity-40">vs</div>
-              <div className={`truncate ${d.bIsHuman ? "font-semibold" : ""}`}>{d.bName}</div>
+              <div className={`truncate ${d.aIsHuman ? "font-semibold" : "text-steel"}`}>{d.aName}</div>
+              <div className="kicker my-0.5 text-center">vs</div>
+              <div className={`truncate ${d.bIsHuman ? "font-semibold" : "text-steel"}`}>{d.bName}</div>
             </div>
           );
         })}
       </div>
       {tour.seedRank != null && tour.phase === "POOL_DONE" && (
-        <p className="mt-3 text-sm opacity-80">{t(locale, "canli.seedInfo", { n: tour.seedRank })}</p>
+        <p className="mt-3 text-[14px] text-steel">{t(locale, "canli.seedInfo", { n: tour.seedRank })}</p>
       )}
     </section>
   );
@@ -540,54 +562,52 @@ function KoDraw({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
 function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }) {
   return (
     <div>
-      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
-        <div className="text-sm opacity-70">{t(locale, "canli.doneTitle")}</div>
-        <div className="mt-1 text-3xl font-bold">{positionLabel(locale, tour.finalPosition)}</div>
-        <div className="mt-1 text-sm opacity-70">{t(locale, "canli.champion", { name: tour.championName ?? "?" })}</div>
+      <div className={`panel p-5 text-center ${tour.finalPosition === 1 ? "border-prio" : ""}`}>
+        <div className="kicker">{t(locale, "canli.doneTitle")}</div>
+        <div className={`display mt-2 text-[40px] ${tour.finalPosition === 1 ? "text-prio" : ""}`}>{positionLabel(locale, tour.finalPosition)}</div>
+        <div className="mt-2 text-[14px] text-steel">{t(locale, "canli.champion", { name: tour.championName ?? "?" })}</div>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2.5">
-        <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
-          <div className="text-xs opacity-60">🏅 {t(locale, "canli.earned")}</div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="panel px-3 py-2.5 text-center">
+          <div className="text-[12px] text-steel">{t(locale, "canli.earned")}</div>
           {tour.givesRankingPoints ? (
-            <div className="font-semibold text-emerald-600">
-              {tour.earnedPoints != null && tour.earnedPoints > 0 ? `+${tour.earnedPoints}` : "0"}
-            </div>
+            <div className="num mt-0.5 text-[20px]">{tour.earnedPoints != null && tour.earnedPoints > 0 ? `+${tour.earnedPoints}` : "0"}</div>
           ) : (
-            <div className="text-xs font-medium opacity-50">Open · puan yok</div>
+            <div className="mt-1 text-[13px] text-steel">{t(locale, "canli.openNoPoints")}</div>
           )}
         </div>
-        <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
-          <div className="text-xs opacity-60">✨ Tecrübe</div>
-          <div className="font-semibold text-sky-600 dark:text-sky-400">
-            {tour.earnedXp != null && tour.earnedXp > 0 ? `+${tour.earnedXp}` : "0"}
-          </div>
+        <div className="panel px-3 py-2.5 text-center">
+          <div className="text-[12px] text-steel">{t(locale, "canli.xp")}</div>
+          <div className="num mt-0.5 text-[20px]">{tour.earnedXp != null && tour.earnedXp > 0 ? `+${tour.earnedXp}` : "0"}</div>
         </div>
-        <div className="rounded-lg border border-black/10 px-3 py-2 text-center dark:border-white/15">
-          <div className="text-xs opacity-60">{t(locale, "canli.rankPlace")}</div>
-          <div className="font-semibold">{tour.newRank != null ? `#${tour.newRank}` : "—"}</div>
+        <div className="panel px-3 py-2.5 text-center">
+          <div className="text-[12px] text-steel">{t(locale, "canli.rankPlace")}</div>
+          <div className="num mt-0.5 text-[20px]">{tour.newRank != null ? `#${tour.newRank}` : "—"}</div>
         </div>
       </div>
-      <p className="mt-1 text-center text-xs opacity-50">{t(locale, "canli.quarterNote")}</p>
+      <p className="mt-1.5 text-center text-[13px] text-steel">{t(locale, "canli.quarterNote")}</p>
 
       {tour.standings && (
-        <ol className="mt-4 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
+        <ol className="panel mt-4 overflow-hidden">
           {tour.standings.slice(0, 8).map((s, i) => (
-            <li key={i} className={`flex items-center justify-between px-3 py-2 text-sm ${s.isHuman ? "bg-emerald-500/10 font-medium" : ""}`}>
-              <span>{s.name}</span>
-              <span className="opacity-70">{positionLabel(locale, s.position)}</span>
+            <li
+              key={i}
+              className={`relative flex min-h-11 items-center justify-between gap-2 border-b border-line px-3 text-[14px] last:border-b-0 ${s.isHuman ? "bg-arena-2 font-semibold" : ""}`}
+            >
+              {(s.isHuman || s.position === 1) && (
+                <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-sig-red" : "bg-prio"}`} aria-hidden="true" />
+              )}
+              <span className="truncate">{s.name}</span>
+              <span className="shrink-0 text-steel">{positionLabel(locale, s.position)}</span>
             </li>
           ))}
         </ol>
       )}
 
-      <div className="mt-5 flex justify-center">
-        <form action={leaveLiveTournamentAction}>
-          <button className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
-            {t(locale, "canli.home")}
-          </button>
-        </form>
-      </div>
+      <form action={leaveLiveTournamentAction} className="mt-5">
+        <button className="btn-ink press h-12 w-full text-[16px]">{t(locale, "canli.home")}</button>
+      </form>
     </div>
   );
 }

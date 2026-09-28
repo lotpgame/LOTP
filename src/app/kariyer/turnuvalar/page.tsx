@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { attendTournamentAction, registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
-import { TACTICS } from "@/engine/combat";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
-import { NextTournament } from "../NextTournament";
+import { Icon } from "@/app/ui/Icon";
+import { TacticSegment } from "@/app/ui/TacticSegment";
+import { LevelTag, NextTournament } from "../NextTournament";
 
 export const dynamic = "force-dynamic";
 
@@ -18,136 +19,136 @@ export default async function TurnuvalarPage() {
   const header = await getCareerHeader();
   // #5a: turnuva zamanı geldiyse burada CANLI görünür ve giriş buradan yapılır (alt çubukta Katıl yok).
   const liveNow = header?.canAttend && header.today.kind === "TOURNAMENT" ? header.today : null;
+  const nextRegistered = next ? upcoming.find((u) => u.level === next.level)?.registered : undefined;
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
 
   return (
-    <main>
-      <h1 className="text-xl font-bold">{t(locale, "turnuvalar.title")}</h1>
-      <p className="mt-1 text-sm opacity-70">{t(locale, "turnuvalar.intro")}</p>
+    <main className="flex flex-col gap-4">
+      <h1 className="display text-[28px]">{t(locale, "turnuvalar.title")}</h1>
 
-      {/* #5a: turnuva CANLI — giriş buradan (alt çubukta Katıl yok). Bugünkü uygun turnuva açık. */}
+      {/* #5a: turnuva CANLI — giriş buradan. Kırmızı buton değil: mürekkep buton + yanıp sönen lamba. */}
       {liveNow && (
-        <div className="mt-4 rounded-xl border border-red-500/50 bg-red-500/10 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-red-600 dark:text-red-400">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" /> CANLI
+        <section className="panel border-ink p-4">
+          <div className="flex items-center gap-2">
+            <span className="lamp lamp-red anim-live h-2.5 w-2.5" aria-hidden="true" />
+            <span className="kicker text-ink">{t(locale, "tour.live")}</span>
           </div>
-          <div className="mt-1 text-lg font-bold">🏆 {liveNow.label}</div>
-          <p className="mt-1 text-sm opacity-70">Turnuva başladı — şimdi girip maçlarını oyna.</p>
+          <div className="mt-2 font-display text-[22px] font-bold leading-tight">{liveNow.label}</div>
+          <p className="mt-1 text-[14px] text-steel">{t(locale, "tour.liveDesc")}</p>
           <form action={attendTournamentAction} className="mt-3">
-            <button className="w-full rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-500">
-              🔴 Turnuvaya Gir
+            <button className="btn-ink press h-12 w-full text-[16px]">
+              {t(locale, "tour.enter")}
+              <Icon name="chevron-right" size={18} />
             </button>
           </form>
-        </div>
+        </section>
       )}
 
-      {/* Sıradaki turnuva + gerçek saat + canlı geri sayım (her akşam gün geçişi). */}
-      {!liveNow && next && (
-        <div className="mt-4">
-          <NextTournament info={next} variant="card" />
-          <p className="mt-1.5 text-xs opacity-55">
-            Turnuvalar her akşam gün geçişinde açılır · Salı → İl · Perşembe → Türkiye · Cumartesi → Open
-          </p>
-        </div>
-      )}
-
-      {/* Oynanmış turnuvalar Kariyer Geçmişi'nde — buradan kolay erişim. */}
-      <Link
-        href="/kariyer/gecmis"
-        className="mt-3 flex items-center justify-between rounded-xl border border-black/10 px-3 py-2.5 text-sm transition hover:border-emerald-500 dark:border-white/15"
-      >
-        <span className="flex items-center gap-2 font-medium">📜 {t(locale, "turnuvalar.pastLink")}</span>
-        <span className="opacity-40">›</span>
-      </Link>
+      {/* Sıradaki turnuva: gerçek saat + canlı geri sayım + kayıt durumu */}
+      {!liveNow && next && <NextTournament info={next} variant="card" locale={locale} registered={nextRegistered} registerHref="#yaklasan" />}
 
       {/* M10.2: Yaklaşan turnuvalar — önceden kayıt + taktik (ortak dünyada sunucu otomatik oynatır) */}
-      <section className="mt-5">
-        <h2 className="text-base font-semibold">{t(locale, "turnuvalar.upcoming")}</h2>
-        <p className="mt-1 text-xs opacity-60">{t(locale, "turnuvalar.upcomingNote")}</p>
-        <div className="mt-3 space-y-2.5">
-          {upcoming.length === 0 && <p className="text-sm opacity-60">{t(locale, "turnuvalar.noneUpcoming")}</p>}
+      <section id="yaklasan" className="scroll-mt-20">
+        <h2 className="kicker mb-2">{t(locale, "turnuvalar.upcoming")}</h2>
+        {upcoming.length === 0 && <p className="text-[14px] text-steel">{t(locale, "turnuvalar.noneUpcoming")}</p>}
+        <ul className="flex flex-col gap-2.5">
           {upcoming.map((u) => (
-            <div
-              key={`${u.worldDay}:${u.level}`}
-              className={`rounded-xl border p-3 ${
-                u.registered ? "border-emerald-500/60 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
+            <li key={`${u.worldDay}:${u.level}`} className="panel relative overflow-hidden p-3">
+              {u.registered && <span className="absolute inset-y-0 left-0 w-[3px] bg-ink" aria-hidden="true" />}
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-sm font-medium">{u.label}</div>
-                  <div className="text-xs opacity-60">
-                    📅 {u.dateLabel}
-                    {u.registered ? ` · ✓ ${t(locale, "turnuvalar.registered")}` : ""}
-                  </div>
-                  {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}
-                  <div className="mt-0.5 text-[11px] font-medium">
-                    {u.level === "OPEN" ? (
-                      <span className="text-sky-600 dark:text-sky-400">✨ Tecrübe kazandırır (klasman puanı yok)</span>
-                    ) : (
-                      <span className="text-emerald-600 dark:text-emerald-400">🏅 Klasman puanı + tecrübe</span>
-                    )}
+                  <div className="text-[15px] font-semibold">{u.label}</div>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-steel">
+                    <Icon name="calendar" size={14} /> {u.dateLabel}
                   </div>
                 </div>
+                <LevelTag level={u.level} locale={locale} />
+              </div>
+
+              {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className="rounded-md border border-line px-1.5 py-0.5 text-[12px] text-steel">
+                  {u.level === "OPEN" ? t(locale, "tour.rewardXp") : t(locale, "tour.rewardRank")}
+                </span>
+                {u.registered && (
+                  <span className="flex items-center gap-1 text-[13px] font-semibold">
+                    <Icon name="check" size={16} className="anim-check" /> {t(locale, "turnuvalar.registered")} ·{" "}
+                    {t(locale, `tactic.${u.tactic}`)}
+                  </span>
+                )}
               </div>
 
               {u.qualified ? (
-                <div className="mt-2 flex flex-wrap items-end gap-2">
-                  <form action={registerTournamentAction} className="flex items-end gap-2">
+                // Taktik seçici "Kaydol"a basınca açılır (liste kısa kalır). JS yok: native <details>.
+                // Listede ikincil buton — ekrandaki tek ana (mürekkep) buton üstteki kartta.
+                <details className="group mt-3">
+                  <summary
+                    className="btn-ghost press w-full cursor-pointer list-none group-open:border-ink [&::-webkit-details-marker]:hidden"
+                  >
+                    {u.registered ? t(locale, "tour.changeTactic") : t(locale, "turnuvalar.register")}
+                    <Icon name="chevron-down" size={16} className="transition-transform group-open:rotate-180" />
+                  </summary>
+                  <form action={registerTournamentAction} className="mt-2 flex flex-col gap-2">
                     <input type="hidden" name="worldDay" value={u.worldDay} />
                     <input type="hidden" name="level" value={u.level} />
-                    <label className="text-xs">
-                      <span className="mb-0.5 block opacity-60">{t(locale, "turnuvalar.preTactic")}</span>
-                      <select
-                        name="tactic"
-                        defaultValue={u.tactic}
-                        className="rounded-lg border border-black/15 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
-                      >
-                        {TACTICS.map((tac) => (
-                          <option key={tac} value={tac}>
-                            {t(locale, `tactic.${tac}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-500">
-                      {u.registered ? t(locale, "turnuvalar.update") : t(locale, "turnuvalar.register")}
-                    </button>
-                  </form>
-                  {u.registered && (
-                    <form action={unregisterTournamentAction}>
-                      <input type="hidden" name="worldDay" value={u.worldDay} />
-                      <input type="hidden" name="level" value={u.level} />
-                      <button className="rounded-lg border border-black/15 px-3 py-1.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
-                        {t(locale, "turnuvalar.cancel")}
+                    <TacticSegment defaultValue={u.tactic} locale={locale} />
+                    <div className="flex gap-2">
+                      <button className="btn-ink press flex-1">
+                        {u.registered ? t(locale, "turnuvalar.update") : t(locale, "tour.confirm")}
                       </button>
-                    </form>
-                  )}
-                </div>
+                      {u.registered && (
+                        <button
+                          formAction={unregisterTournamentAction}
+                          className="min-h-11 px-3 text-[14px] text-steel underline underline-offset-2"
+                        >
+                          {t(locale, "turnuvalar.cancel")}
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </details>
               ) : (
-                <div className="mt-2 text-xs opacity-60">🔒 {u.requirement}</div>
+                <div className="mt-2 flex items-center gap-1.5 text-[13px] text-steel">
+                  <Icon name="lock" size={15} /> {u.requirement}
+                </div>
               )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Sezon programı — haftalık tekrar (etkinlik akşam 19:00). Aylık "H1-H12" grid'i kaldırıldı (gerçek tarih modeli). */}
-      <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/15">
-        <h3 className="text-sm font-semibold">📋 Sezon programı</h3>
-        <p className="mt-1 text-xs opacity-60">Her hafta tekrarlanır · etkinlik akşam 19:00 · Open turnuvalar iki haftada bir.</p>
-        <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-80">
-          {weekly.map((e) => (
-            <li key={e.level}>
-              <span className="font-medium">{e.label}</span> · {e.dayName}
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs opacity-55">
-          Uluslararası turnuvalar (Satellite / Grand Prix / Avrupa / Dünya) sezonda birkaç kez; uygunluk klasman sırasına bağlı.
-        </p>
       </section>
+
+      {/* Oynanmış turnuvalar Kariyer Geçmişi'nde */}
+      <Link href="/kariyer/gecmis" className="panel flex min-h-12 items-center gap-3 px-4 active:bg-arena-2">
+        <Icon name="history" size={20} className="text-steel" />
+        <span className="flex-1 text-[15px]">{t(locale, "turnuvalar.pastLink")}</span>
+        <Icon name="chevron-right" size={18} className="text-steel" />
+      </Link>
+
+      {/* Nasıl işler? — açıklamalar ve haftalık program (tıklayınca açılır) */}
+      <details className="panel group">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
+          <Icon name="info" size={18} className="text-steel" />
+          <span className="flex-1 text-[15px]">{t(locale, "tour.howItWorks")}</span>
+          <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="space-y-3 px-4 pb-4 text-[14px]">
+          <p className="text-steel">{t(locale, "turnuvalar.intro")}</p>
+          <p className="text-steel">{t(locale, "turnuvalar.upcomingNote")}</p>
+          <div>
+            <div className="kicker mb-1">{t(locale, "tour.program")}</div>
+            <ul className="flex flex-col gap-1">
+              {weekly.map((e) => (
+                <li key={e.level} className="flex justify-between gap-2">
+                  <span>{e.label}</span>
+                  <span className="text-steel">{e.dayName}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[13px] text-steel">{t(locale, "tour.programNote")}</p>
+          </div>
+        </div>
+      </details>
     </main>
   );
 }

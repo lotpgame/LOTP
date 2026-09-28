@@ -11,6 +11,8 @@ Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yöne
   sırayla inşa ediliyor (mimari kararlar + M0–M8 aşamaları).
 - Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)
 - Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
+- Arayüz tasarım sistemi ("Pist Konsolu" — renk, ikon, navigasyon kuralları):
+  [`docs/tasarim/pist-konsolu.md`](docs/tasarim/pist-konsolu.md)
 - Katkı kuralları (branch + PR, canlı veri koruma): [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
   bilinen riskler: [`docs/ROADMAP.md`](docs/ROADMAP.md) §H
 - Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/) (GDD, 26 bölüm)

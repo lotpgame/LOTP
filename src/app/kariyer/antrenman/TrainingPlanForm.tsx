@@ -1,71 +1,110 @@
 "use client";
 
 /**
- * 7 günlük antrenman planı formu (Pzt..Paz; KONTROLLÜ + onClick).
+ * 7 günlük antrenman planı (Pzt..Paz) — her gün için ikonlu 5'li segment (KONTROLLÜ + onClick).
  * `<form action>` kullanılmıyor: React 19 server action sonrası formu resetleyip seçimi
  * eskiye döndürüyordu. Kaydet butonu server action'ı doğrudan çağırır; kontrollü state korunur.
  * Turnuva günlerinde (Sal/Prş/Cmt) seçilen seans yalnız o turnuvaya KATILMAZSAN uygulanır.
+ * Kaydedilmemiş değişiklik görünür (oyuncu seçip kaydetmeden çıkmasın).
  */
 import { useState, useTransition } from "react";
 import { setTrainingPlanAction } from "@/app/actions";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import { t, type Locale } from "@/i18n";
+import { Icon, type IconName } from "@/app/ui/Icon";
 
 const TOURNAMENT_DAYS = new Set([1, 3, 5]); // Salı / Perşembe / Cumartesi
 
+const TYPE_ICON: Record<TrainingType, IconName> = {
+  TECHNICAL: "technical",
+  PHYSICAL: "physical",
+  MENTAL: "mental",
+  TACTICAL: "tactical",
+  REST: "rest",
+};
+
 export function TrainingPlanForm({ initial, locale }: { initial: string[]; locale: Locale }) {
-  const [slots, setSlots] = useState<string[]>(() =>
-    Array.from({ length: 7 }, (_, i) => (TRAINING_TYPES.includes(initial[i] as TrainingType) ? initial[i] : "REST")),
-  );
-  const [saved, setSaved] = useState(false);
+  const normalized = () =>
+    Array.from({ length: 7 }, (_, i) => (TRAINING_TYPES.includes(initial[i] as TrainingType) ? initial[i] : "REST"));
+  const [slots, setSlots] = useState<string[]>(normalized);
+  const [savedSlots, setSavedSlots] = useState<string[]>(normalized);
+  const [justSaved, setJustSaved] = useState(false);
   const [pending, startTransition] = useTransition();
+  const dirty = slots.some((v, i) => v !== savedSlots[i]);
+
+  const pick = (day: number, value: string) => {
+    setJustSaved(false);
+    setSlots((prev) => prev.map((s, j) => (j === day ? value : s)));
+  };
 
   const save = () => {
-    setSaved(false);
+    const snapshot = slots;
     startTransition(async () => {
       const fd = new FormData();
-      slots.forEach((v, i) => fd.append(`slot${i}`, v));
+      snapshot.forEach((v, i) => fd.append(`slot${i}`, v));
       await setTrainingPlanAction(fd);
-      setSaved(true);
+      setSavedSlots(snapshot);
+      setJustSaved(true);
     });
   };
 
   return (
-    <div className="mt-3 space-y-3">
-      <p className="text-xs opacity-60">{t(locale, "plan.everyDayNote")}</p>
-      {slots.map((val, i) => (
-        <label key={i} className="block">
-          <span className="mb-1 block text-xs opacity-60">
-            {t(locale, `day.${i}`)}
-            {TOURNAMENT_DAYS.has(i) && <span className="ml-1 text-sky-600 dark:text-sky-400">· {t(locale, "plan.tournamentDay")}</span>}
-          </span>
-          <select
-            value={val}
-            onChange={(e) => {
-              const v = e.target.value;
-              setSaved(false);
-              setSlots((prev) => prev.map((s, j) => (j === i ? v : s)));
-            }}
-            className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-emerald-500 dark:border-white/20"
-          >
-            {TRAINING_TYPES.map((tt: TrainingType) => (
-              <option key={tt} value={tt}>
-                {t(locale, `training.${tt}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ))}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="rounded-lg border border-emerald-500 px-4 py-2.5 text-sm font-medium text-emerald-600 transition hover:bg-emerald-500/10 disabled:opacity-50"
-        >
+    <div className="mt-3">
+      <p className="text-[13px] text-steel">{t(locale, "plan.everyDayNote")}</p>
+      <ol className="mt-3 space-y-3">
+        {slots.map((val, i) => (
+          <li key={i}>
+            <fieldset>
+              <legend className="mb-1.5 flex w-full flex-wrap items-center gap-x-2 text-[14px] font-semibold">
+                {t(locale, `day.${i}`)}
+                {TOURNAMENT_DAYS.has(i) && (
+                  <span className="inline-flex items-center gap-1 text-[13px] font-normal text-steel">
+                    <Icon name="tournament" size={15} />
+                    {t(locale, "plan.tournamentDay")}
+                  </span>
+                )}
+              </legend>
+              <div className="grid grid-cols-5 rounded-md border border-line p-0.5">
+                {TRAINING_TYPES.map((tt) => (
+                  <label key={tt} className="cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`slot${i}`}
+                      value={tt}
+                      checked={val === tt}
+                      onChange={() => pick(i, tt)}
+                      className="peer sr-only"
+                    />
+                    <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[5px] px-0.5 text-center text-[12px] leading-tight text-steel transition-colors peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-arena-0 peer-focus-visible:ring-2 peer-focus-visible:ring-ink">
+                      <Icon name={TYPE_ICON[tt]} size={18} />
+                      {t(locale, `plan.short.${tt}`)}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-4 flex items-center gap-3">
+        <button type="button" onClick={save} disabled={pending || !dirty} className="btn-ink press h-12 flex-1 text-[16px] disabled:opacity-40">
           {pending ? t(locale, "plan.saving") : t(locale, "plan.save")}
         </button>
-        {saved && !pending && <span className="text-sm text-emerald-600">{t(locale, "plan.saved")}</span>}
+        <span role="status" className="flex min-w-0 items-center gap-1.5 text-[14px]">
+          {dirty && !pending && (
+            <>
+              <span className="lamp lamp-red h-2 w-2 shrink-0" aria-hidden="true" />
+              {t(locale, "plan.unsaved")}
+            </>
+          )}
+          {justSaved && !dirty && !pending && (
+            <>
+              <Icon name="check" size={18} />
+              {t(locale, "plan.saved")}
+            </>
+          )}
+        </span>
       </div>
     </div>
   );

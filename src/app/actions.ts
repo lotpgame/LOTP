@@ -173,6 +173,13 @@ export async function clearAwayReportAction(): Promise<void> {
   revalidatePath("/kariyer", "layout");
 }
 
+/** Bugün ekranındaki "Sen yokken" panelini kapatır (antrenman raporu + yokken oynanan turnuvalar birlikte). */
+export async function clearAllReportsAction(): Promise<void> {
+  await clearReport();
+  await clearAwayReport();
+  revalidatePath("/kariyer", "layout");
+}
+
 /** Geri bildirim / hata bildirimi gönderir (test haftası). */
 export async function submitFeedbackAction(formData: FormData): Promise<void> {
   await submitFeedback({

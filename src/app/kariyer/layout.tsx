@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { clearAwayReportAction, clearReportAction, skipDayAction } from "@/app/actions";
+import { skipDayAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHeader } from "@/server/careerService";
+import { Icon } from "@/app/ui/Icon";
 import { AutoAdvance } from "./AutoAdvance";
 import { CareerNav } from "./CareerNav";
-import { FeedbackWidget } from "./FeedbackWidget";
 import { NextTournament } from "./NextTournament";
-
-const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 
 // Kariyer verisine bağlı: her istekte taze.
 export const dynamic = "force-dynamic";
@@ -21,140 +19,86 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
   if (h.liveTournamentActive) redirect("/turnuva/canli");
   const locale = await getLocale();
 
-  // Gerçek takvim tarihi (Q/H yerine) — kafa karışıklığını kaldırır.
-  const dateLabel = `📅 ${h.dateLabel}`;
+  // Gün çubuğunda yıl gereksiz yer kaplıyor ("28 Eylül Pazartesi").
+  const shortDate = h.dateLabel.replace(` ${h.year}`, "");
 
-  return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-28 sm:px-6">
-      {/* Dünya saati: işlenecek gün varsa otomatik "dünyaya yetiş" (buton yok). */}
-      <AutoAdvance active={h.needsSync} />
-      <CareerNav
-        name={h.name}
-        locale={locale}
-        weapon={h.weapon}
-        gender={h.gender}
-        ageCategory={h.ageCategory}
-        age={h.age}
-        city={h.city}
-        nationalTeam={h.nationalTeam}
-      />
+  const todayLine = h.injured ? (
+    <span className="flex min-w-0 items-center gap-1.5 text-sig-red">
+      <Icon name="injury" size={15} className="shrink-0" />
+      <span className="truncate">{t(locale, "bar.injured", { n: h.injuryDaysRemaining })}</span>
+    </span>
+  ) : h.today.kind === "TOURNAMENT" ? (
+    <span className="flex min-w-0 items-center gap-1.5">
+      <Icon name={h.today.qualified ? "tournament" : "lock"} size={15} className="shrink-0" />
+      <span className="truncate">
+        {h.today.label}
+        {h.today.qualified ? "" : ` · ${h.today.requirement}`}
+      </span>
+    </span>
+  ) : (
+    <span className="flex min-w-0 items-center gap-1.5">
+      <Icon name="train" size={15} className="shrink-0" />
+      <span className="truncate">{h.today.trainingLabel}</span>
+    </span>
+  );
 
-      {/* Antrenman haberi — son "İlerle"nin özeti (kazanımlar + kondisyon/keskinlik değişimi). */}
-      {h.report && (
-        <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08] p-3 text-sm">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="font-medium">📰 Antrenman raporu · {h.report.days} gün</div>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                {h.report.gains.length > 0 ? (
-                  h.report.gains.map((g) => (
-                    <span key={g.label} className="font-medium text-emerald-700 dark:text-emerald-300">
-                      +{g.delta.toFixed(1)} {g.label}
-                    </span>
-                  ))
-                ) : (
-                  <span className="opacity-60">Bu sürede kayda değer gelişim yok</span>
-                )}
-              </div>
-              <div className="mt-1 flex flex-wrap gap-x-3 text-xs opacity-70">
-                <span>🔋 Kondisyon {fmtDelta(h.report.conditionDelta)}</span>
-                <span>🎯 Form {fmtDelta(h.report.sharpnessDelta)}</span>
-                {h.report.injured && <span className="font-medium text-amber-600 dark:text-amber-400">🩹 Sakatlandın!</span>}
-              </div>
-            </div>
-            <form action={clearReportAction}>
-              <button className="shrink-0 rounded-md px-2 py-1 text-xs opacity-50 transition hover:opacity-100" title="Kapat">
-                ✕
-              </button>
-            </form>
-          </div>
+  // Gün çubuğu: tamamı Turnuvalar'a giden bir bağlantı (sağdaki ok bunu belli eder).
+  const ticker = (
+    <div className="px-4 pt-2 pb-2 sm:px-6 lg:px-4 lg:pb-4">
+      {h.canAttend && (
+        // Turnuva zamanı: giriş Turnuvalar'dan (canlı). "Geç" = oynamadan o günün antrenmanı, sonraki güne geç.
+        <div className="mb-2 flex gap-2">
+          <Link href="/kariyer/turnuvalar" className="btn-ink press flex-1">
+            <span className="lamp lamp-red anim-live h-2.5 w-2.5" aria-hidden="true" />
+            {t(locale, "bar.liveGo")}
+          </Link>
+          <form action={skipDayAction}>
+            <button className="btn-ghost press">{t(locale, "bar.gec")}</button>
+          </form>
         </div>
       )}
-
-      {/* M11.4: "Yokken neler oldu" — sen offline'ken otomatik oynanan turnuvalar (Hattrick-tarzı yakalama). */}
-      {h.awayTournaments.length > 0 && (
-        <div className="mb-4 rounded-xl border border-sky-500/30 bg-sky-500/[0.08] p-3 text-sm">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <div className="font-medium">🗓️ Sen yokken · {h.awayTournaments.length} turnuva oynandı</div>
-              <ul className="mt-2 flex flex-col gap-1.5">
-                {h.awayTournaments.map((tr) => (
-                  <li key={tr.tournamentId}>
-                    <Link
-                      href={`/turnuva/${tr.tournamentId}`}
-                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md px-1 py-0.5 transition hover:bg-sky-500/10"
-                    >
-                      <span className="font-medium">{tr.name}</span>
-                      <span className="text-xs opacity-60">{tr.dateLabel}</span>
-                      <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
-                        {tr.position}. / {tr.fieldSize}
-                      </span>
-                      {tr.points > 0 && <span className="text-xs opacity-70">+{tr.points} puan</span>}
-                      {tr.newRank != null && <span className="text-xs opacity-70">· Klasman #{tr.newRank}</span>}
-                      <span className="text-xs opacity-40">›</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <form action={clearAwayReportAction}>
-              <button className="shrink-0 rounded-md px-2 py-1 text-xs opacity-50 transition hover:opacity-100" title="Kapat">
-                ✕
-              </button>
-            </form>
+      <Link href="/kariyer/turnuvalar" className="flex min-h-11 items-center gap-2 rounded-md active:bg-arena-2">
+        <div className="min-w-0 flex-1 text-[14px]">
+          <div className="flex min-w-0 items-center gap-2 lg:flex-col lg:items-start lg:gap-1">
+            <span className="shrink-0 rounded border border-line bg-arena-0 px-1.5 py-0.5 text-[12px] font-semibold">{shortDate}</span>
+            {todayLine}
           </div>
-        </div>
-      )}
-
-      {children}
-
-      {/* Test haftası: yüzen geri bildirim / hata bildirme butonu. */}
-      <FeedbackWidget />
-
-      {/* Sabit alt çubuk — sayfalar arası değişmez (gün-bazlı zaman sürücüsü). Online'da otomatik akar. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-black/80">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="min-w-0 text-sm">
-            <div className="font-medium tabular-nums">{dateLabel}</div>
-            <div className="truncate text-xs opacity-60">
-              {h.injured
-                ? t(locale, "bar.injured", { n: h.injuryDaysRemaining })
-                : h.today.kind === "TOURNAMENT"
-                  ? `🏆 ${h.today.label}${h.today.qualified ? "" : ` · 🔒 ${h.today.requirement}`}`
-                  : `🎯 ${h.today.trainingLabel}`}
-            </div>
-            {/* Antrenman günlerinde: bir sonraki turnuva ne zaman (gerçek saat + geri sayım). */}
-            {!h.injured && h.today.kind === "TRAINING" && h.nextTournament && (
-              <NextTournament info={h.nextTournament} variant="bar" />
+          <div className="mt-1 flex min-w-0 items-center gap-2">
+            {h.needsSync ? (
+              <span className="flex items-center gap-1.5 text-[13px] text-steel">
+                <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
+                {t(locale, "bar.syncing")}
+              </span>
+            ) : !h.injured && h.today.kind === "TRAINING" && h.nextTournament ? (
+              <NextTournament info={h.nextTournament} variant="bar" locale={locale} />
+            ) : (
+              <span className="text-[13px] text-steel">{t(locale, "bar.caughtUp")}</span>
             )}
           </div>
-
-          {h.canAttend ? (
-            // Turnuva zamanı — giriş TURNUVALAR sekmesinden (canlı). Alt çubukta "Katıl" YOK (#5a).
-            // "Geç" = oynamadan antrenman etkisi al, sonraki güne geç.
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href="/kariyer/turnuvalar"
-                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500"
-              >
-                🔴 {t(locale, "bar.liveGo")}
-              </Link>
-              <form action={skipDayAction}>
-                <button className="rounded-lg border border-black/15 px-3 py-2.5 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20">
-                  {t(locale, "bar.gec")}
-                </button>
-              </form>
-            </div>
-          ) : h.needsSync ? (
-            // Dünyaya yetişiliyor (otomatik) — buton yok
-            <div className="shrink-0 animate-pulse text-sm font-medium text-sky-600 dark:text-sky-400">
-              {t(locale, "bar.syncing")}
-            </div>
-          ) : (
-            // Dünya güncel — sonraki gün gerçek zamanda gelecek
-            <div className="shrink-0 text-right text-xs opacity-60">{t(locale, "bar.caughtUp")}</div>
-          )}
         </div>
+        <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
+      </Link>
+    </div>
+  );
+
+  return (
+    <div className="lg:pl-64">
+      <div className={`mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 lg:pt-8 lg:pb-40 ${h.canAttend ? "pb-64" : "pb-48"}`}>
+        {/* Dünya saati: işlenecek gün varsa otomatik "dünyaya yetiş" (buton yok). */}
+        <AutoAdvance active={h.needsSync} />
+        <CareerNav
+          name={h.name}
+          locale={locale}
+          weapon={h.weapon}
+          gender={h.gender}
+          ageCategory={h.ageCategory}
+          age={h.age}
+          city={h.city}
+          nationalTeam={h.nationalTeam}
+          ticker={ticker}
+        />
+
+        {children}
       </div>
     </div>
   );

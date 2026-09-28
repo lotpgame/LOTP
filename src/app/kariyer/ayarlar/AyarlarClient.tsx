@@ -27,18 +27,18 @@ export function SoundToggle({ locale }: { locale: Locale }) {
     }
   };
   return (
-    <div className="flex gap-2">
+    <div className="flex max-w-xs rounded-md border border-line p-0.5" role="group" aria-label={t(locale, "settings.sound")}>
       {([true, false] as const).map((v) => (
         <button
           key={String(v)}
+          type="button"
           onClick={() => set(v)}
-          className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-            on === v
-              ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-              : "border-black/15 opacity-70 hover:opacity-100 dark:border-white/20"
+          aria-pressed={on === v}
+          className={`press flex min-h-11 flex-1 items-center justify-center rounded-[5px] text-[15px] ${
+            on === v ? "bg-ink font-semibold text-arena-0" : "text-steel"
           }`}
         >
-          {v ? `🔊 ${t(locale, "settings.soundOn")}` : `🔇 ${t(locale, "settings.soundOff")}`}
+          {v ? t(locale, "settings.soundOn") : t(locale, "settings.soundOff")}
         </button>
       ))}
     </div>
@@ -64,48 +64,39 @@ export function CareerResetButton({
   if (!confirm) {
     return (
       <button
+        type="button"
         onClick={() => setConfirm(true)}
-        className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
-          danger
-            ? "border-red-500/40 text-red-600 hover:bg-red-500/10 dark:text-red-400"
-            : "border-black/15 hover:border-emerald-500 dark:border-white/20"
-        }`}
+        className={`btn-ghost press ${danger ? "border-sig-red/50 text-sig-red" : ""}`}
       >
         {label}
       </button>
     );
   }
   return (
-    <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3">
-      <p className="text-sm">{warning}</p>
+    <div className="panel border-sig-red/50 p-3">
+      <p className="text-[15px]">{warning}</p>
       {cost > 0 && (
-        <p className="mt-1 flex items-center gap-1 text-xs opacity-70">
-          Silme ücreti: <DenarMark size={13} /> {cost}
+        <p className="mt-1 flex items-center gap-1 text-[13px] text-steel">
+          {t(locale, "settings.resetFee")} <DenarMark size={13} /> <span className="num">{cost}</span>
         </p>
       )}
       {canAfford ? (
-        <div className="mt-2 flex gap-2">
+        <div className="mt-3 flex gap-2">
           <form action={resetCareerAction}>
-            <button className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500">
+            <button className="press inline-flex min-h-11 items-center rounded-md bg-sig-red px-4 text-[15px] font-semibold text-white">
               {t(locale, "settings.deleteConfirm")}
             </button>
           </form>
-          <button
-            onClick={() => setConfirm(false)}
-            className="rounded-lg border border-black/15 px-4 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-          >
+          <button type="button" onClick={() => setConfirm(false)} className="btn-ghost press">
             {t(locale, "settings.cancel")}
           </button>
         </div>
       ) : (
         <div className="mt-2">
-          <p className="flex items-center gap-1 text-sm font-medium text-red-600 dark:text-red-400">
-            Yetersiz Denar — gerekli: <DenarMark size={13} /> {cost}. Turnuvalardan kazan.
+          <p className="flex flex-wrap items-center gap-1 text-[14px] font-medium text-sig-red">
+            {t(locale, "settings.notEnough")} <DenarMark size={13} /> <span className="num">{cost}</span>. {t(locale, "settings.earnMore")}
           </p>
-          <button
-            onClick={() => setConfirm(false)}
-            className="mt-2 rounded-lg border border-black/15 px-4 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-          >
+          <button type="button" onClick={() => setConfirm(false)} className="btn-ghost press mt-3">
             {t(locale, "settings.cancel")}
           </button>
         </div>

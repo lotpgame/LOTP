@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { signInWithPhoneAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
+import { Icon } from "@/app/ui/Icon";
 
 /** Telefonla giriş formu (M9.2). Kod doğrulaması henüz yok (dev); yalnız numara + ülke. */
 export function GirisForm({ locale }: { locale: Locale }) {
@@ -45,7 +46,12 @@ export function GirisForm({ locale }: { locale: Locale }) {
         />
       </label>
       {err && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{err}</p>}
-      {linked && <p className="mt-2 text-sm text-emerald-600">{t(locale, "giris.linked")}</p>}
+      {linked && (
+        <p role="status" className="mt-2 flex items-center gap-1.5 text-sm">
+          <Icon name="check" size={16} />
+          {t(locale, "giris.linked")}
+        </p>
+      )}
       <button
         type="button"
         onClick={submit}

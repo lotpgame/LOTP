@@ -21,8 +21,9 @@ export function Countdown({ seconds, action, label }: { seconds: number; action:
   }, [seconds]);
 
   return (
-    <form ref={formRef} action={action} className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-4 text-center">
-      <span className="animate-pulse text-sm font-medium text-sky-700 dark:text-sky-300">{label}</span>
+    <form ref={formRef} action={action} className="panel flex min-h-12 items-center justify-center gap-2 px-4 py-3" role="status">
+      <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
+      <span className="text-[14px] font-medium">{label}</span>
     </form>
   );
 }

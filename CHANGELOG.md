@@ -10,6 +10,71 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Pul kağıdı yeniden çizildi:** gerçek FIE pul kağıdı düzeni, yeni tasarım dilinde — köşegen taralı, galibiyet
+  hücreleri ("V5") kalın ve köşede küçük işaret, mağlubiyetler soluk. **Kendi satırın ve sütunun** koyu zeminle
+  (artı gibi) işaretli: satır = senin rakiplere karşı sonuçların, sütun = rakiplerin sana karşı. Telefonda ad
+  sütunu yatay kaydırmada sabit kalıyor; V/TS/TR/Ind/Sıra ayrı blok, sütun başlıkları açıklamalı. Masaüstünde
+  tablo paneli dolduruyor. Canlı turnuvadaki "Pul kağıdı" sekmesinde ve geçmiş turnuva sayfasında aynı.
+- **Canlı maç ekranı — skor bandı + eskrim cihazı renkleri:** maçlar artık üstte yapışkan bir skor bandıyla
+  izlenir. **Renkler gerçek cihaz gibi: sol kırmızı (sen), sağ yeşil (rakip)** — önceden ters idi ve renk
+  iyi/kötü anlamı taşımaz; "sen" SEN etiketiyle gösterilir. Son tuşu alan tarafın lambası yanıp söner (epede
+  çift tuşta ikisi birden), en yeni anlatım satırı vurgulu. Sekmeler panelin üstünde, kilitliler kilit ikonlu
+  (spoiler yok, aynı). Taktik kartları ikonlu, Hızlı/Atla büyük dokunma alanı. Pul kağıdı, sonuç ekranı ve geçmiş
+  turnuva sayfası yeni stile geçti.
+- **Klasman yenilendi:** üstte büyük sıra numarası + iki kapı (milli takım ilk 4 · uluslararası ilk 16)
+  lamba ile. Filtreler açılır liste yerine çip/segment (federasyon sırası). Liste F1 sıralama kulesi gibi:
+  1. altın kenar, 2–3 çelik, senin satırın kırmızı kenar + SEN etiketi — listede aşağıdaysan ekranın
+  altına yapışır, kaydırmadan yerini görürsün.
+- **Yeni giriş ekranı (davet linkiyle gelen oyuncu için):** önce oyunu gösterir — koyu vitrin, örnek skor
+  bandı (kırmızı sol / yeşil sağ) ve örnek maç anlatımı, "Sporcunu oluştur" butonu, 3 adım. Form: büyük
+  silah kartları (ikon + kısa kural), cinsiyet segmenti, profil çipleri; ülke seçimi yerine bilgi çipi.
+  Oluşturma mantığı değişmedi. Marka adı Türkçe büyük harf kuralından korundu ("PİSTE" değil "PISTE").
+- **Giriş ekranı masaüstünde iki sütun:** bilgisayarda (1024 px ve üstü) solda koyu vitrin + 3 adım sabit
+  durur, sağda sporcu oluşturma formu görünür; "Sporcunu oluştur" atlama butonu yalnız telefonda. Telefon
+  görünümü ve oluşturma mantığı değişmedi. 1024×768, 1280×720 ve 1440×900'de kontrol edildi.
+- **Antrenman haftalık planı yenilendi:** her gün için açılır liste yerine **ikonlu 5'li segment** (Teknik ·
+  Fiziksel · Mental · Taktik · Dinlenme), turnuva günleri ikonla işaretli. **Kaydedilmemiş değişiklik görünür**
+  ("Kaydedilmedi" + kırmızı lamba; kaydedince "Kaydedildi"), kaydedecek bir şey yoksa buton pasif. Sayfanın geri
+  kalanı yeni tasarıma geçti (başlıklar, sakatlık kutusu, "Hangi antrenman neyi geliştirir?" paneli, emoji'ler
+  kalktı). "Bugün" kartındaki gün adı artık kartı taşırmıyor. Plan kaydetme mantığı ve sunucu aksiyonu aynı.
+- **Kalan sayfalarda emoji temizliği + yeni tasarım:** Kariyer Geçmişi (istatistiklerde kendi ikonlarımız:
+  kupa, kürsü, madalya; turnuva listesinde 1. altın / 2–3 çelik kenar, madalya emojisi yok; başarı yıldızları
+  ikon), Kulüp (nötr arma, tesis kalitesi segmentli), Ayarlar (ses segmenti, "Kariyeri Sil" kırmızı, sabit
+  Türkçe metinler çeviriye taşındı), hata sayfası, telefonla giriş onayı, geri bildirim panosu. Çeviri
+  metinlerinden emoji'ler kalktı (canlı maç metinleri canlı maç PR'ında). Kullanılmayan `klasman.nt4/intl16/
+  worldNote` silindi. Motorun ürettiği maç anlatımındaki semboller (🏁 ⏱ 🏅) motor tarafında, dokunulmadı.
+- **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
+  Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
+  çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp
+  sönen lamba. Ödül etiketi (klasman puanı / tecrübe). Açıklamalar ve haftalık program "Nasıl işler?" altında.
+  Sunucu aksiyonları değişmedi.
+- **GLADIUS mağazası yenilendi + kendi ekipman ikonlarımız:** emoji yerine elle çizilmiş SVG ikonlar
+  (maske, beden ve maske kordonu, ceket, plastron, lamé, ayakkabı, çorap, çanta; silah ikonu oyuncunun
+  silahına göre) ve GLADIUS monogramı — hiçbir gerçek marka/ürün görselinden kopya değil. "Kit x/10"
+  tamamlama şeridi, gruplu liste, Denar yetmiyorsa eksik tutar görünür yazıyla, epede gerekmeyen parçalar
+  için bilgi notu. Satın alma mantığı değişmedi.
+- **"Bugün" ekranı (eski Profil) + yeni değer gösterimi:** dönen oyuncu önce bugünün görevini, sıradaki
+  turnuvayı (büyük geri sayım, kayıt durumu, Kaydol) ve "Sen yokken" özetini görür (antrenman raporu +
+  yokken oynanan turnuvalar tek panelde; artık her sayfanın tepesinde değil). Yetenekler **pist rayıyla**
+  gösterilir: ray yaş grubu ölçeğiyle dolar (8 yaşındaki sporcuda boş çubuk yok), gerçek 0–100 değer yazılı,
+  kategori ortalaması + en güçlü yetenek işaretli. Kondisyon/form 10 parçalı gösterge + durum yazısı
+  (Dinç/Yorgun…). Fizik ve psikoloji tıklayınca açılır. Menüde "Profil" → "Bugün". Ölçek değerleri taslak
+  (`src/app/ui/bands.ts`, antrenör onayı bekleniyor).
+- **Tasarım sistemi "Pist Konsolu" — temel + ikonlar + yeni navigasyon** (`docs/tasarim/pist-konsolu.md`):
+  eskrim cihazından gelen görsel dil (tema-türevli yüzey token'ları, sinyal renkleri, Barlow Condensed
+  başlık fontu, tabular rakamlar). **Kendi SVG ikon setimiz** (`src/app/ui/Icon.tsx`) — kabukta emoji kalmadı.
+  **Navigasyon:** telefonda altta 5 sekme (Profil · Antrenman · Turnuvalar · Klasman · Daha fazla),
+  masaüstünde sol sidebar; açılır menü kalktı. İnce kimlik şeridi (maske-oval avatar). Gün çubuğu tek
+  dokunuşla Turnuvalar'a götürür; tıklanabilir satırlarda ok işareti. "Bildir" artık menüde (yüzen buton
+  yok), gönderim hatası görünür.
+
+### Düzeltildi
+- **Stil sınıfları utility'leri eziyordu:** `.panel`, `.btn-ink`, `.btn-ghost`, `.kicker` … `@layer utilities`
+  yerine `@layer components`'ta. Önceden üstlerine yazılan renk/kenar/gizleme sınıfları sessizce etkisizdi
+  (turnuvalarda kayıtlı kartın vurgusu, ekipmanda pasif buton rengi, seviye etiketlerinin rengi).
+- **Gövde fontu Arial'dı** (Geist yükleniyor ama kullanılmıyordu) → Geist Sans; Türkçe karakterler için `latin-ext`.
+- **Kişisel tema** (Ayarlar → Görünüm) başlık, alt çubuk ve geri bildirim panelinde çalışmıyordu (sabit
+  beyaz yüzeyler) → tüm yüzeyler temadan türer; tema ilk boyamadan önce uygulanır (yanıp sönme yok).
 - **Katkı kuralları + risk listesi (dış katkı başlangıcı):** `CONTRIBUTING.md` (branch → PR → squash
   merge akışı, **canlı veri koruma** — yalnız eklemeli şema, oyuncu ilerlemesi sıfırlanmaz, "bitti" tanımı,
   güvenlik/KVKK), `.github/pull_request_template.md` (kontrol listesi) ve `docs/ROADMAP.md` **§H Riskler &
