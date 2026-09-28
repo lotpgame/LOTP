@@ -71,10 +71,16 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   yazı ("Eksik: Đ 120"), epede maske kordonu/lamé için "Epede gerekmez" bilgisi (satın alma serbest).
   Ürün adları `t("gladius.<id>.name")`, yoksa motor adı. Eski ekipman seviyesi tıklayınca açılır.
 
+- **P0-8 Turnuvalar:** üstte sıradaki turnuva kartı (Kaydol → listedeki yere kaydırır) veya CANLI kartı
+  (mürekkep buton + yanıp sönen kırmızı lamba). Yaklaşan liste: seviye etiketi, ödül etiketi, kayıtlıysa
+  sol mürekkep çizgi + "Kayıtlı · Atak". **Taktik seçimi 3'lü segment** (`ui/TacticSegment.tsx`, gerçek radio,
+  JS yok) "Kaydol"a basınca açılır; iptal aynı formda (`formAction`). Listedeki butonlar ikincil — ekranda tek
+  ana buton. Açıklamalar + haftalık program "Nasıl işler?" altında. Taktik ikonları: atak (ok), dengeli
+  (terazi), defans (kalkan).
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
-8. Turnuvalar: taktik seçimi (segment), net kayıt durumu, geri sayım kartı
 9. Giriş ekranı: koyu vitrin + statik demo skor bandı, 3 adım, silah kartları
 10. Klasman: F1 sıralama kulesi (timing tower) tarzı
 
