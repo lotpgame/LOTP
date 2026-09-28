@@ -63,8 +63,9 @@ olur; CI senin commit'lerinde hook'u çağırmaz, çift deploy olmaz.
    Name: `VERCEL_DEPLOY_HOOK`, Secret: kopyaladığın URL → **Add secret**.
 3. URL'yi kimseye gönderme. Bilen herkes deploy tetikleyebilir. Buraya da yazma.
 
-**Cevap:** Vercel hook + GitHub secret kuruldu (Yusuf, 28.09). ⚠️ Ama CI iş akışını içeren **PR #2
-(`chore/ci`) master'a henüz merge olmadı** → otomasyon tam aktif değil. Osman #2'yi merge edince çalışır.
+**Cevap:** ✅ Vercel Deploy Hook + GitHub secret `VERCEL_DEPLOY_HOOK` kuruldu ve doğrulandı (Yusuf, 28.09).
+➡️ **Kalan tek adım: PR #2 (`chore/ci`) merge** — merge edince `ci.yml` canlıya iner ve otomasyon başlar.
+Osman, hook hazır: #2'yi merge edebilirsin (kendi PR'ın, CI'yı sen doğrula).
 
 ### 2. 🟠 Canlı maçta taraf renkleri (PR #9)
 
@@ -129,7 +130,7 @@ Taslak (WhatsApp için, istediğin gibi değiştir):
 > yeteneklerin aynı sayfanın altında. Canlı maçta artık hep soldasın ve kırmızısın, gerçek eskrim cihazındaki
 > gibi. Turnuva bitince sonucunu WhatsApp'ta paylaşabilirsin. Kariyerin ve ilerlemen aynen duruyor. Bir sorun görürsen "Bildir" butonunu kullan.
 
-**Cevap:** (duyuruyu sen mi atacaksın, metin uygun mu?)
+**Cevap:** Gerek yok (Yusuf, 28.09) — duyuru yapılmayacak.
 
 ## Çakışma olmasın diye
 
