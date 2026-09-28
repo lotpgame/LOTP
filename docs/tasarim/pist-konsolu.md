@@ -148,6 +148,13 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   yanıltıcı (Chromium kapalıyken elemente kendi boyutunu geri verebilir) — gerçek sinyal
   `document.documentElement.scrollHeight` (sayfa toplamı) veya ekran görüntüsü.
 
+- **Tema ayarları:** `ui/contrast.ts` (saf `contrastRatio`, WCAG formülü, testli) + `ThemeSettings.tsx`.
+  Hazır temalar `globals.css`'teki gerçek varsayılanlarla birebir (Salon #f4f5f2/#111418, Pist #0b0e12/#e8ecf0);
+  aktif olan `aria-pressed` + check ikonuyla işaretli. İlk render'da sabit renk tahmin etmek yerine
+  `getComputedStyle` ile sayfaya zaten uygulanmış (no-flash script'in bıraktığı) değer okunuyor. Kontrast
+  uyarısı `text-sig-red` (bu danger/warning kullanımı `CareerResetButton`'daki gibi — sig-red'in "SOL taraf"
+  anlamı yalnız maç bağlamında geçerli, genel tehlike/uyarı rengi olarak kullanımı önceden yerleşik).
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
@@ -155,10 +162,9 @@ P0 tamamlandı. Sonraki adımlar P1 listesinden.
 ## P1 (sonra)
 
 Canlıda periyot/ara/altın tuş bandı ·
-tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
+Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
-WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince) ·
-tema ayarları bileşeni (`ThemeSettings`) yeni stile.
+WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
 
 ## Bilerek yapılmayanlar
 

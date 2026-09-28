@@ -1,31 +1,38 @@
 "use client";
 
-/** Ayarlar → Görünüm: kişiye özel arka fon + yazı rengi (localStorage). Preset + serbest renk + sıfırla. */
+/**
+ * Ayarlar → Görünüm: kişiye özel arka fon + yazı rengi (localStorage). Hazır temalar uygulamanın kendi
+ * varsayılanlarıyla eşleşir (Salon/Pist — bkz. globals.css); serbest renk seçiminde WCAG kontrast uyarısı.
+ */
 import { useEffect, useState } from "react";
 import { THEME_BG_KEY, THEME_FG_KEY, applyTheme } from "@/app/ThemeApplier";
+import { contrastRatio, MIN_CONTRAST } from "@/app/ui/contrast";
+import { Icon } from "@/app/ui/Icon";
+import { t, type Locale } from "@/i18n";
 
 interface Preset {
-  name: string;
+  key: string;
   bg: string;
   fg: string;
 }
+
+// Uygulamanın kendi varsayılanlarıyla aynı (globals.css :root / prefers-color-scheme: dark).
 const PRESETS: Preset[] = [
-  { name: "Koyu", bg: "#0a0a0a", fg: "#ededed" },
-  { name: "Açık", bg: "#ffffff", fg: "#171717" },
-  { name: "Gece Mavisi", bg: "#0b1220", fg: "#e6eefb" },
-  { name: "Sepya", bg: "#f5efe0", fg: "#3a2f22" },
-  { name: "Eskrim Yeşili", bg: "#07130d", fg: "#d7f5e6" },
+  { key: "salon", bg: "#f4f5f2", fg: "#111418" },
+  { key: "pist", bg: "#0b0e12", fg: "#e8ecf0" },
+  { key: "gece", bg: "#0b1220", fg: "#e6eefb" },
+  { key: "yesil", bg: "#07130d", fg: "#d7f5e6" },
 ];
 
-const DEFAULT_BG = "#0a0a0a";
-const DEFAULT_FG = "#ededed";
+const sameHex = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
-export function ThemeSettings() {
-  const [bg, setBg] = useState<string>(DEFAULT_BG);
-  const [fg, setFg] = useState<string>(DEFAULT_FG);
+export function ThemeSettings({ locale }: { locale: Locale }) {
+  const [bg, setBg] = useState<string | null>(null);
+  const [fg, setFg] = useState<string | null>(null);
   const [custom, setCustom] = useState(false);
 
-  // Kayıtlı değerleri yükle (setState mount sonrası → hydration/cascade güvenli).
+  // Kayıtlı değer varsa onu, yoksa sayfaya zaten uygulanmış (no-flash script'in bıraktığı) sistem
+  // varsayılanını oku — sabit bir renk tahmin etmiyoruz (mount sonrası → hydration güvenli).
   useEffect(() => {
     let sbg: string | null = null;
     let sfg: string | null = null;
@@ -36,9 +43,16 @@ export function ThemeSettings() {
       // yoksay
     }
     const id = setTimeout(() => {
-      if (sbg) setBg(sbg);
-      if (sfg) setFg(sfg);
-      if (sbg || sfg) setCustom(true);
+      if (sbg && sfg) {
+        setBg(sbg);
+        setFg(sfg);
+        setCustom(true);
+      } else {
+        const cs = getComputedStyle(document.documentElement);
+        setBg(cs.getPropertyValue("--background").trim() || "#f4f5f2");
+        setFg(cs.getPropertyValue("--foreground").trim() || "#111418");
+        setCustom(false);
+      }
     }, 0);
     return () => clearTimeout(id);
   }, []);
@@ -64,51 +78,85 @@ export function ThemeSettings() {
       // yoksay
     }
     applyTheme(null, null); // sistem varsayılanına dön (açık/koyu otomatik)
-    setBg(DEFAULT_BG);
-    setFg(DEFAULT_FG);
+    const cs = getComputedStyle(document.documentElement);
+    setBg(cs.getPropertyValue("--background").trim() || "#f4f5f2");
+    setFg(cs.getPropertyValue("--foreground").trim() || "#111418");
     setCustom(false);
   };
 
+  if (bg == null || fg == null) return null; // ilk render: sistem rengi henüz okunmadı (yanıp sönme yok)
+
+  const lowContrast = contrastRatio(bg, fg) < MIN_CONTRAST;
+
   return (
     <div>
-      <p className="text-sm opacity-70">Arka fon ve yazı rengini kendine göre ayarla. Yalnız bu cihazda saklanır.</p>
+      <p className="text-[13px] text-steel">{t(locale, "settings.themeNote")}</p>
 
       {/* Hazır temalar */}
-      <div className="mt-3 flex flex-wrap gap-2">
-        {PRESETS.map((p) => (
-          <button
-            key={p.name}
-            onClick={() => persist(p.bg, p.fg)}
-            className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-medium transition hover:border-emerald-500 dark:border-white/20"
-            style={{ background: p.bg, color: p.fg }}
-          >
-            {p.name}
-          </button>
-        ))}
+      <div className="mt-3">
+        <span className="kicker">{t(locale, "settings.themePresets")}</span>
+        <div className="mt-1.5 flex flex-wrap gap-2">
+          {PRESETS.map((p) => {
+            const active = sameHex(bg, p.bg) && sameHex(fg, p.fg);
+            return (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => persist(p.bg, p.fg)}
+                aria-pressed={active}
+                className={`press flex min-h-11 items-center gap-1.5 rounded-md border-2 px-3.5 text-[14px] font-medium ${
+                  active ? "border-ink" : "border-line"
+                }`}
+                style={{ background: p.bg, color: p.fg }}
+              >
+                {active && <Icon name="check" size={15} />}
+                {t(locale, `settings.themePreset.${p.key}`)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Serbest renk */}
-      <div className="mt-4 flex flex-wrap items-end gap-4">
-        <label className="text-xs">
-          <span className="mb-1 block opacity-70">Arka fon</span>
-          <input type="color" value={bg} onChange={(e) => persist(e.target.value, fg)} className="h-9 w-16 cursor-pointer rounded border border-black/15 bg-transparent dark:border-white/20" />
-        </label>
-        <label className="text-xs">
-          <span className="mb-1 block opacity-70">Yazı</span>
-          <input type="color" value={fg} onChange={(e) => persist(bg, e.target.value)} className="h-9 w-16 cursor-pointer rounded border border-black/15 bg-transparent dark:border-white/20" />
-        </label>
-        <button
-          onClick={reset}
-          className="rounded-lg border border-black/15 px-3 py-2 text-sm opacity-70 transition hover:opacity-100 dark:border-white/20"
-        >
-          Sistem varsayılanı
-        </button>
+      <div className="mt-4">
+        <span className="kicker">{t(locale, "settings.themeCustom")}</span>
+        <div className="mt-1.5 flex flex-wrap items-end gap-4">
+          <label className="text-[13px] text-steel">
+            <span className="mb-1 block">{t(locale, "settings.themeBg")}</span>
+            <input
+              type="color"
+              value={bg}
+              onChange={(e) => persist(e.target.value, fg)}
+              className="h-11 w-16 cursor-pointer rounded-md border border-line bg-transparent"
+            />
+          </label>
+          <label className="text-[13px] text-steel">
+            <span className="mb-1 block">{t(locale, "settings.themeFg")}</span>
+            <input
+              type="color"
+              value={fg}
+              onChange={(e) => persist(bg, e.target.value)}
+              className="h-11 w-16 cursor-pointer rounded-md border border-line bg-transparent"
+            />
+          </label>
+          <button type="button" onClick={reset} className="btn-ghost press">
+            {t(locale, "settings.themeReset")}
+          </button>
+        </div>
+        {lowContrast && (
+          <p role="status" className="mt-2 flex items-center gap-1.5 text-[13px] text-sig-red">
+            <Icon name="info" size={15} className="shrink-0" />
+            {t(locale, "settings.themeContrastWarning")}
+          </p>
+        )}
       </div>
 
       {/* Canlı önizleme */}
-      <div className="mt-4 rounded-lg border border-black/15 p-3 dark:border-white/20" style={{ background: bg, color: fg }}>
-        <div className="text-sm font-semibold">Önizleme</div>
-        <div className="text-xs opacity-80">Örnek metin — {custom ? "kişisel tema aktif" : "sistem varsayılanı"}.</div>
+      <div className="mt-4 rounded-xl border border-line p-3" style={{ background: bg, color: fg }}>
+        <div className="text-[15px] font-semibold">{t(locale, "settings.themePreviewTitle")}</div>
+        <div className="text-[13px] opacity-80">
+          {custom ? t(locale, "settings.themePreviewCustom") : t(locale, "settings.themePreviewDefault")}
+        </div>
       </div>
     </div>
   );

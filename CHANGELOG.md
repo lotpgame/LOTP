@@ -14,6 +14,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Tema ayarları (Ayarlar → Görünüm) yeniden tasarlandı:** hazır temalar uygulamanın kendi varsayılanlarıyla
+  eşleşecek şekilde yeniden adlandırıldı ve gerçek değerlerine bağlandı — **Salon (açık)**, **Pist (koyu)**,
+  Gece Salonu, Eskrim Yeşili (önceki "Koyu/Açık/Gece Mavisi/Sepya" isimleri kalktı, Sepya çıkarıldı — tasarım
+  planındaki dörtlüyle aynı). Aktif tema artık işaretli (✓). **WCAG kontrast uyarısı:** serbest renk seçiminde
+  oran 4.5:1'in altına düşerse görünür uyarı çıkar (`ui/contrast.ts`, saf fonksiyon + testli); seçim
+  engellenmiyor, yalnız uyarılıyor. İlk açılışta artık sabit bir renk tahmin edilmiyor, sayfaya zaten
+  uygulanmış sistem varsayılanı okunuyor (küçük bir tutarsızlık düzeltildi). Dokunma hedefleri 44 px'e çıktı.
 - **Ekipman mağazası: marka paneli + 2 yeni ikon (hazırlık):** GLADIUS vitrini artık açılır/kapanır bir
   panel (`BrandPanel.tsx`) — Yusuf'un "her marka kendi panelinde" kararına göre, ileride başka markalar
   (Leon, PBT…) eklenince yanına yeni bir panel konur. Şimdilik tek marka, varsayılan açık. Kendi ikon

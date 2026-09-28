@@ -31,7 +31,7 @@ export default async function AyarlarPage() {
       <section className="mt-8">
         <h2 className="display text-[22px]">{t(locale, "settings.appearance")}</h2>
         <div className="mt-3">
-          <ThemeSettings />
+          <ThemeSettings locale={locale} />
         </div>
       </section>
 
