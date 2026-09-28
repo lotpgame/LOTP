@@ -14,6 +14,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **7 günlük hafta şeridi (Bugün + Turnuvalar):** bugünden itibaren 7 gün tek bakışta — turnuva günleri kısa
+  seviye etiketiyle (İL / TR / OPEN …) ve kayıt işaretiyle (✓ kayıtlısın, ○ kayıt yok, kilit = katılım hakkın
+  yok, örn. sakatken), antrenman günleri haftalık plandaki seansın ikonuyla. Bugün mürekkep çerçeve + kırmızı
+  çizgi. Hücreye dokununca turnuva → kayıt listesi, antrenman → plan. Yalnız mevcut veriden (sabit program,
+  yaklaşan turnuvalar, plan); motor/sunucu değişmedi. Birim testleri: `tests/ui/week.test.ts`.
+- **Kenar çubuğu:** masaüstünde "Turnuvaya Git" butonu artık iki satıra kırılmıyor.
 - **CI (GitHub Actions):** `.github/workflows/ci.yml` — her PR ve `master` push'unda lint + test + build
   (sahte `DATABASE_URL`, gerçek DB'ye bağlanmaz). Dış katkıcı merge'leri CI yeşilse Vercel Deploy Hook ile
   canlıya çıkar (secret `VERCEL_DEPLOY_HOOK`; yoksa CI bunu kırmızıyla bildirir). ROADMAP §H R4 ✅.

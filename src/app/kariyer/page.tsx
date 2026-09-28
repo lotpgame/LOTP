@@ -7,7 +7,10 @@ import { getCareer, getCareerHeader, getUpcomingTournaments } from "@/server/car
 import { Icon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { buildHeadline } from "@/app/ui/headlineText";
+import { serverWorldDay } from "@/server/world";
 import { NextTournament } from "./NextTournament";
+import { WeekStrip } from "./WeekStrip";
+import { buildWeek, todayFromHeader } from "./week";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
 
 export const dynamic = "force-dynamic";
@@ -84,6 +87,8 @@ export default async function BugunPage() {
       {h.nextTournament && !h.canAttend && (
         <NextTournament info={h.nextTournament} variant="card" locale={locale} registered={nextRegistered} />
       )}
+
+      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(h, locale))} locale={locale} />
 
       {/* 2 · SEN YOKKEN — antrenman raporu + yokken oynanan turnuvalar tek panelde */}
       {showAway && (

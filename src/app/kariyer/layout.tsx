@@ -48,7 +48,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
       {h.canAttend && (
         // Turnuva zamanı: giriş Turnuvalar'dan (canlı). "Geç" = oynamadan o günün antrenmanı, sonraki güne geç.
         <div className="mb-2 flex gap-2">
-          <Link href="/kariyer/turnuvalar" className="btn-ink press flex-1">
+          <Link href="/kariyer/turnuvalar" className="btn-ink press flex-1 whitespace-nowrap lg:px-3 lg:text-[14px]">
             <span className="lamp lamp-red anim-live h-2.5 w-2.5" aria-hidden="true" />
             {t(locale, "bar.liveGo")}
           </Link>

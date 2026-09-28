@@ -113,13 +113,19 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   (lamba + yazı), telefonla giriş onayı. Kalan tek emoji kaynağı: motorun maç anlatımı (`src/engine/combat`,
   `src/server/careerService.ts`) — Yusuf'un alanı. Metin içindeki ok (→, ←) tipografidir, ikon değil.
 
-- **P0-4 Canlı maç** *(⏳ merge için Yusuf'un taraf rengi onayı gerekli)*: `ScoreBug` hem eleme periyotlarında
+- **P0-4 Canlı maç** *(✅ Yusuf'un taraf rengi onayıyla canlıya alındı, 28.09)*: `ScoreBug` hem eleme periyotlarında
   (`CanliPeriyot`) hem pul/geçmiş maçlarda (`CanliMac`) — oyuncu hep SOLDA = KIRMIZI + SEN etiketi, rakip sağ yeşil.
   Son tuşu alan tarafın lambası bir kez yanıp söner (epede çift tuşta ikisi); skor yine yalnız satır açıldıkça
   değişir. En yeni anlatım satırı tuşu alan tarafın renginde sol çizgiyle, eskiler soluk. Hızlı/Atla 44 px segment.
   Sekmeler panelin ÜSTÜNDE, kilitli olanlar kilit ikonlu (spoiler mantığı aynı). Taktik kartları ikonlu. Bitmiş
   pul maçı satırında sonuç ikonla (✓/✗), skor taraf renginde. Sonuç ekranında altın yalnız şampiyonlukta.
   Pul kağıdı ve geçmiş turnuva sayfası da token'lara geçti. Ortak parçalar: `turnuva/canli/matchParts.tsx`.
+
+- **Hafta şeridi:** `kariyer/week.ts` (saf `buildWeek` + `todayFromHeader`, testli) + `kariyer/WeekStrip.tsx`. Şerit
+  başlıktaki "bugün" (kariyer günü) ile başlar → Bugün kartı/alt çubukla hep aynı gün; kariyer dünya gününün gerisindeyse
+  aradaki günler (kaydı kapanmış) programdan okunur (yalnız yurt içi turnuva; uluslararası yaş kuralı sunucuda, UI'da
+  tekrar edilmez). Gelecek günler `getUpcomingTournaments` (kayıt + hak). 7 sütun
+  `panel` hücre, ≥ 76 px yükseklik; etiket `levelShort.*`, gün `dayShort.*`; bugün `border-ink` + kırmızı alt çizgi.
 
 - **Pul kağıdı:** `figure.panel` + başlık (Pul N), tablo `border-separate` (sticky ad sütunu için; kenarlar hücre
   başına `border-t/l`). Hücre 36 px, köşegen `.hatch` (yeni sınıf), galibiyet `V5` kalın mürekkep + köşe noktası,
@@ -136,11 +142,11 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 
 ## Sırada
 
-P0 tamamlandı (P0-4 onay bekliyor). Sonraki adımlar P1 listesinden.
+P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
+Canlıda periyot/ara/altın tuş bandı ·
 tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince) ·

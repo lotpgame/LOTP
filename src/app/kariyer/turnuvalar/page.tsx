@@ -6,7 +6,10 @@ import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { TacticSegment } from "@/app/ui/TacticSegment";
+import { serverWorldDay } from "@/server/world";
 import { LevelTag, NextTournament } from "../NextTournament";
+import { WeekStrip } from "../WeekStrip";
+import { buildWeek, todayFromHeader } from "../week";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +50,8 @@ export default async function TurnuvalarPage() {
 
       {/* Sıradaki turnuva: gerçek saat + canlı geri sayım + kayıt durumu */}
       {!liveNow && next && <NextTournament info={next} variant="card" locale={locale} registered={nextRegistered} registerHref="#yaklasan" />}
+
+      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(header, locale))} locale={locale} />
 
       {/* M10.2: Yaklaşan turnuvalar — önceden kayıt + taktik (ortak dünyada sunucu otomatik oynatır) */}
       <section id="yaklasan" className="scroll-mt-20">
