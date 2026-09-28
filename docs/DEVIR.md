@@ -18,8 +18,11 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 
 ## Durum (28.09)
 
-- **Canlı oyun henüz değişmedi.** Aşağıdaki UI PR'larının hiçbiri merge edilmedi.
-- **Canlı veri korunuyor.** PR'lar şemaya, oyun motoruna (`src/engine`) ve sunucuya (`src/server`)
+- **⚠️ GÜNCELLEME (28.09, Yusuf):** Tüm UI zinciri (`feat/ui-pul-kagidi`) tek merge commit'iyle
+  doğrudan `master`'a alındı ve canlıya çıkarıldı (Yusuf'un push'u → Vercel deploy). Deploy Hook
+  (Madde 1) beklenmeden gidildi; senin push'ların için hook hâlâ gerekli, kurmanı öneririz.
+  Açık PR'ların (#2–#16) artık master'da; GitHub'da otomatik "merged"/kapanmış görünebilir.
+- **Canlı veri korunuyor.** Merge şemaya, oyun motoruna (`src/engine`) ve sunucuya (`src/server`)
   dokunmuyor. Testçilerin kariyerleri olduğu gibi kalır.
 - **Önizleme görselleri:** [`docs/tasarim/onizleme/`](tasarim/onizleme/). `telefon-*` 390 px,
   `masaustu-*` 1440 px; yerel test sürümünden alındı.
@@ -75,7 +78,7 @@ Seçenekler:
 - **(a) Onay.** #9 merge edilir; testçilere duyurulur (Madde 5).
 - **(b) Eskisi gibi kalsın** (sen yeşil). #9'u buna göre değiştiririz.
 
-**Cevap:**
+**Cevap:** (a) Onaylandı — sol+kırmızı düzeni uygun (Yusuf, 28.09). #9 canlıya alındı.
 
 ### 3. 🟠 Yaş grubu ölçeği (PR #4)
 

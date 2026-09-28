@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+> 🚀 **28.09.2026 — UI yenilemesi canlıya alındı.** Osman'ın tüm arayüz zinciri (`feat/ui-pul-kagidi`)
+> tek merge ile `master`'a alınıp deploy edildi. Motor/şema/sunucu değişmediği için canlı test
+> verisi korunur.
+
 ### Eklendi
 - **Pul kağıdı yeniden çizildi:** gerçek FIE pul kağıdı düzeni, yeni tasarım dilinde — köşegen taralı, galibiyet
   hücreleri ("V5") kalın ve köşede küçük işaret, mağlubiyetler soluk. **Kendi satırın ve sütunun** koyu zeminle
