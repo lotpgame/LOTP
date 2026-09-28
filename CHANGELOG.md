@@ -10,6 +10,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Klasman yenilendi:** üstte büyük sıra numarası + iki kapı (milli takım ilk 4 · uluslararası ilk 16)
+  lamba ile. Filtreler açılır liste yerine çip/segment (federasyon sırası). Liste F1 sıralama kulesi gibi:
+  1. altın kenar, 2–3 çelik, senin satırın kırmızı kenar + SEN etiketi — listede aşağıdaysan ekranın
+  altına yapışır, kaydırmadan yerini görürsün.
 - **Yeni giriş ekranı (davet linkiyle gelen oyuncu için):** önce oyunu gösterir — koyu vitrin, örnek skor
   bandı (kırmızı sol / yeşil sağ) ve örnek maç anlatımı, "Sporcunu oluştur" butonu, 3 adım. Form: büyük
   silah kartları (ikon + kısa kural), cinsiyet segmenti, profil çipleri; ülke seçimi yerine bilgi çipi.

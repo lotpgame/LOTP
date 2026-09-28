@@ -86,10 +86,15 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   (seçim yok). Aynı `name/value` → `createCareerAction` değişmedi (temiz tarayıcıda uçtan uca test edildi).
   Konsol kapsamında `--arena-0` da koyu (mürekkep buton yazısı okunur).
 
+- **P0-10 Klasman:** üstte "senin durumun" paneli (büyük sıra numarası + iki kapı lambası: milli takım ilk 4,
+  uluslararası ilk 16 — altın = kapı açık). Kapsam segmenti (Dünya/Kıta/Ülke) + kategori çipleri (yaş:
+  U10 · U12 · U14 Yıldızlar · U17 · Gençler · Büyükler; silah; cinsiyet), 44 px. Liste = **sıralama kulesi**
+  (`RankingTower` in `parts.tsx`; kullanılmayan eski `RankingTable` yerine): 1. altın kenar, 2–3 çelik,
+  kendi satırın kırmızı kenar + SEN etiketi ve aşağıdaysan alt çubuğun üstüne yapışır (sticky).
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
-10. Klasman: F1 sıralama kulesi (timing tower) tarzı
 
 ## P1 (sonra)
 

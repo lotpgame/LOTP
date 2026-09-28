@@ -3,7 +3,7 @@
  */
 import type { SkillCategory } from "@/engine/domain";
 import { t, type Locale } from "@/i18n";
-import type { CareerDTO } from "@/server/careerService";
+import type { RankingRowDTO } from "@/server/careerService";
 import { Icon, type IconName } from "@/app/ui/Icon";
 import { PisteRail, Segments } from "@/app/ui/Piste";
 import { ageGroup, bandMax } from "@/app/ui/bands";
@@ -145,38 +145,45 @@ export function SkillsByCategory({
   );
 }
 
-export function RankingTable({ ranking, quarter }: { ranking: CareerDTO["ranking"]; quarter: number }) {
-  if (ranking.length === 0) {
-    return (
-      <div>
-        <h2 className="text-lg font-semibold">Quarter Ranking (Q{quarter})</h2>
-        <p className="mt-1 text-sm opacity-60">
-          Bu quarter henüz turnuva oynanmadı. İlk turnuvadan sonra sıralama oluşur (quarter sonunda
-          sıfırlanır).
-        </p>
-      </div>
-    );
-  }
+/**
+ * Klasman — F1 sıralama kulesi tarzı. 1. sıra altın kenar (tek prestij rengi), 2–3 çelik kenar,
+ * kendi satırın kırmızı kenar + SEN etiketi; listede aşağıdaysan ekranın altına yapışır (sticky).
+ */
+export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: Locale }) {
   return (
-    <div>
-      <h2 className="text-lg font-semibold">Quarter Ranking (Q{quarter})</h2>
-      <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
-        {ranking.map((r) => (
-          <li
-            key={r.playerId}
-            className={`flex items-center justify-between gap-2 px-3 py-2 text-sm ${
-              r.isHuman ? "bg-emerald-500/10 font-medium" : ""
-            }`}
-          >
-            <span className="min-w-0">
-              <span className="inline-block w-6 tabular-nums opacity-60">{r.position}.</span>
-              {r.name}
-              {r.isHuman ? " (sen)" : ""}
-              {r.clubName ? <span className="ml-1 text-xs opacity-50">· {r.clubName}</span> : null}
-            </span>
-            <span className="shrink-0 tabular-nums opacity-70">{r.points.toFixed(1)} p</span>
-          </li>
-        ))}
+    <div className="panel overflow-clip">
+      <div className="grid grid-cols-[2.75rem_1fr_auto] border-b border-line px-3 py-2">
+        <span className="kicker">#</span>
+        <span className="kicker">{t(locale, "klasman.player")}</span>
+        <span className="kicker">{t(locale, "klasman.points")}</span>
+      </div>
+      <ol>
+        {rows.map((r) => {
+          const edge = r.isHuman ? "bg-sig-red" : r.position === 1 ? "bg-prio" : r.position <= 3 ? "bg-steel" : "";
+          return (
+            <li
+              key={r.playerId}
+              className={`relative grid min-h-12 grid-cols-[2.75rem_1fr_auto] items-center border-b border-line px-3 py-1.5 last:border-b-0 ${
+                r.isHuman ? "sticky bottom-[calc(8rem+env(safe-area-inset-bottom))] z-10 bg-arena-2 lg:bottom-4" : ""
+              }`}
+            >
+              {edge && <span className={`absolute inset-y-0 left-0 w-[3px] ${edge}`} aria-hidden="true" />}
+              <span className="num text-[17px]">{r.position}</span>
+              <span className="min-w-0">
+                <span className="flex items-center gap-1.5">
+                  <span className={`truncate text-[15px] ${r.isHuman ? "font-semibold" : ""}`}>{r.name}</span>
+                  {r.isHuman && (
+                    <span className="shrink-0 rounded-[4px] border border-ink px-1 text-[11px] font-semibold leading-4 tracking-wider">
+                      {t(locale, "common.youShort").toLocaleUpperCase(locale)}
+                    </span>
+                  )}
+                </span>
+                {r.clubName && <span className="block truncate text-[13px] text-steel">{r.clubName}</span>}
+              </span>
+              <span className="num text-[15px]">{r.points.toFixed(1)}</span>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

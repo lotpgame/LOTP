@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Klasman filtresi. ANA kapsam (M-UI): Dünya / Kıta / Ülke — 3 mod. Sonra kategori: yaş/cinsiyet/silah.
- * Kapsam daraldıkça (kıta/ülke) sıralama kapsam-içi 1..N gösterilir.
+ * Klasman filtresi. ANA kapsam: Dünya / Kıta / Ülke (segment). Sonra kategori çipleri: yaş / silah / cinsiyet
+ * (federasyon sırası). Kapsam daraldıkça (kıta/ülke) sıralama kapsam-içi 1..N gösterilir.
  */
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { getCategoryRankingAction } from "@/app/actions";
 import {
   GENDERS,
@@ -17,12 +17,28 @@ import {
 import { CONTINENTS, COUNTRIES } from "@/engine/geo";
 import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
+import { RankingTower } from "../parts";
 
 const AGES = ["U10", "U12", "U14", "U17", "U21", "SENIOR"];
 type ScopeLevel = "world" | "continent" | "country";
 
 const GENDER_FROM_CODE: Record<string, Gender> = { M: "MALE", F: "FEMALE" };
 const WEAPON_FROM_CODE: Record<string, Weapon> = { FL: "FOIL", EPE: "EPEE", KIL: "SABRE" };
+
+function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`press flex min-h-11 shrink-0 items-center rounded-md border px-3 text-[14px] ${
+        on ? "border-ink bg-ink font-semibold text-arena-0" : "border-line bg-arena-1 text-steel"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function KlasmanFilter({
   initialCategoryId,
@@ -52,12 +68,7 @@ export function KlasmanFilter({
     });
   };
 
-  const selCls =
-    "rounded-lg border border-black/15 bg-transparent px-2 py-2 text-sm outline-none focus:border-emerald-500 dark:border-white/20";
-  const tabCls = (on: boolean) =>
-    `rounded-lg px-3 py-2 text-sm font-medium transition ${
-      on ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300" : "bg-black/5 opacity-70 hover:opacity-100 dark:bg-white/10"
-    }`;
+  const selCls = "mt-2 min-h-11 w-full rounded-md border border-line bg-arena-1 px-3 text-[15px] outline-none focus:border-ink";
 
   const setScopeLevel = (lv: ScopeLevel) => {
     setLevel(lv);
@@ -65,18 +76,22 @@ export function KlasmanFilter({
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       {/* ANA kapsam: Dünya / Kıta / Ülke */}
-      <div className="flex gap-2">
-        <button onClick={() => setScopeLevel("world")} className={tabCls(level === "world")}>
-          🌍 {t(locale, "klasman.world")}
-        </button>
-        <button onClick={() => setScopeLevel("continent")} className={tabCls(level === "continent")}>
-          {t(locale, "klasman.continent")}
-        </button>
-        <button onClick={() => setScopeLevel("country")} className={tabCls(level === "country")}>
-          {t(locale, "klasman.country")}
-        </button>
+      <div className="flex rounded-md border border-line p-0.5" role="group" aria-label={t(locale, "klasman.rankings")}>
+        {(["world", "continent", "country"] as ScopeLevel[]).map((lv) => (
+          <button
+            key={lv}
+            type="button"
+            onClick={() => setScopeLevel(lv)}
+            aria-pressed={level === lv}
+            className={`flex min-h-11 flex-1 items-center justify-center rounded-[5px] text-[14px] ${
+              level === lv ? "bg-ink font-semibold text-arena-0" : "text-steel"
+            }`}
+          >
+            {t(locale, `klasman.${lv}`)}
+          </button>
+        ))}
       </div>
 
       {/* Kıta/Ülke seçince alt seçim */}
@@ -87,7 +102,7 @@ export function KlasmanFilter({
             setContinent(e.target.value);
             load(age, gender, weapon, "continent", e.target.value, country);
           }}
-          className={`${selCls} mt-2 w-full`}
+          className={selCls}
         >
           {CONTINENTS.map((c) => (
             <option key={c.code} value={c.code}>
@@ -103,7 +118,7 @@ export function KlasmanFilter({
             setCountry(e.target.value);
             load(age, gender, weapon, "country", continent, e.target.value);
           }}
-          className={`${selCls} mt-2 w-full`}
+          className={selCls}
         >
           {COUNTRIES.map((c) => (
             <option key={c.code} value={c.code}>
@@ -113,79 +128,58 @@ export function KlasmanFilter({
         </select>
       )}
 
-      {/* Kategori: yaş / cinsiyet / silah */}
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        <select
-          value={age}
-          onChange={(e) => {
-            setAge(e.target.value);
-            load(e.target.value, gender, weapon, level, continent, country);
-          }}
-          className={selCls}
-        >
-          {AGES.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
-        <select
-          value={gender}
-          onChange={(e) => {
-            const g = e.target.value as Gender;
-            setGender(g);
-            load(age, g, weapon, level, continent, country);
-          }}
-          className={selCls}
-        >
-          {GENDERS.map((g) => (
-            <option key={g} value={g}>
-              {t(locale, `gender.${g}`)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={weapon}
-          onChange={(e) => {
-            const w = e.target.value as Weapon;
-            setWeapon(w);
-            load(age, gender, w, level, continent, country);
-          }}
-          className={selCls}
-        >
-          {WEAPONS.map((w) => (
-            <option key={w} value={w}>
-              {t(locale, `weapon.${w}`)}
-            </option>
-          ))}
-        </select>
+      {/* Kategori çipleri: yaş / silah / cinsiyet — yatay kaydırılır */}
+      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5 sm:mx-0 sm:px-0">
+        {AGES.map((a) => (
+          <Chip
+            key={a}
+            on={age === a}
+            onClick={() => {
+              setAge(a);
+              load(a, gender, weapon, level, continent, country);
+            }}
+          >
+            {t(locale, `ageLabel.${a}`)}
+          </Chip>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {WEAPONS.map((w) => (
+          <Chip
+            key={w}
+            on={weapon === w}
+            onClick={() => {
+              setWeapon(w);
+              load(age, gender, w, level, continent, country);
+            }}
+          >
+            {t(locale, `weapon.${w}`)}
+          </Chip>
+        ))}
+        <span className="w-2" aria-hidden="true" />
+        {GENDERS.map((g) => (
+          <Chip
+            key={g}
+            on={gender === g}
+            onClick={() => {
+              setGender(g);
+              load(age, g, weapon, level, continent, country);
+            }}
+          >
+            {t(locale, `gender.${g}`)}
+          </Chip>
+        ))}
       </div>
 
       {pending ? (
-        <p className="mt-3 text-sm opacity-60">{t(locale, "klasman.loading")}</p>
-      ) : rows.length === 0 ? (
-        <p className="mt-3 rounded-lg border border-dashed border-black/15 p-3 text-sm opacity-60 dark:border-white/20">
-          {t(locale, "klasman.emptyCat")}
+        <p className="flex items-center gap-2 text-[14px] text-steel">
+          <span className="lamp lamp-white anim-live h-2 w-2" aria-hidden="true" />
+          {t(locale, "klasman.loading")}
         </p>
+      ) : rows.length === 0 ? (
+        <p className="panel p-3 text-[14px] text-steel">{t(locale, "klasman.emptyCat")}</p>
       ) : (
-        <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
-          {rows.map((r) => (
-            <li
-              key={r.playerId}
-              className={`flex items-center justify-between gap-2 px-3 py-2 text-sm ${
-                r.isHuman ? "bg-emerald-500/10 font-medium" : ""
-              }`}
-            >
-              <span className="min-w-0">
-                <span className="inline-block w-6 tabular-nums opacity-60">{r.position}.</span>
-                {r.name}
-                {r.isHuman ? ` ${t(locale, "common.you")}` : ""}
-                {r.clubName ? <span className="ml-1 text-xs opacity-50">· {r.clubName}</span> : null}
-              </span>
-              <span className="shrink-0 tabular-nums opacity-70">{r.points.toFixed(1)} p</span>
-            </li>
-          ))}
-        </ol>
+        <RankingTower rows={rows} locale={locale} />
       )}
     </div>
   );
