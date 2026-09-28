@@ -9,7 +9,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 import { ScoreBug } from "@/app/ui/ScoreBug";
-import { LogLines, SpeedControl, lastRevealedScore, scoringSide } from "./matchParts";
+import { LogLines, SpeedControl, lastRevealedScore, periodBand, scoringSide } from "./matchParts";
 
 export interface CanliPeriyotProps {
   aName: string;
@@ -49,6 +49,7 @@ export function CanliPeriyot({ aName, oppName, scoreHuman, scoreOpp, log, instan
           youSide="left"
           youLabel={t(locale, "live.you")}
           flash={flash}
+          band={periodBand(locale, log, shown)}
         />
         <LogLines log={log} shown={shown} live={!done} />
         {!done && <SpeedControl locale={locale} fast={fast} onFast={setFast} onSkip={() => setShown(log.length)} />}

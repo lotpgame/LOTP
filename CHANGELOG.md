@@ -14,6 +14,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Canlı eleme maçında periyot/altın tuş bandı:** skor bandı (`ScoreBug`) kaydırma sırasında sabit
+  (sticky) kalıyor ama anlatım aşağı akınca hangi periyotta olunduğu bilgisi ekrandan kayboluyordu —
+  artık bandın üstünde küçük bir durum etiketi var: "N. Periyot" (normal), berabere kalıp "altın tuş"a
+  (la belle) girildiğinde ise `--prio` altın renginde "Altın Tuş" — periyot numarasının yerini alıyor.
+  Etiket, log satırlarından (periyot başlığı `▸`, "öncelik kurası" satırı) saf fonksiyonlarla çıkarılıyor
+  (`ui/liveBand.ts`, testli); motorun anlatım metnine dokunulmadı. "Ara" (devre arası) zaten ayrı, gözden
+  kaçmayan bir başlıkla gösterildiğinden bilinçli olarak banda eklenmedi.
 - **Tema ayarları (Ayarlar → Görünüm) yeniden tasarlandı:** hazır temalar uygulamanın kendi varsayılanlarıyla
   eşleşecek şekilde yeniden adlandırıldı ve gerçek değerlerine bağlandı — **Salon (açık)**, **Pist (koyu)**,
   Gece Salonu, Eskrim Yeşili (önceki "Koyu/Açık/Gece Mavisi/Sepya" isimleri kalktı, Sepya çıkarıldı — tasarım

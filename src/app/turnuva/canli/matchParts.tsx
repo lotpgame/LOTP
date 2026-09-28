@@ -5,6 +5,7 @@
  * Log satırlarındaki skor "A–B" sırasındadır; A = sol (kırmızı), B = sağ (yeşil).
  */
 import { t, type Locale } from "@/i18n";
+export { periodBand } from "@/app/ui/liveBand";
 
 /** Açıklanan son tuş satırından güncel skoru sayı çifti olarak çıkarır ("… 3–2" → {a:3,b:2}). */
 export function lastRevealedScore(lines: string[]): { a: number; b: number } | null {

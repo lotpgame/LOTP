@@ -11,7 +11,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 import { ScoreBug } from "@/app/ui/ScoreBug";
-import { LogLines, SideScore, SpeedControl, lastRevealedScore, scoringSide } from "../canli/matchParts";
+import { LogLines, SideScore, SpeedControl, lastRevealedScore, periodBand, scoringSide } from "../canli/matchParts";
 
 export interface CanliMacProps {
   aName: string;
@@ -98,6 +98,7 @@ export function CanliMac({
           youSide={youSide}
           youLabel={t(locale, "live.you")}
           flash={started && !done ? scoringSide(log, shown) : undefined}
+          band={started ? periodBand(locale, log, shown) : undefined}
         />
 
         {!started && (

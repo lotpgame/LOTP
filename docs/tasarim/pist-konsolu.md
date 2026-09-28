@@ -155,13 +155,27 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   uyarısı `text-sig-red` (bu danger/warning kullanımı `CareerResetButton`'daki gibi — sig-red'in "SOL taraf"
   anlamı yalnız maç bağlamında geçerli, genel tehlike/uyarı rengi olarak kullanımı önceden yerleşik).
 
+- **Canlı periyot/altın tuş bandı:** `ScoreBug` sticky kalırken anlatım aşağı akınca "hangi periyottayım"
+  bilgisi kayboluyordu (gerçek eskrim cihazlarında bu ayrı bir gösterge). `ui/liveBand.ts` (saf: `currentPeriodNo`,
+  `isPriorityPhase`, `periodBand`, testli) log satırlarını okuyup ScoreBug'a yeni `band` prop'unu besliyor:
+  normalde "N. Periyot" (`text-console-steel`), "öncelik kurası" (la belle) satırı açılınca periyot numarasının
+  yerine `--prio` altın renginde "Altın Tuş" geçiyor. `CanliPeriyot` (canlı eleme periyodu) ve `CanliMac`'te
+  (pul/geçmiş maç tekrarı, final periyodun altın tuşu buradan izlenir) ortak kullanılıyor; pul maçlarında
+  periyot başlığı olmadığı için band otomatik gizli. Bilinçli kapsam dışı: **devre arası** ("ara") bandı — o
+  durum zaten `afterDone` panelinin kendi başlığıyla (`canli.break`) hemen altta, kaydırma olmadan görünüyor,
+  ScoreBug bandına eklemek yinelenen bilgi olurdu. Motorun anlatım metnine (`src/engine/combat`,
+  `src/server/careerService.ts`) dokunulmadı — tespit yalnız var olan log satırlarını okur (regex, TR/EN).
+  Görsel doğrulama: gerçek `ScoreBug` bileşeni geçici bir Next sayfasında (`globals.css` derlenmiş haliyle)
+  üç durumda (normal periyot / altın tuş / bantsız) ekran görüntüsüyle kontrol edildi, sonra rota silindi —
+  test karakterinin hızlı dünya saati bu oturumda sakatlanmış durumdaydı, gerçek canlı maçla tekrar test
+  bir sonraki oturuma kaldı.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Canlıda periyot/ara/altın tuş bandı ·
 Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
