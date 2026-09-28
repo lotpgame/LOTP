@@ -101,6 +101,11 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 - **Giriş ekranı masaüstü:** lg'de iki sütun — solda vitrin (başlık 72 px) + 3 adım sabit, sağda form; atlama
   butonu yalnız telefonda (sarmalayıcıyla, bkz. kural 12). 1024×768 · 1280×720 · 1440×900 · 390 kontrol edildi.
 
+- **Antrenman:** haftalık plan = gün başına ikonlu 5'li radio segment (aynı `slot0..6` değerleri →
+  `setTrainingPlanAction` değişmedi); kaydedilmemiş değişiklik "Kaydedilmedi" + kırmızı lamba, kaydedince
+  onay ikonu; temiz durumda buton pasif. Kelime değerli `Stat` → `word` (dar başlık fontu; mono gün adı
+  390 px'te taşıyordu). Yerelde uçtan uca test: seç → Kaydedilmedi → kaydet → Kaydedildi → yenile → kalıcı.
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
@@ -108,7 +113,7 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 ## P1 (sonra)
 
 Pul kağıdı yeniden çizimi · manşet cümleleri (+ WhatsApp paylaşım metni, kullanıcı kendisi gönderir) ·
-canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi · antrenman planında ikonlu segment seçici ·
+canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
 tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Kulüp arması (nötr kalkan) · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince) ·

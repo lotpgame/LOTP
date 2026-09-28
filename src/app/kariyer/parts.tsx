@@ -42,12 +42,15 @@ export function Stat({
   gauge,
   icon,
   state,
+  word,
 }: {
   label: string;
   value: string;
   gauge?: number;
   icon?: IconName;
   state?: string;
+  /** Değer sayı değil kelime (örn. gün adı): dar başlık fontu — mono'da "Cumartesi" kartı taşırıyordu. */
+  word?: boolean;
 }) {
   return (
     <div className="panel px-3 py-2.5">
@@ -56,7 +59,7 @@ export function Stat({
         {label}
       </div>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
-        <span className="num text-[22px] leading-none">{value}</span>
+        <span className={`${word ? "display" : "num"} text-[22px] leading-none`}>{value}</span>
         {state && <span className="text-[13px] text-steel">{state}</span>}
       </div>
       {gauge != null && <Segments value={gauge} className="mt-2" />}

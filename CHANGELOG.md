@@ -21,6 +21,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Giriş ekranı masaüstünde iki sütun:** bilgisayarda (1024 px ve üstü) solda koyu vitrin + 3 adım sabit
   durur, sağda sporcu oluşturma formu görünür; "Sporcunu oluştur" atlama butonu yalnız telefonda. Telefon
   görünümü ve oluşturma mantığı değişmedi. 1024×768, 1280×720 ve 1440×900'de kontrol edildi.
+- **Antrenman haftalık planı yenilendi:** her gün için açılır liste yerine **ikonlu 5'li segment** (Teknik ·
+  Fiziksel · Mental · Taktik · Dinlenme), turnuva günleri ikonla işaretli. **Kaydedilmemiş değişiklik görünür**
+  ("Kaydedilmedi" + kırmızı lamba; kaydedince "Kaydedildi"), kaydedecek bir şey yoksa buton pasif. Sayfanın geri
+  kalanı yeni tasarıma geçti (başlıklar, sakatlık kutusu, "Hangi antrenman neyi geliştirir?" paneli, emoji'ler
+  kalktı). "Bugün" kartındaki gün adı artık kartı taşırmıyor. Plan kaydetme mantığı ve sunucu aksiyonu aynı.
 - **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
   Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
   çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp

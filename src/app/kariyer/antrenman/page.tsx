@@ -25,65 +25,71 @@ export default async function AntrenmanPage() {
 
   return (
     <main>
-      <h1 className="text-xl font-bold">{t(locale, "antrenman.title")}</h1>
+      <h1 className="display text-[28px]">{t(locale, "antrenman.title")}</h1>
 
       <section className="mt-3 grid grid-cols-3 gap-2.5">
-        <Stat icon="calendar" label={t(locale, "antrenman.today")} value={c.dayName} />
+        <Stat icon="calendar" label={t(locale, "antrenman.today")} value={c.dayName} word />
         <Stat icon="condition" label={t(locale, "profil.condition")} value={`%${(100 - c.fatigue).toFixed(0)}`} gauge={100 - c.fatigue} state={conditionState(locale, 100 - c.fatigue)} />
         <Stat icon="form" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} state={formState(locale, c.sharpness)} />
       </section>
 
       {c.injured && (
-        <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-          {t(locale, "antrenman.injured", { n: c.injuryDaysRemaining })}
+        <div className="panel mt-4 flex items-start gap-3 p-3">
+          <Icon name="injury" size={22} className="shrink-0 text-sig-red" />
+          <span className="text-[15px]">{t(locale, "antrenman.injured", { n: c.injuryDaysRemaining })}</span>
         </div>
       )}
 
-      <section className="mt-5">
-        <h2 className="text-lg font-semibold">{t(locale, "antrenman.weeklyPlan")}</h2>
-        <p className="mt-1 text-sm opacity-70">{t(locale, "antrenman.planIntro")}</p>
+      <section className="mt-6">
+        <h2 className="display text-[22px]">{t(locale, "antrenman.weeklyPlan")}</h2>
+        <p className="mt-1 text-[14px] text-steel">{t(locale, "antrenman.planIntro")}</p>
         <TrainingPlanForm initial={c.trainingPlan} locale={locale} />
-        <p className="mt-2 text-xs opacity-50">{t(locale, "antrenman.restNote")}</p>
+        <p className="mt-3 text-[13px] text-steel">{t(locale, "antrenman.restNote")}</p>
       </section>
 
-      {/* Hangi antrenman neyi geliştirir? — hint (tıklayınca açılır) */}
-      <details className="mt-6 rounded-xl border border-black/10 dark:border-white/15">
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium transition hover:bg-black/[0.03] dark:hover:bg-white/[0.04]">
-          {t(locale, "antrenman.hint")} <span className="opacity-50">{t(locale, "antrenman.open")}</span>
+      {/* Hangi antrenman neyi geliştirir? — tıklayınca açılır */}
+      <details className="panel group mt-6">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-[15px] font-medium [&::-webkit-details-marker]:hidden">
+          <Icon name="info" size={18} className="shrink-0 text-steel" />
+          <span className="flex-1">{t(locale, "antrenman.hint")}</span>
+          <Icon name="chevron-down" size={18} className="shrink-0 text-steel transition-transform group-open:rotate-180" />
         </summary>
         <div className="grid gap-2.5 px-4 pb-4 sm:grid-cols-2">
           {TRAIN_INFO.map((info) => {
             const skills = SKILLS.filter((s) => s.category === info.cat).map((s) => s.key);
             return (
-              <div key={info.cat} className="rounded-xl border border-black/10 bg-black/[0.015] p-3 dark:border-white/15 dark:bg-white/[0.02]">
-                <div className="flex items-center gap-1.5 font-medium">
+              <div key={info.cat} className="rounded-md border border-line bg-arena-0 p-3">
+                <div className="flex items-center gap-1.5 font-semibold">
                   <Icon name={CATEGORY_ICON[info.cat]} size={18} className="text-steel" />
                   {t(locale, `category.${info.cat}`)}
                 </div>
-                <div className="mt-1 flex flex-wrap gap-1">
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   {skills.map((k) => (
-                    <span key={k} className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300">
+                    <span key={k} className="rounded-md border border-line px-2 py-0.5 text-[13px]">
                       {t(locale, `skill.${k}`)}
                     </span>
                   ))}
                 </div>
-                <p className="mt-1.5 text-xs opacity-60">
-                  {t(locale, `trainNote.${info.cat}`)} · {t(locale, "antrenman.fatigue")}: <b>{t(locale, info.fatigueKey)}</b>
+                <p className="mt-1.5 text-[13px] text-steel">
+                  {t(locale, `trainNote.${info.cat}`)} · {t(locale, "antrenman.fatigue")}: <b className="text-ink">{t(locale, info.fatigueKey)}</b>
                 </p>
               </div>
             );
           })}
-          <div className="rounded-xl border border-sky-500/25 bg-sky-500/[0.06] p-3">
-            <div className="font-medium">{t(locale, "antrenman.restTitle")}</div>
-            <p className="mt-1.5 text-xs opacity-70">{t(locale, "antrenman.restDesc")}</p>
+          <div className="rounded-md border border-line bg-arena-0 p-3">
+            <div className="flex items-center gap-1.5 font-semibold">
+              <Icon name="rest" size={18} className="text-steel" />
+              {t(locale, "antrenman.restTitle")}
+            </div>
+            <p className="mt-1.5 text-[13px] text-steel">{t(locale, "antrenman.restDesc")}</p>
           </div>
         </div>
       </details>
 
       {/* Mevcut yeteneklerin — neyin eksik, profile dönmeden gör */}
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">{t(locale, "antrenman.currentSkills")}</h2>
-        <p className="mt-1 text-xs opacity-60">{t(locale, "antrenman.currentSkillsNote")}</p>
+        <h2 className="display text-[22px]">{t(locale, "antrenman.currentSkills")}</h2>
+        <p className="mt-1 text-[13px] text-steel">{t(locale, "antrenman.currentSkillsNote")}</p>
         <div className="mt-3">
           <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
         </div>
