@@ -43,7 +43,12 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 
 ## Senden beklenenler (Yusuf)
 
-_Karar gerektiren açık madde yok._ Küçük bir not, acil değil: motorun maç anlatımı
+- **⏳ Ekipman kataloğu PR'ını bekliyoruz.** Bizim taraf (marka paneli + eldiven/göğüs koruyucu ikonları)
+  bitti ve canlıda. Sırada `itemsForWeapon` + yeni ürünler/slot'lar (`src/engine/equipment.ts`) var — detay
+  aşağıda "Yusuf → Osman: Ekipman kataloğunu genişlet". Bir dala koyunca burada veya PR açıklamasında
+  haber ver, üstüne kurarız. Karar gerektirmiyor, yalnız durum bilgisi.
+
+Bunun dışında karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
 (`src/engine/combat/index.ts`, `src/server/careerService.ts`) hâlâ "🏁 … kazandı", "⏱ Süre doldu",
 "🏅 Altın tuş!" gibi emoji'li satırlar üretiyor — arayüzün geri kalanında emoji kalmadı. İstersen
 kaldırabilirsin, arayüz kazananı ve altın tuşu zaten ayrıca gösteriyor. Motor tarafı olduğu için Osman
