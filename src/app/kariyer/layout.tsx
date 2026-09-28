@@ -66,7 +66,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           <div className="mt-1 flex min-w-0 items-center gap-2">
             {h.needsSync ? (
               <span className="flex items-center gap-1.5 text-[13px] text-steel">
-                <span className="lamp lamp-white anim-live h-2 w-2" aria-hidden="true" />
+                <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
                 {t(locale, "bar.syncing")}
               </span>
             ) : !h.injured && h.today.kind === "TRAINING" && h.nextTournament ? (

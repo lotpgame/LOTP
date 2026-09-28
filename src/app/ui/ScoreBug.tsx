@@ -2,7 +2,7 @@
  * Skor bandı — eskrim cihazı dili (düz bir bant; gerçek bir cihaz markasının görünümü değil).
  * Kural: KIRMIZI = SOL, YEŞİL = SAĞ; renk iyi/kötü demek değildir. "Sen" renkle değil SEN etiketiyle
  * belirtilir. Her zaman koyu (data-scope="console"), kullanıcı teması etkilemez.
- * `flash`: son tuşu alan taraf — lambası bir kez yanıp söner (hareketi azalt tercihinde yanıp sönmez).
+ * `flash`: son tuşu alan taraf ("both" = çift tuş) — lambası bir kez yanıp söner (hareketi azalt tercihinde yanıp sönmez).
  */
 export function ScoreBug({
   left,
@@ -20,7 +20,7 @@ export function ScoreBug({
   scoreR: number;
   youSide?: "left" | "right";
   youLabel?: string;
-  flash?: "left" | "right";
+  flash?: "left" | "right" | "both";
   className?: string;
 }) {
   const side = (name: string, where: "left" | "right") => {
@@ -30,8 +30,8 @@ export function ScoreBug({
         <div className="truncate font-display text-[16px] font-bold uppercase leading-tight tracking-wide">{name}</div>
         <div className={`mt-1.5 flex items-center gap-1.5 ${red ? "" : "justify-end"}`}>
           <span
-            key={flash === where ? `f-${scoreL}-${scoreR}` : "idle"}
-            className={`lamp h-2.5 w-2.5 ${red ? "lamp-red" : "lamp-green"} ${flash === where ? "anim-lamp" : ""}`}
+            key={flash === where || flash === "both" ? `f-${scoreL}-${scoreR}` : "idle"}
+            className={`lamp h-2.5 w-2.5 ${red ? "lamp-red" : "lamp-green"} ${flash === where || flash === "both" ? "anim-lamp" : ""}`}
             aria-hidden="true"
           />
           {youSide === where && youLabel && (

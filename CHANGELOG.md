@@ -10,6 +10,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Canlı maç ekranı — skor bandı + eskrim cihazı renkleri:** maçlar artık üstte yapışkan bir skor bandıyla
+  izlenir. **Renkler gerçek cihaz gibi: sol kırmızı (sen), sağ yeşil (rakip)** — önceden ters idi ve renk
+  iyi/kötü anlamı taşımaz; "sen" SEN etiketiyle gösterilir. Son tuşu alan tarafın lambası yanıp söner (epede
+  çift tuşta ikisi birden), en yeni anlatım satırı vurgulu. Sekmeler panelin üstünde, kilitliler kilit ikonlu
+  (spoiler yok, aynı). Taktik kartları ikonlu, Hızlı/Atla büyük dokunma alanı. Pul kağıdı, sonuç ekranı ve geçmiş
+  turnuva sayfası yeni stile geçti.
 - **Klasman yenilendi:** üstte büyük sıra numarası + iki kapı (milli takım ilk 4 · uluslararası ilk 16)
   lamba ile. Filtreler açılır liste yerine çip/segment (federasyon sırası). Liste F1 sıralama kulesi gibi:
   1. altın kenar, 2–3 çelik, senin satırın kırmızı kenar + SEN etiketi — listede aşağıdaysan ekranın

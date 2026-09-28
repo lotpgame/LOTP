@@ -113,9 +113,17 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   (lamba + yazı), telefonla giriş onayı. Kalan tek emoji kaynağı: motorun maç anlatımı (`src/engine/combat`,
   `src/server/careerService.ts`) — Yusuf'un alanı. Metin içindeki ok (→, ←) tipografidir, ikon değil.
 
-## Sırada (P0)
+- **P0-4 Canlı maç** *(⏳ merge için Yusuf'un taraf rengi onayı gerekli)*: `ScoreBug` hem eleme periyotlarında
+  (`CanliPeriyot`) hem pul/geçmiş maçlarda (`CanliMac`) — oyuncu hep SOLDA = KIRMIZI + SEN etiketi, rakip sağ yeşil.
+  Son tuşu alan tarafın lambası bir kez yanıp söner (epede çift tuşta ikisi); skor yine yalnız satır açıldıkça
+  değişir. En yeni anlatım satırı tuşu alan tarafın renginde sol çizgiyle, eskiler soluk. Hızlı/Atla 44 px segment.
+  Sekmeler panelin ÜSTÜNDE, kilitli olanlar kilit ikonlu (spoiler mantığı aynı). Taktik kartları ikonlu. Bitmiş
+  pul maçı satırında sonuç ikonla (✓/✗), skor taraf renginde. Sonuç ekranında altın yalnız şampiyonlukta.
+  Pul kağıdı ve geçmiş turnuva sayfası da token'lara geçti. Ortak parçalar: `turnuva/canli/matchParts.tsx`.
 
-4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
+## Sırada
+
+P0 tamamlandı (P0-4 onay bekliyor). Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 

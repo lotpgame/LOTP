@@ -3,32 +3,15 @@
 /**
  * Maç gösterimi iki kipte:
  * - Canlı (past=false): maç o an oynanıyor — anlatım satır satır gecikmeyle akar, sonuç
- *   izlenene kadar gizli (GDD 18.54, 18.70). CM 00/01 / Hattrick tarzı.
- * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "📋 Skor detayı" ile tuş-tuş
- *   döküm açılıp kapanır (canlı izleme yerine, kullanıcı isteği).
+ *   izlenene kadar gizli (GDD 18.54, 18.70). CM 00/01 / Hattrick tarzı. Üstte skor bandı.
+ * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "Skor detayı" ile tuş-tuş döküm açılır.
+ * Taraf renkleri eskrim cihazı gibi: A = sol = kırmızı, B = sağ = yeşil (iyi/kötü anlamı yok).
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
-
-/** Açıklanan son tuş satırından güncel skoru sayı çifti olarak çıkarır ("… 3–2" → {a:3,b:2}). */
-function lastRevealedScore(lines: string[]): { a: number; b: number } | null {
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const m = lines[i].match(/(\d+)\s*[–-]\s*(\d+)/);
-    if (m) return { a: Number(m[1]), b: Number(m[2]) };
-  }
-  return null;
-}
-
-/** Eskrim cihazı gibi: sol taraf YEŞİL, sağ taraf KIRMIZI skor. */
-function ScoreBox({ a, b }: { a: number | null; b: number | null }) {
-  return (
-    <span className="shrink-0 tabular-nums font-bold">
-      <span className="text-emerald-600 dark:text-emerald-400">{a ?? "•"}</span>
-      <span className="mx-1 opacity-40">–</span>
-      <span className="text-red-600 dark:text-red-400">{b ?? "•"}</span>
-    </span>
-  );
-}
+import { Icon } from "@/app/ui/Icon";
+import { ScoreBug } from "@/app/ui/ScoreBug";
+import { LogLines, SideScore, SpeedControl, lastRevealedScore, scoringSide } from "../canli/matchParts";
 
 export interface CanliMacProps {
   aName: string;
@@ -40,6 +23,7 @@ export interface CanliMacProps {
   past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
   afterDone?: ReactNode; // animasyon bitince gösterilir (ör. "pul sonuçlarını gör" paneli — spoiler önler)
   instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız son periyodu animasyonla göster)
+  youSide?: "left" | "right"; // oyuncu hangi tarafta (SEN etiketi); verilmezse etiket yok
   locale?: Locale;
 }
 
@@ -53,12 +37,12 @@ export function CanliMac({
   past = false,
   afterDone,
   instantThrough = 0,
+  youSide,
   locale = "tr",
 }: CanliMacProps) {
   const [shown, setShown] = useState(autoPlay ? instantThrough : 0);
   const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
-  const [open, setOpen] = useState(false); // geçmiş kipinde detay açık mı
 
   const started = shown > 0 || playing;
   const done = shown >= log.length && started;
@@ -71,28 +55,26 @@ export function CanliMac({
     return () => clearTimeout(id);
   }, [past, playing, shown, fast, log.length]);
 
-  // Geçmiş maç: skor açık, "Skor detayı" ile tuş-tuş döküm açılır.
+  // Geçmiş maç: skor açık, "Skor detayı" ile tuş-tuş döküm açılır (native details, JS gerekmez).
   if (past) {
     return (
-      <div className="rounded-lg border border-black/10 dark:border-white/15">
-        <div className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-          <span className={`min-w-0 truncate ${aWon ? "font-semibold" : "opacity-80"}`}>{aName}</span>
-          <ScoreBox a={scoreA} b={scoreB} />
-          <span className={`min-w-0 truncate text-right ${!aWon ? "font-semibold" : "opacity-80"}`}>{bName}</span>
+      <div className="panel">
+        <div className="grid min-h-12 grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 py-2 text-[14px]">
+          <span className={`min-w-0 truncate ${aWon ? "font-semibold" : "text-steel"}`}>{aName}</span>
+          <SideScore a={scoreA} b={scoreB} />
+          <span className={`min-w-0 truncate text-right ${!aWon ? "font-semibold" : "text-steel"}`}>{bName}</span>
         </div>
-        <button
-          onClick={() => setOpen((o) => !o)}
-          className="flex w-full items-center justify-center gap-1 border-t border-black/5 px-3 py-1.5 text-xs opacity-60 transition hover:opacity-100 dark:border-white/10"
-        >
-          {t(locale, "mac.detail")} {open ? "▴" : "▾"}
-        </button>
-        {open && (
-          <ul className="space-y-0.5 border-t border-black/5 px-3 py-2 text-xs opacity-80 dark:border-white/10">
+        <details className="group border-t border-line">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-1 text-[13px] text-steel [&::-webkit-details-marker]:hidden">
+            {t(locale, "mac.detail")}
+            <Icon name="chevron-down" size={15} className="transition-transform group-open:rotate-180" />
+          </summary>
+          <ul className="space-y-0.5 border-t border-line px-3 py-2 text-[13px] text-steel">
             {log.map((line, i) => (
               <li key={i}>{line}</li>
             ))}
           </ul>
-        )}
+        </details>
       </div>
     );
   }
@@ -102,79 +84,47 @@ export function CanliMac({
     setPlaying(true);
   };
 
+  const s = done ? { a: scoreA, b: scoreB } : started ? lastRevealedScore(log.slice(0, shown)) : null;
+
   return (
     <>
-    <div className="rounded-lg border border-black/10 p-3 dark:border-white/15">
-      <div className="flex items-center justify-between text-sm">
-        <span className={done && aWon ? "font-semibold" : "opacity-80"}>{aName}</span>
-        {done ? (
-          <ScoreBox a={scoreA} b={scoreB} />
-        ) : started ? (
-          (() => {
-            const s = lastRevealedScore(log.slice(0, shown));
-            return <ScoreBox a={s?.a ?? null} b={s?.b ?? null} />;
-          })()
-        ) : (
-          <span className="tabular-nums opacity-60">vs</span>
+      <div className="panel p-3">
+        <ScoreBug
+          className={started ? "sticky top-2 z-10" : ""}
+          left={aName}
+          right={bName}
+          scoreL={s?.a ?? 0}
+          scoreR={s?.b ?? 0}
+          youSide={youSide}
+          youLabel={t(locale, "live.you")}
+          flash={started && !done ? scoringSide(log, shown) : undefined}
+        />
+
+        {!started && (
+          <div className="mt-3 flex gap-2">
+            <button type="button" onClick={start} className="btn-ink press flex-1">
+              {t(locale, "mac.watch")}
+            </button>
+            <button type="button" onClick={() => setShown(log.length)} className="btn-ghost press flex-1">
+              {t(locale, "mac.result")}
+            </button>
+          </div>
         )}
-        <span className={done && !aWon ? "font-semibold" : "opacity-80"}>{bName}</span>
-      </div>
 
-      {!started && (
-        <div className="mt-2 flex gap-2">
-          <button
-            onClick={start}
-            className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-500"
-          >
-            {t(locale, "mac.watch")}
-          </button>
-          <button
-            onClick={() => setShown(log.length)}
-            className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
-          >
-            {t(locale, "mac.result")}
-          </button>
-        </div>
-      )}
-
-      {started && (
-        <>
-          <ul className="mt-2 space-y-0.5 text-xs opacity-80">
-            {log.slice(0, shown).map((line, i) => (
-              <li key={i} className={i === shown - 1 && !done ? "text-emerald-600" : ""}>
-                {line}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-2 flex gap-2">
+        {started && (
+          <>
+            <LogLines log={log} shown={shown} live={!done} />
             {!done ? (
-              <>
-                <button
-                  onClick={() => setFast((f) => !f)}
-                  className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
-                >
-                  {fast ? t(locale, "mac.normal") : t(locale, "mac.fast")}
-                </button>
-                <button
-                  onClick={() => setShown(log.length)}
-                  className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
-                >
-                  {t(locale, "mac.skip")}
-                </button>
-              </>
+              <SpeedControl locale={locale} fast={fast} onFast={setFast} onSkip={() => setShown(log.length)} />
             ) : (
-              <button
-                onClick={start}
-                className="rounded-md border border-black/15 px-3 py-1 text-xs opacity-70 transition hover:opacity-100 dark:border-white/20"
-              >
+              <button type="button" onClick={start} className="btn-ghost press mt-3 w-full">
                 {t(locale, "mac.rewatch")}
               </button>
             )}
-          </div>
-        </>
-      )}
-    </div>
-    {done && afterDone ? <div className="mt-3">{afterDone}</div> : null}
+          </>
+        )}
+      </div>
+      {done && afterDone ? <div className="mt-3">{afterDone}</div> : null}
     </>
   );
 }

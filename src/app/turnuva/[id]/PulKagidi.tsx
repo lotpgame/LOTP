@@ -6,17 +6,17 @@ import { t, type Locale } from "@/i18n";
 import type { PoolSheetDTO } from "@/server/careerService";
 
 export function PulKagidi({ sheet, locale }: { sheet: PoolSheetDTO; locale: Locale }) {
-  const cellCls = "border border-black/15 p-1 text-center tabular-nums dark:border-white/20";
+  const cellCls = "num border border-line p-1 text-center";
   return (
     <div className="overflow-x-auto">
       <table className="border-collapse text-xs">
         <thead>
           <tr>
-            <th className="border border-black/15 p-1 text-left dark:border-white/20">
+            <th className="border border-line p-1 text-left">
               {t(locale, "round.pool", { n: sheet.poolNumber })}
             </th>
             {sheet.players.map((_, j) => (
-              <th key={j} className="w-7 border border-black/15 p-1 text-center opacity-60 dark:border-white/20">
+              <th key={j} className="w-7 border border-line p-1 text-center text-steel">
                 {j + 1}
               </th>
             ))}
@@ -29,16 +29,16 @@ export function PulKagidi({ sheet, locale }: { sheet: PoolSheetDTO; locale: Loca
         </thead>
         <tbody>
           {sheet.players.map((p, i) => (
-            <tr key={i} className={p.isHuman ? "bg-emerald-500/10 font-medium" : ""}>
-              <td className="whitespace-nowrap border border-black/15 p-1 dark:border-white/20">
-                <span className="mr-1 opacity-50">{i + 1}</span>
+            <tr key={i} className={p.isHuman ? "bg-arena-2 font-semibold" : ""}>
+              <td className={`whitespace-nowrap border border-line p-1 ${p.isHuman ? "border-l-[3px] border-l-sig-red" : ""}`}>
+                <span className="mr-1 text-steel">{i + 1}</span>
                 {p.name}
               </td>
               {sheet.cells[i].map((c, j) => (
                 <td
                   key={j}
-                  className={`w-7 border border-black/15 p-1 text-center tabular-nums dark:border-white/20 ${
-                    i === j ? "bg-black/25 dark:bg-white/25" : c?.won ? "text-emerald-700 dark:text-emerald-300" : ""
+                  className={`w-7 num border border-line p-1 text-center ${
+                    i === j ? "bg-line" : c?.won ? "font-bold text-ink" : "text-steel"
                   }`}
                 >
                   {i === j ? "" : c ? (c.won ? `V${c.scored}` : `${c.scored}`) : "—"}

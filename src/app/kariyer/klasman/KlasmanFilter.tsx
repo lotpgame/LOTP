@@ -173,7 +173,7 @@ export function KlasmanFilter({
 
       {pending ? (
         <p className="flex items-center gap-2 text-[14px] text-steel">
-          <span className="lamp lamp-white anim-live h-2 w-2" aria-hidden="true" />
+          <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
           {t(locale, "klasman.loading")}
         </p>
       ) : rows.length === 0 ? (

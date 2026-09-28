@@ -47,24 +47,24 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-      <Link href="/kariyer" className="text-sm text-emerald-600 hover:underline">
+      <Link href="/kariyer" className="inline-flex min-h-11 items-center text-[14px] text-steel underline underline-offset-2">
         {t(locale, "idp.back")}
       </Link>
 
       <h1 className="mt-2 text-2xl font-bold">{tour.name}</h1>
-      <p className="text-sm opacity-70">{tour.categoryId}</p>
+      <p className="text-[14px] text-steel">{tour.categoryId}</p>
 
       <section className="mt-6">
         <h2 className="text-lg font-semibold">{t(locale, "idp.yourMatches")}</h2>
-        <p className="text-sm opacity-70">{t(locale, "idp.intro")}</p>
+        <p className="text-[14px] text-steel">{t(locale, "idp.intro")}</p>
 
         {yourPool.length > 0 && (
           <>
-            <h3 className="mt-4 text-sm font-semibold opacity-70">{t(locale, "idp.poolMatches")}</h3>
+            <h3 className="mt-4 kicker">{t(locale, "idp.poolMatches")}</h3>
             <div className="mt-2 space-y-3">
               {yourPool.map((m, i) => (
                 <div key={i}>
-                  <div className="mb-1 text-xs font-medium opacity-60">{m.round}</div>
+                  <div className="mb-1 kicker">{m.round}</div>
                   <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
                 </div>
               ))}
@@ -73,7 +73,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         )}
 
         {tour.yourSeedRank != null && (
-          <div className="mt-4 rounded-lg border border-sky-500/40 bg-sky-500/10 p-3 text-sm">
+          <div className="mt-4 panel p-3 text-[14px]">
             <span className="font-medium">{t(locale, "idp.poolResultLead")}</span>{" "}
             {t(locale, "idp.seedFrom", { n: tour.yourSeedRank })}
             {hadBye && <> {t(locale, "idp.byeInfo", { round: deRounds[0], first: firstDeRound ?? "" })}</>}
@@ -82,11 +82,11 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
         {yourDE.length > 0 && (
           <>
-            <h3 className="mt-4 text-sm font-semibold opacity-70">{t(locale, "idp.deMatches")}</h3>
+            <h3 className="mt-4 kicker">{t(locale, "idp.deMatches")}</h3>
             <div className="mt-2 space-y-3">
               {yourDE.map((m, i) => (
                 <div key={i}>
-                  <div className="mb-1 text-xs font-medium opacity-60">{t(locale, "canli.eleme")} · {m.round}</div>
+                  <div className="mb-1 kicker">{t(locale, "canli.eleme")} · {m.round}</div>
                   <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
                 </div>
               ))}
@@ -95,10 +95,10 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         )}
       </section>
 
-      <div className="mt-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-        <div className="text-sm opacity-70">{t(locale, "idp.result")}</div>
+      <div className="mt-8 panel p-4">
+        <div className="text-[14px] text-steel">{t(locale, "idp.result")}</div>
         <div className="text-xl font-semibold">{positionLabel(locale, tour.yourPosition)}</div>
-        <div className="mt-1 text-sm opacity-70">
+        <div className="mt-1 text-[14px] text-steel">
           {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
           {t(locale, "canli.champion", { name: tour.championName })}
         </div>
@@ -107,7 +107,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       {/* Pul kağıtları (poule) */}
       <section className="mt-8">
         <h2 className="text-lg font-semibold">{t(locale, "canli.poolSheets")}</h2>
-        <p className="mt-1 text-xs opacity-60">{t(locale, "idp.poolSheetsNote")}</p>
+        <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.poolSheetsNote")}</p>
         <div className="mt-3 space-y-5">
           {tour.poolSheets.map((sheet) => (
             <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
@@ -122,7 +122,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           <div className="flex min-w-max gap-3">
             {deRounds.map((round) => (
               <div key={round} className="flex min-w-[170px] flex-col justify-around gap-3">
-                <h3 className="text-center text-xs font-medium opacity-70">{round}</h3>
+                <h3 className="text-center kicker">{round}</h3>
                 {tour.matches
                   .filter((m) => m.phase === "DE" && m.round === round)
                   .map((m, i) => {
@@ -132,16 +132,16 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                       <div
                         key={i}
                         className={`rounded-lg border p-2 text-xs ${
-                          mine ? "border-emerald-500/50 bg-emerald-500/10" : "border-black/10 dark:border-white/15"
+                          mine ? "border-ink bg-arena-1" : "border-line"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`truncate ${aWon ? "font-semibold" : "opacity-60"}`}>{m.aName}</span>
-                          <span className="tabular-nums opacity-80">{m.scoreA}</span>
+                          <span className={`truncate ${aWon ? "font-semibold" : "text-steel"}`}>{m.aName}</span>
+                          <span className="num">{m.scoreA}</span>
                         </div>
                         <div className="mt-0.5 flex items-center justify-between gap-2">
-                          <span className={`truncate ${!aWon ? "font-semibold" : "opacity-60"}`}>{m.bName}</span>
-                          <span className="tabular-nums opacity-80">{m.scoreB}</span>
+                          <span className={`truncate ${!aWon ? "font-semibold" : "text-steel"}`}>{m.bName}</span>
+                          <span className="num">{m.scoreB}</span>
                         </div>
                       </div>
                     );
@@ -154,9 +154,9 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       <FinalStandings standings={tour.standings} locale={locale} />
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8">
         <form action={leaveLiveTournamentAction}>
-          <button className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500">
+          <button className="btn-ink press h-12 w-full text-[16px]">
             {t(locale, "idp.backHome")}
           </button>
         </form>
@@ -169,19 +169,19 @@ function FinalStandings({ standings, locale }: { standings: TournamentResultDTO[
   return (
     <section className="mt-8">
       <h2 className="text-lg font-semibold">{t(locale, "idp.standings")}</h2>
-      <ol className="mt-3 divide-y divide-black/10 overflow-hidden rounded-lg border border-black/10 dark:divide-white/10 dark:border-white/15">
+      <ol className="mt-3 panel overflow-hidden divide-y divide-line">
         {standings.map((s, i) => (
           <li
             key={i}
             className={`flex items-center justify-between px-3 py-2 text-sm ${
-              s.isHuman ? "bg-emerald-500/10 font-medium" : ""
+              s.isHuman ? "bg-arena-2 font-semibold" : ""
             }`}
           >
             <span>
               {s.name}
               {s.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
             </span>
-            <span className="opacity-70">{positionLabel(locale, s.position)}</span>
+            <span className="text-steel">{positionLabel(locale, s.position)}</span>
           </li>
         ))}
       </ol>
