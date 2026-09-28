@@ -78,10 +78,17 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   ana buton. Açıklamalar + haftalık program "Nasıl işler?" altında. Taktik ikonları: atak (ok), dengeli
   (terazi), defans (kalkan).
 
+- **P0-9 Giriş ekranı:** koyu vitrin (her zaman koyu, `data-scope="console"`) — marka adı (`lang="en"`, Türkçe
+  büyük harf "PİSTE" yapmasın), kısa tanıtım, **örnek skor bandı** (`ui/ScoreBug.tsx`, "Sporcu A/B" — gerçek
+  sporcu değil) + 4 satır örnek anlatım (sabit yükseklik, hareketsiz), "Sporcunu oluştur" → forma kaydırır.
+  3 adım (antrenman · turnuva günleri · klasman). Form: **büyük silah kartları** (ikon + kısa kural: flöre gövde/
+  öncelik, epe tüm vücut/çift tuş, kılıç bel üstü/kesme), cinsiyet segmenti, profil çipleri, ülke bilgi çipi
+  (seçim yok). Aynı `name/value` → `createCareerAction` değişmedi (temiz tarayıcıda uçtan uca test edildi).
+  Konsol kapsamında `--arena-0` da koyu (mürekkep buton yazısı okunur).
+
 ## Sırada (P0)
 
 4. Canlı maç: skor bandı, doğru taraf renkleri, üstte kilitli sekmeler, 44 px kontroller *(Yusuf onayı)*
-9. Giriş ekranı: koyu vitrin + statik demo skor bandı, 3 adım, silah kartları
 10. Klasman: F1 sıralama kulesi (timing tower) tarzı
 
 ## P1 (sonra)

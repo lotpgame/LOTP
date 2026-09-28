@@ -10,6 +10,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Yeni giriş ekranı (davet linkiyle gelen oyuncu için):** önce oyunu gösterir — koyu vitrin, örnek skor
+  bandı (kırmızı sol / yeşil sağ) ve örnek maç anlatımı, "Sporcunu oluştur" butonu, 3 adım. Form: büyük
+  silah kartları (ikon + kısa kural), cinsiyet segmenti, profil çipleri; ülke seçimi yerine bilgi çipi.
+  Oluşturma mantığı değişmedi. Marka adı Türkçe büyük harf kuralından korundu ("PİSTE" değil "PISTE").
 - **Turnuvalar sayfası yenilendi:** taktik seçimi açılır liste yerine **3'lü segment** (Atak · Dengeli ·
   Defans, ikonlu), "Kaydol"a basınca açılır → liste kısa kalır. Kayıt durumu net ("Kayıtlı · Atak", sol
   çizgi), iptal aynı yerde. Sıradaki turnuva kartı büyük geri sayımla; CANLI kartı mürekkep buton + yanıp

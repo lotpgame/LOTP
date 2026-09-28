@@ -94,6 +94,7 @@ select option {
 
 /* Konsol kapsamı: kullanıcı temasını bilerek yok sayar (gerçek bir gösterge cihazı gibi). */
 [data-scope="console"] {
+  --arena-0: var(--console-bg);
   --arena-1: #151a20;
   --arena-2: #1c222a;
   --line: var(--console-line);

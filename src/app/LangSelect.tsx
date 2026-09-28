@@ -22,7 +22,7 @@ export function LangSelect({ current }: { current: Locale }) {
           router.refresh();
         });
       }}
-      className="rounded-lg border border-black/15 bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-emerald-500 disabled:opacity-50 dark:border-white/20"
+      className="min-h-11 rounded-md border border-line bg-arena-1 px-2.5 text-[14px] outline-none focus:border-ink disabled:opacity-50"
     >
       {LOCALES.map((l) => (
         <option key={l} value={l}>
