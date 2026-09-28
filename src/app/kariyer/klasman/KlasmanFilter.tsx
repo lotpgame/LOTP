@@ -128,8 +128,8 @@ export function KlasmanFilter({
         </select>
       )}
 
-      {/* Kategori çipleri: yaş / silah / cinsiyet — yatay kaydırılır */}
-      <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5 sm:mx-0 sm:px-0">
+      {/* Yaş çipleri: mobilde yatay kaydırma yerine ALT SATIRA sarar (U10-U12-U14-U17, sonra U21-Büyükler) */}
+      <div className="flex flex-wrap gap-1.5">
         {AGES.map((a) => (
           <Chip
             key={a}

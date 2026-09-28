@@ -89,11 +89,16 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   `docs/tasarim/onizleme/` altında UI PR'larının telefon + masaüstü önizlemeleri. `CLAUDE.md`'ye işaret satırı.
   Kod değişikliği yok.
 
+### Düzeltildi
+- **Klasman (mobil):** yaş kategorisi çipleri (U10-U12-U14-U17…) yatay kaydırma yerine artık **alt satıra sarar**
+  → küçük ekranda hepsi görünür, yana kaydırmaya gerek yok.
+
 ### Değişti
-- **Ekonomi dengesi (kazanç ↓ + gerçekçi fiyatlar):** Turnuva ödülleri büyük ölçüde düşürüldü
-  (şampiyonun 1 sezonu ≈ ~1 tam takım; eski ~12.300 Đ → ~2.300). Malzeme fiyatları gerçek oranlara
-  göre yeniden düzenlendi: **Elektrikli Yelek (eski "Lamé", en pahalı) > Ceket+Pantolon > Silah**.
-  Ayrıntılı denge + para kazanma planı: [`docs/EKONOMI.md`](docs/EKONOMI.md). Şema/veri değişmedi.
+- **Ekonomi dengesi (kazanç ↓↓ + gerçekçi fiyatlar):** Turnuva ödülleri çok düşürüldü — bir oyuncu
+  sezonda girdiği tüm turnuvaları kazansa bile ~300 Đ (2. ~200 · 3. ~150); şampiyon bile 1 silah (400)
+  alamaz → malzeme için Denar satın alma ihtiyacı (monetization). **Başlangıç bakiyesi 1000 → 0.**
+  Malzeme fiyatları gerçek oranlara göre: **Elektrikli Yelek (eski "Lamé", en pahalı) > Ceket+Pantolon > Silah**.
+  Ayrıntılı plan: [`docs/EKONOMI.md`](docs/EKONOMI.md). Şema/veri değişmedi (canlı güvenli).
 - **Ayarlar → tek "Yeni Başla" butonu:** "Yeni Kariyer" ve "Kariyeri Sil" aynı işi yapıyordu (ikisi de
   kariyeri sıfırlıyordu) → tek **"Yeni Başla"** butonunda birleştirildi (silme zaten içinde; Denar bedeli aynı).
 - **Dünya saati akşam 19:00'a hizalandı (deploy config):** `WORLD_EPOCH_MS` = 21 Eylül 2026 Pazartesi

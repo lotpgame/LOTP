@@ -142,6 +142,8 @@ Taslak (WhatsApp için, istediğin gibi değiştir):
   Bunlar merge olana kadar bu dosyalarda büyük değişiklik yapacaksan önce Osman'a haber ver. En çok
   çakışan dosya `src/i18n/index.ts`.
 - **Serbest:** Oyun motoru (`src/engine`), sunucu (`src/server`) ve şema. Biz bunlara dokunmuyoruz.
+- ℹ️ Yusuf/Claude 28.09'da küçük UI dokunuşları yaptı (haberin olsun): `ayarlar/page.tsx` (tek "Yeni Başla"),
+  `klasman/KlasmanFilter.tsx` (yaş çipleri mobilde alt satıra sarar). Ekonomi motor tarafı senin alanın değil.
 - **Ekipman ikonları:** biz çizdik (PR #5, kendi GLADIUS seti). PBT sitesinden vektör çıkarmana gerek yok.
   Marka ürünlerini kopyalamak telif riski taşıyor.
 
@@ -186,22 +188,35 @@ biz burada sadece **temel listeyi/yapıyı** belirliyoruz.
 - **Osman:** mağaza sayfası (`ekipman/page.tsx`) → marka açılır-kapanır panel; silaha göre listeleme
   (`itemsForWeapon`); yeni ürünler için ikonlar (**eldiven** ve **göğüs koruyucu** setinde henüz yok).
 
-**Ürün listesi (temel):**
+**Ürün listesi + fiyatlar (Denar):** *"Lame" → net Türkçe **"Elektrikli Yelek"**. Fiyat sırası gerçekçi:
+Elektrikli Yelek > Ceket+Pantolon > Silah. (Detay: docs/EKONOMI.md §2.)*
 
 *Ortak (her silah — 1 kez):*
 
-| Ürün | Slot | Not |
-|---|---|---|
-| Eskrim Ceketi + Pantolon | CLOTHING | Standart beyaz koruyucu takım |
-| Plastron | PLASTRON | Koltuk altı koruyucu |
-| Göğüs Koruyucu | CHEST | **yeni ikon** |
-| Eskrim Ayakkabısı | SHOES | Ayak tekniği/denge |
-| Eskrim Çorabı | SOCKS | Uzun çorap |
-| Gladius Çanta | BAG | Kozmetik (etki yok) |
+| Ürün | Slot | Đ | Not |
+|---|---|--:|---|
+| Eskrim Ceketi + Pantolon | CLOTHING | 420 | Standart beyaz koruyucu takım |
+| Eskrim Ayakkabısı | SHOES | 280 | Ayak tekniği/denge |
+| Gladius Çanta | BAG | 150 | Kozmetik (etki yok) |
+| Göğüs Koruyucu | CHEST | 90 | **yeni ikon** |
+| Plastron | PLASTRON | 80 | Koltuk altı koruyucu |
+| Eskrim Çorabı | SOCKS | 30 | Uzun çorap |
 
-*Flöre (FOIL):* Silah · Maske (çene iletken) · Lame (gövde) · **Eldiven** (yeni ikon) · Vücut Kablosu · Maske Kablosu
-*Epe (EPEE):* Silah · Maske (yalıtkan) · **Eldiven** (yeni ikon) · Vücut Kablosu (3 soket) · **(lame YOK, maske kablosu YOK)**
-*Kılıç (SABRE):* Silah · Maske (tam iletken) · Lame (gövde+kol) · **Eldiven** (yeni ikon, manşet iletken) · Vücut Kablosu (2 soket) · Maske Kablosu
+*Silaha özel (fiyatlar):*
+| Ürün | Slot | Đ |
+|---|---|--:|
+| Elektrikli Yelek (kılıç) | LAME | 550 |
+| Elektrikli Yelek (flöre) | LAME | 500 |
+| Silah | WEAPON | 400 |
+| Maske (kılıç, tam iletken) | MASK | 320 |
+| Maske (flöre çene / epe yalıtkan) | MASK | 260 |
+| Eldiven | GLOVE | 150 · kılıç 90 (manşet iletken) — **yeni ikon** |
+| Vücut Kablosu | CORD | 100 |
+| Maske Kablosu | MASK_CORD | 50 |
+
+*Flöre (FOIL):* Silah · Maske (çene iletken) · Elektrikli Yelek (gövde) · **Eldiven** (yeni ikon) · Vücut Kablosu · Maske Kablosu
+*Epe (EPEE):* Silah · Maske (yalıtkan) · **Eldiven** (yeni ikon) · Vücut Kablosu (3 soket) · **(yelek YOK, maske kablosu YOK)**
+*Kılıç (SABRE):* Silah · Maske (tam iletken) · Elektrikli Yelek (gövde+kol) · **Eldiven** (yeni ikon, manşet iletken) · Vücut Kablosu (2 soket) · Maske Kablosu
 
 **Yeni slot'lar:** `GLOVE` (eldiven), `CHEST` (göğüs koruyucu) — Icon setine 2 yeni ikon.
 **Not:** mevcut mağazandaki `NOT_FOR_EPEE` (lame/maske kablosu gizleme) hack'i artık gerekmez;

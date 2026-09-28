@@ -6,22 +6,25 @@
  */
 import type { TournamentLevel } from "./domain";
 
-export const STARTING_BALANCE = 1000;
+// Başlangıç bakiyesi 0 (kullanıcı kararı, 28.09): yeni oyuncu Denar'sız başlar — kıt ekonomi +
+// monetization ile tutarlı (bedava başlangıç parası yok). Denar turnuvayla kazanılır / satın alınır.
+export const STARTING_BALANCE = 0;
 
 /**
  * Seviye × derece → para ödülü (GDD 17.75). Prestij arttıkça ödül artar.
- * DENGE (28.09, docs/EKONOMI.md): kazanç kasıtlı DÜŞÜK — şampiyonun 1 sezonu ≈ ~1 tam takım.
- * Yurt içi (İl/Türkiye/Open) küçük; uluslararası (yılda 1, kotayla) belirgin ama abartısız.
- * Böylece para satın alma (monetization) anlamlı olur; iyi oyuncu yine de kendi bakımını karşılar.
+ * DENGE (28.09, docs/EKONOMI.md): kazanç kasıtlı ÇOK DÜŞÜK (kullanıcı kararı). Sezonluk toplam ≈
+ * şampiyon ~300 · 2. ~200 · 3. ~150 Đ. Şampiyon bile 1 sezonda 1 silah (400) ALAMAZ → oyuncu
+ * malzeme için bizden Denar satın alır (monetization baskısı). Denar kıt; asıl ödül ranking/prestij.
+ * Uluslararası (yılda 4, kotayla) küçük elit bonus.
  */
 const PRIZE_TABLES: Record<TournamentLevel, Record<number, number>> = {
-  IL: { 1: 50, 2: 22, 3: 12 },
-  OPEN: { 1: 90, 2: 45, 3: 25 },
-  TURKIYE: { 1: 100, 2: 60, 3: 40 },
-  SATELLITE: { 1: 300, 2: 180, 3: 120, 5: 60 },
-  GRAND_PRIX: { 1: 500, 2: 320, 3: 220, 5: 120 },
-  EUROPEAN: { 1: 800, 2: 520, 3: 360, 5: 200 },
-  WORLD_CUP: { 1: 1200, 2: 800, 3: 560, 5: 320 },
+  IL: { 1: 6, 2: 4, 3: 3 },
+  OPEN: { 1: 10, 2: 5, 3: 5 },
+  TURKIYE: { 1: 14, 2: 10, 3: 7 },
+  SATELLITE: { 1: 20, 2: 12, 3: 8, 5: 4 },
+  GRAND_PRIX: { 1: 35, 2: 22, 3: 15, 5: 7 },
+  EUROPEAN: { 1: 55, 2: 35, 3: 24, 5: 12 },
+  WORLD_CUP: { 1: 80, 2: 55, 3: 38, 5: 20 },
 };
 
 export function prizeFor(level: TournamentLevel, position: number): number {

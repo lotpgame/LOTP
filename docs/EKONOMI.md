@@ -23,23 +23,27 @@
 
 ## 1. Denar KAZANMA (income) — Dengeli
 
-**Karar (28.09):** Eski model çok cömertti (şampiyon ~12.300 Đ/sezon). Düşürüldü. Hedef:
-**şampiyonun 1 sezonu ≈ ~1 tam takım**; alt dereceler daha az. Türkiye Şampiyonası **haftalık değil,
-sezonda 2 kez** (gerçekçi).
+**Karar (28.09, Yusuf):** Kazanç **çok düşük.** Hedef net: bir oyuncu 1 sezonda **girdiği tüm turnuvaları
+kazansa bile** eline geçen Denar ≈ yalnız **1 SİLAH** (~400) alabilecek kadar. Seyreklendirme **gelir
+bazında** (ödül düşürme) — **turnuva sayısı/takvim DEĞİŞMEDİ.** Türkiye haftalık kalır, sadece ödülü minik.
+Denar kıt → asıl ödül ranking/prestij; monetization böyle anlam kazanır.
 
-**Takvim (1 sezon = 12 hafta):** İl haftalık (12) · Türkiye sezonda 2 · Open 2 haftada bir (6) · Uluslararası 4.
+**Takvim (1 sezon = 12 hafta, değişmedi):** İl haftalık (12) · Türkiye haftalık (12) · Open 2 haftada bir (6) · Uluslararası 4.
 
-**Ödül tablosu (yurt içi, önerilen):**
-| Derece | İl (×12) | Türkiye (×2) | Open (×6) |
+**Ödül tablosu (yurt içi — canlıda):**
+| Derece | İl (×12) | Türkiye (×12) | Open (×6) |
 |---|--:|--:|--:|
-| 🥇 1. | 60 | 400 | 120 |
-| 🥈 2. | 25 | 250 | 60 |
-| 🥉 3.* | 15 | 150 | 35 |
+| 🥇 1. | 8 | 18 | 15 |
+| 🥈 2. | 4 | 10 | 8 |
+| 🥉 3.* | 2 | 6 | 4 |
 
 *(*) FIE: yarı finalde kaybeden **iki sporcu da 3.** (bronz maçı yok). Motor bunu zaten yapıyor.*
 
-**Sonuç — sezonluk yurt içi:** Şampiyon ~**2.240 Đ** (≈1 takım) · 2. ~**1.160** · 3. ~**690**.
-Uluslararası (kota varsa) ayrıca eklenir ama düşük tutulur.
+**Sonuç — sezonluk yurt içi:** Şampiyon ~**300 Đ** · 2. ~**200** · 3. ~**150**.
+Uluslararası (kota varsa, yılda 4): şampiyon +~190 (elit + prestij; yine küçük).
+
+**Başlangıç bakiyesi: 0 Đ** (`STARTING_BALANCE`, 28.09) — yeni oyuncu Denar'sız başlar (bedava para yok).
+Şampiyon bile 1 sezonda 1 silah (400) alamaz → malzeme için Denar satın alma ihtiyacı doğar (monetization).
 
 **Sonra (release/V2):** sponsorluk (ranking'e bağlı hafif pasif gelir) + başarı primleri (ilk madalya/şampiyonluk/milli takım).
 
