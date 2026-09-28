@@ -225,6 +225,10 @@ filtre motorda `itemsForWeapon` ile yapılacak.
 **Sıra:** Claude katalogu bir dala/PR'a koyunca haber verir → sen üstüne mağaza + ikon PR'ı açarsın
 (ya da tek PR'da birlikte). Katalog + UI birlikte canlıya çıkmalı (yoksa ikonsuz görünür).
 
+**⭐ Yıpranma/büyüme sırası (Yusuf kararı, 28.09):** Önce **Osman mağazayı/kataloğu yeniler** → SONRA
+**Claude yıpranma + büyüme + gizli etki motorunu** ekler (dayanıklılık barını Osman çizer). Yani mağaza
+yenilenmeden yıpranma motoru yazılmaz. Detay: [`docs/EKONOMI.md`](EKONOMI.md) §0, §2, §5.
+
 **Cevap (Osman):**
 
 ## Karar günlüğü
