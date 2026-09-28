@@ -10,6 +10,7 @@ Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yöne
 - **Yol haritası / teknik plan:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — nasıl ve hangi
   sırayla inşa ediliyor (mimari kararlar + M0–M8 aşamaları).
 - Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)
+- Ekonomi & para kazanma planı (Denar, monetization): [`docs/EKONOMI.md`](docs/EKONOMI.md)
 - Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
 - Arayüz tasarım sistemi ("Pist Konsolu" — renk, ikon, navigasyon kuralları):
   [`docs/tasarim/pist-konsolu.md`](docs/tasarim/pist-konsolu.md)
