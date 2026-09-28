@@ -158,6 +158,10 @@ dialog.modal {
     letter-spacing: 0.02em;
     line-height: 0.95;
   }
+  /* Pul kağıdı köşegeni: ince çapraz tarama (kâğıttaki karalanmış kutu) */
+  .hatch {
+    background-image: repeating-linear-gradient(45deg, var(--line) 0 1px, transparent 1px 6px);
+  }
   /* Maske teli dokusu (avatar vb.) */
   .mesh {
     background-image:

@@ -121,13 +121,19 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   pul maçı satırında sonuç ikonla (✓/✗), skor taraf renginde. Sonuç ekranında altın yalnız şampiyonlukta.
   Pul kağıdı ve geçmiş turnuva sayfası da token'lara geçti. Ortak parçalar: `turnuva/canli/matchParts.tsx`.
 
+- **Pul kağıdı:** `figure.panel` + başlık (Pul N), tablo `border-separate` (sticky ad sütunu için; kenarlar hücre
+  başına `border-t/l`). Hücre 36 px, köşegen `.hatch` (yeni sınıf), galibiyet `V5` kalın mürekkep + köşe noktası,
+  mağlubiyet `text-steel`. Kendi satır + sütun `bg-arena-2` (artı), satır başında kırmızı kenar. Özet blok
+  (V/TS/TR/Ind/Sıra) `border-l-2` ile ayrı, başlıkta `title` açıklaması. Tablo `num font-normal`: rakamlar mono ama
+  kalın yalnız V, sıra ve galibiyet. Ad sütunu `w-full` → masaüstünde tablo paneli doldurur, telefonda kayar.
+
 ## Sırada
 
 P0 tamamlandı (P0-4 onay bekliyor). Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Pul kağıdı yeniden çizimi · manşet cümleleri (+ WhatsApp paylaşım metni, kullanıcı kendisi gönderir) ·
+Manşet cümleleri (+ WhatsApp paylaşım metni, kullanıcı kendisi gönderir) ·
 canlıda periyot/ara/altın tuş bandı · 7 günlük hafta şeridi ·
 tema ön ayarları yeniden adlandırma + kontrast uyarısı · Almanca etiket uzunlukları · Bugün'de kimlik
 kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·

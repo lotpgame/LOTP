@@ -10,6 +10,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi
+- **Pul kağıdı yeniden çizildi:** gerçek FIE pul kağıdı düzeni, yeni tasarım dilinde — köşegen taralı, galibiyet
+  hücreleri ("V5") kalın ve köşede küçük işaret, mağlubiyetler soluk. **Kendi satırın ve sütunun** koyu zeminle
+  (artı gibi) işaretli: satır = senin rakiplere karşı sonuçların, sütun = rakiplerin sana karşı. Telefonda ad
+  sütunu yatay kaydırmada sabit kalıyor; V/TS/TR/Ind/Sıra ayrı blok, sütun başlıkları açıklamalı. Masaüstünde
+  tablo paneli dolduruyor. Canlı turnuvadaki "Pul kağıdı" sekmesinde ve geçmiş turnuva sayfasında aynı.
 - **Canlı maç ekranı — skor bandı + eskrim cihazı renkleri:** maçlar artık üstte yapışkan bir skor bandıyla
   izlenir. **Renkler gerçek cihaz gibi: sol kırmızı (sen), sağ yeşil (rakip)** — önceden ters idi ve renk
   iyi/kötü anlamı taşımaz; "sen" SEN etiketiyle gösterilir. Son tuşu alan tarafın lambası yanıp söner (epede
