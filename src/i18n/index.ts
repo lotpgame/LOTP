@@ -473,7 +473,7 @@ const TR: Dict = {
   // Turnuva sonuç/replay ([id])
   "idp.back": "← Kariyere dön",
   "idp.yourMatches": "Senin Maçların",
-  "idp.intro": "Önce pul (grup) maçların, sonra eleme maçların. Her maçta 📋 Skor detayı ile tuş-tuş dökümü açabilirsin.",
+  "idp.intro": "Önce pul (grup) maçların, sonra eleme maçların. Her maçta Skor detayı ile tuş-tuş dökümü açabilirsin.",
   "idp.poolMatches": "1) Pul maçların",
   "idp.poolResultLead": "2) Pul sonucu:",
   "idp.seedFrom": "Pul aşamasını {n}. sıradan tamamladın → eleme tablosuna bu sıralamayla girdin.",
@@ -921,7 +921,7 @@ const EN: Dict = {
   "pul.place": "Place",
   "idp.back": "← Back to career",
   "idp.yourMatches": "Your Matches",
-  "idp.intro": "First your pool (group) matches, then elimination. Open the touch-by-touch log on any match with 📋 Score detail.",
+  "idp.intro": "First your pool (group) matches, then elimination. Open the touch-by-touch log on any match with Score detail.",
   "idp.poolMatches": "1) Your pool matches",
   "idp.poolResultLead": "2) Pool result:",
   "idp.seedFrom": "You finished pools ranked #{n} → you entered the bracket at this seed.",
