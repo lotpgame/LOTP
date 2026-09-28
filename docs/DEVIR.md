@@ -62,7 +62,8 @@ olur; CI senin commit'lerinde hook'u çağırmaz, çift deploy olmaz.
    Name: `VERCEL_DEPLOY_HOOK`, Secret: kopyaladığın URL → **Add secret**.
 3. URL'yi kimseye gönderme. Bilen herkes deploy tetikleyebilir. Buraya da yazma.
 
-**Cevap:**
+**Cevap:** Vercel hook + GitHub secret kuruldu (Yusuf, 28.09). ⚠️ Ama CI iş akışını içeren **PR #2
+(`chore/ci`) master'a henüz merge olmadı** → otomasyon tam aktif değil. Osman #2'yi merge edince çalışır.
 
 ### 2. 🟠 Canlı maçta taraf renkleri (PR #9)
 
@@ -94,7 +95,8 @@ Bu sayılar bizim tahminimiz. Sen antrenörsün: bu yaş grubunda **iyi bir spor
 ulaşır? Claude'undan `src/engine` içindeki gelişim/potansiyel eğrisine bakıp her yaş grubu için öneri
 isteyebilirsin.
 
-**Cevap:** U10 = __ · U12 = __ · U14 = __ · U17 = __ · Gençler/Büyükler = 100 (ya da "taslak uygun")
+**Cevap:** Taslak uygun (Yusuf, 28.09) — U10=30 · U12=45 · U14=60 · U17=80 · Büyükler=100 canlıda kalsın.
+İleride antrenör gözüyle ince ayar yapılabilir.
 
 ### 4. 🔴 Telefonla giriş güvenliği (ROADMAP §H R1)
 
@@ -115,7 +117,7 @@ Seçenekler:
   - Kod kısmını biz de yazabiliriz, sen de.
 - **(a) + (b):** önce hızlı önlem, sonra Google.
 
-**Cevap:** seçenek = __ · Google girişinin kodunu kim yazacak = __
+**Cevap:** ERTELENDİ — oyun release edilirken yapılacak (Yusuf, 28.09). Şimdilik gündemde değil.
 
 ### 5. 🟡 Testçilere duyuru (merge günü)
 
@@ -159,6 +161,53 @@ Bunlar oyun motoru ve sunucu tarafında. O dosyalara biz dokunmuyoruz, karar sen
 3. Madde 4'ün cevabına göre giriş güvenliği PR'ı.
 4. Sonra (P1):
    - beyaz lamba (flöre/kılıç geçersiz tuş)
+
+## Yusuf → Osman: yeni iş — Ekipman kataloğunu genişlet
+
+**İstek (Yusuf):** GLADIUS mağazasındaki ürünleri gerçek FIE malzeme listesine göre çoğaltalım.
+İleride başka markalar da (Leon, PBT…) geleceği için **her marka açılır-kapanır panel** olsun
+(şimdilik tek panel: GLADIUS). Ürün ikonlarını **sen çizeceksin** (kendi setinde, senin stilinde);
+biz burada sadece **temel listeyi/yapıyı** belirliyoruz.
+
+**Yapı kararları (Yusuf):**
+- **Silaha göre filtre:** oyuncu yalnız kendi silahının malzemesini + ortak malzemeleri görür
+  (epeciye lame/maske kablosu gösterilmez).
+- **Ortak malzemeler 1 kez:** çorap, ayakkabı, göğüs koruyucu, ceket+pantolon, plastron her silahta aynı.
+- **Maça etki:** küçük ama ana parçalar (silah, lame, ayakkabı) aksesuardan biraz daha etkili.
+  ⚠️ Bu etki/bonus değerleri **motor tarafı (Yusuf/Claude, `src/engine/equipment.ts`)** — sen dokunma;
+  sen mağaza görünümü + ikonları yap. Katalog verisini (id, slot, fiyat, bonus) Claude ekleyecek.
+
+**İş bölümü:**
+- **Claude (Yusuf tarafı):** `src/engine/equipment.ts` kataloğu (aşağıdaki ürünler + fiyat + bonus +
+  silah filtresi helper'ı `itemsForWeapon(weapon)`). Eski id'ler legacy tutulur (canlı veri korunur).
+- **Osman:** mağaza sayfası (`ekipman/page.tsx`) → marka açılır-kapanır panel; silaha göre listeleme
+  (`itemsForWeapon`); yeni ürünler için ikonlar (**eldiven** ve **göğüs koruyucu** setinde henüz yok).
+
+**Ürün listesi (temel):**
+
+*Ortak (her silah — 1 kez):*
+
+| Ürün | Slot | Not |
+|---|---|---|
+| Eskrim Ceketi + Pantolon | CLOTHING | Standart beyaz koruyucu takım |
+| Plastron | PLASTRON | Koltuk altı koruyucu |
+| Göğüs Koruyucu | CHEST | **yeni ikon** |
+| Eskrim Ayakkabısı | SHOES | Ayak tekniği/denge |
+| Eskrim Çorabı | SOCKS | Uzun çorap |
+| Gladius Çanta | BAG | Kozmetik (etki yok) |
+
+*Flöre (FOIL):* Silah · Maske (çene iletken) · Lame (gövde) · **Eldiven** (yeni ikon) · Vücut Kablosu · Maske Kablosu
+*Epe (EPEE):* Silah · Maske (yalıtkan) · **Eldiven** (yeni ikon) · Vücut Kablosu (3 soket) · **(lame YOK, maske kablosu YOK)**
+*Kılıç (SABRE):* Silah · Maske (tam iletken) · Lame (gövde+kol) · **Eldiven** (yeni ikon, manşet iletken) · Vücut Kablosu (2 soket) · Maske Kablosu
+
+**Yeni slot'lar:** `GLOVE` (eldiven), `CHEST` (göğüs koruyucu) — Icon setine 2 yeni ikon.
+**Not:** mevcut mağazandaki `NOT_FOR_EPEE` (lame/maske kablosu gizleme) hack'i artık gerekmez;
+filtre motorda `itemsForWeapon` ile yapılacak.
+
+**Sıra:** Claude katalogu bir dala/PR'a koyunca haber verir → sen üstüne mağaza + ikon PR'ı açarsın
+(ya da tek PR'da birlikte). Katalog + UI birlikte canlıya çıkmalı (yoksa ikonsuz görünür).
+
+**Cevap (Osman):**
 
 ## Karar günlüğü
 
