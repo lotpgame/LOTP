@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { buyEquipmentAction } from "@/app/actions";
-import { GLADIUS_ITEMS, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import type { Weapon } from "@/engine/domain";
+import { itemsForWeapon, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -19,22 +20,22 @@ const SLOT_ICON: Record<Exclude<EquipmentSlot, "WEAPON">, IconName> = {
   MASK_CORD: "mask-cord",
   CLOTHING: "jacket",
   PLASTRON: "plastron",
+  GLOVE: "glove",
   LAME: "lame",
+  CHEST: "chest",
   SHOES: "shoes",
   SOCKS: "socks",
   BAG: "bag",
 };
 
-// Mağazada gruplama (sıra = gösterim sırası).
+// Mağazada gruplama (sıra = gösterim sırası). Silaha uygun olmayan ürünler zaten itemsForWeapon ile elenir
+// (ör. epe'de LAME/MASK_CORD hiç gelmez), o yüzden ayrı "gerekmez" notu gerekmiyor.
 const GROUPS: { key: string; slots: EquipmentSlot[] }[] = [
   { key: "weapon", slots: ["WEAPON", "CORD", "MASK_CORD"] },
-  { key: "protection", slots: ["MASK", "CLOTHING", "PLASTRON", "LAME"] },
+  { key: "protection", slots: ["MASK", "LAME", "CLOTHING", "PLASTRON", "GLOVE", "CHEST"] },
   { key: "feet", slots: ["SHOES", "SOCKS"] },
   { key: "accessory", slots: ["BAG"] },
 ];
-
-// Epede maske kordonu ve lamé kullanılmaz (yalnız bilgi; satın alma yine serbest).
-const NOT_FOR_EPEE: EquipmentSlot[] = ["MASK_CORD", "LAME"];
 
 /** Çeviri varsa onu, yoksa motor verisindeki Türkçe adı kullan. */
 function tr(locale: Locale, key: string, fallback: string, vars?: Record<string, string>): string {
@@ -47,14 +48,15 @@ export default async function EkipmanPage() {
   if (!c) redirect("/");
   const locale = await getLocale();
   const owned = new Set(c.ownedEquipment);
-  const ownedCount = GLADIUS_ITEMS.filter((i) => owned.has(i.id)).length;
+  // Silaha göre katalog: oyuncu yalnız kendi silahının + ortak ürünlerini görür (epe → yelek/maske kordonu yok).
+  const catalog = itemsForWeapon(c.weapon as Weapon);
+  const ownedCount = catalog.filter((i) => owned.has(i.id)).length;
   const weaponName = t(locale, `weapon.${c.weapon}`);
 
   const card = (item: GladiusItem) => {
     const isOwned = owned.has(item.id);
     const missing = Math.max(0, Math.ceil(item.denar - c.balance));
     const icon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot];
-    const notNeeded = c.weapon === "EPEE" && NOT_FOR_EPEE.includes(item.slot);
     return (
       <li key={item.id} className={`panel flex flex-col p-3 ${isOwned ? "border-ink" : ""}`}>
         <div className="flex items-start gap-3">
@@ -66,7 +68,6 @@ export default async function EkipmanPage() {
               {tr(locale, `gladius.${item.id}.name`, item.name, { weapon: weaponName })}
             </div>
             <div className="text-[13px] text-steel">{tr(locale, `gladius.${item.id}.desc`, item.desc)}</div>
-            {notNeeded && <div className="mt-0.5 text-[13px] text-steel italic">{t(locale, "ekipman.notForWeapon")}</div>}
           </div>
         </div>
 
@@ -106,9 +107,9 @@ export default async function EkipmanPage() {
       {/* Marka paneli — açılır/kapanır (bkz. BrandPanel.tsx). Şimdilik tek marka: GLADIUS.
           Yeni bir marka geldiğinde burada bir <BrandPanel> daha eklenir. */}
       <div className="mt-4">
-        <BrandPanel icon="gladius" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={GLADIUS_ITEMS.length} locale={locale}>
+        <BrandPanel icon="gladius" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={catalog.length} locale={locale}>
           {GROUPS.map((g) => {
-            const items = GLADIUS_ITEMS.filter((i) => g.slots.includes(i.slot));
+            const items = catalog.filter((i) => g.slots.includes(i.slot));
             if (items.length === 0) return null;
             return (
               <section key={g.key}>

@@ -181,6 +181,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Kod değişikliği yok.
 
 ### Düzeltildi
+- **Ekipman mağazası silaha göre filtrelendi + genişledi:** `itemsForWeapon` — oyuncu yalnız kendi silahının
+  + ortak ürünlerini görür. **Epe'de** elektrikli yelek (eski "lamé") ve **maske kordonu** artık gizli
+  (vücut kordonu durur); önceden "gerekmez" yazıp yine gösteriyordu. **Elektrikli yelek silaha özel**
+  (flöreciye "flöre için", kılıççıya "kılıç için" — biri diğerini görmez). Yeni ürünler: **eldiven** +
+  **göğüs koruyucu** (Osman'ın ikonlarıyla). Eski satın alınmış ekipman korunur (legacy).
 - **Sakatlık süresi kısaltıldı (#36):** tüm sakatlıklar artık **1-2 gün** (eskiden nadiren 7-14 güne kadar
   çıkıyordu — test için çok uzundu). Ağır kademeler test sonrası geri gelebilir.
 - **Klasman (mobil):** yaş kategorileri artık **5'li grid** — U10-U12-U14-U17-U21 üst satıra tam sığar,

@@ -43,10 +43,13 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 
 ## Senden beklenenler (Yusuf)
 
-- **⏳ Ekipman kataloğu PR'ını bekliyoruz.** Bizim taraf (marka paneli + eldiven/göğüs koruyucu ikonları)
-  bitti ve canlıda. Sırada `itemsForWeapon` + yeni ürünler/slot'lar (`src/engine/equipment.ts`) var — detay
-  aşağıda "Yusuf → Osman: Ekipman kataloğunu genişlet". Bir dala koyunca burada veya PR açıklamasında
-  haber ver, üstüne kurarız. Karar gerektirmiyor, yalnız durum bilgisi.
+- **✅ Ekipman kataloğu yapıldı (Yusuf/Claude, 29.09).** `src/engine/equipment.ts` artık silaha özel:
+  `itemsForWeapon(weapon)` + yeni slot'lar `GLOVE`/`CHEST` (senin ikonlarınla) + silaha özel silah/maske/
+  yelek/kordon. **Epe:** elektrikli yelek + maske kordonu GİZLİ, vücut kordonu DURUR. **Elektrikli yelek**
+  silaha özel (flöre "flöre için", kılıç "kılıç için"; biri diğerini görmez). Mağaza (`ekipman/page.tsx`)
+  `itemsForWeapon`'a bağlandı, `NOT_FOR_EPEE` hack'i kaldırıldı, `SLOT_ICON`+`GROUPS`'a GLOVE/CHEST eklendi.
+  Eski id'ler legacy korunuyor (canlı veri). **Not (Osman):** yeni ürün id'lerinin i18n adları (EN/DE) yok →
+  şimdilik Türkçe item.name'e düşüyor; istersen `gladius.gl-*-foil/…` anahtarlarını eklersin.
 
 Bunun dışında karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
 (`src/engine/combat/index.ts`, `src/server/careerService.ts`) hâlâ "🏁 … kazandı", "⏱ Süre doldu",
