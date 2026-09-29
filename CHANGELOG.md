@@ -177,6 +177,25 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   dokunuşla Turnuvalar'a götürür; tıklanabilir satırlarda ok işareti. "Bildir" artık menüde (yüzen buton
   yok), gönderim hatası görünür.
 
+### Düzeltildi (29.09 — canlı turnuva paralel-simülasyon çakışması)
+- **Aynı gün/kategori/seviyede birden fazla gerçek oyuncu turnuvaya CANLI katılırsa, her biri kendi
+  turnuvasını birbirinden habersiz, farklı sonuçlarla simüle ediyordu** — testçi gözlemi: turnuva sürerken
+  herkes farklı rakip/skor görüyor, turnuva bitince herkes (ilk biten kişinin simülasyonuna göre) aynı
+  sonucu görüyordu; ikinci biten oyuncunun kendi oynadığı maçlar sessizce yok sayılıyordu. Sebep:
+  `startLiveTournament` (`careerService.ts`) ortak `scopeKey`'e kayıtlı diğer gerçek oyuncuları kendi
+  simülasyonuna dahil ediyordu ama pul çekimini ve TÜM maç sonuçlarını ÇÖZEN OYUNCUNUN KENDİ `gs.seed`'iyle
+  hesaplıyordu — aynı scopeKey'deki iki farklı oyuncunun seed'i farklı olduğu için iki paralel evren
+  oluşuyordu. Ayrıca `take: aiNeeded` sırasız olduğu ve karıştırılacak liste "önce ben, sonra diğerleri"
+  sırasında olduğu için (Fisher–Yates konum bazlı) seed aynı olsa bile çekim farklı çıkabilirdi. Düzeltme:
+  tohum artık `scopeKey`'den türetiliyor (paylaşılan, kişiden bağımsız), AI seçimi `orderBy: id asc` ile
+  sabitlendi, çekime giren liste karıştırmadan önce id'ye göre sıralanıyor. Offline/otomatik turnuva yolu
+  (`autoResolveTournament`) zaten doğruydu (tek çözen + dedup) — dokunulmadı. Yeni regresyon testi:
+  `tests/engine/probability/rng.test.ts` (shuffle'ın girdi sırasına duyarlı olduğunu ve sıralamanın bunu
+  nasıl düzelttiğini kanıtlıyor). Ayrıntı: `docs/DEVIR.md` "Canlı turnuvada paralel-simülasyon çakışması".
+  **Bilinçli yapılmadı (ayrı, daha büyük bulgu):** `worldAdvanceTx`'teki AI havuzu aylık gelişim/yorgunluk
+  toparlanması da benzer bir sınıf sorun taşıyor (her insan kendi gün-ilerletmesinde AYNI ayı tekrar
+  işleyebiliyor) — şema değişikliği + mevcut AI verisini bozmadan geçiş gerektiriyor, ayrı onay bekliyor.
+
 ### Düzeltildi
 - **Antrenman raporu yetenek etiketleri hiç çevrilmiyordu:** "Sen yokken" panelindeki kazanım etiketleri
   ("+0.7 Atak" gibi) her dilde — İngilizce dahil — sabit Türkçe kalıyordu, çünkü `careerService.ts`

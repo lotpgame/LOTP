@@ -64,6 +64,23 @@ describe("SeededRng", () => {
     expect([...s1].sort((a, b) => a - b)).toEqual(input); // aynı elemanlar
   });
 
+  it("shuffle girdi SIRASINA duyarlıdır — aynı seed + aynı küme ama farklı başlangıç sırası → farklı sonuç " +
+    "verebilir (Fisher–Yates konum bazlı). Bu yüzden ortak/paylaşılan bir çekimde (örn. turnuva kurası) " +
+    "karıştırmadan ÖNCE girdi kanonik sıraya (id artan) dizilmeli — aksi halde \"kim önce, kim sonra\" " +
+    "listede farklı yer alırsa iki farklı gözlemci aynı seed'le bile FARKLI çekim sonucu görür " +
+    "(bkz. careerService.ts startLiveTournament, M11.3b-2 düzeltmesi).", () => {
+    const canonical = [1, 2, 3, 4, 5, 6, 7, 8];
+    const reordered = [3, 1, 2, 4, 8, 7, 6, 5]; // aynı küme, farklı başlangıç sırası
+    const fromCanonical = createRng("draw").shuffle(canonical);
+    const fromReordered = createRng("draw").shuffle(reordered);
+    expect(fromCanonical).not.toEqual(fromReordered); // düzeltme öncesi bug tam olarak buydu
+    // Düzeltme: her iki "gözlemci" de karıştırmadan önce kanonik sıraya dizerse sonuç aynı olur.
+    const sortAsc = (xs: number[]) => [...xs].sort((a, b) => a - b);
+    const fixedA = createRng("draw").shuffle(sortAsc(canonical));
+    const fixedB = createRng("draw").shuffle(sortAsc(reordered));
+    expect(fixedA).toEqual(fixedB);
+  });
+
   it("pick() boş dizide hata fırlatır", () => {
     const rng = createRng(1);
     expect(() => rng.pick([])).toThrow();

@@ -2182,6 +2182,7 @@ export async function startLiveTournament(
   const aiPlayers = await prisma.player.findMany({
     where: { isAI: true, gender: human.gender, weapon: human.weapon },
     include: { skills: true },
+    orderBy: { id: "asc" }, // M11.3b-2 düzeltmesi: kapsam-içi herkes AYNI AI kümesini seçsin (sırasız take() riskli)
     take: aiNeeded,
   });
 
@@ -2216,7 +2217,9 @@ export async function startLiveTournament(
     for (const def of SKILLS) skills[def.key] = sk[def.key].current;
     const traits = activeTraitsOf(p.traits, age); // o yaşta aktif trait'ler (kademeli açılım)
     // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel).
-    const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
+    // M11.3b-2 düzeltmesi: gs.seed (çözen oyuncuya özel) DEĞİL, scopeKey (ortak turnuva kimliği) — aksi
+    // halde aynı turnuvayı canlı oynayan iki gerçek oyuncu birbirinden farklı "gün hâli" görürdü.
+    const mood = dailyMood(createRng(`${scopeKey}:mood:${p.id}`));
     return {
       id: p.id,
       name: `${p.firstName} ${p.lastName}`,
@@ -2248,12 +2251,17 @@ export async function startLiveTournament(
   ];
   if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
 
-  const dateKey = gs.currentDate.toISOString().slice(0, 10);
-  const seedKey = `${gs.seed}:tournament:${level}:${dateKey}`;
+  // M11.3b-2 düzeltmesi: tohum artık çözen oyuncunun KENDİ gs.seed'i değil, PAYLAŞILAN scopeKey'den
+  // türetiliyor — aksi halde aynı ortak turnuvayı aynı anda canlı oynayan iki gerçek oyuncu, birbirinden
+  // habersiz iki FARKLI paralel sonuç görüyordu (rakip isimleri, skorlar, hatta pul çekimi bile
+  // uyuşmuyordu). Bkz. docs/DEVIR.md "Canlı turnuvada paralel-simülasyon çakışması".
+  const seedKey = `tour:${scopeKey}`;
 
-  // Pul çekimi (deterministik, GDD 17.41).
+  // Pul çekimi (deterministik, GDD 17.41) — kapsam-içi herkes AYNI çekimi görsün diye karıştırılacak
+  // liste id'ye göre sabit sıralanıyor (kim "ben", kim "kapsam-içi diğeri" olursa olsun aynı girdi).
   const drawRng = createRng(`${seedKey}:draw`);
-  const shuffled = drawRng.shuffle(combatants.map((c) => c.id));
+  const orderedIds = [...combatants.map((c) => c.id)].sort((a, b) => a - b);
+  const shuffled = drawRng.shuffle(orderedIds);
   const sizes = computePoolSizes(shuffled.length, POOL_SIZE);
   const pools: number[][] = [];
   let cursor = 0;
