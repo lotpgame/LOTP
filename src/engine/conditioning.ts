@@ -62,15 +62,13 @@ export interface InjuryResult {
 }
 
 /**
- * Sakatlık kontrolü. Tohumlu RNG ile deterministik. Şiddet: çoğu HAFİF (1–2 gün, gerçek "aşırı
- * yüklenme" tipiktir), bazen orta (3–5 gün), nadiren ağır (7–14 gün). Böylece küçük sakatlıklar
- * sık ama kısa; kariyer kırıcı ağır sakatlık seyrek.
+ * Sakatlık kontrolü. Tohumlu RNG ile deterministik.
+ * #35 (kullanıcı 09-29): ŞİMDİLİK tüm sakatlıklar HAFİF (1–2 gün) — test sırasında uzun sakatlık istenmiyor.
+ * (Eskiden bazen 3–5, nadiren 7–14 gündü; ağır kademeler test sonrası geri gelebilir.)
  */
 export function rollInjury(rng: SeededRng, fatigue: number, age: number): InjuryResult {
   if (!rng.bool(injuryChance(fatigue, age))) return { injured: false, days: 0 };
-  const r = rng.next();
-  const days = r < 0.7 ? rng.int(1, 2) : r < 0.93 ? rng.int(3, 5) : rng.int(7, 14);
-  return { injured: true, days };
+  return { injured: true, days: rng.int(1, 2) };
 }
 
 /** Günün hâli — o güne özel küçük form dalgalanması (herkeste). Üçgen dağılım: çoğu gün ~nötr,
