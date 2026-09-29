@@ -237,6 +237,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   "Gençler"→"U21".
 
 ### Değişti
+- **Kondisyon: gece tam toparlanma (#35):** Artık her yeni gün **~%99 kondisyonla** başlanır; o günkü
+  antrenman/maç akşam yorar, uyku ertesi sabah toparlar. Yorgunluk **günler arası birikmez** → antrenman
+  aşırı-yük sakatlığı pratikte kalktı (maç-içi/turnuva-günü yorgunluğu + sakatlığı **kalır**). Dayanıklılık
+  artık maç-içi yorgunlukta önemli. (Kullanıcı kararı: "sabahları %99".)
 - **Antrenman gelişim hızı yumuşatıldı (#34):** seans başına birincil kazanım `PRIMARY_STIMULUS` 0.6→0.36
   (gösterim ~+0.5 → ~+0.3) → oyuncu yaş-tavanına birkaç haftada değil **sezon boyunca** yaklaşır
   ("sürekli gelişiyorum" hissi; tavan aynı). Yan (spill) etki `SPILL_FRACTION` 0.12→0.10 (~0.1 → ~0.05).

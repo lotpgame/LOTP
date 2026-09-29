@@ -99,7 +99,6 @@ import {
   COMPETITION_SHARPNESS_GAIN,
   applySharpness,
   dailyMood,
-  dailyRecovery,
   matchFatigueMultiplier,
   rollInjury,
   sessionSharpnessDelta,
@@ -1087,10 +1086,9 @@ export async function getCategoryRanking(
   return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id, scope);
 }
 
-// Kondisyon modeli: her AKTİF günde doğal toparlanma uygulanır (Dayanıklılık'a göre; conditioning.
-// dailyRecovery). Antrenman bunun üzerine yük biner; maç günü toparlanma YOK (maç yorar). Toparlanma
-// kademeli — her sabah %100'e dönmez; yorgunluk hafta içinde birikir, dinlenme gerçek bir kaldıraç olur.
-const REST_EXTRA_RECOVERY = 10; // REST seansının doğal toparlanmaya EK katkısı
+// Kondisyon modeli (A, #35, kullanıcı 29.09): GECE TAM TOPARLANMA — her sabah ~%99 kondisyonla başlanır.
+// O günkü antrenman/maç akşam yorar, uyku ertesi sabah toparlar. Yorgunluk günler arası BİRİKMEZ
+// (antrenman aşırı-yük sakatlığı pratikte kalkar; maç-içi/turnuva-günü yorgunluğu ve sakatlığı KALIR).
 const INJURY_REST_RECOVERY = 10; // sakatlık gününde toparlanma
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
@@ -1209,11 +1207,11 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // Bir antrenman/dinlenme seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok
   // bir kez.) Turnuvaya katılmadığın gün de PLANINDAKİ seans uygulanır (Dinlenme koyabilirsin).
   const applySession = (type: TrainingType): boolean => {
-    // Doğal günlük toparlanma — Dayanıklılık'a göre (fit sporcu daha hızlı toparlar).
-    // Kondisyon en fazla %99'a çıkar (yorgunluk tabanı 1): hiç kimse asla tam %100 taze değildir (kullanıcı).
-    fatigue = clamp(fatigue - dailyRecovery(skills.endurance.current), 1, 100);
+    // A (#35, kullanıcı 29.09): GECE TAM TOPARLANMA — her yeni gün ~%99 kondisyonla başlar (yorgunluk
+    // tabanı 1; kondisyon en çok %99, kimse tam %100 taze değil). O günkü antrenman/maç akşam yorar,
+    // ertesi sabah uyku toparlar. (Dayanıklılık artık maç-İÇİ yorgunlukta önemli — matchFatigueMultiplier.)
+    fatigue = 1;
     if (type === "REST") {
-      fatigue = clamp(fatigue - REST_EXTRA_RECOVERY, 1, 100);
       restSessions++;
     } else {
       xpGained += TRAINING_XP; // #28: her antrenman seansı küçük tecrübe verir
@@ -1285,6 +1283,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     firstDay = false;
     if (injured) break;
   }
+
+  // A (#35): sabah — bugünün 19:00 etkinliği henüz gelmemiş yeni gündeysek, gece toparlanması olmuştur →
+  // kondisyon taze (~%99). (Akşam antrenman sonrası aynı gün düşük kalır; ertesi sabah bu satır tazeler.)
+  if (serverWorldDay() > eventDay && injuryDays === 0) fatigue = 1;
 
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
