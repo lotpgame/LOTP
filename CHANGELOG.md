@@ -14,6 +14,16 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Instagram uygulama içi tarayıcı uyarısı:** Instagram'ın kendi tarayıcısında (WhatsApp'ta paylaşılan
+  bağlantı Instagram DM/bio'suna yapıştırılıp açıldığında vb.) oturum/localStorage bazı durumlarda
+  güvenilir kalıcı olmayabiliyor. Artık `User-Agent`'ta "Instagram" tespit edilirse (`ui/inAppBrowser.ts`,
+  saf fonksiyon + testli) kök layout'ta (her sayfada) ince, kapatılabilir bir bant çıkıyor: "sağ üstteki
+  ⋯'den Tarayıcıda Aç'ı seç". Tespit sunucuda yapılıyor (`next/headers`) — gösterilme kararında yanıp sönme
+  yok; yalnız "daha önce kapatıldı mı" bilgisi istemci-only (localStorage), o da varsayılan olarak
+  "gösterilir" kabul edilip gerekirse kısa bir an sonra gizleniyor (tam tersi — varsayılan gizli, gerekirse
+  göster — ilk ziyaretçide bandın hiç görünmemesine yol açan gerçek bir hataydı, düzeltildi). Renk nötr
+  (steel/ink, `sig-red` değil) — bu bir hata değil, bir öneri. Facebook/Messenger'ın uygulama içi tarayıcısı
+  bilinçli olarak kapsam dışı — yalnız Instagram istenmişti, aynı mekanizma kolayca genişletilebilir.
 - **`/turnuva/[id]` sayfasının kalan başlıkları Pist Konsolu'na taşındı:** bir önceki maddede bilinçli
   kapsam dışı bırakılan üç başlık ("Senin Maçların", "Pul Kağıtları", "Turnuva Sıralaması") + sayfa başlığı
   (turnuva adı) artık `text-lg font-semibold`/`text-2xl font-bold` yerine `display` token'ında. Turnuva

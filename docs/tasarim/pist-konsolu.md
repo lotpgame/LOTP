@@ -245,15 +245,29 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   ekran görüntüsü alma bazen zamanaşımına uğradı/boş geldi (muhtemelen çok uzun süredir açık pane'in kendi
   render/compositing sorunu), DOM üzerinden doğrudan doğrulamaya geçildi.
 
+- **Instagram uygulama içi tarayıcı uyarısı:** `ui/inAppBrowser.ts` (saf `isInstagramBrowser`, testli —
+  gerçek iOS/Android Instagram User-Agent örnekleriyle test edildi) + `InstagramWarning.tsx` (client, kök
+  `layout.tsx`'te her sayfada). Tespit `next/headers` ile SUNUCUDA (`User-Agent` başlığı) — `show` zaten
+  kesin bilindiği için ilk boyamada doğrudan render edilir, yanıp sönme yok. **Gerçek bir hata bulundu ve
+  düzeltildi kendi kod incelemesinde:** ilk yazımda "daha önce kapatıldı mı" (localStorage, istemci-only)
+  bilgisi çözülene kadar `dismissed` `null` tutulup bant hep gizli kalıyordu (ThemeSettings'teki "yanıp
+  sönme önleme" desenini yanlış yerde taklit etmek) — ama burada `show` sunucuda zaten kesin, tek belirsiz
+  olan "kapatıldı mı" ve varsayılanı GÖSTER olmalı, GİZLE değil. `curl -A "<Instagram UA>"` ile ham SSR
+  HTML'inde metnin varlığı/yokluğu doğrudan doğrulandı (normal UA → yok, Instagram UA → var) — bu, tarayıcı
+  panelinin kendi `navigator.userAgent`'ını JS'le değiştirmenin sunucunun gördüğü gerçek HTTP başlığını
+  ETKİLEMEDİĞİ için mümkün olan tek gerçek doğrulama yoluydu. Kapatma: `setDismissed` doğrudan çağrılırsa
+  yeni React lint kuralı (`react-hooks/set-state-in-effect`) hata veriyor — ThemeSettings'teki
+  `setTimeout(...,0)` deseniyle aynı çözüm tekrar kullanıldı. Renk nötr (steel/ink) — bu bir tehlike değil,
+  bir öneri; `sig-red` kullanılmadı. Facebook/Messenger'ın kendi uygulama içi tarayıcısı bilinçli kapsam
+  dışı — yalnız Instagram istenmişti.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Instagram içi tarayıcı uyarısı · WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba
-(silah bilgisi DTO'ya eklenince). Ayrıca: `/turnuva/[id]` sayfasının kalan başlıkları Pist Konsolu'na
-taşınmadı (bkz. yukarıdaki not) — ayrı bir madde olarak eklenebilir.
+WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
 
 ## Bilerek yapılmayanlar
 
