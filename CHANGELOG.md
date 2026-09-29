@@ -14,6 +14,17 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Eleme çatalı (turnuva sonucu sayfası) — yatay kaydırma keşfedilebilir hale geldi:** `/turnuva/[id]`
+  sayfasındaki "Eleme Çatalı" bölümünde yatay kaydırma zaten vardı (`overflow-x-auto`) ama görünürde hiçbir
+  ipucu yoktu — geniş turnuvalarda (ör. 24 kişilik, 5 tur) yalnız ilk 2 tur ekrana tam sığıyor, sonraki
+  turlar hiç göstergesi olmadan ekran dışında kalıyordu. Artık: başlığın yanında "Yana kaydır →" ipucu (yalnız
+  1'den fazla tur varsa), kolon genişliği 170→150 px'e küçültülüp sonraki turdan bir dilim ekranda bırakılacak
+  şekilde ayarlandı (peek), `scroll-snap` ile kaydırma turdan tura düzgün "yapışıyor". Kart stili tokenlara
+  taşındı (`rounded-lg`/`text-xs` → `rounded-md`/`text-[13px]`), kendi maçların artık rest of app ile tutarlı
+  kırmızı sol çizgiyle işaretli (`border-l-sig-red`, Klasman tablosundaki "sen" işaretiyle aynı desen).
+  Başlık da `text-lg font-semibold`den `display` token'ına geçti. Bilinçli kapsam dışı: bu sayfadaki diğer
+  başlıklar ("Senin Maçların", "Pul Kağıtları", "Turnuva Sıralaması") ve bağlayıcı çizgili gerçek "ağaç"
+  görselleştirmesi — ayrı, daha büyük bir "sayfayı Pist Konsolu'na taşı" işi olurdu.
 - **Bugün sayfasına kimlik kartı:** `KimlikKarti.tsx` — federasyon lisans kartı hissi veren, sayfanın
   kendi içeriği olan bir kimlik gösterimi (`CareerNav`'daki her sayfada görünen ince kabuk şeridinden
   ayrı — o kalıyor, bu yeni kart Bugün'ün ilk göreceğin şeyi olarak yanına ekleniyor). Büyük avatar, isim,

@@ -212,14 +212,33 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   panel arka planı doğru şekilde açık değerlere dönüyordu, kart yalnızca zaten kanıtlanmış `panel`/`text-steel`
   sınıflarını kullanıyor, yeni bir renk yolu yok — bu yüzden ek risk görülmedi.)
 
+- **Eleme çatalı — yatay kaydırma keşfedilebilir hale geldi:** kod incelemesinde `overflow-x-auto` zaten
+  vardı, bu yüzden "yatay kaydırma" maddesi ilk bakışta çözülmüş görünüyordu. Gerçek sorun `getComputedStyle`/
+  `scrollWidth` ile doğrulandı: 24 kişilik bir turnuvada (SON32→SON16→ÇEYREK→YARI→FİNAL, 5 tur) kolonlar
+  tam olarak viewport genişliğine denk geliyordu (170px×2 ≈ 341px client width) — yani hiçbir "dilim" ekranda
+  kalmıyordu ve kullanıcı kaydırılabilir olduğunu fark edemiyordu. Çözüm: kolon genişliği 150px'e indirildi
+  (bir sonraki turdan görünür bir dilim bırakacak şekilde), `snap-x snap-proximity` + kolon başına `snap-start`
+  eklendi (tur turdan tura "yapışıyor"), başlığın yanına 1'den fazla tur varsa görünen bir "Yana kaydır →"
+  ipucu kondu. Kart stili de token'lara taşındı: `rounded-lg`/`text-xs` → `rounded-md`/`text-[13px]`; kendi
+  maçların artık Klasman tablosundaki "sen" işaretiyle aynı desende (`border-l-2 border-l-sig-red`) — önceden
+  yalnız `border-ink bg-arena-1` idi, tutarsızdı. Başlık `text-lg font-semibold` → `display text-[20px]`.
+  Bilinçli kapsam dışı: bu sayfadaki (`/turnuva/[id]`) diğer üç başlık ("Senin Maçların", "Pul Kağıtları",
+  "Turnuva Sıralaması") hâlâ eski `text-lg font-semibold` — tüm sayfa Pist Konsolu'na hiç taşınmamış, bu ayrı
+  ve daha büyük bir iş olurdu. Gerçek bağlayıcı çizgili "ağaç" görselleştirmesi (turlar arası kazanan
+  bağlantısı) de bilinçli yapılmadı — BYE'lı asimetrik turlarda doğru hizalama matematiği ayrı bir efor,
+  mevcut "yan yana sütun" gösterimi (skorlarla) turnuvayı takip etmek için yeterli. Görsel doğrulama: 375 px'te
+  gerçek bir 24 kişilik geçmiş turnuvada test edildi — dilim doğru görünüyor, `scrollLeft` script ile sona
+  kadar kaydırılıp FİNAL kolonunun tam göründüğü doğrulandı.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
-WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
+Instagram içi tarayıcı uyarısı · WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba
+(silah bilgisi DTO'ya eklenince). Ayrıca: `/turnuva/[id]` sayfasının kalan başlıkları Pist Konsolu'na
+taşınmadı (bkz. yukarıdaki not) — ayrı bir madde olarak eklenebilir.
 
 ## Bilerek yapılmayanlar
 

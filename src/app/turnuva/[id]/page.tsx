@@ -6,6 +6,7 @@ import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 import { PulKagidi } from "./PulKagidi";
+import { Icon } from "@/app/ui/Icon";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
 import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
 
@@ -128,11 +129,19 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       {/* Eleme çatalı (bracket) */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">{t(locale, "canli.bracket")}</h2>
-        <div className="mt-3 overflow-x-auto pb-2">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="display text-[20px]">{t(locale, "canli.bracket")}</h2>
+          {deRounds.length > 1 && (
+            <span className="inline-flex items-center gap-1 text-[12px] text-steel">
+              {t(locale, "canli.bracketScrollHint")}
+              <Icon name="chevron-right" size={14} />
+            </span>
+          )}
+        </div>
+        <div className="mt-3 snap-x snap-proximity overflow-x-auto pb-2">
           <div className="flex min-w-max gap-3">
             {deRounds.map((round) => (
-              <div key={round} className="flex min-w-[170px] flex-col justify-around gap-3">
+              <div key={round} className="flex min-w-[150px] shrink-0 snap-start flex-col justify-around gap-3">
                 <h3 className="text-center kicker">{round}</h3>
                 {tour.matches
                   .filter((m) => m.phase === "DE" && m.round === round)
@@ -142,8 +151,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                     return (
                       <div
                         key={i}
-                        className={`rounded-lg border p-2 text-xs ${
-                          mine ? "border-ink bg-arena-1" : "border-line"
+                        className={`rounded-md border p-2.5 text-[13px] ${
+                          mine ? "border-line border-l-2 border-l-sig-red bg-arena-1" : "border-line"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
