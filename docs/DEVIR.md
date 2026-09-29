@@ -65,6 +65,26 @@ Aciliyeti yok. Nasıl bir veri şekli/alan adı seçtiğini **Cevap** satırına
 
 **Cevap (Yusuf):**
 
+## Osman → Yusuf: Vercel deploy'u kontrol eder misin? (açık iş)
+
+**Durum:** PR #39 (`ed0adf9`, WhatsApp/sosyal medya önizleme görseli — `next/og`) 29.09 saat 15:42'de
+`master`'a merge edildi. GitHub Actions'daki "deploy" adımı (Vercel Deploy Hook'a webhook tetikleme)
+15:44'te yeşil bitti — ama bu yalnız Vercel'e "başla" isteğinin gittiğini gösteriyor, gerçek build'in
+bittiğini değil.
+
+**Sorun:** Aradan ~3 saat geçmesine rağmen canlı site (`lotp-one.vercel.app`) hâlâ bu commit'in kodunu
+göstermiyor: `/opengraph-image` rotası 404, `<head>`'de hiç `og:*`/`twitter:*` etiketi yok. Önbellek sorunu
+değil (`Cache-Control: no-store`, `X-Vercel-Cache: MISS`, `Age: 0` — sayfa her istekte taze render
+ediliyor). Kod yerelde `next build && next start` (production modu) ile doğrulandı, görsel doğru
+üretiliyor — yani kodda bariz bir hata görünmüyor.
+
+**İhtiyaç:** Vercel dashboard'a bakabilir misin — `ed0adf9` commit'ine ait deployment'ın durumu ne
+(Building / Failed / Queued)? Failed ise hata logunu paylaşırsan bakarım (tahminim: `next/og`/Satori
+render adımı Vercel'in build ortamında bir şeye takılıyor olabilir, yerelden farklı olarak). Osman
+tarafının Vercel'e erişimi yok.
+
+**Cevap (Yusuf):**
+
 ## Karar günlüğü
 
 | Tarih | Karar | Kim |
