@@ -120,6 +120,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   yok), gönderim hatası görünür.
 
 ### Düzeltildi
+- **Antrenman raporu yetenek etiketleri hiç çevrilmiyordu:** "Sen yokken" panelindeki kazanım etiketleri
+  ("+0.7 Atak" gibi) her dilde — İngilizce dahil — sabit Türkçe kalıyordu, çünkü `careerService.ts`
+  (`gains[].label`) motorun (`engine/skill/skills.ts`) sabit TR etiketini doğrudan DB'ye yazıp öyle
+  gösteriyordu, i18n'den hiç geçmiyordu. Artık `label` yerine `key` yazılıyor, sayfa (`kariyer/page.tsx`)
+  `t(locale, "skill." + key)` ile dile göre çeviriyor — sayfanın altındaki YETENEKLER bölümüyle aynı yol.
+  Geriye dönük uyumlu: bu değişiklikten önce yazılmış, henüz okunmamış eski raporlarda hâlâ yalnız sabit
+  `label` olabilir — sayfa `key` yoksa `label`'a düşüyor, canlı veri kaybı yok (CONTRIBUTING §2).
 - **Stil sınıfları utility'leri eziyordu:** `.panel`, `.btn-ink`, `.btn-ghost`, `.kicker` … `@layer utilities`
   yerine `@layer components`'ta. Önceden üstlerine yazılan renk/kenar/gizleme sınıfları sessizce etkisizdi
   (turnuvalarda kayıtlı kartın vurgusu, ekipmanda pasif buton rengi, seviye etiketlerinin rengi).

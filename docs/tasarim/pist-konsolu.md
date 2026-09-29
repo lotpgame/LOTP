@@ -186,6 +186,15 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   (`engine/skill/skills.ts`) sabit Türkçe `label` alanından geliyor, i18n'den hiç geçmiyor — İngilizce dahil
   her dilde Türkçe görünüyor.
 
+- **Antrenman raporu yetenek etiketleri — i18n'e bağlandı:** yukarıdaki bulgunun düzeltmesi (Osman "başlat
+  chipi" dedi, aynı oturumda yapıldı — spawn_task tıklanamadığı için doğrudan burada). `TrainingReport.gains`
+  artık sabit `label` yerine `key` (`SkillKey`) yazıyor (`careerService.ts` ~1294); `kariyer/page.tsx`
+  `t(locale, "skill." + key)` ile render zamanında çeviriyor — YETENEKLER bölümünün zaten yaptığı gibi.
+  Geriye dönük uyumluluk: `gains` tipi `{ key?: SkillKey; label?: string; delta }` — bu değişiklikten önce
+  DB'ye yazılmış, henüz okunmamış eski raporlarda yalnız `label` olabilir, sayfa `key` yoksa `label`'a
+  düşüyor (canlı veri kaybı yok, CONTRIBUTING §2). Doğrulama: Almanca'da yeni oluşan bir rapor
+  ("Trainingsbericht") kontrol edildi — "Schnelligkeit/Ausdauer/Angriff/Abwehr…" doğru çevrildi.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.

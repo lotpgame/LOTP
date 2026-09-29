@@ -107,11 +107,16 @@ export default async function BugunPage() {
               <div className="mt-1 text-[13px] text-steel">{t(locale, "report.title", { n: report.days })}</div>
               {gains.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {gains.map((g) => (
-                    <span key={g.label} className="rounded-md bg-arena-2 px-2 py-1 text-[13px]">
-                      <span className="num">+{g.delta.toFixed(1)}</span> {g.label}
-                    </span>
-                  ))}
+                  {gains.map((g) => {
+                    // `key` varsa dile göre çevrilir; eski (bu alan eklenmeden önce yazılmış) raporlarda
+                    // yalnız sabit TR `label` olabilir — geriye dönük okunur (canlı veri kaybı olmasın).
+                    const label = g.key ? t(locale, `skill.${g.key}`) : (g.label ?? "");
+                    return (
+                      <span key={g.key ?? g.label} className="rounded-md bg-arena-2 px-2 py-1 text-[13px]">
+                        <span className="num">+{g.delta.toFixed(1)}</span> {label}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-steel">

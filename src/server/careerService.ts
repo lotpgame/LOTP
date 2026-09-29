@@ -35,6 +35,7 @@ import {
   skillAgeCeiling,
   overall,
   type PlayerSkills,
+  type SkillKey,
   type SkillValue,
 } from "@/engine/skill";
 import { applyTraining, TRAINING_TYPES, type TrainingType } from "@/engine/training";
@@ -742,7 +743,10 @@ export async function getCareer(): Promise<CareerDTO | null> {
 /** Menü/başlık + sabit "İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
 export interface TrainingReport {
   days: number; // kaç gün ilerledi
-  gains: { label: string; delta: number }[]; // skill kazanımları (delta>0)
+  // Yeni yazımlar yalnız `key` içerir (i18n `skill.<key>` ile dile göre çevrilir). Eski kayıtlarda
+  // (bu alan eklenmeden önce DB'ye yazılmış, henüz okunmamış raporlar) yalnız sabit TR `label` olabilir
+  // — canlı veri kaybı olmasın diye geriye dönük okunur (bkz. page.tsx).
+  gains: { key?: SkillKey; label?: string; delta: number }[]; // skill kazanımları (delta>0)
   conditionDelta: number; // kondisyon değişimi (+ toparladı, − yoruldu)
   sharpnessDelta: number; // keskinlik değişimi
   injured: boolean; // bu ilerlemede sakatlandı mı
@@ -1285,9 +1289,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
+  // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
   const days = d - startDay;
   const gains = SKILLS.map((def) => ({
-    label: def.label,
+    key: def.key,
     delta: Math.round((skills[def.key].current - beforeSkills[def.key]) * 10) / 10,
   }))
     .filter((g) => g.delta >= 0.1)
