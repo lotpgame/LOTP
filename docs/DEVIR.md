@@ -85,6 +85,40 @@ tarafının Vercel'e erişimi yok.
 
 **Cevap (Yusuf):**
 
+## Osman → Yusuf: Canlı turnuvada paralel-simülasyon çakışması (olası hata)
+
+**Bulgu (29.09, testçi gözlemi):** Aynı gün 3-4 testçi karşılaştırıldı. Turnuva SÜRERKEN her oyuncu
+farklı rakip/skor görüyor; turnuva BİTİNCE herkes aynı (tek) sonucu görüyor. İkincisi normal olması
+gerekirken, birincisinin sebebi kod tarafında aşağıdaki gibi görünüyor — kontrol edip onaylar mısın?
+
+**Zincir:**
+1. `startLiveTournament` (`careerService.ts:2154`) aynı `scopeKey`'e kayıtlı diğer gerçek oyuncuları
+   (`coHumans`) kendi `LiveState`'ine bot gibi dahil ediyor, ama tüm simülasyonu (havuz çekimi dahil,
+   `seedKey` satır 2252) ÇÖZEN OYUNCUNUN KENDİ `gs.seed`'iyle çalıştırıyor. Aynı scopeKey'deki iki farklı
+   gerçek oyuncunun `gs.seed`'i farklı olduğu için, ikisi de "aynı" turnuvayı bağımsız, birbirinden farklı
+   sonuçlarla simüle ediyor — iki paralel evren.
+2. `attendTournament` (satır 1419-1426) ve finalize adımı (satır 2558-2578) `scopeKey` ile dedup
+   kontrolü yapıyor — ama yalnız "turnuva TAMAMEN bitmiş mi" diye bakıyor. Canlı mod dakikalarca sürdüğü
+   için (maç arası 10 sn bekleme + animasyon), iki oyuncu neredeyse aynı anda "katıl"a basarsa ikisi de
+   "henüz yok" görüp kendi canlı simülasyonunu başlatıyor.
+3. Kim ÖNCE finalize'e ulaşırsa (satır 2583 `finalizeTournament`) o kişinin simülasyonu ortak `Tournament`
+   satırına yazılıyor. Sonra bitiren oyuncu için (satır 2560-2578): kendi oynadığı/izlediği maçlar yok
+   sayılıyor, `finalPosition`/ödül/XP "ilk bitenin simülasyonunda ben ne yapmışım"a göre veriliyor — yani
+   ikinci oyuncu kendi ekranında gördüğü sonucu değil, başkasının simülasyonundan miras kalan bir sonucu
+   alıyor.
+
+**Referans:** Offline/otomatik yol (`autoResolveTournament`, satır 2934 — "M11.3b-1") bunu doğru
+çözüyor: ilk çözen herkesi TEK simülasyonda hesaplıyor, sonrakiler sadece okuyor. Canlı yolun
+("M11.3b-2", satır 2163) aynı garantiyi henüz vermediği görülüyor — muhtemelen zaten planındaydı, kod
+içindeki kendi notların (satır 2163, 2929) buna işaret ediyor.
+
+**Öneri (benim, karar sende):** Canlı yolun da "ilk giren tek otorite, sonrakiler onu izler/paylaşır"
+modeline geçmesi gerekebilir — belki ikinci oyuncu canlı moda hiç girmeden ilkinin simülasyonuna
+bağlanır, belki başka bir kilitleme. Tasarımı sana bırakıyorum, aciliyeti test aşamasında düşük ama
+canlıya çıkmadan önce netleşmeli.
+
+**Cevap (Yusuf):**
+
 ## Karar günlüğü
 
 | Tarih | Karar | Kim |
