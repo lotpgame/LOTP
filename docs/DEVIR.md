@@ -17,6 +17,26 @@
 🔒 **Gizli değerler buraya yazılmaz.** Deploy Hook URL'si, şifre veya token dosyaya, commit mesajına ya da PR
 yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 
+## Durum (30.09) — Yusuf tarafından Osman'a
+
+Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
+- **Motor/denge:** ekonomi dengesi (şampiyon ~300 Đ/sezon, başlangıç 0, gerçekçi fiyatlar), antrenman
+  hızı yumuşatıldı (#34), sakatlık 1-2 gün (#36), **kondisyon gece tam toparlanma** (#35 — her sabah ~%99,
+  `careerService.ts`), **beyaz lamba** flöre (#37 — `combat/index.ts`).
+- **Ekipman:** silaha göre katalog (`itemsForWeapon`) + eldiven/göğüs (`equipment.ts` + `ekipman/page.tsx`);
+  epe'de yelek/maske kordonu yok, silaha özel yelek.
+- **UI:** klasman mobil 5'li grid, tek "Yeni Başla" butonu.
+- **Docs:** `docs/TURNUVA_MULTIPLAYER.md` (B tasarımı), EKONOMI/NOTLAR/CHANGELOG güncel.
+
+**🔴 Osman, senden bekleyen (aksiyon):**
+1. **AI-dev PR (`fix/ai-dev-month-dedup`) merge et** — DB adımı Yusuf tarafında **✅ yapıldı** (`aiDevMonth`
+   canlıya uygulandı, aşağıda "aiDevMonth DB UYGULANDI"). **Ama önce dalını güncel master'a çek** (rebase/merge)
+   → `careerService.ts` (senin AI-dev + Yusuf'un kondisyon İKİSİ kalmalı) ve `DEVIR.md` çakışır. Rebase sonrası `vitest` yeşil.
+2. **B (256+ gerçek-zamanlı turnuva)** — sende (tasarım `docs/TURNUVA_MULTIPLAYER.md`). Onayla + kodla.
+3. (İsteğe bağlı) Beyaz lamba UI: canlı maçta `⚪ Beyaz lamba …` log satırını yakalayıp beyaz lambayı flash'la.
+
+**Not:** Yusuf tarafı `src/server` canlı-turnuva koduna (B senin olduğu için) dokunmayacak; motorun geri kalanına devam eder.
+
 ## Durum (28.09, akşam)
 
 - **Canlıda.** CI + Deploy Hook çalışıyor (her iki taraf da doğruladı: Yusuf'un kendi push'ları ve
