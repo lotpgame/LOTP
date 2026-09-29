@@ -14,6 +14,17 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Almanca (Deutsch) arayüz çevirisi tamamlandı:** sözlük TR/EN paritesiyle (~500 anahtar, `src/i18n/index.ts`)
+  tam Almancaya çevrildi — önceden yalnız "kabuk" (menü/alt çubuk/ayarlar/oyuncu oluşturma) planlanmıştı ama
+  sözlük o aradan beri tüm sayfaları kapsayacak şekilde büyümüştü, bu yüzden tamamı çevrildi. Doğru Almanca
+  eskrim terminolojisi kullanıldı: Poule (pul), Tableau (eleme çatalı), Planche (pist), Aktive (büyükler
+  kategorisi — "Senioren" Almancada veteran kategorisi anlamına geldiği için kasıtlı olarak kullanılmadı),
+  Freilos (bay geçme), Leitweste (elektrikli yelek). Cinsiyet-nötr ifade tercih edildi (ör. "Charakter
+  erstellen", "Fechter/in" yerine). `de` artık kendi tam sözlüğüne sahip (önceden TR'ye düşüyordu); `es`/`fr`
+  hâlâ TR'ye düşüyor. TR ve EN'deki `settings.languageNote` metinlerindeki artık geçersiz "İngilizce çevirisi
+  ekleniyor" notu da güncellendi (ES/FR'ye işaret ediyor). Ayrıca fark edilen, bu PR'ın kapsamı dışında kalan
+  bir hata ayrı bir işe kaydedildi: "Sen yokken" antrenman raporundaki yetenek etiketleri (`gains[].label`)
+  motorun sabit Türkçe etiketinden geliyor, hiçbir dilde (İngilizce dahil) i18n'den geçmiyor.
 - **Canlı eleme maçında periyot/altın tuş bandı:** skor bandı (`ScoreBug`) kaydırma sırasında sabit
   (sticky) kalıyor ama anlatım aşağı akınca hangi periyotta olunduğu bilgisi ekrandan kayboluyordu —
   artık bandın üstünde küçük bir durum etiketi var: "N. Periyot" (normal), berabere kalıp "altın tuş"a

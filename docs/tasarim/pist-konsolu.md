@@ -170,14 +170,29 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   test karakterinin hızlı dünya saati bu oturumda sakatlanmış durumdaydı, gerçek canlı maçla tekrar test
   bir sonraki oturuma kaldı.
 
+- **Almanca (Deutsch) çeviri:** Osman'a önce kapsam soruldu — "sadece layout sağlamlığı" mı yoksa "gerçek
+  çeviri" mi; sonra sözlüğün artık ~500 anahtara çıktığı (`nav`/`bar`/`settings`/`create` dışında `canli`,
+  `klasman`, `gecmis`, `ekipman`, `turnuvalar`, `antrenman`… her şey) bulgusuyla geri dönüldü, "kabuk" mu
+  "tümü" mü diye tekrar soruldu — cevap: tümü. `src/i18n/index.ts`'e TR∪EN'in tam birleşimini kapsayan yeni
+  bir `DE` sözlüğü eklendi (script ile doğrulandı: eksik/fazla/tekrar anahtar yok). Doğru Almanca eskrim
+  terimleri kullanıldı (Poule, Tableau, Planche, Freilos, Leitweste); "Aktive" bilinçli seçildi — Almanca
+  eskrimde "Senioren" veteran kategorisi demek, TR/EN'deki "Büyükler/Seniors" (açık kategori) karşılığı değil.
+  Cinsiyetli isim gerektiren yerlerde ("sporcunu oluştur" vb.) "Fechter/in" yerine nötr "Charakter" tercih
+  edildi. `V5` gibi uluslararası pul-kağıdı notasyonu (kodda sabit, çevrilmiyor) metne çevrilmeden bırakıldı.
+  Görsel doğrulama: Ayarlar → Dil → Deutsch seçilip masaüstü + 375 px'te Bugün/Ayarlar ekranları kontrol
+  edildi, taşma/kırpılma yok (`nav.gecmis` → tek kelime "Karriereverlauf" bile dar kolonda rahat sığıyor).
+  Yol üstünde bulunan, bu işin kapsamı DIŞINDA kalan bir hata ayrı işe kaydedildi (spawn_task): "Sen yokken"
+  antrenman raporundaki yetenek kazanım etiketleri (`careerService.ts` `gains[].label`) motorun
+  (`engine/skill/skills.ts`) sabit Türkçe `label` alanından geliyor, i18n'den hiç geçmiyor — İngilizce dahil
+  her dilde Türkçe görünüyor.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Almanca etiket uzunlukları · Bugün'de kimlik
-kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
+Bugün'de kimlik kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
 
 ## Bilerek yapılmayanlar
