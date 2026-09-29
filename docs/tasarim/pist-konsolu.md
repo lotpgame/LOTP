@@ -261,13 +261,29 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   bir öneri; `sig-red` kullanılmadı. Facebook/Messenger'ın kendi uygulama içi tarayıcısı bilinçli kapsam
   dışı — yalnız Instagram istenmişti.
 
+- **Sözlük sayfası:** başlamadan önce Osman'a kapsam soruldu — yalnız eskrim terimleri mi, yoksa eskrim +
+  oyun terimleri (iki bölüm) mi; cevap: ikisi de. İçerik yazmadan önce oturum içinde tam terim listesi
+  çıkarıldı (i18n sözlüğü + GDD taranarak) — 24 terim, TR kaynak, sonra EN/DE. **Ayrı veri dosyası**
+  (`sozluk/glossary.ts`, `GlossarySection[]`) — ana i18n sözlüğü kısa UI etiketleri için (`t(locale, key)`),
+  bu içerik uzun biçimli ve yalnız bu sayfada kullanılıyor; ikisini karıştırmak (24 terim × 2 alan × 3 dil
+  = ~150 anahtar) ana sözlüğü şişirirdi. `glossaryFor(locale)` es/fr için TR'ye düşer — ana i18n modülüyle
+  aynı kural. Yeni `glossary` ikonu (açık kitap, iki sayfa + orta sırt, `strokeOpacity=".7"` ile sayfa
+  çizgileri) — `nav.sozluk` altında "Daha fazla" menüsüne eklendi (Ayarlar'dan hemen önce). **Beyaz lamba**
+  terimi bilinçli olarak dahil edildi — motor tarafında henüz uygulanmamış olsa da (bkz. DEVIR.md isteği)
+  gerçek bir eskrim kavramı, sözlükte tanımı durması mantıklı. Sayfa yalnız `getLocale()` kullanıyor —
+  `getCareer()`/auth kontrolü yok, çünkü `KariyerLayout` zaten oturumu garantiliyor ve sayfa kişisel veri
+  göstermiyor (gereksiz tekrar kontrol eklenmedi). Görsel doğrulama: masaüstü + 375 px, TR ve DE'de kontrol
+  edildi (`get_page_text` ile — bu oturumun tarayıcı panelinde ekran görüntüsü yine zaman zaman boş geldi,
+  DOM/metin tabanlı doğrulama güvenilirdi).
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
+WhatsApp önizleme görseli (`next/og`) · beyaz lamba (Yusuf'un DEVIR.md'deki motor tarafı verisini
+eklemesini bekliyor — `docs/DEVIR.md` "Osman → Yusuf" bölümü).
 
 ## Bilerek yapılmayanlar
 

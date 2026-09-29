@@ -37,6 +37,7 @@ export type IconName =
   | "chevron-right"
   | "chevron-down"
   | "info"
+  | "glossary"
   // Kariyer geçmişi
   | "trophy"
   | "medal"
@@ -189,6 +190,14 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
+  // Sözlük: açık kitap — iki sayfa + orta sırt
+  glossary: (
+    <>
+      <path d="M4 6.5h7v14H5a1 1 0 0 1-1-1z" />
+      <path d="M20 6.5h-7v14h6a1 1 0 0 0 1-1z" />
+      <path d="M8 10h2M8 13.5h2M14 10h2M14 13.5h2" strokeWidth="1" strokeOpacity=".7" />
     </>
   ),
 

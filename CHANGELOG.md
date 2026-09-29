@@ -14,6 +14,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Sözlük sayfası:** "Daha fazla" menüsünde yeni bir sayfa (`/kariyer/sozluk`) — 24 terim, iki bölüm:
+  Eskrim Terimleri (Flöre/Epe/Kılıç, hedef, öncelik, tuş, pul, eleme, bay, averaj, seri başı, altın tuş,
+  parat/riposte/kontra, milli takım, **beyaz lamba** — henüz uygulanmamış olsa da gerçek bir eskrim kavramı
+  olduğu için dahil edildi) ve Oyun Terimleri (sezon, kondisyon, form, yorgunluk, Quarter Ranking, lisans no,
+  Denar). TR/EN/DE — Almanca'da doğru eskrim terminolojisi (Poule, Direktausscheidung, Vorrecht, Freilos,
+  Setzung). İçerik ana i18n sözlüğünden ayrı bir dosyada (`sozluk/glossary.ts`) — uzun biçimli, yalnız bu
+  sayfaya özel metin, kısa UI etiketleriyle karışmasın diye. Yeni ikon: `glossary` (açık kitap, iki sayfa +
+  orta sırt) — kendi çizimimiz, üçüncü taraf ikon değil.
 - **Instagram uygulama içi tarayıcı uyarısı:** Instagram'ın kendi tarayıcısında (WhatsApp'ta paylaşılan
   bağlantı Instagram DM/bio'suna yapıştırılıp açıldığında vb.) oturum/localStorage bazı durumlarda
   güvenilir kalıcı olmayabiliyor. Artık `User-Agent`'ta "Instagram" tespit edilirse (`ui/inAppBrowser.ts`,

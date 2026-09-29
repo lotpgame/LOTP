@@ -32,6 +32,7 @@ const MORE: NavItem[] = [
   { href: "/kariyer/kulup", key: "nav.kulup", icon: "club" },
   { href: "/kariyer/ekipman", key: "nav.ekipman", icon: "shop" },
   { href: "/kariyer/gecmis", key: "nav.gecmis", icon: "history" },
+  { href: "/kariyer/sozluk", key: "nav.sozluk", icon: "glossary" },
   { href: "/kariyer/ayarlar", key: "nav.ayarlar", icon: "settings" },
 ];
 const ALL = [...MAIN, ...MORE];

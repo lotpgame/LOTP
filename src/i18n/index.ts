@@ -32,6 +32,7 @@ const TR: Dict = {
   "nav.ekipman": "Ekipman",
   "nav.gecmis": "Kariyer Geçmişi",
   "nav.ayarlar": "Ayarlar",
+  "nav.sozluk": "Sözlük",
   "nav.menu": "Menü",
   // Alt çubuk
   "bar.ilerle": "İlerle →",
@@ -551,6 +552,7 @@ const EN: Dict = {
   "nav.ekipman": "Equipment",
   "nav.gecmis": "Career History",
   "nav.ayarlar": "Settings",
+  "nav.sozluk": "Glossary",
   "nav.menu": "Menu",
   "bar.ilerle": "Advance →",
   "bar.katil": "Enter",
@@ -1056,6 +1058,7 @@ const DE: Dict = {
   "nav.ekipman": "Ausrüstung",
   "nav.gecmis": "Karriereverlauf",
   "nav.ayarlar": "Einstellungen",
+  "nav.sozluk": "Glossar",
   "nav.menu": "Menü",
   "bar.ilerle": "Weiter →",
   "bar.katil": "Beitreten",
