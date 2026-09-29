@@ -1,6 +1,6 @@
 # Devir notu — Yusuf ↔ Osman
 
-> Son güncelleme: **2026-09-28** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
+> Son güncelleme: **2026-09-29** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 
@@ -43,84 +43,27 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
 
 ## Senden beklenenler (Yusuf)
 
-- **✅ Ekipman kataloğu yapıldı (Yusuf/Claude, 29.09).** `src/engine/equipment.ts` artık silaha özel:
-  `itemsForWeapon(weapon)` + yeni slot'lar `GLOVE`/`CHEST` (senin ikonlarınla) + silaha özel silah/maske/
-  yelek/kordon. **Epe:** elektrikli yelek + maske kordonu GİZLİ, vücut kordonu DURUR. **Elektrikli yelek**
-  silaha özel (flöre "flöre için", kılıç "kılıç için"; biri diğerini görmez). Mağaza (`ekipman/page.tsx`)
-  `itemsForWeapon`'a bağlandı, `NOT_FOR_EPEE` hack'i kaldırıldı, `SLOT_ICON`+`GROUPS`'a GLOVE/CHEST eklendi.
-  Eski id'ler legacy korunuyor (canlı veri). **Not (Osman):** yeni ürün id'lerinin i18n adları (EN/DE) yok →
-  şimdilik Türkçe item.name'e düşüyor; istersen `gladius.gl-*-foil/…` anahtarlarını eklersin.
-
-Bunun dışında karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
+Şu an karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
 (`src/engine/combat/index.ts`, `src/server/careerService.ts`) hâlâ "🏁 … kazandı", "⏱ Süre doldu",
 "🏅 Altın tuş!" gibi emoji'li satırlar üretiyor — arayüzün geri kalanında emoji kalmadı. İstersen
 kaldırabilirsin, arayüz kazananı ve altın tuşu zaten ayrıca gösteriyor. Motor tarafı olduğu için Osman
 dokunmuyor.
 
-## Yusuf → Osman: Ekipman kataloğunu genişlet (açık iş)
+## Osman → Yusuf: Beyaz lamba için veri lazım (açık iş)
 
-**İstek:** GLADIUS mağazasındaki ürünleri gerçek FIE malzeme listesine göre çoğaltalım. İleride başka
-markalar da (Leon, PBT…) geleceği için **her marka açılır-kapanır panel** olsun (şimdilik tek panel:
-GLADIUS). Ürün ikonlarını **Osman çizecek**; Yusuf tarafı temel listeyi/yapıyı belirledi.
+**İstek:** Gerçek eskrim cihazlarında flöre ve kılıçta hedef dışı vuruşta **beyaz lamba** yanar (epede yok
+— tüm vücut hedef). Arayüz tarafında (`ScoreBug`, canlı anlatım) bunu göstermek istiyoruz ama motor şu an
+hiçbir tuşun hedef içi/dışı olduğunu bilmiyor — her tuş geçerli sayılıyor (`combat/index.ts` içinde "hedef"
+kelimesi yalnız maç puanı anlamında geçiyor, isabet bölgesi kavramı hiç yok).
 
-**Yapı kararları (Yusuf):**
-- **Silaha göre filtre:** oyuncu yalnız kendi silahının malzemesini + ortak malzemeleri görür.
-- **Ortak malzemeler 1 kez:** çorap, ayakkabı, göğüs koruyucu, ceket+pantolon, plastron her silahta aynı.
-- **Maça etki:** küçük ama ana parçalar (silah, lame, ayakkabı) aksesuardan biraz daha etkili. Bonus
-  değerleri motor tarafı (Yusuf/Claude, `src/engine/equipment.ts`) — Osman dokunmaz.
+**İhtiyaç:** Flöre/kılıç için her tuşa (muhtemelen `resolveExchange`/tuş üretilen noktada) olasılıksal bir
+"hedef dışı mı" bayrağı — gerçekçi bir oran (FIE istatistiklerine yakın, örn. flörede ~%10-20 hedef dışı)
+yeterli, hassas bir model şart değil. Epede bu kavram hiç uygulanmasın (her zaman geçerli/hedef içi). Bu
+bilginin maç log'una veya `MatchResult`/DTO'ya eklenmesi lazım ki arayüz lambayı doğru renkte gösterebilsin.
 
-**İş bölümü:**
-- **Yusuf tarafı (Claude):** `src/engine/equipment.ts` kataloğu — aşağıdaki ürünler + fiyat + bonus +
-  `itemsForWeapon(weapon)` filtre helper'ı. Eski id'ler legacy kalır (canlı veri korunur).
-- **Osman:** mağaza sayfası (`ekipman/page.tsx`) → marka açılır-kapanır panel; `itemsForWeapon`'a göre
-  listeleme; yeni ürünler için ikonlar (**eldiven** ve **göğüs koruyucu** setinde henüz yok).
+Aciliyeti yok. Nasıl bir veri şekli/alan adı seçtiğini **Cevap** satırına yazarsan üstüne UI'ı bağlarım.
 
-**Ürün listesi + fiyatlar (Denar):** "Lame" → net Türkçe **"Elektrikli Yelek"**. Fiyat sırası: Elektrikli
-Yelek > Ceket+Pantolon > Silah (detay: `docs/EKONOMI.md` §2).
-
-*Ortak (her silah — 1 kez):*
-
-| Ürün | Slot | Đ | Not |
-|---|---|--:|---|
-| Eskrim Ceketi + Pantolon | CLOTHING | 420 | Standart beyaz koruyucu takım |
-| Eskrim Ayakkabısı | SHOES | 280 | Ayak tekniği/denge |
-| Gladius Çanta | BAG | 150 | Kozmetik (etki yok) |
-| Göğüs Koruyucu | CHEST | 90 | **yeni ikon** |
-| Plastron | PLASTRON | 80 | Koltuk altı koruyucu |
-| Eskrim Çorabı | SOCKS | 30 | Uzun çorap |
-
-*Silaha özel (fiyatlar):*
-
-| Ürün | Slot | Đ |
-|---|---|--:|
-| Elektrikli Yelek (kılıç) | LAME | 550 |
-| Elektrikli Yelek (flöre) | LAME | 500 |
-| Silah | WEAPON | 400 |
-| Maske (kılıç, tam iletken) | MASK | 320 |
-| Maske (flöre çene / epe yalıtkan) | MASK | 260 |
-| Eldiven | GLOVE | 150 · kılıç 90 (manşet iletken) — **yeni ikon** |
-| Vücut Kablosu | CORD | 100 |
-| Maske Kablosu | MASK_CORD | 50 |
-
-*Flöre (FOIL):* Silah · Maske (çene iletken) · Elektrikli Yelek (gövde) · **Eldiven** · Vücut Kablosu · Maske Kablosu
-*Epe (EPEE):* Silah · Maske (yalıtkan) · **Eldiven** · Vücut Kablosu (3 soket) · (yelek YOK, maske kablosu YOK)
-*Kılıç (SABRE):* Silah · Maske (tam iletken) · Elektrikli Yelek (gövde+kol) · **Eldiven** (manşet iletken) · Vücut Kablosu (2 soket) · Maske Kablosu
-
-**Yeni slot'lar:** `GLOVE`, `CHEST` — Icon setine 2 yeni ikon. Mevcut mağazadaki `NOT_FOR_EPEE` hack'i
-artık gerekmez; filtre motorda `itemsForWeapon` ile yapılacak.
-
-**Sıra:** Yusuf tarafı katalogu bir dala/PR'a koyunca haber verir → Osman üstüne mağaza + ikon PR'ı açar
-(ya da tek PR'da birlikte). Katalog + UI birlikte canlıya çıkmalı (yoksa ikonsuz görünür).
-
-**⭐ Yıpranma/büyüme sırası (Yusuf kararı, 28.09):** Önce Osman mağazayı/kataloğu yeniler → SONRA Yusuf
-tarafı yıpranma + büyüme + gizli etki motorunu ekler (dayanıklılık barını Osman çizer). Detay:
-`docs/EKONOMI.md` §0, §2, §5.
-
-**Cevap (Osman):** Onaylandı, iş bölümü ve sıra uygun. **Kendi tarafımdaki hazırlık bitti ve canlıda:**
-GLADIUS vitrini artık açılır/kapanır marka paneli (`ekipman/BrandPanel.tsx`), yeni ikonlar `glove` +
-`chest` çizildi (`ui/Icon.tsx`). **Şimdi sırada sen (Yusuf tarafı) varsın:** `itemsForWeapon` + yeni
-ürünler/slot'lar (`GLOVE`, `CHEST`) `src/engine/equipment.ts`'e gelince bir dala koy, burada veya PR
-açıklamasında haber ver — üstüne kurup mağazayı yeni katalogla bağlarım.
+**Cevap (Yusuf):**
 
 ## Karar günlüğü
 
@@ -137,4 +80,5 @@ açıklamasında haber ver — üstüne kurup mağazayı yeni katalogla bağlar�
 | 2026-09-28 | Canlı test verisi asla silinmez: yalnız eklemeli şema, sıfırlama yok (CONTRIBUTING §2) | Yusuf + Osman |
 | 2026-09-28 | Ekipman görselleri: kendi ikonlarımız (GLADIUS), marka ürünü kopyalanmaz | Osman |
 | 2026-09-28 | Ekipman kataloğu genişletme: iş bölümü Yusuf tarafı=motor/katalog, Osman=mağaza UI+ikon; önce mağaza sonra yıpranma motoru | Yusuf |
+| 2026-09-29 | Ekipman kataloğu teslim edildi: `itemsForWeapon` + GLOVE/CHEST slotları + mağaza UI birlikte (Yusuf tarafı ikisini de bağladı). Kalan küçük not: yeni ürünlerin EN/DE i18n adları yok, TR'ye düşüyor — acil değil, ayrı iş olarak eklenebilir | Yusuf |
 | 2026-09-20 | Kalıcı giriş: Google OAuth + IP'den ülke | Yusuf |
