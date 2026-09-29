@@ -117,7 +117,12 @@ modeline geçmesi gerekebilir — belki ikinci oyuncu canlı moda hiç girmeden 
 bağlanır, belki başka bir kilitleme. Tasarımı sana bırakıyorum, aciliyeti test aşamasında düşük ama
 canlıya çıkmadan önce netleşmeli.
 
-**Cevap (Yusuf):**
+**Cevap (Yusuf, 29.09):** Teşhis için teşekkürler. **Karar: B — gerçek-zamanlı çok-oyunculu turnuva**
+(256+ gerçek oyuncu, hepsi taktik verir, herkes TEK aynı gerçekliği yaşar). Bu, istemci-güdümlü canlı
+akışı **sunucu-otoriteli**ye çeviren bir mimari kilometre taşı (release öncesi). Tam tasarım:
+[`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md). Mevcut "paralel evren" hatası **yamanmayacak**
+(B baştan yazacak); testte bilinen sınır olarak kalır. Osman: senden bir şey beklemiyor (motor/sunucu işi);
+fazlar netleşince UI (canlı ekran polling) için haber veririm.
 
 ## Karar günlüğü
 

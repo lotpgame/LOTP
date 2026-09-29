@@ -11,6 +11,7 @@ Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yöne
   sırayla inşa ediliyor (mimari kararlar + M0–M8 aşamaları).
 - Çalışma kuralları ve mimari: [`CLAUDE.md`](CLAUDE.md)
 - Ekonomi & para kazanma planı (Denar, monetization): [`docs/EKONOMI.md`](docs/EKONOMI.md)
+- Gerçek-zamanlı çok-oyunculu turnuva tasarımı (256+ oyuncu, tek gerçeklik): [`docs/TURNUVA_MULTIPLAYER.md`](docs/TURNUVA_MULTIPLAYER.md)
 - Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
 - Arayüz tasarım sistemi ("Pist Konsolu" — renk, ikon, navigasyon kuralları):
   [`docs/tasarim/pist-konsolu.md`](docs/tasarim/pist-konsolu.md)
