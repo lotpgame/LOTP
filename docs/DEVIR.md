@@ -109,6 +109,22 @@ aynı kapsamdaki herkes AYNI deterministik bracket/sonucu üretir. Acil tutarsı
 taşınır. Ara düzeltme tutarlılığı sağladı; B tam gerçek-zamanlı taktik senkronu + ölçeği getirecek.
 Tam tasarım: [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md).
 
+## Yusuf → Osman: B'yi SEN üstlen — Gerçek-zamanlı çok-oyunculu turnuva (açık iş)
+
+**Devir (Yusuf, 30.09):** 256+ gerçek oyuncu, hepsi taktik verir, herkes TEK gerçekliği yaşar. Bu mimari
+kilometre taşını **Osman tarafı üstlenecek** (kendi AI'ı kodlar). Yusuf/Claude **tam tasarımı** hazırladı;
+sen **onaylayınca** fazları (0→4) uygularsın. Aynı GitHub → tasarım sende zaten.
+
+- **Tasarım (oku):** [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md) — ilkeler, bileşenler,
+  yaşam döngüsü, **Faz 0–4**, açık kararlar (tik tetikleme, taktik penceresi, ölçek…).
+- **Çakışma önleme:** bu iş sürerken **Claude canlı-turnuva SUNUCU koduna dokunmaz**
+  (`careerService` canlı yol, `startLiveTournament`, `finalizeTournament`). Sen serbestçe yeniden yazarsın.
+  Yusuf tarafı yalnız motor kurallarına (skill/economy/combat/conditioning) devam eder.
+- **Açık kararları** (`docs/TURNUVA_MULTIPLAYER.md` §5) uygularken takıldığın olursa **Cevap** satırına yaz,
+  Yusuf netleştirir.
+
+**Cevap (Osman):**
+
 ## Karar günlüğü
 
 | Tarih | Karar | Kim |
@@ -126,4 +142,5 @@ Tam tasarım: [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md).
 | 2026-09-28 | Ekipman görselleri: kendi ikonlarımız (GLADIUS), marka ürünü kopyalanmaz | Osman |
 | 2026-09-28 | Ekipman kataloğu genişletme: iş bölümü Yusuf tarafı=motor/katalog, Osman=mağaza UI+ikon; önce mağaza sonra yıpranma motoru | Yusuf |
 | 2026-09-29 | Ekipman kataloğu teslim edildi: `itemsForWeapon` + GLOVE/CHEST slotları + mağaza UI birlikte (Yusuf tarafı ikisini de bağladı). Kalan küçük not: yeni ürünlerin EN/DE i18n adları yok, TR'ye düşüyor — acil değil, ayrı iş olarak eklenebilir | Yusuf |
+| 2026-09-30 | B (256+ gerçek-zamanlı çok-oyunculu turnuva) uygulaması **Osman tarafına devredildi**; tasarım Yusuf/Claude'dan (`docs/TURNUVA_MULTIPLAYER.md`), kod Osman AI'ı. Claude canlı-turnuva sunucu koduna dokunmaz (çakışma önleme) | Yusuf |
 | 2026-09-20 | Kalıcı giriş: Google OAuth + IP'den ülke | Yusuf |

@@ -5,7 +5,13 @@
 > herkesin sonucu aynı ve tutarlıdır. Bu, oyunun multiplayer çekirdeğidir (release öncesi kilometre taşı).
 >
 > Bu doküman NASIL yapılacağının kalıcı kaynağıdır. Kod yazmadan önce ilgili faz buradan okunur.
-> Son güncelleme: 2026-09-29.
+> Son güncelleme: 2026-09-30.
+>
+> **⭐ Uygulama sahibi: OSMAN tarafı (kendi AI'ı) — Yusuf kararı (30.09).** Tasarımı Yusuf/Claude verdi;
+> Osman onaylayınca fazları (0→4) kendi tarafında kodlar (aynı GitHub'dan okur). **Çakışma önleme:** bu iş
+> sürerken **Yusuf/Claude canlı-turnuva sunucu koduna (`careerService` live yol, `startLiveTournament`,
+> `finalizeTournament` vb.) dokunmaz.** Motorun geri kalanı (skill/economy/combat kuralları vb.) Yusuf tarafında
+> devam eder. Osman UI + bu turnuva mimarisini üstlenir.
 
 ---
 
