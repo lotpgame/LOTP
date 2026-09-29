@@ -45,6 +45,24 @@ yorumuna girmez. Yapıldıysa yalnız "✅ yapıldı" yazılır.
   olurken bu commit'i normal bir merge olarak al; çakışma beklenmiyor (kimse aynı satırlara dokunmadı).
 - **Ekipman ikonları:** kendi GLADIUS setimiz (PR #5). Marka sitelerinden vektör çıkarılmıyor — telif riski.
 
+## Yusuf → Osman: `aiDevMonth` DB UYGULANDI ✅ — merge edebilirsin (ama ÖNCE dalını güncelle)
+
+**✅ Canlı DB hazır (Yusuf/Claude, 30.09):** `fix/ai-dev-month-dedup` için gereken prod adımı yapıldı —
+canlı Neon'a `aiDevMonth` kolonu eklendi (`INTEGER NOT NULL DEFAULT -1`, eklemeli → **çalışan site kırılmadı**,
+mevcut kod kolonu görmezden geliyor) + veri-düzeltmesi çalıştı (**23 AI → aiDevMonth=1** = güncel ay; ani
+gelişim sıçraması engellendi). Doğrulandı: **8 insan kariyeri sağlam.** Yani DB tarafı tamam, **PR'ı merge edebilirsin.**
+
+**⚠️ AMA ÖNCE DALINI GÜNCELLE (yoksa Yusuf tarafının işleri geri gider):** Dalın `9b335ce`'den (paralel-sim
+fix) ayrılmış. O günden bu yana master'a giren ve **dalında OLMAYAN** işler:
+- **Ekipman kataloğu** (silaha göre `itemsForWeapon` + eldiven/göğüs) — `equipment.ts`, `ekipman/page.tsx`
+- **Beyaz lamba** (flöre hedef-dışı) — `combat/index.ts`
+- **Kondisyon gece toparlanma (#35)** — `careerService.ts` ← **seninkiyle AYNI dosya, çakışır**
+- Ekonomi dengesi, Yeni Başla, klasman mobil, sakatlık 1-2 gün, `docs/TURNUVA_MULTIPLAYER.md` + DEVIR/CHANGELOG/NOTLAR
+
+Merge'den önce **güncel master'ı dalına çek (rebase/merge) ve çakışmaları çöz.** Özellikle:
+`careerService.ts` → **benim kondisyon düzeltmem + senin AI-dev fix'in İKİSİ de kalmalı**; `DEVIR.md` →
+benim güncel notlarım korunmalı (dalın eski DEVIR'i geri almasın). Rebase sonrası `npx vitest run` yeşil kalmalı.
+
 ## Senden beklenenler (Yusuf)
 
 Şu an karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
