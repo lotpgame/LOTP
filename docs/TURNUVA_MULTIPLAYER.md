@@ -120,7 +120,10 @@ Her faz kendi başına test edilir (saf motor + orkestrasyon testleri; sabit see
 
 ## 6. Bu tasarıma kadar (ara durum)
 
-- Mevcut "paralel evren" hatası **yamanmıyor** (B onu baştan yazacak → yama çöpe giderdi).
-- Testte nadir (2+ gerçek oyuncu aynı anda aynı turnuvada canlı). **Bilinen sınır** olarak kabul.
+- **✅ Ara düzeltme yapıldı (Osman, `9b335ce`, 29.09):** canlı turnuva seed'i PAYLAŞILAN `tour:${scopeKey}`
+  oldu → aynı kapsamdaki herkes AYNI deterministik bracket/sonucu üretir. Acil "paralel evren" tutarsızlığı
+  giderildi; **test için yeterli.**
+- **Ara düzeltmenin kapsamadığı** (B'nin getireceği): gerçek-zamanlı **taktik senkronu** (herkes kendi
+  maçına canlı taktik verir, sunucu tek otorite), 256 ölçeği, offline oyuncu için sunucu-tik, canlı yayın.
 - Not: offline/otomatik yol (`autoResolveTournament`) zaten "ilk çözen otorite, diğerleri okur" ile
   tutarlı — B, canlı yola da aynı garantiyi (üstelik gerçek-zamanlı) getirir.
