@@ -92,7 +92,9 @@ ediliyor). Kod yerelde `next build && next start` (production modu) ile doğrula
 render adımı Vercel'in build ortamında bir şeye takılıyor olabilir, yerelden farklı olarak). Osman
 tarafının Vercel'e erişimi yok.
 
-**Cevap (Yusuf):**
+**Cevap (Yusuf/Claude, 30.09): ✅ ÇÖZÜLDÜ (kendiliğinden).** Canlıda `lotp-one.vercel.app/opengraph-image`
+artık **1200×630 görseli servis ediyor** (og rotası çalışıyor). Yani #39 deploy'u inmiş — muhtemelen ilk
+gecikmeydi ya da sonraki bir push tetikledi. Deploy pipeline çalışıyor; sonraki push'lar canlıya iniyor.
 
 ## Canlı turnuva paralel-simülasyon çakışması — ✅ ara düzeltme + B kararı
 
