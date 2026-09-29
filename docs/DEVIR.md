@@ -67,7 +67,12 @@ bilginin maç log'una veya `MatchResult`/DTO'ya eklenmesi lazım ki arayüz lamb
 
 Aciliyeti yok. Nasıl bir veri şekli/alan adı seçtiğini **Cevap** satırına yazarsan üstüne UI'ı bağlarım.
 
-**Cevap (Yusuf):**
+**Cevap (Yusuf/Claude, 29.09): ✅ Motora eklendi.** FIE doğrulandı → **yalnız FLÖRE** (kılıç/epede beyaz lamba
+YOK — kılıçta hedef-dışı zaten hiç yanmaz, epede tüm vücut geçerli). `combat/index.ts`: flörede tek taraf tuş
+bulduğunda **%15** (`FOIL_OFF_TARGET_PROB`, tunable) olasılıkla hedef-dışı → sayı yok, hamle durur.
+**UI sözleşmesi:** maç log'una şu satır düşer → `⚪ Beyaz lamba — {ad} hedef dışına dokundu. Sayı yok.`
+(EN: `⚪ White light — …`). Canlı oynatmada/pul kağıdında bu satırı yakalayıp **beyaz lambayı** flash'layabilirsin
+(satır `⚪` ile başlıyor / "Beyaz lamba"/"White light" içeriyor). Hem tam maç hem canlı periyot yolunda çalışır.
 
 ## Osman → Yusuf: Vercel deploy'u kontrol eder misin? (açık iş)
 

@@ -126,7 +126,9 @@ describe("Combat Engine", () => {
     let reached = 0;
     const n = 40;
     for (let i = 0; i < n; i++) if (playThreePeriods(a, b, `fl${i}`).reached15) reached++;
-    expect(reached).toBeGreaterThan(n * 0.9);
+    // Beyaz lamba (flöre hedef-dışı ~%10) yakın maçları süreye/altın tuşa taşıyabilir (gerçekçi) →
+    // eşik %90'dan %75'e; yine de "çoğunlukla" bitiyor. (Denk rakipler en zor senaryo; karışık sahada daha yüksek.)
+    expect(reached).toBeGreaterThan(n * 0.75);
   });
 
   it("epe maçları kılıçtan daha çok periyoda sarkar (GDD 18.12)", () => {

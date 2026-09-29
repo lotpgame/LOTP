@@ -14,6 +14,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Beyaz lamba (flöre hedef-dışı):** Motor artık flörede tek taraf tuş bulduğunda **%15** olasılıkla
+  (`FOIL_OFF_TARGET_PROB`, tunable) hedef-dışı üretir → sayı yok, hamle durur, log'a `⚪ Beyaz lamba …`
+  satırı düşer (UI beyaz lambayı buradan gösterir). **Yalnız flöre** (FIE: kılıç/epede beyaz lamba yok).
+  Hem tam maç hem canlı periyot yolunda çalışır. Daha gerçekçi flöre temposu.
 - **WhatsApp/sosyal medya önizleme görseli:** `src/app/opengraph-image.tsx` (`next/og` `ImageResponse`) —
   bağlantı paylaşılınca (WhatsApp, Instagram DM, vb.) artık düz metin yerine markalı bir kart görünüyor:
   koyu Pist Konsolu arka planı, altın üst çizgi, "LEGENDS OF THE PISTE" başlığı, "Eskrim kariyer

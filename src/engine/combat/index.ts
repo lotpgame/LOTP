@@ -349,6 +349,19 @@ function doubleTouchLine(a: Combatant, b: Combatant, scoreA: number, scoreB: num
     : `Çift tuş! İkisi de aynı anda değdi. ${scoreA}–${scoreB}`;
 }
 
+/**
+ * Flöre hedef-dışı (beyaz lamba) oranı — tunable. Sadece FLÖRE: geçerli hedef gövde olduğu için kola/
+ * kafaya/bacağa dokunuş beyaz lamba yakar (sayı yok, hamle durur). Epe/kılıçta bu kavram yok (FIE).
+ */
+const FOIL_OFF_TARGET_PROB = 0.1;
+
+/** Beyaz lamba anlatımı (flöre hedef-dışı; sayı yok). UI bu satırdan beyaz lambayı yakar. */
+function whiteLampLine(scorer: Combatant, locale: Locale): string {
+  return locale === "en"
+    ? `⚪ White light — ${scorer.name} hit off-target. No touch.`
+    : `⚪ Beyaz lamba — ${scorer.name} hedef dışına dokundu. Sayı yok.`;
+}
+
 interface ExchangeOutcome {
   a: boolean;
   b: boolean;
@@ -406,6 +419,11 @@ export function simulateMatch(
       else aScored = false;
     }
     if (!aScored && !bScored) continue; // iptal / tempo → tur boşa (maçta süre yok)
+    // Flöre: hedef-dışı (beyaz lamba). Tek taraf tuş bulduysa küçük olasılıkla geçersiz → sayı yok, hamle durur.
+    if (m.weapon === "FOIL" && aScored !== bScored && rng.bool(FOIL_OFF_TARGET_PROB)) {
+      log.push(whiteLampLine(aScored ? a : b, locale));
+      continue;
+    }
     if (aScored) scoreA++;
     if (bScored) scoreB++;
     if (aScored && bScored) {
@@ -508,6 +526,11 @@ export function simulatePeriod(
       else aScored = false;
     }
     if (!aScored && !bScored) continue; // tuşsuz tur — sadece süre akar
+    // Flöre: hedef-dışı (beyaz lamba). Sayı yok, hamle durur; süre yine akmış olur (yukarıda clock işledi).
+    if (m.weapon === "FOIL" && aScored !== bScored && rng.bool(FOIL_OFF_TARGET_PROB)) {
+      log.push(whiteLampLine(aScored ? a : b, locale));
+      continue;
+    }
     if (aScored) scoreA++;
     if (bScored) scoreB++;
     if (aScored && bScored) {
