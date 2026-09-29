@@ -8,26 +8,15 @@ import { Icon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { buildHeadline } from "@/app/ui/headlineText";
 import { serverWorldDay } from "@/server/world";
+import { KimlikKarti } from "./KimlikKarti";
 import { NextTournament } from "./NextTournament";
 import { WeekStrip } from "./WeekStrip";
 import { buildWeek, todayFromHeader } from "./week";
-import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
+import { SkillsByCategory, Stat, StatBar, conditionState, formState, toRoman } from "./parts";
 
 export const dynamic = "force-dynamic";
 
 const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
-
-/** Küçük tam sayıyı Roma rakamına çevirir (sezon göstergesi: I, II, III…). */
-function toRoman(n: number): string {
-  if (n <= 0) return String(n);
-  const map: [number, string][] = [
-    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"],
-    [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
-  ];
-  let out = "";
-  for (const [v, s] of map) while (n >= v) { out += s; n -= v; }
-  return out;
-}
 
 /**
  * "Bugün" ekranı (eski Profil): dönen oyuncunun ilk göreceği şey — bugün ne var, sıradaki turnuva,
@@ -50,6 +39,19 @@ export default async function BugunPage() {
 
   return (
     <main className="flex flex-col gap-4">
+      {/* 0 · KİMLİK KARTI */}
+      <KimlikKarti
+        name={c.name}
+        code={c.code}
+        weapon={c.weapon}
+        ageCategory={h.ageCategory}
+        age={c.age}
+        city={h.city}
+        nationalTeam={c.nationalTeam}
+        seasonNo={c.seasonNo}
+        locale={locale}
+      />
+
       {/* 1 · BUGÜN */}
       <section className="panel p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">

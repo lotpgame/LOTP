@@ -195,13 +195,30 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   düşüyor (canlı veri kaybı yok, CONTRIBUTING §2). Doğrulama: Almanca'da yeni oluşan bir rapor
   ("Trainingsbericht") kontrol edildi — "Schnelligkeit/Ausdauer/Angriff/Abwehr…" doğru çevrildi.
 
+- **Bugün'de kimlik kartı:** Osman'a önce yön soruldu — mevcut ince kimlik şeridini (`CareerNav.tsx`, her
+  sayfada) kart gibi giydirmek mi, yoksa Bugün'e AYRI yeni bir kart eklemek mi. Cevap: yeni ayrı kart, şerit
+  dokunulmadan kalsın. `KimlikKarti.tsx` — üstte 2 px `border-t-ink` (HeadlineCard'daki mürekkep çizgi
+  motifiyle aynı aile), büyük maske-oval avatar (CareerNav'daki `Avatar` ile aynı desen, `parts.tsx`'teki
+  ortak `initials()`), isim + milli takım rozeti, silah ikonu + kategori + yaş + şehir bayrağıyla (aynı
+  `meta` düzeni CareerNav'daki gibi, yalnız 14px'e büyütülmüş). Alt şerit `border-t border-line` ile ayrı:
+  "Lisans No" (`c.code`, motorun GDD 7.4'te zaten kalıcı görünür kimlik olarak ürettiği "P-000001" formatı)
+  + Sezon Roma rakamı. Bilinçli olarak reyting/kondisyon/form YOK — bir federasyon kimlik kartında olmayan,
+  günlük değişen performans metrikleri; onlar zaten hemen altındaki "Üç anahtar değer" bölümünde. `toRoman`
+  page.tsx'ten `parts.tsx`'e taşındı (iki dosyada da lazımdı, tekrar yerine ortak). Yalnız mevcut DTO'lardan
+  (`CareerDTO` + `CareerHeaderDTO`, ikisi de zaten Bugün sayfasında yükleniyordu) — yeni sunucu verisi yok.
+  Görsel doğrulama: masaüstü + 375 px, Pist (koyu) temada kontrol edildi — taşma yok, avatar/rozet/meta satırı
+  CareerNav ile tutarlı görünüyor. (Salon/açık temada ekran görüntüsü bu oturumun headless Chrome'unda görsel
+  bir render hatası verdi — `getComputedStyle` ile doğrudan doğrulandı: `--background`/`--foreground` ve
+  panel arka planı doğru şekilde açık değerlere dönüyordu, kart yalnızca zaten kanıtlanmış `panel`/`text-steel`
+  sınıflarını kullanıyor, yeni bir renk yolu yok — bu yüzden ek risk görülmedi.)
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
 
 ## P1 (sonra)
 
-Bugün'de kimlik kartı · eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
+Eleme ağacı yatay kaydırma · Instagram içi tarayıcı uyarısı ·
 WhatsApp önizleme görseli (`next/og`) · sözlük sayfası · beyaz lamba (silah bilgisi DTO'ya eklenince).
 
 ## Bilerek yapılmayanlar

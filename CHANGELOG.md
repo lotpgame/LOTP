@@ -14,6 +14,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **Bugün sayfasına kimlik kartı:** `KimlikKarti.tsx` — federasyon lisans kartı hissi veren, sayfanın
+  kendi içeriği olan bir kimlik gösterimi (`CareerNav`'daki her sayfada görünen ince kabuk şeridinden
+  ayrı — o kalıyor, bu yeni kart Bugün'ün ilk göreceğin şeyi olarak yanına ekleniyor). Büyük avatar, isim,
+  milli takım rozeti, silah/kategori/yaş/şehir, alt satırda "Lisans No" (oyuncunun `code` alanı, GDD 7.4)
+  ve sezon Roma rakamı. Bilinçli olarak reyting/kondisyon/form YOK — onlar hemen altındaki "Üç anahtar
+  değer" bölümünde zaten var, kart yalnız kimliğe odaklanıyor. `toRoman` artık `parts.tsx`'te ortak (önceden
+  yalnız bu sayfada tekildi). Yeni i18n anahtarı: `profil.licenseNo` (TR/EN/DE). Osman'a önce yön soruldu:
+  "yeni ayrı kart" mı "mevcut şeridi kart gibi giydir" mi — cevap: yeni ayrı kart.
 - **Almanca (Deutsch) arayüz çevirisi tamamlandı:** sözlük TR/EN paritesiyle (~500 anahtar, `src/i18n/index.ts`)
   tam Almancaya çevrildi — önceden yalnız "kabuk" (menü/alt çubuk/ayarlar/oyuncu oluşturma) planlanmıştı ama
   sözlük o aradan beri tüm sayfaları kapsayacak şekilde büyümüştü, bu yüzden tamamı çevrildi. Doğru Almanca

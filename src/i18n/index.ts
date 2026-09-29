@@ -279,6 +279,7 @@ const TR: Dict = {
   // Profil
   "profil.overall": "Reyting",
   "profil.season": "Sezon",
+  "profil.licenseNo": "Lisans No",
   "profil.condition": "Kondisyon",
   "profil.form": "Form",
   "profil.physique": "Fizik",
@@ -777,6 +778,7 @@ const EN: Dict = {
   "common.nationalTeam": "National Team",
   "profil.overall": "Overall",
   "profil.season": "Season",
+  "profil.licenseNo": "License No",
   "profil.condition": "Condition",
   "profil.form": "Form",
   "profil.physique": "Physique",
@@ -1282,6 +1284,7 @@ const DE: Dict = {
   "common.nationalTeam": "Nationalmannschaft",
   "profil.overall": "Bewertung",
   "profil.season": "Saison",
+  "profil.licenseNo": "Lizenz-Nr.",
   "profil.condition": "Kondition",
   "profil.form": "Form",
   "profil.physique": "Statur",
