@@ -29,9 +29,8 @@ Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
 - **Docs:** `docs/TURNUVA_MULTIPLAYER.md` (B tasarımı), EKONOMI/NOTLAR/CHANGELOG güncel.
 
 **🔴 Osman, senden bekleyen (aksiyon):**
-1. **AI-dev PR (`fix/ai-dev-month-dedup`) merge et** — DB adımı Yusuf tarafında **✅ yapıldı** (`aiDevMonth`
-   canlıya uygulandı, aşağıda "aiDevMonth DB UYGULANDI"). **Ama önce dalını güncel master'a çek** (rebase/merge)
-   → `careerService.ts` (senin AI-dev + Yusuf'un kondisyon İKİSİ kalmalı) ve `DEVIR.md` çakışır. Rebase sonrası `vitest` yeşil.
+1. ~~AI-dev PR merge~~ ✅ **yapıldı (30.09)** — dal güncel master'a çekildi (çakışmasız auto-merge),
+   `vitest` 168/168 yeşil, PR #40 merge edildi. Ayrıntı: Karar günlüğü 2026-09-30.
 2. **B (256+ gerçek-zamanlı turnuva)** — sende (tasarım `docs/TURNUVA_MULTIPLAYER.md`). Onayla + kodla.
 3. (İsteğe bağlı) Beyaz lamba UI: canlı maçta `⚪ Beyaz lamba …` log satırını yakalayıp beyaz lambayı flash'la.
 
@@ -63,25 +62,9 @@ Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
   tarafı tarafından düzeltildi (Yusuf'un önceliği yetişmediği için, Osman'ın açık onayıyla). Şema/motora
   (`src/engine`) dokunulmadı, yalnız `src/server/careerService.ts`'te tohum kaynağı değişti. Senkronize
   olurken bu commit'i normal bir merge olarak al; çakışma beklenmiyor (kimse aynı satırlara dokunmadı).
+  **İkinci istisna (30.09, ŞEMA DAHİL):** AI aylık gelişim düzeltmesi (`Player.aiDevMonth`) — Yusuf'un
+  onayı + prod DB adımıyla tamamlandı, PR #40 merge edildi. Ayrıntı: Karar günlüğü 2026-09-30.
 - **Ekipman ikonları:** kendi GLADIUS setimiz (PR #5). Marka sitelerinden vektör çıkarılmıyor — telif riski.
-
-## Yusuf → Osman: `aiDevMonth` DB UYGULANDI ✅ — merge edebilirsin (ama ÖNCE dalını güncelle)
-
-**✅ Canlı DB hazır (Yusuf/Claude, 30.09):** `fix/ai-dev-month-dedup` için gereken prod adımı yapıldı —
-canlı Neon'a `aiDevMonth` kolonu eklendi (`INTEGER NOT NULL DEFAULT -1`, eklemeli → **çalışan site kırılmadı**,
-mevcut kod kolonu görmezden geliyor) + veri-düzeltmesi çalıştı (**23 AI → aiDevMonth=1** = güncel ay; ani
-gelişim sıçraması engellendi). Doğrulandı: **8 insan kariyeri sağlam.** Yani DB tarafı tamam, **PR'ı merge edebilirsin.**
-
-**⚠️ AMA ÖNCE DALINI GÜNCELLE (yoksa Yusuf tarafının işleri geri gider):** Dalın `9b335ce`'den (paralel-sim
-fix) ayrılmış. O günden bu yana master'a giren ve **dalında OLMAYAN** işler:
-- **Ekipman kataloğu** (silaha göre `itemsForWeapon` + eldiven/göğüs) — `equipment.ts`, `ekipman/page.tsx`
-- **Beyaz lamba** (flöre hedef-dışı) — `combat/index.ts`
-- **Kondisyon gece toparlanma (#35)** — `careerService.ts` ← **seninkiyle AYNI dosya, çakışır**
-- Ekonomi dengesi, Yeni Başla, klasman mobil, sakatlık 1-2 gün, `docs/TURNUVA_MULTIPLAYER.md` + DEVIR/CHANGELOG/NOTLAR
-
-Merge'den önce **güncel master'ı dalına çek (rebase/merge) ve çakışmaları çöz.** Özellikle:
-`careerService.ts` → **benim kondisyon düzeltmem + senin AI-dev fix'in İKİSİ de kalmalı**; `DEVIR.md` →
-benim güncel notlarım korunmalı (dalın eski DEVIR'i geri almasın). Rebase sonrası `npx vitest run` yeşil kalmalı.
 
 ## Senden beklenenler (Yusuf)
 
@@ -167,6 +150,7 @@ sen **onaylayınca** fazları (0→4) uygularsın. Aynı GitHub → tasarım sen
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-09-30 | AI havuzu aylık gelişim çakışması düzeltildi (PR #40, `fix/ai-dev-month-dedup`): `Player.aiDevMonth` (eklemeli şema) + `worldAdvanceTx`'te atomik "hak ediş" — bir ay bir AI için yalnız bir kere işlenir. Yusuf prod DB'ye migration'ı uyguladı (23 AI → doğru değer, 8 insan kariyeri sağlam, site kırılmadı) ve onay verdi; dal güncel master'a çekildi (Yusuf'un kondisyon #35 + beyaz lamba #37 ile çakışmasız auto-merge), `vitest` 168/168 yeşil, PR merge edildi. Bağımsız bulgu: `migration_lock.toml` sqlite/postgresql tutarsızlığı düzeltildi; en eski migration dosyalarının hâlâ SQLite söz dizimi taşıması (sıfırdan replay edilemiyor) ayrı, düzeltilmemiş bir bulgu olarak not düşüldü | Osman + Yusuf + Claude |
 | 2026-09-29 | Canlı turnuva paralel-simülasyon hatası düzeltildi: `startLiveTournament`'ta tohum artık çözen oyuncunun `gs.seed`'i değil PAYLAŞILAN `scopeKey`; AI seçimi `orderBy: id asc`; çekim listesi karıştırmadan önce id'ye sıralanıyor. Yusuf'un önceliği yetişmediği için Osman'ın açık onayıyla `src/server` istisnası kullanıldı. Testler yeşil (168/168) + yeni regresyon testi (`rng.test.ts`). Ayrı, DAHA BÜYÜK bir bulgu henüz düzeltilmedi: `worldAdvanceTx`'teki AI aylık gelişim/yorgunluk toparlanması da her insanın kendi gün-ilerletmesinde tekrar tetiklenebiliyor (şema değişikliği + mevcut veriyi bozmadan geçiş gerektiriyor) — Osman'a ayrı raporlandı, onay bekliyor | Osman + Claude |
 | 2026-09-28 | Vercel Deploy Hook + GitHub secret kuruldu ve doğrulandı; CI (`chore/ci`) merge edildi, otomasyon çalışıyor | Yusuf + Osman |
 | 2026-09-28 | Canlı maçta taraf renkleri onaylandı: sen sol+kırmızı (gerçek cihaz gibi) | Yusuf |

@@ -92,6 +92,11 @@ model Player {
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE
 
+  // M11.5: yalnız isAI=true için anlamlı — bu AI'nın aylık gelişiminin işlendiği SON ay indeksi. Ortak
+  // AI havuzu paylaşıldığı için (birden çok insanın world-advance'i aynı ayı geçebilir) bu alan olmadan
+  // aynı ay birden fazla kez işlenip AI'ları tasarlanandan hızlı geliştirebiliyordu (bkz. DEVIR.md).
+  aiDevMonth Int @default(-1)
+
   // Fiziksel yapı — genetik parametreler (güncel ölçüler yaştan türetilir) (GDD 2.7–2.8)
   adultHeightCm Float   @default(175)
   reachBiasCm   Float   @default(0)

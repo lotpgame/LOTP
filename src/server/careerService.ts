@@ -519,6 +519,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         const cl = await tx.club.create({ data: makeClubData(city) });
         clubIds.push(cl.id);
       }
+      // Yeni AI'lar mevcut ayı "işlenmiş" başlatır — aksi halde ilk gün ilerletmede o ana kadarki TÜM
+      // ayları birden telafi edip aşırı gelişim sıçraması yaparlardı (bkz. worldAdvanceTx, M11.5).
+      const aiStartMonth = Math.floor(serverEventDay() / DAYS_PER_MONTH);
       for (let i = 0; i < aiSpecs.length; i++) {
         const spec = aiSpecs[i];
         const aiGenetics = generateGenetics(createRng(`${seed}:phys:ai:${i}`), spec.gender);
@@ -536,6 +539,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
             careerStartDate: GAME_START,
             clubId: clubRng.pick(clubIds),
             traits: encodeTraitPlan(generateTraitPlan(createRng(`${seed}:aitraits:${i}`))), // AI de karaktere sahip (GDD 10.41)
+            aiDevMonth: aiStartMonth,
             ...geneticsData(aiGenetics),
             skills: { create: skillCreateData(spec.skills) },
           },
@@ -1106,7 +1110,6 @@ async function worldAdvanceTx(
   tx: Tx,
   gs: { id: number; dayIndex: number },
   toDay: number,
-  seed: string,
 ) {
   const days = Math.max(0, toDay - gs.dayIndex);
   if (days > 0) {
@@ -1116,16 +1119,31 @@ async function worldAdvanceTx(
     });
     await tx.player.updateMany({ where: { isAI: true, fatigue: { lt: 0 } }, data: { fatigue: 0 } });
   }
-  const fromMonth = Math.floor(gs.dayIndex / DAYS_PER_MONTH);
-  const monthsCrossed = Math.floor(toDay / DAYS_PER_MONTH) - fromMonth;
-  if (monthsCrossed > 0) {
-    const ais = await tx.player.findMany({ where: { isAI: true }, include: { skills: true } });
+  // M11.5 düzeltmesi: AI havuzu ORTAK (bkz. resetCareer yorumu) — birden fazla insanın kendi gün
+  // ilerletmesi AYNI ayı geçebiliyordu, ve önceden burada "bu ay zaten işlendi mi?" kontrolü yoktu:
+  // her geçiş TÜM AI'ların o ayki gelişimini yeniden zar atıp uyguluyordu → aynı ay birkaç kez üst üste
+  // işlenip AI'lar tasarlanandan hızlı/tutarsız gelişebiliyordu. Artık her AI kendi `aiDevMonth`'unu
+  // (en son işlenen ay) taşıyor; bir ay yalnız BİR KERE, ATOMİK bir "hak ediş" (updateMany + koşullu
+  // WHERE) ile işleniyor — aynı anda iki insan aynı AI'yı aynı ay için işlemeye çalışırsa yalnız biri
+  // kazanır, kaybeden `count===0` görüp atlar (Postgres satır kilidi bunu güvenli yapar). Tohum da artık
+  // çözen kişiye değil, sabit `ai.id + ay`'a bağlı — kim kazanırsa kazansın sonuç aynı. Bkz. DEVIR.md.
+  const toMonth = Math.floor(toDay / DAYS_PER_MONTH);
+  if (toMonth > 0) {
+    const ais = await tx.player.findMany({
+      where: { isAI: true, aiDevMonth: { lt: toMonth } },
+      include: { skills: true },
+    });
     const devQuarter = quarterOf(toDay);
     for (const ai of ais) {
       if (ai.skills.length === 0) continue;
       const aiAge = currentAge(ai.birthDate, devQuarter); // yaşa uygun gelişim tavanı için
-      for (let m = 0; m < monthsCrossed; m++) {
-        const rng = createRng(`${seed}:aidev:${ai.id}:${fromMonth + m}`);
+      for (let month = ai.aiDevMonth + 1; month < toMonth; month++) {
+        const claim = await tx.player.updateMany({
+          where: { id: ai.id, aiDevMonth: { lt: month } },
+          data: { aiDevMonth: month },
+        });
+        if (claim.count === 0) continue; // başka bir insan bu ayı bu AI için zaten işledi/işliyor
+        const rng = createRng(`world:aidev:${ai.id}:${month}`);
         const row = rng.pick(ai.skills);
         const grown = growSkill(
           { current: row.current, potential: row.potential, floor: row.floor, ceiling: row.ceiling },
@@ -1331,7 +1349,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         injuryDaysRemaining: injuryDays,
       },
     });
-    await worldAdvanceTx(tx, gs, d, gs.seed);
+    await worldAdvanceTx(tx, gs, d);
     await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report } });
   });
 
@@ -1423,7 +1441,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
   const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
   const scopeKey = tournamentScopeKey(act.level, country?.code ?? "??", human.club?.city ?? "", attendId.categoryId, gs.dayIndex);
   if (await prisma.tournament.findUnique({ where: { scopeKey } })) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
     return {};
   }
   await startLiveTournament(gs, human, act.level);
@@ -2568,7 +2586,7 @@ async function finalizeLive(
   // M11.3b-2: ortak örnek. Başka biri (eşzamanlı/offline) zaten çözmüşse çift oluşturma → mevcut sonucu kullan.
   const existing = ls.scopeKey ? await prisma.tournament.findUnique({ where: { scopeKey: ls.scopeKey } }) : null;
   if (existing) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
     const part = await prisma.tournamentParticipant.findFirst({
       where: { tournamentId: existing.id, playerId: human.id },
       select: { finalPosition: true },
@@ -2980,7 +2998,7 @@ async function autoResolveTournament(
         dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
       });
     }
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
     return;
   }
 
@@ -3006,7 +3024,7 @@ async function autoResolveTournament(
     ...inScope.filter((p) => p.id !== human.id),
   ];
   if (humans.length === 0) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
     return;
   }
 
@@ -3051,7 +3069,7 @@ async function autoResolveTournament(
     ...aiPlayers.map((p) => toCombatant(p, false)),
   ];
   if (field.length < 2) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed));
+    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
     return;
   }
 
@@ -3229,7 +3247,7 @@ async function finalizeTournament(
     }
 
     // Turnuva gününden bir sonraki güne geç — YALNIZ çözücünün günü ilerler.
-    await worldAdvanceTx(tx, gs, gs.dayIndex + 1, gs.seed);
+    await worldAdvanceTx(tx, gs, gs.dayIndex + 1);
     return { id: tournament.id, resolverNewRank: newRankById.get(resolver.id) ?? null };
   });
 

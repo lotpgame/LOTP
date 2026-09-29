@@ -9,6 +9,33 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+> ✅ **30.09.2026 — `20260930000000_m11_5_ai_dev_month` migration'ı production'a uygulandı (Yusuf).**
+> 23 AI'nın `aiDevMonth`'u doğru başlangıç değerine ayarlandı, 8 insan kariyeri sağlam doğrulandı, site
+> kesintisiz. PR #40 doğru sırayla (önce DB, sonra kod) merge edildi. Ayrıntı: DEVIR.md Karar günlüğü.
+
+### Düzeltildi (30.09 — AI havuzu aylık gelişim çakışması)
+- **Ortak AI rakip havuzunun aylık beceri gelişimi, her insanın kendi gün ilerletmesinde AYNI ayı
+  geçtiğinde tekrar tekrar işlenebiliyordu** — `worldAdvanceTx`'te "bu ay zaten işlendi mi?" kontrolü
+  yoktu; her geçiş TÜM AI'ların o ayki gelişimini yeniden zar atıp uyguluyordu. Birkaç test oyuncusu
+  zamanla aynı ayı geçtiğinde bu, AI rakiplerin tasarlanandan hızlı/tutarsız gelişmesine yol açabiliyordu.
+  Düzeltme: her AI artık kendi `aiDevMonth` (en son işlenen ay) alanını taşıyor; bir ay yalnız BİR KERE,
+  atomik bir "hak ediş" (`updateMany` + koşullu `WHERE aiDevMonth < ay`) ile işleniyor — aynı anda iki
+  insan aynı AI'yı aynı ay için işlemeye çalışırsa yalnız biri kazanır, kaybeden sessizce atlar (Postgres
+  satır kilidi bunu güvenli yapar, doğrulandı). Tohum da artık çözen kişiye değil sabit `ai.id + ay`'a
+  bağlı — kim kazanırsa kazansın sonuç aynı. Mevcut AI'lar migration'da "en ileri gitmiş insanın vardığı
+  aya kadar zaten işlenmiş" olarak başlatılıyor (ani telafi sıçraması olmasın diye). Doğrulama: gerçek
+  Prisma client'ıyla atomik hak ediş + veri-düzeltme senaryoları test edildi (beklenen sonuçlar), tam
+  build+test+lint yeşil, gerçek kariyer oluşturma akışı tarayıcıda hatasız çalıştı. **Bilinçli
+  yapılmadı:** aynı fonksiyondaki günlük AI yorgunluk toparlanması da benzer şekilde tekrarlanabiliyor
+  ama "0'ın altına inmez" sınırı olduğu için kendi kendini sınırlıyor (daha az zararlı) — şimdilik
+  dokunulmadı. Ayrıntı: `docs/DEVIR.md`.
+- **Bağımsız bulgu:** `prisma/migrations/migration_lock.toml` hâlâ `sqlite` yazıyordu, `schema.prisma`
+  ise çoktan `postgresql`e geçmişti — ikisi tutarsızdı. Ayrıca en eski migration dosyaları (`AUTOINCREMENT`
+  gibi) hâlâ ham SQLite söz dizimi içeriyor; sıfırdan bir Postgres veritabanına migration geçmişini
+  baştan uygulamak (`prisma migrate deploy`) bu yüzden başarısız oluyor — gerçek şema muhtemelen hep
+  `db push` ile senkronize edilmiş. Lock dosyası düzeltildi (`postgresql`); eski migration'ları yeniden
+  yazmak ayrı, büyük ve riskli bir iş — bugün yapılmadı, bilgi amaçlı not düşüldü.
+
 > 🚀 **28.09.2026 — UI yenilemesi canlıya alındı.** Osman'ın tüm arayüz zinciri (`feat/ui-pul-kagidi`)
 > tek merge ile `master`'a alınıp deploy edildi. Motor/şema/sunucu değişmediği için canlı test
 > verisi korunur.
