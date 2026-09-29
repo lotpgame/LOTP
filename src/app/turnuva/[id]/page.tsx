@@ -63,7 +63,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         {t(locale, "idp.back")}
       </Link>
 
-      <h1 className="mt-2 text-2xl font-bold">{tour.name}</h1>
+      <h1 className="mt-2 font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
       <p className="text-[14px] text-steel">{tour.categoryId}</p>
 
       <div className="mt-5">
@@ -76,7 +76,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       </div>
 
       <section className="mt-6">
-        <h2 className="text-lg font-semibold">{t(locale, "idp.yourMatches")}</h2>
+        <h2 className="display text-[20px]">{t(locale, "idp.yourMatches")}</h2>
         <p className="text-[14px] text-steel">{t(locale, "idp.intro")}</p>
 
         {yourPool.length > 0 && (
@@ -118,7 +118,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       {/* Pul kağıtları (poule) */}
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">{t(locale, "canli.poolSheets")}</h2>
+        <h2 className="display text-[20px]">{t(locale, "canli.poolSheets")}</h2>
         <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.poolSheetsNote")}</p>
         <div className="mt-3 space-y-5">
           {tour.poolSheets.map((sheet) => (
@@ -188,15 +188,18 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 function FinalStandings({ standings, locale }: { standings: TournamentResultDTO["standings"]; locale: Locale }) {
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-semibold">{t(locale, "idp.standings")}</h2>
+      <h2 className="display text-[20px]">{t(locale, "idp.standings")}</h2>
       <ol className="mt-3 panel overflow-hidden divide-y divide-line">
         {standings.map((s, i) => (
           <li
             key={i}
-            className={`flex items-center justify-between px-3 py-2 text-sm ${
+            className={`relative flex items-center justify-between px-3 py-2 text-[14px] ${
               s.isHuman ? "bg-arena-2 font-semibold" : ""
             }`}
           >
+            {(s.isHuman || s.position === 1) && (
+              <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-sig-red" : "bg-prio"}`} aria-hidden="true" />
+            )}
             <span>
               {s.name}
               {s.isHuman ? ` (${t(locale, "common.youShort")})` : ""}

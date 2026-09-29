@@ -14,6 +14,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **`/turnuva/[id]` sayfasının kalan başlıkları Pist Konsolu'na taşındı:** bir önceki maddede bilinçli
+  kapsam dışı bırakılan üç başlık ("Senin Maçların", "Pul Kağıtları", "Turnuva Sıralaması") + sayfa başlığı
+  (turnuva adı) artık `text-lg font-semibold`/`text-2xl font-bold` yerine `display` token'ında. Turnuva
+  Sıralaması listesi de Klasman tablosundaki "sen" deseniyle hizalandı: kırmızı sol çizgi (`bg-sig-red`)
+  kendi satırında, altın çizgi (`bg-prio`) şampiyonda (sen değilsen) — önceden yalnız `bg-arena-2
+  font-semibold` idi, ayrımı yalnız kalın yazı sağlıyordu. Osman'ın onayıyla: bağlayıcı çizgili gerçek
+  "ağaç" görselleştirmesi bilinçli olarak hâlâ yapılmadı — BYE'lı asimetrik hizalama matematiği değer/risk
+  oranı düşük ayrı bir efor.
 - **Eleme çatalı (turnuva sonucu sayfası) — yatay kaydırma keşfedilebilir hale geldi:** `/turnuva/[id]`
   sayfasındaki "Eleme Çatalı" bölümünde yatay kaydırma zaten vardı (`overflow-x-auto`) ama görünürde hiçbir
   ipucu yoktu — geniş turnuvalarda (ör. 24 kişilik, 5 tur) yalnız ilk 2 tur ekrana tam sığıyor, sonraki

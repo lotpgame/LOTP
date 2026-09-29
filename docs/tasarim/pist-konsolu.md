@@ -230,6 +230,21 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   gerçek bir 24 kişilik geçmiş turnuvada test edildi — dilim doğru görünüyor, `scrollLeft` script ile sona
   kadar kaydırılıp FİNAL kolonunun tam göründüğü doğrulandı.
 
+- **`/turnuva/[id]`'nin kalan başlıkları — Osman'ın açık isteğiyle geri dönüldü:** yukarıdaki maddede
+  "bilinçli kapsam dışı" diye not edilen iki şeyden Osman biri için "yap" dedi, diğeri için önerimi kabul
+  edip vazgeçti — net bir sinyal: küçük/mekanik/düşük riskli polish maddelerini erteleme, büyük/riskli/
+  düşük-değerli olanları öner ve haklıysa geçme. Yapılan: sayfa başlığı (turnuva adı) + 3 bölüm başlığı
+  (`idp.yourMatches`, `canli.poolSheets`, `idp.standings`) `text-lg font-semibold`/`text-2xl font-bold` →
+  `display` token'ı. `FinalStandings` listesi Klasman tablosundaki (`turnuva/canli/page.tsx` `Standings`)
+  "sen"/şampiyon deseniyle birebir hizalandı (`relative` + `absolute` sol çizgi, kendi satırında
+  `bg-sig-red`, şampiyonda — sen değilsen — `bg-prio`) — aynı kavramın (turnuva sıralaması) iki farklı
+  sayfada farklı görünmesi bir tutarsızlıktı, PulKagidi bileşeni zaten paylaşılıyordu ama bu liste değildi.
+  Yapılmayan (Osman'ın onayıyla, "değer/risk oranı düşük"): bağlayıcı çizgili gerçek ağaç görselleştirmesi.
+  Doğrulama: ekran görüntüsüyle (başlıklar) + `getComputedStyle`/DOM sorgusuyla (kırmızı çizgi rengi
+  `rgb(255,74,74)` = `--sig-red`, doğru elemente uygulanmış) — bu oturumun tarayıcı panelinde scroll sonrası
+  ekran görüntüsü alma bazen zamanaşımına uğradı/boş geldi (muhtemelen çok uzun süredir açık pane'in kendi
+  render/compositing sorunu), DOM üzerinden doğrudan doğrulamaya geçildi.
+
 ## Sırada
 
 P0 tamamlandı. Sonraki adımlar P1 listesinden.
