@@ -276,14 +276,36 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   edildi (`get_page_text` ile — bu oturumun tarayıcı panelinde ekran görüntüsü yine zaman zaman boş geldi,
   DOM/metin tabanlı doğrulama güvenilirdi).
 
+- **WhatsApp/sosyal medya önizleme görseli:** `next/og`'un `ImageResponse`'ı Next.js 16'da satır satır
+  aynı — CLAUDE.md'nin "eğitim verimden yeni" uyarısına uyup koddan önce `node_modules/next/dist/docs/`
+  altındaki `opengraph-image.md` + `image-response.md` okundu (API hâlâ `next/og`'dan `ImageResponse`,
+  dosya kuralı hâlâ `app/opengraph-image.tsx`). Paylaşılan bağlantı hep site kökü (`whatsAppHref`
+  sonuca özel URL üretmiyor) → kök seviyede TEK statik görsel yeterli, sonuç başına dinamik üretim
+  gerekmedi (kapsam bilinçli olarak küçük tutuldu). İçerik: koyu Pist Konsolu arka planı (`#0b0e12`),
+  altın üst çizgi (`#c9962b`, HeadlineCard/KimlikKarti'deki "üst mürekkep/altın çizgi" motifiyle aynı
+  aile), büyük başlık + alt yazı, üç sinyal rengi nokta (sig-red/sig-green/prio — eskrim lambalarına
+  gönderme). Renk token'ları elle kopyalandı (`globals.css`'ten okunarak) — bu dosya `globals.css`'i
+  import edemez, satori CSS'i değil ayrı bir render motoru. Özel font YÜKLENMEDİ (bilinçli basitlik):
+  satori'nin varsayılan fontu test edildi, Türkçe "ü" dahil doğru render ediyor; Barlow Condensed
+  yüklemek (build-time fetch veya bundled dosya) ek karmaşıklık/kırılganlık getirirdi, görsel zaten
+  yeterince markalı.
+  **Yol üstünde gerçek bir eksik bulundu:** `next build` `metadataBase` ayarlanmadığını uyardı
+  ("using http://localhost:3000") — düzeltilmeseydi canlıda `og:image` `localhost:3000`'e işaret edip
+  önizleme tamamen kırık olurdu. Kök `layout.tsx`'e sabit `https://lotp-one.vercel.app` eklendi (proje
+  tek alan adında). Doğrulama iki adımlı: (1) üretilen PNG bizzat indirilip incelendi — başlık sınırlar
+  içinde, "ü" doğru; (2) `next dev` ile `og:image` bilerek `localhost`'a çözülüyor (dev kolaylığı), asıl
+  test gerçek bir `next start` production build'iyle yapıldı — orada doğru şekilde
+  `https://lotp-one.vercel.app/opengraph-image...`'e çözüldüğü `curl` ile teyit edildi. `next dev` tek
+  başına bu sınıf hatayı YAKALAYAMAZDI, mutlaka production build gerekiyordu.
+
 ## Sırada
 
-P0 tamamlandı. Sonraki adımlar P1 listesinden.
+P0 tamamlandı. Bu turda P1 backlog'un elimizdeki kısmı tamamlandı.
 
 ## P1 (sonra)
 
-WhatsApp önizleme görseli (`next/og`) · beyaz lamba (Yusuf'un DEVIR.md'deki motor tarafı verisini
-eklemesini bekliyor — `docs/DEVIR.md` "Osman → Yusuf" bölümü).
+Beyaz lamba — Yusuf'un `docs/DEVIR.md`'deki "Osman → Yusuf" bölümünde istenen motor tarafı verisini
+eklemesini bekliyor.
 
 ## Bilerek yapılmayanlar
 

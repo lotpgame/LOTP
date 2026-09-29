@@ -14,6 +14,19 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > verisi korunur.
 
 ### Eklendi
+- **WhatsApp/sosyal medya önizleme görseli:** `src/app/opengraph-image.tsx` (`next/og` `ImageResponse`) —
+  bağlantı paylaşılınca (WhatsApp, Instagram DM, vb.) artık düz metin yerine markalı bir kart görünüyor:
+  koyu Pist Konsolu arka planı, altın üst çizgi, "LEGENDS OF THE PISTE" başlığı, "Eskrim kariyer
+  simülasyonu" alt yazısı, kırmızı/yeşil/altın üç sinyal noktası (eskrim lambalarına gönderme). Paylaşılan
+  bağlantı hep site kökü olduğu için (`HeadlineCard.tsx` `whatsAppHref`, sonuca özel URL yok) tek sabit
+  görsel yeterli — build zamanında üretilip önbelleğe alınıyor, her istekte yeniden hesaplanmıyor. **Yol
+  üstünde gerçek bir eksik bulundu ve düzeltildi:** `metadataBase` hiç ayarlanmamıştı — `next build` bunu
+  açıkça uyarıyordu ("using http://localhost:3000"), düzeltilmeseydi canlıda `og:image` bağlantısı
+  `localhost:3000`'e işaret edip önizleme tamamen kırık olurdu. Kök `layout.tsx`'e eklendi (proje tek alan
+  adında, `https://lotp-one.vercel.app` sabit). Doğrulama: gerçek bir production build (`next start`,
+  `next dev` değil) ile hem üretilen görsel bizzat indirilip incelendi (Türkçe "ü" karakteri dahil doğru
+  render ediyor) hem de `<meta property="og:image">`'in doğru mutlak URL'e çözüldüğü (`next dev`'de bilerek
+  `localhost` gösterip yalnız gerçek production modunda doğru domaine döndüğü) `curl` ile teyit edildi.
 - **Sözlük sayfası:** "Daha fazla" menüsünde yeni bir sayfa (`/kariyer/sozluk`) — 24 terim, iki bölüm:
   Eskrim Terimleri (Flöre/Epe/Kılıç, hedef, öncelik, tuş, pul, eleme, bay, averaj, seri başı, altın tuş,
   parat/riposte/kontra, milli takım, **beyaz lamba** — henüz uygulanmamış olsa da gerçek bir eskrim kavramı

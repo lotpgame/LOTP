@@ -30,6 +30,9 @@ const barlow = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
+  // Sabit — proje tek alan adında (özel domain/staging yok). og:image gibi göreli metadata URL'lerini
+  // çözmek için gerekli, yoksa build "http://localhost:3000"e düşer (canlıda kırık önizleme).
+  metadataBase: new URL("https://lotp-one.vercel.app"),
   title: "Legends of the Piste",
   description: "Eskrim kariyer ve yönetim simülasyonu",
 };
