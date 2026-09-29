@@ -35,10 +35,13 @@ const BASE_FATIGUE: Record<TrainingType, number> = {
   REST: -28,
 };
 
-const PRIMARY_STIMULUS = 0.6;
-// #18: çapraz katkı — çalışılan grup tam gelişir, diğer gruplar bunun küçük bir oranı kadar (yan kazanım).
-// Örn. teknik çalışınca teknik +0.2 iken mental/taktik/fiziksel'e +~0.02 gelir. Antrenman daha bütünsel hissettirir.
-const SPILL_FRACTION = 0.12;
+// #34 (kullanıcı 09-29): per-session büyüme düşürüldü (0.6→0.36) → çocuk yaş-tavanına birkaç haftada değil
+// SEZON boyunca yaklaşır ("sürekli gelişiyorum" hissi). Tavan aynı (maturity); yalnız yolculuk yavaşlar.
+// Tipik gösterim ~+0.3/seans (eski ~+0.5). Uzun vade (26'ya kadar potansiyele ulaşma) sim ile doğrulandı.
+const PRIMARY_STIMULUS = 0.36;
+// #18 + #34: çapraz katkı — çalışılan grup tam gelişir, diğerleri bunun küçük bir oranı kadar (yan kazanım).
+// 0.12→0.10 (kullanıcı: yan etki ~0.1 fazlaydı, ~0.05 daha makul). Uzmanlaşma biraz daha belirgin olur.
+const SPILL_FRACTION = 0.1;
 
 export interface TrainingResult {
   skills: PlayerSkills;

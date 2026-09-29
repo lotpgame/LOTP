@@ -186,6 +186,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   "Gençler"→"U21".
 
 ### Değişti
+- **Antrenman gelişim hızı yumuşatıldı (#34):** seans başına birincil kazanım `PRIMARY_STIMULUS` 0.6→0.36
+  (gösterim ~+0.5 → ~+0.3) → oyuncu yaş-tavanına birkaç haftada değil **sezon boyunca** yaklaşır
+  ("sürekli gelişiyorum" hissi; tavan aynı). Yan (spill) etki `SPILL_FRACTION` 0.12→0.10 (~0.1 → ~0.05).
+  Sim ile doğrulandı (combat/gelişim/sakatlık dengesi korundu).
 - **Ekonomi dengesi (kazanç ↓↓ + gerçekçi fiyatlar):** Turnuva ödülleri çok düşürüldü — bir oyuncu
   sezonda girdiği tüm turnuvaları kazansa bile ~300 Đ (2. ~200 · 3. ~150); şampiyon bile 1 silah (400)
   alamaz → malzeme için Denar satın alma ihtiyacı (monetization). **Başlangıç bakiyesi 1000 → 0.**
