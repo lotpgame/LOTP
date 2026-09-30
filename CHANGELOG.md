@@ -9,6 +9,37 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+> ⚠️ **30.09.2026 — B Faz 0, ŞEMA GÖÇÜ içerir, merge öncesi prod DB adımı gerekiyor.** Ayrıntı: DEVIR.md.
+
+### Eklendi (30.09 — B Faz 0: server-authoritative turnuva, kanonik şema)
+- **`Match` tablosu artık PENDING (henüz çözülmemiş) maçları da tutabiliyor** (`docs/TURNUVA_MULTIPLAYER.md`
+  §2.1, §4 Faz 0): yeni `status` (PENDING|RESOLVED, varsayılan RESOLVED — mevcut kayıtlar etkilenmez) ve
+  `scheduledAt` alanları eklendi; `playerAId`/`playerBId`/`scoreA`/`scoreB`/`winnerId`/`log` artık nullable
+  (bracket turnuva başında oyuncular/skor belli olmadan önceden yazılabilsin diye — `seed` YİNE de baştan
+  bilinir, çünkü deterministik `f(scopeKey, tur, maçIndex)`'ten türetiliyor, oyunculardan bağımsız).
+  `getTournament`/`getCareerHistory` artık açıkça `status: "RESOLVED"` filtreliyor (tamamlanmış turnuva
+  kaydı sayfası hâlâ yalnız bitmiş maçları gösteriyor — davranış değişmedi, yalnız temel kondu). Bu faz
+  tek başına HİÇBİR kullanıcı-görünür davranışı değiştirmiyor — sadece Faz 1'in (sunucu-tik çözümleme)
+  üzerine kurulacağı zemin. Build+test(168)+lint yeşil.
+
+### Değişti (30.09 — B Faz 1: canlı turnuva artık sunucu-otoriteli)
+- **Canlı turnuva artık istemci-güdümlü DEĞİL** (`docs/TURNUVA_MULTIPLAYER.md` Faz 1) — bu, Osman'ın
+  29.09'da bulduğu "paralel evren" hatasının KÖKTEN çözümü (önceki `tour:${scopeKey}` düzeltmesi yalnız
+  ara tedbirdi). "Katıl"a basınca sunucu turnuvayı TEK SEFERDE, kayıtlı taktiklerle çözer
+  (`resolveScopedTournament`, offline otomatik yolla — `autoResolveTournament` — AYNI fonksiyonu
+  paylaşıyor) ve `finalizeTournament` sonucu hemen kesinleştirir (ödül/ranking/vs.). **Görünürlük**
+  ise tur tur açılır (`Match.status`/`scheduledAt`, ~1 dk/tur + aralarda küçük kayma) — spoiler
+  olmasın diye tüm turnuva açılana kadar şampiyon/klasman/pul kağıdı gizli kalır. Kapsam-içi HERKES
+  (kim ilk bassa da) aynı `/turnuva/[id]` sayfasını izler; eski ayrı `/turnuva/canli` akışı yalnız
+  daha önce başlamış (B öncesi) oturumlar bitene kadar yaşıyor, yeni turnuvalar hiç oraya girmiyor.
+  `getTournament` artık hem bitmiş hem "hâlâ açılıyor" turnuvaları gösteriyor (`isFullyRevealed`
+  bayrağı); sayfa periyodik kendini tazeliyor (`LiveAutoRefresh`, ilk sürüm — Faz 3'te gerçek
+  polling/senkrona taşınacak). Doğrulama: gerçek tarayıcıda kariyer oluşturuldu, turnuvaya katılıp
+  `/turnuva/[id]`'ye yönlendirildiği, kendi pul maçlarının birkaç dakika içinde gerçek isim/skorla
+  açıldığı, eleme çatalının (kendi maçı dahil) hâlâ kilitli kaldığı doğrudan izlendi. Build+test
+  (168)+lint yeşil. **Bilinçli yapılmadı (sonraki fazlar):** gerçek-zamanlı taktik gönderimi (Faz 2),
+  gerçek canlı senkron/polling (Faz 3), 256 ölçek + cron liveness (Faz 4).
+
 > ✅ **30.09.2026 — `20260930000000_m11_5_ai_dev_month` migration'ı production'a uygulandı (Yusuf).**
 > 23 AI'nın `aiDevMonth`'u doğru başlangıç değerine ayarlandı, 8 insan kariyeri sağlam doğrulandı, site
 > kesintisiz. PR #40 doğru sırayla (önce DB, sonra kod) merge edildi. Ayrıntı: DEVIR.md Karar günlüğü.

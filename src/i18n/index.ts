@@ -541,6 +541,10 @@ const TR: Dict = {
   "idp.poolSheetsNote": "V5 = galibiyet (attığın tuş) · sayı = mağlubiyette attığın tuş · V: galibiyet, TS/TR: atılan/yenen tuş, Ind: averaj.",
   "idp.standings": "Turnuva Sıralaması",
   "idp.backHome": "Kariyere Dön",
+  "idp.live.title": "Canlı — devam ediyor",
+  "idp.live.note": "Bu turnuvayı kapsamındaki herkes aynı anda izliyor. Sonuç kesinleşti, maçlar tur tur açılıyor.",
+  "idp.live.nextSoon": "Sıradaki tur birazdan açılıyor…",
+  "idp.pending": "Henüz oynanmadı",
 };
 
 const EN: Dict = {
@@ -1047,6 +1051,10 @@ const EN: Dict = {
   "idp.poolSheetsNote": "V5 = victory (touches you scored) · number = touches scored in a loss · V: victories, TS/TR: touches scored/received, Ind: indicator.",
   "idp.standings": "Tournament Standings",
   "idp.backHome": "Back to Career",
+  "idp.live.title": "Live — in progress",
+  "idp.live.note": "Everyone in this tournament's scope is watching the same thing right now. The result is already decided, matches are revealed round by round.",
+  "idp.live.nextSoon": "The next round unlocks shortly…",
+  "idp.pending": "Not played yet",
 };
 
 const DE: Dict = {
@@ -1562,6 +1570,10 @@ const DE: Dict = {
   "idp.poolSheetsNote": "V5 = Sieg (deine erzielten Treffer) · Zahl = erzielte Treffer bei einer Niederlage · V: Siege, TS/TR: erzielte/erhaltene Treffer, Ind: Indikator.",
   "idp.standings": "Turnierrangliste",
   "idp.backHome": "Zurück zur Karriere",
+  "idp.live.title": "Live — läuft gerade",
+  "idp.live.note": "Alle in dieser Turnierrunde sehen gerade dasselbe. Das Ergebnis steht schon fest, die Begegnungen werden Runde für Runde freigeschaltet.",
+  "idp.live.nextSoon": "Die nächste Runde wird gleich freigeschaltet …",
+  "idp.pending": "Noch nicht gespielt",
 };
 
 // es/fr henüz çevrilmedi → şimdilik TR'ye düşer (çeviriler sonra eklenecek, kullanıcı isteği).

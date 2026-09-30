@@ -65,9 +65,10 @@ export async function skipDayAction(): Promise<void> {
   revalidatePath("/kariyer", "layout");
 }
 
-/** Bugünkü turnuvaya katılır → canlı turnuva ekranına geçer. */
+/** Bugünkü turnuvaya katılır → turnuva ekranına geçer (B: /turnuva/[id], eski oturumlar /turnuva/canli). */
 export async function attendTournamentAction(): Promise<void> {
   const result = await attendTournament();
+  if (result.tournamentId != null) redirect(`/turnuva/${result.tournamentId}`);
   if (result.live) redirect("/turnuva/canli");
   revalidatePath("/kariyer", "layout");
 }

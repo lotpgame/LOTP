@@ -31,7 +31,10 @@ Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
 **🔴 Osman, senden bekleyen (aksiyon):**
 1. ~~AI-dev PR merge~~ ✅ **yapıldı (30.09)** — dal güncel master'a çekildi (çakışmasız auto-merge),
    `vitest` 168/168 yeşil, PR #40 merge edildi. Ayrıntı: Karar günlüğü 2026-09-30.
-2. **B (256+ gerçek-zamanlı turnuva)** — sende (tasarım `docs/TURNUVA_MULTIPLAYER.md`). Onayla + kodla.
+2. **B (256+ gerçek-zamanlı turnuva)** — onaylandı, "hemen değiştir" ile başladım. **Faz 0 (kanonik şema)
+   + Faz 1 (sunucu-tik çözümleme) bitti** — canlı turnuva artık sunucu-otoriteli, paralel evren hatası
+   kökten çözüldü, gerçek tarayıcıda uçtan uca doğrulandı. Aynı PR (aşağıdaki açık maddeye bak — yine
+   ÖNCE prod DB adımı gerekiyor, şema büyüdü).
 3. (İsteğe bağlı) Beyaz lamba UI: canlı maçta `⚪ Beyaz lamba …` log satırını yakalayıp beyaz lambayı flash'la.
 
 **Not:** Yusuf tarafı `src/server` canlı-turnuva koduna (B senin olduğu için) dokunmayacak; motorun geri kalanına devam eder.
@@ -65,6 +68,41 @@ Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
   **İkinci istisna (30.09, ŞEMA DAHİL):** AI aylık gelişim düzeltmesi (`Player.aiDevMonth`) — Yusuf'un
   onayı + prod DB adımıyla tamamlandı, PR #40 merge edildi. Ayrıntı: Karar günlüğü 2026-09-30.
 - **Ekipman ikonları:** kendi GLADIUS setimiz (PR #5). Marka sitelerinden vektör çıkarılmıyor — telif riski.
+  **Üçüncü istisna (30.09, ŞEMA DAHİL, B Faz 0):** `Match` tablosuna PENDING maç desteği — aşağıdaki açık
+  madde, MERGE ÖNCESİ senin bir adımını gerektiriyor (aynı desen: önce prod DB, sonra merge).
+
+## Osman → Yusuf: B Faz 0+1 — ÖNCE PROD DB, SONRA MERGE (açık iş)
+
+**Ne değişti:** `docs/TURNUVA_MULTIPLAYER.md`'deki server-authoritative turnuva mimarisine (B) başladım,
+"hemen değiştir" onayınla. **Faz 0 (kanonik şema) + Faz 1 (sunucu-tik çözümleme) bitti**, dal
+`feat/b-faz0-match-schema` (PR açık — link için Karar günlüğü'ne bak).
+
+- **Şema (Faz 0):** `Match` tablosuna `status` (PENDING|RESOLVED, varsayılan RESOLVED) + `scheduledAt`
+  eklendi; `playerAId`/`playerBId`/`scoreA`/`scoreB`/`winnerId`/`log` nullable oldu. **Eklemeli, veri
+  silmiyor** — mevcut satırlar aynen kalıyor.
+- **Davranış (Faz 1):** Canlı turnuva artık istemci-güdümlü DEĞİL — "katıl"a basınca sunucu turnuvayı
+  TEK SEFERDE çözer (`resolveScopedTournament`, offline otomatik yolla — `autoResolveTournament` — AYNI
+  fonksiyonu paylaşıyor, senin bulduğun paralel-evren hatası artık mimari olarak imkânsız), sonuç hemen
+  kesinleşir, ama GÖRÜNÜRLÜK tur tur açılır (spoiler olmasın diye). Kapsam-içi herkes aynı `/turnuva/[id]`
+  sayfasını izler. Eski `startLiveTournament`/`/turnuva/canli` akışına artık HİÇ girilmiyor (yalnız B
+  öncesi başlamış, hâlâ bitmemiş oturumlar için canlı kalıyor — kod duruyor, dokunmadım).
+  Gerçek tarayıcıda uçtan uca doğrulandı (kariyer → katıl → `/turnuva/[id]` → pul maçları birkaç dakikada
+  gerçek isim/skorla açıldı → eleme çatalı hâlâ kilitli).
+
+**🚨 Aynı sıra kuralı:** Bu PR merge edilip `status`/`scheduledAt` sütunları prod DB'de yokken canlıya
+çıkarsa, turnuva geçmişi (`/turnuva/[id]`), kariyer geçmişi VE artık turnuvaya katılmanın kendisi hata
+verir (kod bu sütunları hem okurken hem yazarken kullanıyor). Yani: (1) önce `npx prisma db push` ile
+prod'a uygula (veri-düzeltmesi GEREKMİYOR — yeni sütunlar nullable/varsayılanlı, mevcut veri zaten
+uyumlu), (2) buraya **✅ yapıldı** yaz, (3) merge ederim.
+
+**Not:** Bu PR'dan itibaren `src/server`'daki canlı-turnuva yoluna (`attendTournament`,
+`resolveScopedTournament`, `finalizeTournament`, `getTournament`) ben dokunuyorum — TURNUVA_MULTIPLAYER.md'de
+üzerinde anlaştığımız çakışma-önleme kuralı gereği senin dokunmadığın alan. Motorun geri kalanı
+(skill/economy/combat/conditioning) hâlâ senin.
+
+**Cevap (Yusuf, Osman üzerinden iletildi, 30.09): ✅ yapıldı.** Osman prod DB adımının tamamlandığını
+doğrudan bildirdi (bu dosyaya kendi yazmadı — ileride kontrol etmek istersen buraya bakabilirsin). PR
+bu onayla merge edildi.
 
 ## Senden beklenenler (Yusuf)
 
@@ -144,7 +182,12 @@ sen **onaylayınca** fazları (0→4) uygularsın. Aynı GitHub → tasarım sen
 - **Açık kararları** (`docs/TURNUVA_MULTIPLAYER.md` §5) uygularken takıldığın olursa **Cevap** satırına yaz,
   Yusuf netleştirir.
 
-**Cevap (Osman):**
+**Cevap (Osman/Claude, 30.09): Hemen değiştir — üstleniyorum.** Zamanlama sorusuna ("test sırasında mı,
+release öncesi ayrı sürümde mi") cevap: mevcut canlı yolu doğrudan değiştirdim, paralel sürüm yok. Faz 0
+(şema) + Faz 1 (sunucu-tik çözümleme, paralel evren hatasının kökten çözümü) bitti ve tarayıcıda uçtan
+uca doğrulandı — ayrıntı: yukarıdaki "B Faz 0+1" açık maddesi. Faz 2 (taktik pencereleri) ve sonrası
+sırada; §5'teki diğer açık kararlar (tik tetikleme=lazy catch-up yeterli görünüyor, canlı yenileme=15 sn
+ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
 ## Karar günlüğü
 
