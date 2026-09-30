@@ -393,9 +393,12 @@ Kod incelemesiyle (2026-09-28, dış katkıcı analizi) tespit edilen riskler. �
 - 🟠 **R5 — `src/server/careerService.ts` ~3.200 satır.** Kimlik, kariyer, antrenman, turnuva, canlı turnuva,
   ekipman, geri bildirim tek dosyada → çakışma ve regresyon riski büyüyor. **Yapılacak:** büyük tek refactor
   değil; ilgili özelliğe dokunulduğunda o parça ayrı modüle (`server/auth.ts`, `server/liveTournament.ts` …).
-- 🟠 **R6 — Canlı turnuva durumu JSON blob (`GameState.liveTournament`).** Tek oyuncuda sorun değil; ortak
-  turnuvada (M11) aynı anda iki istek aynı blob'u yazarsa son yazan kazanır. **Yapılacak:** M11'de ortak
-  turnuva durumu kendi tablolarına (`Tournament`/`Match`) + güncellemelerde işlem/kilit.
+- ✅ **R6 — Canlı turnuva durumu JSON blob (`GameState.liveTournament`).** Ortak turnuvada aynı anda iki
+  istek aynı blob'u yazınca son yazan kazanıyordu ("paralel evren" hatası, Osman'ın 29.09 bulgusu).
+  **Çözüm (2026-09-30, B Faz 0+1):** ortak turnuva durumu artık kendi tablolarında (`Tournament`/`Match`,
+  `Match.status`/`scheduledAt`) — turnuva "katıl"da tek seferde sunucuda hesaplanır (`resolveScoped
+  Tournament`), görünürlük tur tur açılır. Eski `GameState.liveTournament` yolu yalnız B-öncesi başlamış
+  oturumlar için duruyor, yeni turnuva hiç girmiyor. Gerçek tarayıcıda uçtan uca doğrulandı.
 - 🟡 **R7 — Geri bildirim panosu `?key=` ile korunuyor.** Anahtar URL'de → tarayıcı geçmişi/log'da kalır.
   Test haftası için yeterli; kalıcı çözüm giriş (R1) sonrası rol tabanlı erişim.
 - 🟡 **R8 — Kişisel veri (KVKK/GDPR).** Telefon numarası ve geri bildirimde çerez token'ı saklanıyor;

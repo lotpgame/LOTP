@@ -92,6 +92,11 @@ model Player {
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE
 
+  // M11.5: yalnız isAI=true için anlamlı — bu AI'nın aylık gelişiminin işlendiği SON ay indeksi. Ortak
+  // AI havuzu paylaşıldığı için (birden çok insanın world-advance'i aynı ayı geçebilir) bu alan olmadan
+  // aynı ay birden fazla kez işlenip AI'ları tasarlanandan hızlı geliştirebiliyordu (bkz. DEVIR.md).
+  aiDevMonth Int @default(-1)
+
   // Fiziksel yapı — genetik parametreler (güncel ölçüler yaştan türetilir) (GDD 2.7–2.8)
   adultHeightCm Float   @default(175)
   reachBiasCm   Float   @default(0)
@@ -255,14 +260,20 @@ model Match {
   round      String // "Havuz 1" | "Çeyrek Final" | "Yarı Final" | "Final"
   orderIndex Int // turnuva içindeki sıra (gösterim için)
 
-  playerAId Int
-  playerBId Int
-  scoreA    Int
-  scoreB    Int
-  winnerId  Int
+  // B (server-authoritative turnuva, Faz 0): PENDING maçlar oyuncular/skor belli olmadan ÖNCEDEN
+  // yazılır (bkz. TURNUVA_MULTIPLAYER.md §2.1) — bu yüzden bu 4 alan artık nullable. Eski (zaten
+  // sonuçlanmış) satırlar etkilenmez, hepsi dolu kalır; yalnız YENİ canlı yol PENDING yazabilir.
+  status String @default("RESOLVED") // PENDING | RESOLVED
+  scheduledAt DateTime? // PENDING maçın çözüleceği an (server-tick bunu okur)
 
-  seed String // bu maçın tohumu (replay/debug, GDD 20.29)
-  log  String // metin anlatım (satırlar \n ile)
+  playerAId Int?
+  playerBId Int?
+  scoreA    Int?
+  scoreB    Int?
+  winnerId  Int?
+
+  seed String // bu maçın tohumu (replay/debug, GDD 20.29) — PENDING'te de bilinir, deterministik
+  log  String? // metin anlatım (satırlar \n ile) — PENDING iken null
 
   createdAt DateTime @default(now())
 

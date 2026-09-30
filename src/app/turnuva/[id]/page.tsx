@@ -5,10 +5,20 @@ import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
+import { LiveAutoRefresh } from "./LiveAutoRefresh";
 import { PulKagidi } from "./PulKagidi";
 import { Icon } from "@/app/ui/Icon";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
 import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
+
+type RevealedMatch = TournamentResultDTO["matches"][number] & {
+  isPending: false;
+  aName: string;
+  bName: string;
+  scoreA: number;
+  scoreB: number;
+  log: string[];
+};
 
 function positionLabel(locale: Locale, pos: number): string {
   switch (pos) {
@@ -37,28 +47,32 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   if (!tour) notFound();
   const locale = await getLocale();
 
-  // Eleme turlarını göründükleri sırada grupla.
+  // Eleme turlarını göründükleri sırada grupla (PENDING maçlar da round/phase bilgisini taşır —
+  // bracket'in TAMAMI, henüz açılmamış turlar dahil, hep görünür; yalnız isim/skor B'de gizli).
   const deRounds: string[] = [];
   for (const m of tour.matches) {
     if (m.phase === "DE" && !deRounds.includes(m.round)) deRounds.push(m.round);
   }
-  const yourMatches = tour.matches.filter((m) => m.aIsHuman || m.bIsHuman);
+  const yourMatches = tour.matches.filter((m): m is RevealedMatch => !m.isPending && (m.aIsHuman || m.bIsHuman));
   const yourPool = yourMatches.filter((m) => m.phase === "POOL");
   const yourDE = yourMatches.filter((m) => m.phase === "DE");
   const firstDeRound = yourDE[0]?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
   const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
-  const headline = buildHeadline(locale, {
-    name: tour.standings.find((s) => s.isHuman)?.name ?? "",
-    tournament: tour.name,
-    position: tour.yourPosition,
-    fieldSize: tour.standings.length,
-    pool: myPool ? { wins: myPool.wins, losses: myPool.losses, indicator: myPool.indicator } : null,
-    lastBout: lastBoutFrom(tour.matches),
-  });
+  const headline = tour.isFullyRevealed
+    ? buildHeadline(locale, {
+        name: tour.standings.find((s) => s.isHuman)?.name ?? "",
+        tournament: tour.name,
+        position: tour.yourPosition ?? 0,
+        fieldSize: tour.standings.length,
+        pool: myPool ? { wins: myPool.wins, losses: myPool.losses, indicator: myPool.indicator } : null,
+        lastBout: lastBoutFrom(yourMatches),
+      })
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+      {!tour.isFullyRevealed && <LiveAutoRefresh />}
       <Link href="/kariyer" className="inline-flex min-h-11 items-center text-[14px] text-steel underline underline-offset-2">
         {t(locale, "idp.back")}
       </Link>
@@ -66,14 +80,27 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <h1 className="mt-2 font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
       <p className="text-[14px] text-steel">{tour.categoryId}</p>
 
-      <div className="mt-5">
-        <HeadlineCard h={headline} kicker={t(locale, "idp.result")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
-          <p className="mt-1 text-[14px] text-steel">
-            {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
-            {!headline.champion && t(locale, "canli.champion", { name: tour.championName })}
-          </p>
-        </HeadlineCard>
-      </div>
+      {!tour.isFullyRevealed ? (
+        <div className="mt-5 panel border-ink p-4">
+          <div className="flex items-center gap-2">
+            <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
+            <h2 className="font-display text-[18px] font-bold">{t(locale, "idp.live.title")}</h2>
+          </div>
+          <p className="mt-1.5 text-[14px] text-steel">{t(locale, "idp.live.note")}</p>
+          <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.live.nextSoon")}</p>
+        </div>
+      ) : (
+        headline && (
+          <div className="mt-5">
+            <HeadlineCard h={headline} kicker={t(locale, "idp.result")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
+              <p className="mt-1 text-[14px] text-steel">
+                {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
+                {!headline.champion && tour.championName && t(locale, "canli.champion", { name: tour.championName })}
+              </p>
+            </HeadlineCard>
+          </div>
+        )
+      )}
 
       <section className="mt-6">
         <h2 className="display text-[20px]">{t(locale, "idp.yourMatches")}</h2>
@@ -93,7 +120,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           </>
         )}
 
-        {tour.yourSeedRank != null && (
+        {tour.yourSeedRank != null && tour.isFullyRevealed && (
           <div className="mt-4 panel p-3 text-[14px]">
             <span className="font-medium">{t(locale, "idp.poolResultLead")}</span>{" "}
             {t(locale, "idp.seedFrom", { n: tour.yourSeedRank })}
@@ -116,18 +143,20 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         )}
       </section>
 
-      {/* Pul kağıtları (poule) */}
-      <section className="mt-8">
-        <h2 className="display text-[20px]">{t(locale, "canli.poolSheets")}</h2>
-        <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.poolSheetsNote")}</p>
-        <div className="mt-3 space-y-5">
-          {tour.poolSheets.map((sheet) => (
-            <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
-          ))}
-        </div>
-      </section>
+      {/* Pul kağıtları (poule) — spoiler olmasın diye tüm turnuva açılana kadar gizli */}
+      {tour.isFullyRevealed && tour.poolSheets.length > 0 && (
+        <section className="mt-8">
+          <h2 className="display text-[20px]">{t(locale, "canli.poolSheets")}</h2>
+          <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.poolSheetsNote")}</p>
+          <div className="mt-3 space-y-5">
+            {tour.poolSheets.map((sheet) => (
+              <PulKagidi key={sheet.poolNumber} sheet={sheet} locale={locale} />
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Eleme çatalı (bracket) */}
+      {/* Eleme çatalı (bracket) — tur yapısı hep görünür, sonuçlar açıldıkça dolar */}
       <section className="mt-8">
         <div className="flex items-baseline justify-between gap-2">
           <h2 className="display text-[20px]">{t(locale, "canli.bracket")}</h2>
@@ -146,7 +175,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                 {tour.matches
                   .filter((m) => m.phase === "DE" && m.round === round)
                   .map((m, i) => {
-                    const aWon = m.scoreA >= m.scoreB;
+                    if (m.isPending) {
+                      return (
+                        <div key={i} className="flex items-center gap-1.5 rounded-md border border-line p-2.5 text-[13px] text-steel">
+                          <Icon name="lock" size={14} className="shrink-0" />
+                          {t(locale, "idp.pending")}
+                        </div>
+                      );
+                    }
+                    const aWon = m.scoreA! >= m.scoreB!; // isPending yukarıda elendi → dolu
                     const mine = m.aIsHuman || m.bIsHuman;
                     return (
                       <div
@@ -172,7 +209,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         </div>
       </section>
 
-      <FinalStandings standings={tour.standings} locale={locale} />
+      {tour.isFullyRevealed && <FinalStandings standings={tour.standings} locale={locale} />}
 
       <div className="mt-8">
         <form action={leaveLiveTournamentAction}>

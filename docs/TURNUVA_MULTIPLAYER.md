@@ -105,14 +105,23 @@ simülasyonundan** miras sonuç alıyor. (Osman'ın bulgusu, DEVIR 29.09.)
 
 ## 4. Fazlar (aşamalı inşa)
 
-- **Faz 0 — Kanonik şema.** `Match`e `scheduledAtMs` + `status`; bracket başta oluşturma; `scopeKey` tekil
-  turnuva. (Eklemeli şema — canlı veri korunur, CONTRIBUTING §2.)
-- **Faz 1 — Sunucu-tik çözümleme.** Zamanı gelen maçları deterministik + idempotent + kilitli çöz; herkes
-  DB'den aynı sonucu okur. **Bu tek başına "paralel evren" hatasını bitirir** (taktik penceresi olmadan bile,
-  kayıtlı taktiklerle). Mevcut istemci-güdümlü `startLiveTournament` emekliye ayrılır.
+- **✅ Faz 0 — Kanonik şema (30.09, tamamlandı).** `Match`e `scheduledAt` + `status` (+ nullable
+  oyuncu/skor/log alanları); `scopeKey` zaten tekildi. Eklemeli — canlı veri korundu.
+- **✅ Faz 1 — Sunucu-tik çözümleme (30.09, tamamlandı, tarayıcıda uçtan uca doğrulandı).**
+  **Gerçek uygulama, tasarımdan bir noktada saptı (bilinçli, basitlik için):** tasarım "zamanı gelen
+  maçları o an deterministik çöz" diyordu (tam incremental); gerçekte turnuvanın TAMAMI
+  `simulateTournament` ile TEK SEFERDE, anında hesaplanıyor (`resolveScopedTournament` — offline
+  otomatik yolla, `autoResolveTournament`, AYNI fonksiyon) ve `finalizeTournament` ödül/ranking'i hemen
+  uyguluyor. Yalnız GÖRÜNÜRLÜK (`Match.status`/`scheduledAt`, tur-bazlı dalgalar) zamana yayılıyor —
+  "sunucu-tik" (`revealDueMatches`) bu yüzden hesaplama değil, saf bir PENDING→RESOLVED reveal bulk
+  update'i. Sonuç aynı garanti (paralel evren imkânsız, tek hesaplama, herkes aynı DB'den okur) çok daha
+  az kod ve karmaşıklıkla. Taktik penceresi (Faz 2) geldiğinde bu, gerçek incremental çözümlemeye
+  evrilebilir. `startLiveTournament`/`/turnuva/canli` emekliye ayrıldı (kod duruyor, yeni turnuva hiç
+  girmiyor — yalnız B-öncesi başlamış oturumlar için).
 - **Faz 2 — Taktik pencereleri.** Tur başı taktik gönderimi + fallback + çözümde uygulama.
 - **Faz 3 — Canlı senkron (istemci).** Polling tabanlı canlı ekran (ilerleme, o anki maç, sıradaki maçın +
-  taktik formu). Manuel "geç" yok (NOTLAR #25 ile uyumlu — otomatik akış).
+  taktik formu). Manuel "geç" yok (NOTLAR #25 ile uyumlu — otomatik akış). Faz 1'in ilk sürümü
+  (`LiveAutoRefresh`, 15 sn'de bir tam sayfa yenileme) bunun yerini tutuyor, geçici.
 - **Faz 4 — Ölçek + cila.** 256 oyuncu (toplu DB yazımı, kilitler, yarış koşulları), yeniden bağlanma,
   offline oyuncu (fallback taktik), cron liveness, gözlemleme.
 
@@ -120,15 +129,18 @@ Her faz kendi başına test edilir (saf motor + orkestrasyon testleri; sabit see
 
 ---
 
-## 5. Açık kararlar (Yusuf ile netleşecek)
+## 5. Açık kararlar
 
-1. **Tik tetikleme:** Lazy catch-up yeterli mi (kimse yokken turnuva beklesin), yoksa gerçek cron şart mı
-   (Hattrick gibi hep dönsün)? Cron gerekirse: Vercel Cron (Pro?) vs GitHub Actions cron vs harici.
-2. **Taktik penceresi süresi:** tur öncesi kaç sn? Göndermeyene ne olur (kayıtlı taktik mi, son mu)?
-3. **Ölçek/eşleşme:** 256 kişide havuz sayısı + eleme boyutu (FIE'ye uygun); tik başına maç sayısı.
-4. **Canlı yenileme sıklığı:** polling 3 sn mi 5 sn mi; SSE'ye ne zaman geçilir.
-5. **Zamanlama:** bu, mevcut istemci-güdümlü canlı turnuvayı **değiştirir** → test sırasında mı, release
-   öncesi ayrı sürümde mi? (Öneri: test şu anki basit akışla devam, B'yi paralel geliştirip release'te devreye al.)
+1. **✅ Tik tetikleme (Osman, 30.09):** Lazy catch-up yeterli — cron'a şimdilik gerek yok (test
+   ölçeğinde hep biri online). Faz 4'te gerekirse eklenir.
+2. **Taktik penceresi süresi:** Faz 2'de netleşecek — henüz uygulanmadı (Faz 1 kayıtlı taktikle çalışıyor).
+3. **Ölçek/eşleşme:** Faz 1 mevcut `POOL_SIZE`/`FIELD_TARGET` sabitlerini aynen kullanıyor (test
+   ölçeği); 256 için Faz 4'te gözden geçirilecek.
+4. **✅ Canlı yenileme sıklığı (Osman, 30.09):** İlk sürüm 15 sn (`LiveAutoRefresh`, tam sayfa
+   yenileme). Faz 3'te gerçek polling/SSE'ye taşınacak.
+5. **✅ Zamanlama (Osman, 30.09): "Hemen değiştir".** Mevcut canlı yol doğrudan B ile değiştirildi,
+   paralel sürüm yok. Test aşamasında olduğumuz ve mimari düzeltmenin acil olduğu için (paralel evren
+   hatası) bu tercih edildi.
 
 ---
 

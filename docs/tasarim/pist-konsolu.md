@@ -298,14 +298,37 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   `https://lotp-one.vercel.app/opengraph-image...`'e çözüldüğü `curl` ile teyit edildi. `next dev` tek
   başına bu sınıf hatayı YAKALAYAMAZDI, mutlaka production build gerekiyordu.
 
+- **Canlı turnuva — sunucu-otoriteli mimari (B, Faz 0+1):** Osman'ın bulduğu "paralel evren" hatasının
+  (aynı ortak turnuvada iki gerçek oyuncu farklı sonuç görmesi) kökten çözümü. Önceki `tour:${scopeKey}`
+  düzeltmesi (bkz. yukarıda) yalnız ara tedbirdi — asıl çözüm Yusuf'un tasarladığı
+  (`docs/TURNUVA_MULTIPLAYER.md`) server-authoritative mimari. Tasarımdan bilinçli bir sapma: tam
+  incremental sunucu-tik yerine (Faz 2'nin taktik pencereleri gelene kadar gereksiz karmaşıklık),
+  turnuvanın TAMAMI tek seferde hesaplanıyor (`simulateTournament`, offline otomatik yolla — `auto
+  ResolveTournament` — AYNI fonksiyon paylaşılıyor), yalnız GÖRÜNÜRLÜK tur tur açılıyor
+  (`Match.status`/`scheduledAt`, ~1 dk/tur) — spoiler olmasın diye tüm turnuva açılana kadar şampiyon/
+  klasman/pul kağıdı gizli. `/turnuva/[id]` artık hem bitmiş hem "hâlâ açılıyor" turnuvaları gösteriyor;
+  eski ayrı `/turnuva/canli` interaktif akışı emekliye ayrıldı (kod duruyor, yalnız B-öncesi başlamış
+  oturumlar için). Sayfa 15 sn'de bir kendini tazeliyor (`LiveAutoRefresh`, ilk sürüm — gerçek polling
+  Faz 3'te). Doğrulama: gerçek tarayıcıda kariyer oluşturulup bir turnuvaya katılındı, `/turnuva/[id]`'ye
+  yönlendirildiği, pul maçlarının birkaç dakikada gerçek isim/skorla açıldığı, eleme çatalının (kendi
+  maçı dahil) hâlâ kilitli kaldığı doğrudan izlendi.
+
+- **Beyaz lamba UI:** Yusuf motor tarafını teslim edince (`⚪ Beyaz lamba — {ad} hedef dışına dokundu.
+  Sayı yok.` log satırı, yalnız flöre) UI tarafı bağlandı. `/turnuva/[id]`'nin tuş-tuş dökümünde
+  (`Skor detayı`) bu satır artık düz metin arasında kaybolmuyor — aydınlık bir şerit + `lamp-white`
+  ışıltılı nokta (zaten var olan, kullanılmayan bir token) ile öne çıkıyor, gerçek eskrim cihazındaki
+  beyaz lambaya gönderme. Eski canlı-animasyon yoluna (`LogLines`) da aynı tedavi eklendi (geriye dönük
+  uyumluluk), ama `ScoreBug`'ın kırmızı/yeşil skor lambalarına üçüncü bir renk EKLENMEDİ — o ekran B ile
+  emekliye ayrıldığı için orana uymuyordu. Gerçek bir maç logunda (mevcut turnuva verisi, uydurma değil)
+  tarayıcıda görsel olarak doğrulandı.
+
 ## Sırada
 
-P0 tamamlandı. Bu turda P1 backlog'un elimizdeki kısmı tamamlandı.
+P0 tamamlandı. P1 backlog'un tamamı bitti — beyaz lamba da dahil.
 
 ## P1 (sonra)
 
-Beyaz lamba — Yusuf'un `docs/DEVIR.md`'deki "Osman → Yusuf" bölümünde istenen motor tarafı verisini
-eklemesini bekliyor.
+Şu an boş. Yeni P1 maddeleri geldikçe eklenecek.
 
 ## Bilerek yapılmayanlar
 

@@ -9,6 +9,75 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+> ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
+> Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
+
+### Eklendi (30.09 — Beyaz lamba UI)
+- **Turnuva sonuç sayfasında (`/turnuva/[id]`) beyaz lamba görünür oldu:** Yusuf'un motora eklediği
+  (#37) `⚪ Beyaz lamba — {ad} hedef dışına dokundu. Sayı yok.` log satırı artık tuş-tuş dökümünde
+  (`Skor detayı`) düz metin olarak kaybolmuyor — aydınlık bir şerit + `lamp-white` ışıltılı nokta ile
+  öne çıkıyor (gerçek eskrim cihazındaki beyaz lamba gibi). `CanliMac` (bitmiş maç dökümü, yeni turnuva
+  akışının kullandığı yol) + `LogLines` (eski canlı-animasyonlu yol, geriye dönük uyumluluk için) ikisinde
+  de eklendi. Gerçek bir maç logunda (mevcut turnuva verisi) tarayıcıda görsel olarak doğrulandı.
+  **Bilinçli yapılmadı:** eski canlı-izleme ekranındaki (`ScoreBug`) kırmızı/yeşil skor lambalarına üçüncü
+  bir "beyaz" flaş rengi eklenmedi — o ekran B Faz 1 ile emekliye ayrıldığı için orana uymuyordu.
+
+### Eklendi (30.09 — B Faz 0: server-authoritative turnuva, kanonik şema)
+- **`Match` tablosu artık PENDING (henüz çözülmemiş) maçları da tutabiliyor** (`docs/TURNUVA_MULTIPLAYER.md`
+  §2.1, §4 Faz 0): yeni `status` (PENDING|RESOLVED, varsayılan RESOLVED — mevcut kayıtlar etkilenmez) ve
+  `scheduledAt` alanları eklendi; `playerAId`/`playerBId`/`scoreA`/`scoreB`/`winnerId`/`log` artık nullable
+  (bracket turnuva başında oyuncular/skor belli olmadan önceden yazılabilsin diye — `seed` YİNE de baştan
+  bilinir, çünkü deterministik `f(scopeKey, tur, maçIndex)`'ten türetiliyor, oyunculardan bağımsız).
+  `getTournament`/`getCareerHistory` artık açıkça `status: "RESOLVED"` filtreliyor (tamamlanmış turnuva
+  kaydı sayfası hâlâ yalnız bitmiş maçları gösteriyor — davranış değişmedi, yalnız temel kondu). Bu faz
+  tek başına HİÇBİR kullanıcı-görünür davranışı değiştirmiyor — sadece Faz 1'in (sunucu-tik çözümleme)
+  üzerine kurulacağı zemin. Build+test(168)+lint yeşil.
+
+### Değişti (30.09 — B Faz 1: canlı turnuva artık sunucu-otoriteli)
+- **Canlı turnuva artık istemci-güdümlü DEĞİL** (`docs/TURNUVA_MULTIPLAYER.md` Faz 1) — bu, Osman'ın
+  29.09'da bulduğu "paralel evren" hatasının KÖKTEN çözümü (önceki `tour:${scopeKey}` düzeltmesi yalnız
+  ara tedbirdi). "Katıl"a basınca sunucu turnuvayı TEK SEFERDE, kayıtlı taktiklerle çözer
+  (`resolveScopedTournament`, offline otomatik yolla — `autoResolveTournament` — AYNI fonksiyonu
+  paylaşıyor) ve `finalizeTournament` sonucu hemen kesinleştirir (ödül/ranking/vs.). **Görünürlük**
+  ise tur tur açılır (`Match.status`/`scheduledAt`, ~1 dk/tur + aralarda küçük kayma) — spoiler
+  olmasın diye tüm turnuva açılana kadar şampiyon/klasman/pul kağıdı gizli kalır. Kapsam-içi HERKES
+  (kim ilk bassa da) aynı `/turnuva/[id]` sayfasını izler; eski ayrı `/turnuva/canli` akışı yalnız
+  daha önce başlamış (B öncesi) oturumlar bitene kadar yaşıyor, yeni turnuvalar hiç oraya girmiyor.
+  `getTournament` artık hem bitmiş hem "hâlâ açılıyor" turnuvaları gösteriyor (`isFullyRevealed`
+  bayrağı); sayfa periyodik kendini tazeliyor (`LiveAutoRefresh`, ilk sürüm — Faz 3'te gerçek
+  polling/senkrona taşınacak). Doğrulama: gerçek tarayıcıda kariyer oluşturuldu, turnuvaya katılıp
+  `/turnuva/[id]`'ye yönlendirildiği, kendi pul maçlarının birkaç dakika içinde gerçek isim/skorla
+  açıldığı, eleme çatalının (kendi maçı dahil) hâlâ kilitli kaldığı doğrudan izlendi. Build+test
+  (168)+lint yeşil. **Bilinçli yapılmadı (sonraki fazlar):** gerçek-zamanlı taktik gönderimi (Faz 2),
+  gerçek canlı senkron/polling (Faz 3), 256 ölçek + cron liveness (Faz 4).
+
+> ✅ **30.09.2026 — `20260930000000_m11_5_ai_dev_month` migration'ı production'a uygulandı (Yusuf).**
+> 23 AI'nın `aiDevMonth`'u doğru başlangıç değerine ayarlandı, 8 insan kariyeri sağlam doğrulandı, site
+> kesintisiz. PR #40 doğru sırayla (önce DB, sonra kod) merge edildi. Ayrıntı: DEVIR.md Karar günlüğü.
+
+### Düzeltildi (30.09 — AI havuzu aylık gelişim çakışması)
+- **Ortak AI rakip havuzunun aylık beceri gelişimi, her insanın kendi gün ilerletmesinde AYNI ayı
+  geçtiğinde tekrar tekrar işlenebiliyordu** — `worldAdvanceTx`'te "bu ay zaten işlendi mi?" kontrolü
+  yoktu; her geçiş TÜM AI'ların o ayki gelişimini yeniden zar atıp uyguluyordu. Birkaç test oyuncusu
+  zamanla aynı ayı geçtiğinde bu, AI rakiplerin tasarlanandan hızlı/tutarsız gelişmesine yol açabiliyordu.
+  Düzeltme: her AI artık kendi `aiDevMonth` (en son işlenen ay) alanını taşıyor; bir ay yalnız BİR KERE,
+  atomik bir "hak ediş" (`updateMany` + koşullu `WHERE aiDevMonth < ay`) ile işleniyor — aynı anda iki
+  insan aynı AI'yı aynı ay için işlemeye çalışırsa yalnız biri kazanır, kaybeden sessizce atlar (Postgres
+  satır kilidi bunu güvenli yapar, doğrulandı). Tohum da artık çözen kişiye değil sabit `ai.id + ay`'a
+  bağlı — kim kazanırsa kazansın sonuç aynı. Mevcut AI'lar migration'da "en ileri gitmiş insanın vardığı
+  aya kadar zaten işlenmiş" olarak başlatılıyor (ani telafi sıçraması olmasın diye). Doğrulama: gerçek
+  Prisma client'ıyla atomik hak ediş + veri-düzeltme senaryoları test edildi (beklenen sonuçlar), tam
+  build+test+lint yeşil, gerçek kariyer oluşturma akışı tarayıcıda hatasız çalıştı. **Bilinçli
+  yapılmadı:** aynı fonksiyondaki günlük AI yorgunluk toparlanması da benzer şekilde tekrarlanabiliyor
+  ama "0'ın altına inmez" sınırı olduğu için kendi kendini sınırlıyor (daha az zararlı) — şimdilik
+  dokunulmadı. Ayrıntı: `docs/DEVIR.md`.
+- **Bağımsız bulgu:** `prisma/migrations/migration_lock.toml` hâlâ `sqlite` yazıyordu, `schema.prisma`
+  ise çoktan `postgresql`e geçmişti — ikisi tutarsızdı. Ayrıca en eski migration dosyaları (`AUTOINCREMENT`
+  gibi) hâlâ ham SQLite söz dizimi içeriyor; sıfırdan bir Postgres veritabanına migration geçmişini
+  baştan uygulamak (`prisma migrate deploy`) bu yüzden başarısız oluyor — gerçek şema muhtemelen hep
+  `db push` ile senkronize edilmiş. Lock dosyası düzeltildi (`postgresql`); eski migration'ları yeniden
+  yazmak ayrı, büyük ve riskli bir iş — bugün yapılmadı, bilgi amaçlı not düşüldü.
+
 > 🚀 **28.09.2026 — UI yenilemesi canlıya alındı.** Osman'ın tüm arayüz zinciri (`feat/ui-pul-kagidi`)
 > tek merge ile `master`'a alınıp deploy edildi. Motor/şema/sunucu değişmediği için canlı test
 > verisi korunur.
