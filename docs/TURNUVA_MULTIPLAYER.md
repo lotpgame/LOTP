@@ -1,5 +1,13 @@
 # Gerçek-Zamanlı Çok-Oyunculu Turnuva — Tasarım (B)
 
+> **⭐ GDD kaynağı: `docs/gdd/Project_Engarde_23_Multiplayer_Mimarisi.docx`** — bu iş GDD'de ZATEN var.
+> Server-authoritative (23.7–23.9), **Online Turnuva** (23.4.3, 23.27: Registration→Category→Seeding→Pool→
+> Pool Results→Elimination→Final→Prize→Ranking), hile önleme (23.25–23.26), Account↔Character ayrımı
+> (23.13–23.14), Online Ranking ayrı (23.16), Matchmaking (23.18–23.20), Match State (23.22).
+> **Bu doküman = GDD 23'ün BU kod tabanındaki "NASIL"ı** (fazlar, Next/Vercel/Prisma detayları). Uygularken
+> önce GDD 23 okunur; bu iki doküman birbiriyle uyumlu.
+
+
 > **Hedef (Yusuf, 29.09):** Tek bir turnuvaya **256+ gerçek oyuncu** girer, hepsi kendi maçlarına
 > **taktik verir**, ve **herkes AYNI tek gerçekliği yaşar** — kimse farklı sonuç görmez. İş sonunda
 > herkesin sonucu aynı ve tutarlıdır. Bu, oyunun multiplayer çekirdeğidir (release öncesi kilometre taşı).

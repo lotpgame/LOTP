@@ -153,8 +153,11 @@ Tam tasarım: [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md).
 kilometre taşını **Osman tarafı üstlenecek** (kendi AI'ı kodlar). Yusuf/Claude **tam tasarımı** hazırladı;
 sen **onaylayınca** fazları (0→4) uygularsın. Aynı GitHub → tasarım sende zaten.
 
-- **Tasarım (oku):** [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md) — ilkeler, bileşenler,
-  yaşam döngüsü, **Faz 0–4**, açık kararlar (tik tetikleme, taktik penceresi, ölçek…).
+- **GDD kaynağı (asıl NE):** `docs/gdd/Project_Engarde_23_Multiplayer_Mimarisi.docx` — bu iş GDD'de ZATEN
+  tanımlı (server-authoritative, Online Turnuva 23.27, hile önleme, Account↔Character, Online Ranking ayrı,
+  Matchmaking, Match State). **Önce bunu oku.**
+- **Tasarım (bu kod tabanındaki NASIL):** [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md) — ilkeler,
+  bileşenler, yaşam döngüsü, **Faz 0–4**, açık kararlar (tik tetikleme, taktik penceresi, ölçek…). GDD 23 ile uyumlu.
 - **Çakışma önleme:** bu iş sürerken **Claude canlı-turnuva SUNUCU koduna dokunmaz**
   (`careerService` canlı yol, `startLiveTournament`, `finalizeTournament`). Sen serbestçe yeniden yazarsın.
   Yusuf tarafı yalnız motor kurallarına (skill/economy/combat/conditioning) devam eder.
