@@ -9,7 +9,18 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-> ⚠️ **30.09.2026 — B Faz 0, ŞEMA GÖÇÜ içerir, merge öncesi prod DB adımı gerekiyor.** Ayrıntı: DEVIR.md.
+> ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
+> Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
+
+### Eklendi (30.09 — Beyaz lamba UI)
+- **Turnuva sonuç sayfasında (`/turnuva/[id]`) beyaz lamba görünür oldu:** Yusuf'un motora eklediği
+  (#37) `⚪ Beyaz lamba — {ad} hedef dışına dokundu. Sayı yok.` log satırı artık tuş-tuş dökümünde
+  (`Skor detayı`) düz metin olarak kaybolmuyor — aydınlık bir şerit + `lamp-white` ışıltılı nokta ile
+  öne çıkıyor (gerçek eskrim cihazındaki beyaz lamba gibi). `CanliMac` (bitmiş maç dökümü, yeni turnuva
+  akışının kullandığı yol) + `LogLines` (eski canlı-animasyonlu yol, geriye dönük uyumluluk için) ikisinde
+  de eklendi. Gerçek bir maç logunda (mevcut turnuva verisi) tarayıcıda görsel olarak doğrulandı.
+  **Bilinçli yapılmadı:** eski canlı-izleme ekranındaki (`ScoreBug`) kırmızı/yeşil skor lambalarına üçüncü
+  bir "beyaz" flaş rengi eklenmedi — o ekran B Faz 1 ile emekliye ayrıldığı için orana uymuyordu.
 
 ### Eklendi (30.09 — B Faz 0: server-authoritative turnuva, kanonik şema)
 - **`Match` tablosu artık PENDING (henüz çözülmemiş) maçları da tutabiliyor** (`docs/TURNUVA_MULTIPLAYER.md`

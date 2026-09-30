@@ -70,9 +70,16 @@ export function CanliMac({
             <Icon name="chevron-down" size={15} className="transition-transform group-open:rotate-180" />
           </summary>
           <ul className="space-y-0.5 border-t border-line px-3 py-2 text-[13px] text-steel">
-            {log.map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
+            {log.map((line, i) =>
+              line.startsWith("⚪") ? (
+                <li key={i} className="my-1 flex items-center gap-1.5 rounded-md bg-arena-2 px-2 py-1 font-medium text-ink">
+                  <span className="lamp lamp-white h-2 w-2 shrink-0" aria-hidden="true" />
+                  {line}
+                </li>
+              ) : (
+                <li key={i}>{line}</li>
+              ),
+            )}
           </ul>
         </details>
       </div>

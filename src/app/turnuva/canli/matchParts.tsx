@@ -37,17 +37,21 @@ export function LogLines({ log, shown, live }: { log: string[]; shown: number; l
       {log.slice(0, shown).map((line, i) => {
         const newest = live && i === shown - 1;
         const header = line.startsWith("▸");
+        const whiteLight = line.startsWith("⚪"); // beyaz lamba — hedef dışı, sayı yok (flöre)
         return (
           <li
             key={i}
             className={
-              newest
-                ? `border-l-2 ${edge} pl-2 font-medium text-ink`
-                : header
-                  ? "kicker pt-1"
-                  : "pl-2.5 text-steel"
+              whiteLight
+                ? "my-1 flex items-center gap-1.5 rounded-md bg-arena-2 px-2 py-1 font-medium text-ink"
+                : newest
+                  ? `border-l-2 ${edge} pl-2 font-medium text-ink`
+                  : header
+                    ? "kicker pt-1"
+                    : "pl-2.5 text-steel"
             }
           >
+            {whiteLight && <span className="lamp lamp-white h-2 w-2 shrink-0" aria-hidden="true" />}
             {line}
           </li>
         );
