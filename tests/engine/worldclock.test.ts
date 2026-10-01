@@ -1,13 +1,39 @@
 import { describe, expect, it } from "vitest";
 import { dayOfWeek } from "@/engine/season";
-import { MS_PER_GAME_DAY, WORLD_EPOCH_MS, worldDayIndex, worldDayProgress, worldDayStartMs } from "@/engine/worldclock";
+import {
+  MS_PER_GAME_DAY,
+  WORLD_EPOCH_MS,
+  worldDayIndex,
+  worldDayProgress,
+  worldDayStartMs,
+  worldEventStartMs,
+} from "@/engine/worldclock";
 
 const DAY = MS_PER_GAME_DAY;
+const TZ = "Europe/Istanbul";
+
+/** Bir ms anının TR saatindeki saat:dakika + haftanın günü — epoch/etkinlik hizasını doğrulamak için. */
+function trParts(ms: number) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(ms));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value;
+  return { weekday: get("weekday"), hhmm: `${get("hour")}:${get("minute")}` };
+}
 
 describe("worldclock — ortak dünya saati", () => {
-  it("epoch bir PAZARTESİ (UTC)", () => {
-    // JS getUTCDay: 0=Pazar, 1=Pazartesi
-    expect(new Date(WORLD_EPOCH_MS).getUTCDay()).toBe(1);
+  it("epoch anı TR saatinde Pazartesi 00:00 (dünya saati TR yerel saatine hizalı, bkz. 02.10 bulgusu)", () => {
+    expect(trParts(WORLD_EPOCH_MS)).toEqual({ weekday: "Mon", hhmm: "00:00" });
+  });
+
+  it("günlük etkinlik anı (EVENT_HOUR) gerçekten 19:00 TR saatinde tetiklenir", () => {
+    for (let d = 0; d < 5; d++) {
+      expect(trParts(worldEventStartMs(d)).hhmm).toBe("19:00");
+    }
   });
 
   it("epoch anı → dünya günü 0; epoch öncesi 0'a sıkışır", () => {

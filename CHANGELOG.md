@@ -12,6 +12,22 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 
+### Düzeltildi (02.10 — dünya saati 3 saat kayıyordu, turnuva girişi 19:00 değil 22:00'de açılıyordu)
+- **Bulgu (Yusuf, canlı test, 02.10):** 19:15'te turnuvaya girmeye çalışan oyuncu hata alıyordu
+  ("Turnuva saati henüz gelmedi — bugün 19:00'da başlar."), kayıt/canlı ekranları da birbiriyle
+  çelişen durum gösteriyordu ("kaydol" ile "turnuva canlı" aynı anda).
+- **Kök sebep:** `src/engine/worldclock.ts`'teki `WORLD_EPOCH_MS` **UTC** gece yarısına sabitlenmişti;
+  günlük etkinlik anı (`EVENT_HOUR=19`) bu epoch'tan oran olarak hesaplanınca gerçekte **19:00 UTC =
+  22:00 TR saatinde** tetikleniyordu — kod kendi mantığına göre doğruydu, ama "19:00" hem hata
+  mesajında hem herkesin kafasında TR saatiydi. 3 saatlik fark her gün tekrarlıyordu.
+- **Düzeltme:** `WORLD_EPOCH_MS` 3 saat geriye çekildi (`Date.UTC(2026,0,4,21,0,0)` = 5 Ocak 2026
+  Pazartesi 00:00 **TR saati**). Pazartesi-çapa özelliği (dayIndex%7 → gerçek haftanın günü) korundu,
+  yalnız TR yerel saatine göre. Yeni test: günlük etkinlik anı artık gerçekten 19:00 TR'de tetikleniyor
+  (`tests/engine/worldclock.test.ts`); eski "epoch UTC Pazartesi" testi "epoch TR Pazartesi 00:00"
+  olarak güncellendi. 169/169 test yeşil.
+- **Not:** Vercel'de `WORLD_EPOCH_MS` ortam değişkeni ayrıca ayarlıysa onun da güncellenmesi gerekir
+  (kod içi varsayılan değer yalnız env var YOKSA devreye girer) — bkz. DEVIR.md.
+
 ### Eklendi (30.09 — Beyaz lamba UI)
 - **Turnuva sonuç sayfasında (`/turnuva/[id]`) beyaz lamba görünür oldu:** Yusuf'un motora eklediği
   (#37) `⚪ Beyaz lamba — {ad} hedef dışına dokundu. Sayı yok.` log satırı artık tuş-tuş dökümünde

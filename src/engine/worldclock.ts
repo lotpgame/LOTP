@@ -5,12 +5,17 @@
  *   worldDayIndex = floor((now − epoch) / gün_uzunluğu)
  *
  * 1 oyun-günü = 1 gerçek gün (varsayılan). `dayIndex` season.ts ile uyumlu (quarterOf/dayOfWeek):
- * epoch bir PAZARTESİ 00:00 UTC olduğundan dayIndex%7 gerçek haftanın gününe oturur (gerçek Salı = İl).
- * Config (epoch + gün uzunluğu) opsiyoneldir → sunucu dev'de hızlandırmak için override eder (engine saf kalır).
+ * epoch bir PAZARTESİ 00:00 **TR saatinde (Europe/Istanbul, UTC+3)** olduğundan dayIndex%7 gerçek
+ * haftanın gününe oturur (gerçek Salı = İl) VE günlük etkinlik anı (EVENT_HOUR) gerçekten TR saatine
+ * denk gelir. Config (epoch + gün uzunluğu) opsiyoneldir → sunucu dev'de hızlandırmak için override eder.
  */
 
-/** Dünya başlangıcı: 5 Ocak 2026, Pazartesi 00:00 UTC (dayIndex 0 = Pazartesi). */
-export const WORLD_EPOCH_MS = Date.UTC(2026, 0, 5, 0, 0, 0);
+/**
+ * Dünya başlangıcı: 5 Ocak 2026, Pazartesi 00:00 **TR saati** (= 4 Ocak 21:00 UTC — Türkiye UTC+3,
+ * DST yok). Bilerek UTC gece yarısı DEĞİL: aksi halde EVENT_HOUR=19 gerçekte 22:00 TR'de tetiklenir
+ * (bulgu: 02.10, canlı turnuvaya giriş "19:00'da başlar" diyip 22:00'a kadar açılmıyordu).
+ */
+export const WORLD_EPOCH_MS = Date.UTC(2026, 0, 4, 21, 0, 0);
 
 /** 1 oyun-günü kaç gerçek ms — varsayılan 1 gerçek gün. Dev'de config ile kısaltılır. */
 export const MS_PER_GAME_DAY = 24 * 60 * 60 * 1000;

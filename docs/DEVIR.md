@@ -1,6 +1,6 @@
 # Devir notu — Yusuf ↔ Osman
 
-> Son güncelleme: **2026-09-29** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
+> Son güncelleme: **2026-10-02** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 
@@ -71,6 +71,37 @@ Bugün Yusuf tarafı `master`'a çok iş aldı (hepsi canlı + testte):
 - **Ekipman ikonları:** kendi GLADIUS setimiz (PR #5). Marka sitelerinden vektör çıkarılmıyor — telif riski.
   **Üçüncü istisna (30.09, ŞEMA DAHİL, B Faz 0):** `Match` tablosuna PENDING maç desteği — aşağıdaki açık
   madde, MERGE ÖNCESİ senin bir adımını gerektiriyor (aynı desen: önce prod DB, sonra merge).
+  **Dördüncü istisna (02.10, `src/engine`, ŞEMA YOK):** `worldclock.ts`'teki `WORLD_EPOCH_MS` — aşağıya bak.
+  Oyun motoru/dengesi değil, saf tarih-saat hatası; B'nin (benim) turnuva girişini tıkıyordu.
+
+## Osman → Yusuf: Dünya saati 3 saat kayıyordu — turnuva girişi düzeltildi (açık iş: Vercel env var kontrolü)
+
+**Bulgu (Yusuf, canlı test, 02.10, Osman üzerinden iletildi):** "19:15'te turnuvaya gir dedim, tıklıyorum
+girmiyor, hata veriyor, kaydol diyor ama turnuva canlı diyor." Gerçek bir test oyuncusu B Faz 0+1'i ilk kez
+gerçek koşullarda kullandı ve tıkandı.
+
+**Kök sebep:** `src/engine/worldclock.ts`'teki `WORLD_EPOCH_MS` **UTC** gece yarısına sabitliydi. Günlük
+etkinlik anı (`EVENT_HOUR=19`) bu epoch'tan oran olarak hesaplanınca gerçekte **19:00 UTC = 22:00 TR
+saatinde** tetikleniyordu — `attendTournament`'taki hata mesajı ("bugün 19:00'da başlar") ve herkesin
+beklentisi TR saatiydi, ama kod UTC'ye göre doğru davranıp 22:00'a kadar kapıyı açmıyordu. 3 saatlik fark
+her gün tekrarlıyordu; "kaydol/canlı" çelişkisi de muhtemelen aynı kökten (tarih bazlı "bugün" göstergesi
+UTC gece yarısı = TR 03:00'te dönüyor, ama gerçek giriş kapısı 22:00 TR'ye kadar açılmıyordu).
+
+**Düzeltme (bu PR):** `WORLD_EPOCH_MS` 3 saat geriye çekildi → epoch artık 5 Ocak 2026 Pazartesi 00:00
+**TR saati**. Pazartesi-çapa (dayIndex%7 → gerçek haftanın günü) korundu. Yeni test eklendi (günlük
+etkinlik anı gerçekten TR 19:00'da), eski "epoch UTC Pazartesi" testi TR'ye güncellendi. Şema değişmedi,
+veri taşıması yok — yalnız bir sabit. `lint`+`test` (169/169)+`build` yeşil.
+
+**🚨 Senden tek bir kontrol lazım:** Vercel proje ayarlarında `WORLD_EPOCH_MS` diye bir ortam değişkeni
+AYRICA tanımlıysa (`docs/DEPLOY.md` D2'de env listesinde geçiyor), o değeri de güncellemen/silmen lazım
+— yoksa env var kod içindeki yeni varsayılanı ezer ve düzeltme canlıda etkisiz kalır. Osman tarafının
+Vercel'e erişimi yok. Tanımlı değilse zaten bir şey yapmana gerek yok, kod merge olunca otomatik düzelir.
+
+**Tek seferlik geçiş notu:** Deploy anında (hangi saatte olursa olsun) o günün `dayIndex`'i herkes için ya
+aynı kalır ya da bir ileri atlar (zararsız, veri kaybı yok), ve o günün kalan etkinlik anı 3 saat erkene
+kayar. İdeali: günün turnuvaları zaten çözülmüşken (gece) merge/deploy etmek.
+
+**Cevap (Yusuf): _bekleniyor_**
 
 ## Osman → Yusuf: B Faz 0+1 — ÖNCE PROD DB, SONRA MERGE (açık iş)
 
@@ -197,6 +228,7 @@ ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-10-02 | Dünya saati 3 saat kayması düzeltildi: `WORLD_EPOCH_MS` UTC yerine TR saatine (Europe/Istanbul) hizalandı — `EVENT_HOUR=19` artık gerçekten 19:00 TR'de tetikleniyor (önceden fiilen 22:00'ydi). Yusuf'un canlı test bulgusu (19:15'te turnuvaya giremiyordu) üzerine bulundu. `src/engine` istisnası (oyun motoru değil, saf tarih-saat hatası). Testler güncellendi (169/169 yeşil). Açık: Vercel'de ayrı bir `WORLD_EPOCH_MS` env var'ı varsa Yusuf'un güncellemesi gerekiyor | Osman + Claude |
 | 2026-09-30 | B Faz 0+1 canlıya alındı (PR #41): canlı turnuva sunucu-otoriteli oldu, "paralel evren" hatası kökten çözüldü, `/turnuva/[id]` tarayıcıda uçtan uca doğrulandı. Yusuf prod DB'ye şemayı uyguladı (veri-düzeltmesi gerekmedi), onayı Osman iletti, merge edildi. Ardından beyaz lamba UI eklendi (`⚪ Beyaz lamba` log satırı artık `lamp-white` ışıltılı noktayla öne çıkıyor, tarayıcıda gerçek maç loguyla doğrulandı) — P1 listesindeki son "beyaz lamba" maddesi kapandı | Osman + Yusuf + Claude |
 | 2026-09-30 | AI havuzu aylık gelişim çakışması düzeltildi (PR #40, `fix/ai-dev-month-dedup`): `Player.aiDevMonth` (eklemeli şema) + `worldAdvanceTx`'te atomik "hak ediş" — bir ay bir AI için yalnız bir kere işlenir. Yusuf prod DB'ye migration'ı uyguladı (23 AI → doğru değer, 8 insan kariyeri sağlam, site kırılmadı) ve onay verdi; dal güncel master'a çekildi (Yusuf'un kondisyon #35 + beyaz lamba #37 ile çakışmasız auto-merge), `vitest` 168/168 yeşil, PR merge edildi. Bağımsız bulgu: `migration_lock.toml` sqlite/postgresql tutarsızlığı düzeltildi; en eski migration dosyalarının hâlâ SQLite söz dizimi taşıması (sıfırdan replay edilemiyor) ayrı, düzeltilmemiş bir bulgu olarak not düşüldü | Osman + Yusuf + Claude |
 | 2026-09-29 | Canlı turnuva paralel-simülasyon hatası düzeltildi: `startLiveTournament`'ta tohum artık çözen oyuncunun `gs.seed`'i değil PAYLAŞILAN `scopeKey`; AI seçimi `orderBy: id asc`; çekim listesi karıştırmadan önce id'ye sıralanıyor. Yusuf'un önceliği yetişmediği için Osman'ın açık onayıyla `src/server` istisnası kullanıldı. Testler yeşil (168/168) + yeni regresyon testi (`rng.test.ts`). Ayrı, DAHA BÜYÜK bir bulgu henüz düzeltilmedi: `worldAdvanceTx`'teki AI aylık gelişim/yorgunluk toparlanması da her insanın kendi gün-ilerletmesinde tekrar tetiklenebiliyor (şema değişikliği + mevcut veriyi bozmadan geçiş gerektiriyor) — Osman'a ayrı raporlandı, onay bekliyor | Osman + Claude |
