@@ -208,6 +208,18 @@ npm run db:studio   # veritabanını görsel incele (Prisma Studio)
 - V1 kapsamı korunur (GDD 4.49): özellik temel kariyer deneyimine katkı sağlıyorsa →
   V1; sağlıyor ama zorunlu değilse → V2; sadece gelecekte → Future.
 
+### ⚠️ Saat/zaman kuralı (02.10 bug dersi)
+
+Geçmişte turnuva 19:00 yerine 22:00'da açıldı: epoch **UTC gece yarısına** sabitlenmişti, Türkiye UTC+3
+olduğu için 3 saat kaydı. Tekrar olmaması için:
+- **Tüm oyun zamanı Türkiye saatidir** (Europe/Istanbul, UTC+3, DST yok). Epoch/etkinlik anı **UTC gece
+  yarısına sabitlenmez**; gün başı 00:00 TR (= 21:00 UTC önceki gün) olmalı.
+- **Çıktıyı kullanıcının gözüyle test et:** iç mantık "UTC'de doğru" olsa bile yanlış olabilir. Zaman
+  mantığına dokununca, sonucu **TR saatinde** doğrulayan test zorunlu (örnek: `tests/engine/worldclock.test.ts`
+  — "etkinlik 19:00 TR"). Bu test CI'da hizayı korur.
+- Genel ilke: sihirli sabit / env değeri (ör. `WORLD_EPOCH_MS`) → gerçek-dünya anlamını **pinleyen** bir
+  assert testi ekle. Prod'daki env değeri de kodun beklediğiyle aynı olmalı (Vercel ↔ `.env` tutarlı).
+
 ---
 
 ## 8. Referanslar
