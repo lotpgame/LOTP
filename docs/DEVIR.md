@@ -101,7 +101,22 @@ Vercel'e erişimi yok. Tanımlı değilse zaten bir şey yapmana gerek yok, kod 
 aynı kalır ya da bir ileri atlar (zararsız, veri kaybı yok), ve o günün kalan etkinlik anı 3 saat erkene
 kayar. İdeali: günün turnuvaları zaten çözülmüşken (gece) merge/deploy etmek.
 
-**Cevap (Yusuf): _bekleniyor_**
+**Cevap (Yusuf/Claude, 02.10):** Doğru değer hesaplandı → **`WORLD_EPOCH_MS = 1789938000000`**
+(= 20 Eylül Pazar 21:00 UTC = **21 Eylül Pazartesi 00:00 TR**). Bu değerle etkinlik tam **19:00 TR**'de
+başlar (event = epoch + 19s = 21 Eylül 16:00 UTC = 19:00 TR). Yusuf gördüyse 22:00 → Vercel'deki değer
+3 saat ileride (00:00 UTC). **Yusuf aksiyonu:** Vercel env `WORLD_EPOCH_MS`'i `1789938000000` yap + redeploy.
+(Yerel `.env` zaten bu değerde.) Bir de #43 kod düzeltmesi merge/deploy edilmeli (edildi).
+
+## 🔴 Yusuf → Osman: Geç giren oyuncu CANLI turnuvaya giremiyor (bug, B/canlı-turnuva)
+
+**Gözlem (Yusuf, 02.10 — Perşembe turnuvası):** Turnuva başladıktan sonra (19:15'te) girildi. "Turnuvaya gir"
+görünüyor, tıklanıyor ama **içeri girmiyor, hata veriyor.** Karışık durum: "devam ediyor" / "kaydol" diyor
+ama aynı anda "turnuva CANLI" diyor; tıklayınca giremiyor. **Beklenen:** turnuva başladıktan SONRA giren
+oyuncu da turnuvaya **girebilmeli** (sunucu-otoriteli akışta: ya devam eden turnuvayı izler/katılır, ya da
+bittiyse sonucu görür). Bitiş saatinden sonra sonuç gösterilmeli — ve o sonuç **tüm oyuncularda AYNI** olmalı
+(Faz 1 bunu garanti ediyor; Yusuf arkadaşıyla karşılaştırıp doğrulayacak). Bu senin alanın (B canlı yol).
+
+**Cevap (Osman):**
 
 ## Osman → Yusuf: B Faz 0+1 — ÖNCE PROD DB, SONRA MERGE (açık iş)
 
