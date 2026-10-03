@@ -3,6 +3,9 @@
 > Son güncelleme: **2026-10-03** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
+>
+> 🔴 **Yusuf, ÖNCE "Senden beklenenler (Yusuf)" bölümüne bak:** Salı 06.10 19:00 TR'den önce 3 madde var
+> (Vercel env `WORLD_EPOCH_MS`, push ile düzeltmeleri canlıya indirmek, CI deploy kararı).
 
 ## Nasıl kullanılır
 
@@ -202,11 +205,33 @@ bu onayla merge edildi.
 
 ## Senden beklenenler (Yusuf)
 
-Şu an karar gerektiren açık madde yok. Küçük bir not, acil değil: motorun maç anlatımı
-(`src/engine/combat/index.ts`, `src/server/careerService.ts`) hâlâ "🏁 … kazandı", "⏱ Süre doldu",
-"🏅 Altın tuş!" gibi emoji'li satırlar üretiyor — arayüzün geri kalanında emoji kalmadı. İstersen
-kaldırabilirsin, arayüz kazananı ve altın tuşu zaten ayrıca gösteriyor. Motor tarafı olduğu için Osman
-dokunmuyor.
+**🔴 Salı 06.10 19:00 TR'den ÖNCE (sıradaki turnuva günü) — sırayla:**
+
+1. **Vercel env `WORLD_EPOCH_MS = 1789938000000` doğru mu?** (Vercel → Project → Settings → Environment
+   Variables → Production.) Farklıysa ya da yoksa ayarla; env değişikliği yalnız YENİ dağıtımda etkili olur.
+   Ayrıntı: aşağıda "Dünya saati 3 saat kayıyordu".
+2. **Cevap satırlarını yaz + PUSH et.** Benim merge'lerim Vercel Hobby'de engelleniyor (hook dahil), ancak
+   SENİN push'unla canlıya iniyor: #43 (epoch) indi, **#44 (kayıtsız oyuncu turnuvaya giremiyordu) henüz canlıda
+   değil.** Push'tan sonra Vercel → Deployments'ta en üstteki Production dağıtımının commit'i `afe2e4d` ya da
+   sonrası ve "Ready" olsun. Eski bir dağıtımı "Redeploy" etme (eski kodu yeniden derler). Ayrıntı: aşağıda
+   "Benim merge'lerim canlıya inmiyor".
+3. **Karar:** CI deploy'unu Vercel CLI + senin token'ınla yapalım mı? Evet → token'ı sen oluşturursun
+   (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` GitHub secret'ları), workflow'u ben yazarım; böylece
+   benim merge'lerim de kendiliğinden iner. Hayır → her Osman merge'ünden sonra senin bir push'un gerekir.
+
+**Kısa karar / bilgi (acil değil):**
+
+4. **Kayıt kuralı:** kayıt turnuva günü 00:00'da kapanıyor. Turnuva günü gelen kayıtsız oyuncu ilk girense
+   sahaya alınır (oynar); turnuva kurulduktan sonra gelen kayıtsız oyuncu izler. Bu sana uyuyor mu, yoksa
+   gevşetelim mi (ör. turnuva kurulana kadar herkes katılabilsin)? Ayrıntı: "Geç giren oyuncu CANLI
+   turnuvaya giremiyor" cevabı.
+5. **İsteğe bağlı kontrol (Neon SQL, yalnız okuma):** takılı eski canlı oturum var mı —
+   `SELECT id, "dayIndex" FROM "GameState" WHERE "liveTournament" IS NOT NULL;` — satır dönerse bana haber ver.
+
+**Küçük not (eski, acil değil):** motorun maç anlatımı (`src/engine/combat/index.ts`,
+`src/server/careerService.ts`) hâlâ "🏁 … kazandı", "⏱ Süre doldu", "🏅 Altın tuş!" gibi emoji'li satırlar
+üretiyor — arayüzün geri kalanında emoji kalmadı. İstersen kaldırabilirsin, arayüz kazananı ve altın tuşu zaten
+ayrıca gösteriyor. Motor tarafı olduğu için Osman dokunmuyor.
 
 ## Osman → Yusuf: Beyaz lamba için veri lazım (açık iş)
 
