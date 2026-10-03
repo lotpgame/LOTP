@@ -1447,10 +1447,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
     return { live: true, tournamentId: existing.id };
   }
   const result = await resolveScopedTournament(gs, human, act.level, scopeKey, { stagger: true });
-  if (!result) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
-    return {};
-  }
+  if (!result) throw new Error("Turnuva için yeterli rakip yok."); // günü SESSİZCE harcama — görünür hata
   return { live: true, tournamentId: result.fin.id };
 }
 
@@ -1643,7 +1640,8 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
     categoryId: tourn.categoryId,
     isFullyRevealed,
     nextRevealAt: nextRevealAt?.toISOString() ?? null,
-    yourPosition: isFullyRevealed ? (you?.finalPosition ?? fieldSize) : null,
+    youParticipated: you != null,
+    yourPosition: isFullyRevealed && you ? (you.finalPosition ?? fieldSize) : null,
     yourSeedRank: you?.seedRank ?? null, // seed pul aşamasından belli olur — spoiler değil
     championName: isFullyRevealed ? (champion ? (nameById.get(champion.playerId) ?? "?") : "?") : null,
     pools: isFullyRevealed ? buildPoolsView(tourn.participants, nameById, humanId) : [],
@@ -1720,6 +1718,7 @@ export interface TournamentResultDTO {
   // spoiler olmasın diye tüm maçlar açılana kadar şampiyon/klasman/pul kağıdı gizli kalır.
   isFullyRevealed: boolean;
   nextRevealAt: string | null; // ISO — bir sonraki maçın açılacağı an (henüz bitmediyse)
+  youParticipated: boolean; // false → izleyici (turnuva sen girmeden kurulmuş ve sahada değilsin)
   yourPosition: number | null;
   yourSeedRank: number | null;
   championName: string | null;
@@ -3030,24 +3029,23 @@ async function resolveScopedTournament(
   const myScope = geoScopeForLevel(level, country?.code ?? "??", myCity);
   const regs = await prisma.registration.findMany({ where: { worldDay: gs.dayIndex, level } });
   const tacticByPlayer = new Map(regs.map((r) => [r.playerId, r.tactic as Tactic]));
+  if (!tacticByPlayer.has(human.id)) tacticByPlayer.set(human.id, human.tactic as Tactic); // kayıtsız: kendi varsayılanı
   const categoryByPlayer = new Map(regs.map((r) => [r.playerId, r.categoryId]));
   const regPlayers = await prisma.player.findMany({
     where: { id: { in: regs.map((r) => r.playerId) }, isAI: false },
     include: { skills: true, club: true, nationality: true },
   });
-  // Çözücü her zaman dahil; diğerleri AYNI kategori + AYNI coğrafi kapsam ise dahil.
-  const inScope = regPlayers.filter(
+  // Diğer gerçek oyuncular: kayıtlı + AYNI kategori + AYNI coğrafi kapsam.
+  const coHumans = regPlayers.filter(
     (p) =>
-      p.id === human.id ||
-      (categoryByPlayer.get(p.id) === base.categoryId &&
-        geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope),
+      p.id !== human.id &&
+      categoryByPlayer.get(p.id) === base.categoryId &&
+      geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope,
   );
-  // Çözücü her zaman en başta (günü ilerleyen taraf o).
-  const humans = [
-    ...inScope.filter((p) => p.id === human.id),
-    ...inScope.filter((p) => p.id !== human.id),
-  ];
-  if (humans.length === 0) return null;
+  // Çözücü (canlı katılan) HER ZAMAN sahada ve en başta (günü ilerleyen taraf o) — kayıt şartı yok:
+  // kayıt gün-00:00'da kapanır ama o gün gelen oyuncu da oynar. (Kayıt satırından süzülürse kayıtsız
+  // oyuncu sessizce dışarıda kalıyordu: "Turnuvaya gir"e basıyor, hiçbir şey olmuyor, günü gidiyordu.)
+  const humans = [human, ...coHumans];
 
   const aiNeeded = Math.max(0, FIELD_TARGET - humans.length);
   const aiPlayers = await prisma.player.findMany({

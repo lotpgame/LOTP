@@ -545,6 +545,7 @@ const TR: Dict = {
   "idp.live.note": "Bu turnuvayı kapsamındaki herkes aynı anda izliyor. Sonuç kesinleşti, maçlar tur tur açılıyor.",
   "idp.live.nextSoon": "Sıradaki tur birazdan açılıyor…",
   "idp.pending": "Henüz oynanmadı",
+  "idp.spectator": "Bu turnuva sen girmeden kurulmuştu ve sahada değildin — sonucu izliyorsun.",
 };
 
 const EN: Dict = {
@@ -1055,6 +1056,7 @@ const EN: Dict = {
   "idp.live.note": "Everyone in this tournament's scope is watching the same thing right now. The result is already decided, matches are revealed round by round.",
   "idp.live.nextSoon": "The next round unlocks shortly…",
   "idp.pending": "Not played yet",
+  "idp.spectator": "This tournament was already set up before you joined and you weren't in the field — you're watching it.",
 };
 
 const DE: Dict = {
@@ -1574,6 +1576,7 @@ const DE: Dict = {
   "idp.live.note": "Alle in dieser Turnierrunde sehen gerade dasselbe. Das Ergebnis steht schon fest, die Begegnungen werden Runde für Runde freigeschaltet.",
   "idp.live.nextSoon": "Die nächste Runde wird gleich freigeschaltet …",
   "idp.pending": "Noch nicht gespielt",
+  "idp.spectator": "Dieses Turnier stand schon, bevor du dazugekommen bist, und du warst nicht im Feld — du schaust zu.",
 };
 
 // es/fr henüz çevrilmedi → şimdilik TR'ye düşer (çeviriler sonra eklenecek, kullanıcı isteği).

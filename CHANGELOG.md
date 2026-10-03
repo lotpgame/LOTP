@@ -12,6 +12,25 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 
+### Düzeltildi (03.10 — kayıtsız oyuncu "Turnuvaya Gir"e basınca sahaya alınmıyordu)
+- **Bulgu (Yusuf, 02.10):** "Turnuvaya gir" görünüyor, tıklanıyor ama içeri girmiyor; "kaydol / canlı / devam
+  ediyor" karışık görünüyor; turnuva başladıktan sonra gelen oyuncu giremiyor.
+- **Kök sebep (B Faz 1'de benim eklediğim regresyon):** `resolveScopedTournament` alanı yalnız KAYIT
+  satırlarından kuruyordu — "çözücü her zaman dahil" yorumuna rağmen çözücü kayıt satırından süzülünce
+  kayıtsız oyuncu sahada yoktu. Başka kayıtlı gerçek oyuncu da yoksa alan boş kalıp `null` dönüyor ve
+  `attendTournament` hiçbir tepki vermeden günü ilerletiyordu (butona basıyorsun, sayfa yenileniyor,
+  turnuva yok, günün gitmiş). Eski canlı akışta (`startLiveTournament`) canlı katılan kayıt aramadan hep
+  sahadaydı; ben offline yolun alan kurma mantığını paylaşırken bunu kaybettim. (Test hep önceden
+  kaydettiğim oyuncularla yapıldığı için görünmedi.)
+- **Düzeltme:** tetikleyen oyuncu artık kayıt şartı olmadan sahaya dahil (kayıtsızsa kendi varsayılan
+  taktiği); sahada rakip olamıyorsa gün sessizce harcanmıyor — açık hata. Turnuva kurulduktan SONRA gelen
+  kayıtsız oyuncu bracket'e eklenemez (tek gerçeklik): sayfayı **izleyici** olarak açar — "sahada değildin"
+  notu, Senin Maçların bölümü ve sahte "sondan birinci" başlığı yok, şampiyon + klasman görünür
+  (`TournamentResultDTO.youParticipated`, yeni `idp.spectator` TR/EN/DE).
+- **Doğrulandı (yerel, gerçek tarayıcı, gerçek saat 19:15 TR'ye ayarlı):** kayıtsız 1. oyuncu "Turnuvaya
+  Gir" → `/turnuva/1`, DB'de 24 katılımcıda insan olarak var (23 AI dolgu); kayıtsız 2. oyuncu sonradan
+  gelince aynı `/turnuva/1`'i izleyici olarak görüyor (DB'de katılımcı değil). Şema/veri değişmedi.
+
 ### Düzeltildi (02.10 — dünya saati 3 saat kayıyordu, turnuva girişi 19:00 değil 22:00'de açılıyordu)
 - **Bulgu (Yusuf, canlı test, 02.10):** 19:15'te turnuvaya girmeye çalışan oyuncu hata alıyordu
   ("Turnuva saati henüz gelmedi — bugün 19:00'da başlar."), kayıt/canlı ekranları da birbiriyle

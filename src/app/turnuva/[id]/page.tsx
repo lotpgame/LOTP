@@ -59,7 +59,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   const firstDeRound = yourDE[0]?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
   const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
-  const headline = tour.isFullyRevealed
+  const headline = tour.isFullyRevealed && tour.youParticipated
     ? buildHeadline(locale, {
         name: tour.standings.find((s) => s.isHuman)?.name ?? "",
         tournament: tour.name,
@@ -80,6 +80,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <h1 className="mt-2 font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
       <p className="text-[14px] text-steel">{tour.categoryId}</p>
 
+      {!tour.youParticipated && <p className="mt-3 panel p-3 text-[14px] text-steel">{t(locale, "idp.spectator")}</p>}
+
       {!tour.isFullyRevealed ? (
         <div className="mt-5 panel border-ink p-4">
           <div className="flex items-center gap-2">
@@ -89,22 +91,28 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           <p className="mt-1.5 text-[14px] text-steel">{t(locale, "idp.live.note")}</p>
           <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.live.nextSoon")}</p>
         </div>
+      ) : headline ? (
+        <div className="mt-5">
+          <HeadlineCard h={headline} kicker={t(locale, "idp.result")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
+            <p className="mt-1 text-[14px] text-steel">
+              {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
+              {!headline.champion && tour.championName && t(locale, "canli.champion", { name: tour.championName })}
+            </p>
+          </HeadlineCard>
+        </div>
       ) : (
-        headline && (
-          <div className="mt-5">
-            <HeadlineCard h={headline} kicker={t(locale, "idp.result")} shareHref={await whatsAppHref(locale, headline)} locale={locale}>
-              <p className="mt-1 text-[14px] text-steel">
-                {tour.yourSeedRank ? t(locale, "idp.seedLine", { n: tour.yourSeedRank }) : ""}
-                {!headline.champion && tour.championName && t(locale, "canli.champion", { name: tour.championName })}
-              </p>
-            </HeadlineCard>
-          </div>
+        tour.championName && (
+          <div className="mt-5 panel p-4 text-[16px] font-semibold">{t(locale, "canli.champion", { name: tour.championName })}</div>
         )
       )}
 
       <section className="mt-6">
-        <h2 className="display text-[20px]">{t(locale, "idp.yourMatches")}</h2>
-        <p className="text-[14px] text-steel">{t(locale, "idp.intro")}</p>
+        {tour.youParticipated && (
+          <>
+            <h2 className="display text-[20px]">{t(locale, "idp.yourMatches")}</h2>
+            <p className="text-[14px] text-steel">{t(locale, "idp.intro")}</p>
+          </>
+        )}
 
         {yourPool.length > 0 && (
           <>

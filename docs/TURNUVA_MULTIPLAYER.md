@@ -118,6 +118,12 @@ simülasyonundan** miras sonuç alıyor. (Osman'ın bulgusu, DEVIR 29.09.)
   az kod ve karmaşıklıkla. Taktik penceresi (Faz 2) geldiğinde bu, gerçek incremental çözümlemeye
   evrilebilir. `startLiveTournament`/`/turnuva/canli` emekliye ayrıldı (kod duruyor, yeni turnuva hiç
   girmiyor — yalnız B-öncesi başlamış oturumlar için).
+  **Katılım kuralı (02.10 düzeltmesi):** tetikleyen (ilk "Turnuvaya Gir"e basan) oyuncu KAYIT ŞARTI
+  OLMADAN sahaya dahil edilir (kayıt gün-00:00'da kapanır ama o gün gelen de oynar; eski canlı akışta
+  da böyleydi) — diğer gerçek oyuncular kayıtlı + aynı kategori/kapsam ise. Turnuva kurulduktan SONRA
+  gelen kayıtsız oyuncu sahaya eklenemez (tek gerçeklik, bracket sabit): sayfayı İZLEYİCİ olarak açar
+  (`youParticipated=false`, "sahada değildin" notu, şampiyon + klasman görünür). Kayıtlı geç gelen,
+  zaten alanda olduğu için normal katılımcı görünümü alır.
 - **Faz 2 — Taktik pencereleri.** Tur başı taktik gönderimi + fallback + çözümde uygulama.
 - **Faz 3 — Canlı senkron (istemci).** Polling tabanlı canlı ekran (ilerleme, o anki maç, sıradaki maçın +
   taktik formu). Manuel "geç" yok (NOTLAR #25 ile uyumlu — otomatik akış). Faz 1'in ilk sürümü

@@ -1,6 +1,6 @@
 # Devir notu — Yusuf ↔ Osman
 
-> Son güncelleme: **2026-10-02** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
+> Son güncelleme: **2026-10-03** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 
@@ -106,8 +106,13 @@ kayar. İdeali: günün turnuvaları zaten çözülmüşken (gece) merge/deploy 
 başlar (event = epoch + 19s = 21 Eylül 16:00 UTC = 19:00 TR). Yusuf gördüyse 22:00 → Vercel'deki değer
 3 saat ileride (00:00 UTC). **Yusuf aksiyonu:** Vercel env `WORLD_EPOCH_MS`'i `1789938000000` yap + redeploy.
 (Yerel `.env` zaten bu değerde.) Bir de #43 kod düzeltmesi merge/deploy edilmeli (edildi).
+**Doğrulama (Osman/Claude, 03.10):** `1789938000000` hesapla kontrol edildi → 20 Eylül 21:00 UTC = 21 Eylül
+Pazartesi 00:00 TR, 19:00 etkinlik anı = 21 Eylül 19:00 TR ✔ ve bugünün dünya günü 12 = Cumartesi ✔ (Pazartesi
+çapası tutuyor). **Açık:** Vercel'deki değerin güncellenip redeploy edildiğini kimse yazmadı — Yusuf, bu
+yapıldıysa buraya "✅ yapıldı" yaz (bir sonraki turnuva Salı 06.10, İl, 19:00 TR; bu Cumartesi Open yok —
+hafta 12/7=1, tek hafta → antrenman).
 
-## 🔴 Yusuf → Osman: Geç giren oyuncu CANLI turnuvaya giremiyor (bug, B/canlı-turnuva)
+## ✅ Yusuf → Osman: Geç giren oyuncu CANLI turnuvaya giremiyor (bug, B/canlı-turnuva)
 
 **Gözlem (Yusuf, 02.10 — Perşembe turnuvası):** Turnuva başladıktan sonra (19:15'te) girildi. "Turnuvaya gir"
 görünüyor, tıklanıyor ama **içeri girmiyor, hata veriyor.** Karışık durum: "devam ediyor" / "kaydol" diyor
@@ -116,7 +121,25 @@ oyuncu da turnuvaya **girebilmeli** (sunucu-otoriteli akışta: ya devam eden tu
 bittiyse sonucu görür). Bitiş saatinden sonra sonuç gösterilmeli — ve o sonuç **tüm oyuncularda AYNI** olmalı
 (Faz 1 bunu garanti ediyor; Yusuf arkadaşıyla karşılaştırıp doğrulayacak). Bu senin alanın (B canlı yol).
 
-**Cevap (Osman):**
+**Cevap (Osman/Claude, 03.10): ✅ iki ayrı sebep bulundu, ikisi de düzeltildi.**
+1. **Saat (02.10, #43):** o günkü ilk hata ("Turnuva saati henüz gelmedi — bugün 19:00'da başlar") buydu —
+   kapı 22:00 TR'de açılıyordu. Düzeltme + Vercel env adımı yukarıda.
+2. **Benim B Faz 1 regresyonum (yeni):** kayıtsız oyuncu "Turnuvaya Gir"e basınca sahaya alınmıyordu —
+   alan yalnız KAYIT satırlarından kuruluyordu, tetikleyen kayıtlı değilse süzülüp dışarıda kalıyordu; başka
+   kayıtlı gerçek oyuncu da yoksa alan boşalıp günü SESSİZCE ilerletiyordu ("tıklıyorsun, girmiyor"). Kayıt
+   gün-00:00'da kapandığı için turnuva günü gelen herkes kayıtsız = tam senin tarif ettiğin durum. Eski canlı
+   akışta canlı katılan hep sahadaydı; ben offline yolun alan kurmasını paylaşırken bunu kaybettim.
+   **Şimdi:** tetikleyen kayıt aramadan sahada; **turnuva kurulduktan SONRA gelen kayıtsız oyuncu** bracket'e
+   eklenemez (tek gerçeklik) → **izleyici** olarak aynı turnuvayı açar (sonuç herkeste aynı), "sahada değildin"
+   notuyla; "Kaydol" ile "CANLI" yan yana görünmesi ise çelişki değil (CANLI = bugünkü turnuva, Kaydol =
+   gelecek turnuvalar). Yerelde gerçek tarayıcıyla doğrulandı: kayıtsız 1. oyuncu sahada (24 kişide insan), 2.
+   oyuncu aynı turnuvayı izleyici görüyor. Ayrıntı: CHANGELOG 03.10.
+   **Kural (Yusuf'a not):** turnuvada OYNAMAK için ya önceden kaydol (taktik seçersin) ya da turnuva günü
+   ilk giren sen ol; kurulduktan sonra gelen izler. İstersen "kayıt gün-00:00'da kapanır" kuralını gevşetmeyi
+   (ör. turnuva kurulana kadar kayıt/katılım açık) ayrıca konuşuruz — şimdilik tasarımdaki kural duruyor.
+   **İsteğe bağlı kontrol (Neon SQL, yalnız okuma):** bu bug'ın "devam ediyor" yanını da dışlamak için takılı
+   eski canlı oturum var mı: `SELECT id, "dayIndex" FROM "GameState" WHERE "liveTournament" IS NOT NULL;` —
+   satır dönerse o oyuncunun TÜM `/kariyer` sayfaları `/turnuva/canli`ya yönleniyor; haber ver, temizlerim.
 
 ## Osman → Yusuf: B Faz 0+1 — ÖNCE PROD DB, SONRA MERGE (açık iş)
 
@@ -243,6 +266,7 @@ ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-10-03 | Kayıtsız oyuncu turnuvaya giremiyordu (B Faz 1 regresyonu, benim): `resolveScopedTournament` alanı yalnız kayıt satırlarından kuruyordu, tetikleyen kayıtlı değilse sahadan düşüyor/alan boşalınca gün sessizce ilerliyordu. Düzeltildi: tetikleyen her zaman sahada (kayıt şartı yok), rakip yoksa açık hata, turnuva kurulduktan sonra gelen kayıtsız oyuncu izleyici (`youParticipated=false`, "sahada değildin" notu, sahte "son sıra" başlığı yok). Yerelde 2 oyuncuyla tarayıcıda doğrulandı. `src/server` canlı-turnuva yolu (benim alanım), şema yok | Osman + Claude |
 | 2026-10-02 | Dünya saati 3 saat kayması düzeltildi: `WORLD_EPOCH_MS` UTC yerine TR saatine (Europe/Istanbul) hizalandı — `EVENT_HOUR=19` artık gerçekten 19:00 TR'de tetikleniyor (önceden fiilen 22:00'ydi). Yusuf'un canlı test bulgusu (19:15'te turnuvaya giremiyordu) üzerine bulundu. `src/engine` istisnası (oyun motoru değil, saf tarih-saat hatası). Testler güncellendi (169/169 yeşil). Açık: Vercel'de ayrı bir `WORLD_EPOCH_MS` env var'ı varsa Yusuf'un güncellemesi gerekiyor | Osman + Claude |
 | 2026-09-30 | B Faz 0+1 canlıya alındı (PR #41): canlı turnuva sunucu-otoriteli oldu, "paralel evren" hatası kökten çözüldü, `/turnuva/[id]` tarayıcıda uçtan uca doğrulandı. Yusuf prod DB'ye şemayı uyguladı (veri-düzeltmesi gerekmedi), onayı Osman iletti, merge edildi. Ardından beyaz lamba UI eklendi (`⚪ Beyaz lamba` log satırı artık `lamp-white` ışıltılı noktayla öne çıkıyor, tarayıcıda gerçek maç loguyla doğrulandı) — P1 listesindeki son "beyaz lamba" maddesi kapandı | Osman + Yusuf + Claude |
 | 2026-09-30 | AI havuzu aylık gelişim çakışması düzeltildi (PR #40, `fix/ai-dev-month-dedup`): `Player.aiDevMonth` (eklemeli şema) + `worldAdvanceTx`'te atomik "hak ediş" — bir ay bir AI için yalnız bir kere işlenir. Yusuf prod DB'ye migration'ı uyguladı (23 AI → doğru değer, 8 insan kariyeri sağlam, site kırılmadı) ve onay verdi; dal güncel master'a çekildi (Yusuf'un kondisyon #35 + beyaz lamba #37 ile çakışmasız auto-merge), `vitest` 168/168 yeşil, PR merge edildi. Bağımsız bulgu: `migration_lock.toml` sqlite/postgresql tutarsızlığı düzeltildi; en eski migration dosyalarının hâlâ SQLite söz dizimi taşıması (sıfırdan replay edilemiyor) ayrı, düzeltilmemiş bir bulgu olarak not düşüldü | Osman + Yusuf + Claude |
