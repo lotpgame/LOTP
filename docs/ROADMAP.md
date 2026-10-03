@@ -390,6 +390,9 @@ Kod incelemesiyle (2026-09-28, dış katkıcı analizi) tespit edilen riskler. �
   Dış katkıcı merge'leri Vercel'e **Deploy Hook** ile çıkar (Hobby plan yalnız proje sahibinin commit'lerini
   yayınlar); secret `VERCEL_DEPLOY_HOOK` yoksa CI kırmızı olur → "canlıya çıkmadı" görünür. Not: proje sahibinin
   kendi push'ları CI'yı beklemeden Vercel'e gider (CI yalnız uyarır).
+  ⚠ **03.10 bulgu:** hook yeşil olsa da `gencosman10` yazarlı commit'ler Vercel'de hook dahil "Deployment was
+  blocked" alıyor (GitHub Deployments API + commit status) → bu merge'ler yalnız proje sahibinin sonraki push'uyla
+  canlıya iner (bkz. DEVIR.md). Kalıcı çözüm adayı: `vercel deploy --prebuilt` + sahibin token'ı.
 - 🟠 **R5 — `src/server/careerService.ts` ~3.200 satır.** Kimlik, kariyer, antrenman, turnuva, canlı turnuva,
   ekipman, geri bildirim tek dosyada → çakışma ve regresyon riski büyüyor. **Yapılacak:** büyük tek refactor
   değil; ilgili özelliğe dokunulduğunda o parça ayrı modüle (`server/auth.ts`, `server/liveTournament.ts` …).
