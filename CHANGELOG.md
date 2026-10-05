@@ -12,6 +12,26 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 
+### Değiştirildi (05.10 — oyun zamanı TR saati → GMT dünya saati)
+- **Karar (Yusuf):** Oyun zamanı artık **GMT (dünya saati)**. TR saati kullanılmaz; oyuncu bulunduğu
+  bölgeye göre kendi yerel saatine çevirir. Gün başı **00:00 GMT**'de döner, günlük etkinlik (turnuva)
+  **18:00 GMT**'de olur (önceki 19:00 TR).
+- `worldclock.ts`: `EVENT_HOUR = 18`; `WORLD_EPOCH_MS = Date.UTC(2026,8,21,0,0,0)` = `1789948800000`
+  (21 Eylül 2026 Pzt **00:00 UTC**). Eski epoch 20 Eylül 21:00 UTC'ydi (00:00 TR çapası); gün sınırı
+  +3 saat kaydırılıp 00:00 GMT yapıldı — **dayIndex haftası korundu, canlı kariyerler bozulmadı.**
+- Gösterim GMT'ye çevrildi: turnuva saatleri, "sıradaki turnuva" kartı, tarih etiketleri
+  (`timeZone: "UTC"`). "TR saati" ibaresi kaldırıldı (`next.trTime` = "GMT"). Kullanıcıya görünen
+  "19:00" uyarı metni 18:00 GMT oldu.
+- Test: `worldclock.test.ts` artık "etkinlik **18:00 GMT**" + "epoch Pzt 00:00 GMT" pinliyor.
+- **Prod aksiyonu:** Vercel env `WORLD_EPOCH_MS = 1789948800000` (kod ile aynı) olmalı — aksi halde
+  canlıda saat kayar (bkz. CLAUDE.md §7).
+
+### Eklendi (05.10 — Ayarlar → Görünüm: Klasik / Yatay düzen)
+- Mobilde **yatay (landscape) düzen** seçeneği: üstte 4 ince sekme + sağ üstte canlı **GMT saat rozeti**
+  (`WorldClockBadge`), altta 5 ince sekme, ortada tam içerik; alt gün çubuğu gizlenir. Tercih `localStorage`'da
+  (kişiye/cihaza özel), `<html data-view>` + `vland:` Tailwind varyantıyla **anında** uygulanır (yanıp
+  sönmesiz boot script). **Varsayılan Klasik (dikey)** → mevcut oyuncular için hiçbir değişiklik yok.
+
 ### Düzeltildi (03.10 — kayıtsız oyuncu "Turnuvaya Gir"e basınca sahaya alınmıyordu)
 - **Bulgu (Yusuf, 02.10):** "Turnuvaya gir" görünüyor, tıklanıyor ama içeri girmiyor; "kaydol / canlı / devam
   ediyor" karışık görünüyor; turnuva başladıktan sonra gelen oyuncu giremiyor.

@@ -10,10 +10,11 @@ import {
 } from "@/engine/worldclock";
 
 const DAY = MS_PER_GAME_DAY;
-const TZ = "Europe/Istanbul";
+const TZ = "UTC";
 
-/** Bir ms anının TR saatindeki saat:dakika + haftanın günü — epoch/etkinlik hizasını doğrulamak için. */
-function trParts(ms: number) {
+/** Bir ms anının GMT (UTC) saat:dakika + haftanın günü — epoch/etkinlik hizasını doğrulamak için.
+ * Oyun zamanı GMT'dir (TR değil); bu test o gerçek-dünya anlamını pinler (CLAUDE.md §7). */
+function gmtParts(ms: number) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TZ,
     weekday: "short",
@@ -26,13 +27,13 @@ function trParts(ms: number) {
 }
 
 describe("worldclock — ortak dünya saati", () => {
-  it("epoch anı TR saatinde Pazartesi 00:00 (dünya saati TR yerel saatine hizalı, bkz. 02.10 bulgusu)", () => {
-    expect(trParts(WORLD_EPOCH_MS)).toEqual({ weekday: "Mon", hhmm: "00:00" });
+  it("epoch anı GMT'de Pazartesi 00:00 (dünya saati GMT; 05.10 TR→GMT kararı)", () => {
+    expect(gmtParts(WORLD_EPOCH_MS)).toEqual({ weekday: "Mon", hhmm: "00:00" });
   });
 
-  it("günlük etkinlik anı (EVENT_HOUR) gerçekten 19:00 TR saatinde tetiklenir", () => {
+  it("günlük etkinlik anı (EVENT_HOUR) gerçekten 18:00 GMT'de tetiklenir", () => {
     for (let d = 0; d < 5; d++) {
-      expect(trParts(worldEventStartMs(d)).hhmm).toBe("19:00");
+      expect(gmtParts(worldEventStartMs(d)).hhmm).toBe("18:00");
     }
   });
 

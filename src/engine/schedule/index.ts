@@ -18,10 +18,13 @@ export const SCHEDULE = {
   periodBreakSeconds: 60, // FIE: periyot arası 1 dk (online oyuncu taktik değiştirir)
   poolMatchGapSeconds: 60, // pul maçları arası boşluk
   roundGapSeconds: 120, // eleme turları arası (~2 dk)
-  poolWarmupSeconds: 300, // pul 19:00 açılır, ilk maç 19:05
-  poolStartMinute: 19 * 60, // 19:00 — turnuva akşam başlar (gün 00:00 döner, etkinlik 19:00)
-  deStartMinute: 19 * 60 + 45, // 19:45 — elemeler (pul bitiminden ~15 dk sonra)
-  finalsStartMinute: 20 * 60 + 30, // 20:30 — Yarı Final + Final
+  poolWarmupSeconds: 300, // pul 18:00 GMT açılır, ilk maç 18:05
+  poolStartMinute: 18 * 60, // 18:00 GMT — turnuva başlar (gün 00:00 GMT döner, etkinlik 18:00 GMT)
+  deStartMinute: 18 * 60 + 45, // 18:45 — elemeler (pul bitiminden ~15 dk sonra)
+  finalsStartMinute: 19 * 60 + 30, // 19:30 — Yarı Final + Final
+  // ⚠️ NOT: bu modül şu an hiçbir yerde import EDİLMİYOR. Canlı turnuva (B) zamanlaması
+  // careerService'te tetikleme-anına göre staggerlanıyor. Kesin kadans (pul 2 dk / sonuç T+17 /
+  // eleme 10 dk) B Faz 2'de DEVIR şartnamesine göre (Osman) yeniden kurulacak.
 } as const;
 
 export type Phase = "POOL" | "DE";

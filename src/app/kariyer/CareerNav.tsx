@@ -14,6 +14,7 @@ import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { FeedbackWidget } from "./FeedbackWidget";
 import { Flag } from "./Flag";
+import { WorldClockBadge } from "./WorldClockBadge";
 
 interface NavItem {
   href: string;
@@ -117,8 +118,8 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
 
   return (
     <>
-      {/* ——— Telefon: kimlik şeridi ——— */}
-      <header className="sticky top-0 z-20 -mx-4 mb-4 flex h-16 items-center gap-3 border-b border-line bg-arena-0/90 px-4 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      {/* ——— Telefon DİKEY: kimlik şeridi (yatayda gizlenir, dikey alan kazanmak için) ——— */}
+      <header className="sticky top-0 z-20 -mx-4 mb-4 flex h-16 items-center gap-3 border-b border-line bg-arena-0/90 px-4 backdrop-blur sm:-mx-6 sm:px-6 vland:hidden lg:hidden">
         <Avatar name={name} size={36} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -128,6 +129,33 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
           {meta}
         </div>
       </header>
+
+      {/* ——— Telefon YATAY: üst sekme şeridi (4 ana sayfa) + sağda canlı GMT saat (CLAUDE.md UI prototip) ——— */}
+      <nav
+        className="sticky top-0 z-20 -mx-4 mb-2 hidden items-stretch border-b border-line bg-arena-0/90 px-2 backdrop-blur sm:-mx-6 vland:flex lg:!hidden"
+        aria-label={t(locale, "nav.menu")}
+      >
+        <div className="grid flex-1 grid-cols-4">
+          {MAIN.map((item) => {
+            const on = item.href === current;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={on ? "page" : undefined}
+                className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
+                  on ? "font-semibold text-ink" : "text-steel"
+                }`}
+              >
+                {on && <span className="absolute inset-x-5 bottom-0 h-[2px] rounded-t-full bg-sig-red" aria-hidden="true" />}
+                <Icon name={item.icon} size={16} className="shrink-0" />
+                <span className="truncate">{t(locale, item.key)}</span>
+              </Link>
+            );
+          })}
+        </div>
+        <WorldClockBadge locale={locale} />
+      </nav>
 
       {/* ——— Masaüstü: sol sidebar ——— */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-arena-1 lg:flex">
@@ -169,10 +197,11 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
 
       {/* ——— Alt blok: gün çubuğu (telefon: sekmelerin üstünde · masaüstü: sidebar'ın dibinde) + sekmeler ——— */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-arena-1/95 backdrop-blur lg:right-auto lg:w-64 lg:border-r lg:bg-arena-1">
-        <div className="mx-auto max-w-3xl lg:max-w-none">{ticker}</div>
+        {/* Gün çubuğu: yatayda gizli (tarih/saat üst şeride taşındı); dikey + masaüstünde görünür. */}
+        <div className="mx-auto max-w-3xl vland:hidden lg:block lg:max-w-none">{ticker}</div>
 
         <nav
-          className="mx-auto grid max-w-3xl grid-cols-5 border-t border-line pb-[env(safe-area-inset-bottom)] lg:hidden"
+          className="mx-auto grid max-w-3xl grid-cols-5 border-t border-line pb-[env(safe-area-inset-bottom)] vland:hidden lg:hidden"
           aria-label={t(locale, "nav.menu")}
         >
           {MAIN.map((item) => {
@@ -204,6 +233,30 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
             <Icon name="more" size={24} />
             <span>{t(locale, "nav.more")}</span>
           </button>
+        </nav>
+
+        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları (5) — üstteki 4 ile birlikte tüm menü görünür ——— */}
+        <nav
+          className="mx-auto hidden max-w-3xl grid-cols-5 border-t border-line pb-[env(safe-area-inset-bottom)] vland:grid lg:!hidden"
+          aria-label={t(locale, "nav.menu")}
+        >
+          {MORE.map((item) => {
+            const on = item.href === current;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={on ? "page" : undefined}
+                className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
+                  on ? "font-semibold text-ink" : "text-steel"
+                }`}
+              >
+                {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
+                <Icon name={item.icon} size={16} className="shrink-0" />
+                <span className="truncate">{t(locale, item.key)}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
 

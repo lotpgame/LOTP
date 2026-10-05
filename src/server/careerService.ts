@@ -681,7 +681,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     month,
     dayName: dayLabel,
     dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
-      timeZone: "Europe/Istanbul",
+      timeZone: "UTC",
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -831,7 +831,7 @@ function findNextTournament(
       level: act.level,
       label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
-      startMs: worldEventStartMs(d, cfg), // turnuva o günün 19:00'ında başlar
+      startMs: worldEventStartMs(d, cfg), // turnuva o günün 18:00 GMT'sinde başlar
       daysUntil: d - worldDay,
       isToday: d === worldDay,
       qualified: !injured && qualifies(act.qualification, humanRank),
@@ -899,7 +899,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     month: monthOfQuarter(gs.dayIndex),
     dayName: dayLabel,
     dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
-      timeZone: "Europe/Istanbul",
+      timeZone: "UTC",
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -951,7 +951,7 @@ export interface UpcomingTournamentDTO {
   label: string; // yerelleştirilmiş turnuva adı (yaş kategorisiyle)
   categoryId: string;
   dayName: string; // haftanın günü
-  dateLabel: string; // GERÇEK tarih + 19:00 saati (TR)
+  dateLabel: string; // GERÇEK tarih + 18:00 GMT saati
   quarter: number;
   month: number; // h1..h12
   qualified: boolean; // katılım hakkı (uluslararası ilk16/ilk4)
@@ -994,7 +994,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
-        timeZone: "Europe/Istanbul",
+        timeZone: "UTC",
         day: "numeric",
         month: "long",
         weekday: "long",
@@ -1428,7 +1428,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (human.injuryDaysRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
   const act = activityForDay(gs.dayIndex);
   if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
-  if (gs.dayIndex > serverEventDay()) throw new Error("Turnuva saati henüz gelmedi — bugün 19:00'da başlar.");
+  if (gs.dayIndex > serverEventDay()) throw new Error("Turnuva saati henüz gelmedi — bugün 18:00 GMT'de başlar.");
   const attendId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   if (!levelAllowedForCategory(act.level, attendId.ageCategory)) {
     throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");

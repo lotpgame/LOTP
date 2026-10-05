@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Sıradaki turnuva göstergesi — gerçek saat (TR saati) + canlı geri sayım.
+ * Sıradaki turnuva göstergesi — gerçek saat (GMT / dünya saati) + canlı geri sayım.
  * `variant="card"`: Bugün ekranı / Turnuvalar üstündeki kart (seviye etiketi, büyük geri sayım, kayıt lambası).
  * `variant="bar"`: gün çubuğunda tek satırlık ipucu.
  * Geri sayım yalnız istemcide (mount sonrası) hesaplanır → hydration uyumsuzluğu olmaz.
@@ -22,14 +22,14 @@ export interface NextTournamentInfo {
   requirement: string;
 }
 
-const TZ = "Europe/Istanbul";
+const TZ = "UTC"; // oyun zamanı GMT (dünya saati); oyuncu kendi yerel saatine çevirir
 
-function hhmmTR(ms: number): string {
+function hhmmGMT(ms: number): string {
   return new Date(ms).toLocaleTimeString("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 }
 
-/** TR takvim günü anahtarı (YYYY-MM-DD) — "Bugün/Yarın" kararı gerçek tarihe göre verilir. */
-function dateKeyTR(ms: number): string {
+/** GMT takvim günü anahtarı (YYYY-MM-DD) — "Bugün/Yarın" kararı dünya (GMT) tarihine göre verilir. */
+function dateKeyGMT(ms: number): string {
   return new Date(ms).toLocaleDateString("en-CA", { timeZone: TZ });
 }
 
@@ -81,14 +81,14 @@ export function NextTournament({
     };
   }, []);
 
-  const hhmm = hhmmTR(info.startMs);
-  // Etiket gerçek TR takvimine göre: gün geçişi akşam olduğu için "sonraki oyun günü" çoğu zaman bu akşamdır.
+  const hhmm = hhmmGMT(info.startMs);
+  // Etiket gerçek GMT takvimine göre ("Bugün/Yarın"); gün 00:00 GMT'de döner.
   const dayLabel =
     now == null
       ? info.dayName // SSR / mount öncesi: nötr (oyun günü adı)
-      : dateKeyTR(info.startMs) === dateKeyTR(now)
+      : dateKeyGMT(info.startMs) === dateKeyGMT(now)
         ? t(locale, "time.today")
-        : dateKeyTR(info.startMs) === dateKeyTR(now + 86_400_000)
+        : dateKeyGMT(info.startMs) === dateKeyGMT(now + 86_400_000)
           ? t(locale, "time.tomorrow")
           : weekday(info.startMs, locale);
   const openNow = now != null && now >= info.startMs;

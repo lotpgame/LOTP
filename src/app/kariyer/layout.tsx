@@ -83,7 +83,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
 
   return (
     <div className="lg:pl-64">
-      <div className={`mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 lg:pt-8 lg:pb-40 ${h.canAttend ? "pb-64" : "pb-48"}`}>
+      <div className={`mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 lg:pt-8 lg:pb-40 ${h.canAttend ? "pb-64 vland:pb-16" : "pb-48 vland:pb-16"}`}>
         {/* Dünya saati: işlenecek gün varsa otomatik "dünyaya yetiş" (buton yok). */}
         <AutoAdvance active={h.needsSync} />
         <CareerNav

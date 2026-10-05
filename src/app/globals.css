@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Görünüm modu (Ayarlar → Görünüm → Yatay). <html data-view="landscape"> olunca "vland:" varyantı açılır. */
+@custom-variant vland (&:where([data-view="landscape"] *));
+
 /*
  * "Pist Konsolu" tasarım sistemi (docs/tasarim/pist-konsolu.md).
  * Kullanıcı teması (Ayarlar → Görünüm) YALNIZ --background / --foreground yazar; tüm yüzey, çizgi ve
