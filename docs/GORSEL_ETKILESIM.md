@@ -182,6 +182,26 @@ Saf CSS / Web Animations; **kütüphane yok, hafif.** `prefers-reduced-motion` a
 **Nerede:** ScoreBug + canlı maç ekranı, turnuva sonuç ekranı, madalya/geçmiş. Yoğunluk küçük→büyük orantılı
 (tuş < madalya < şampiyonluk). Lamba renkleri sinyal renkleri (temadan bağımsız).
 
+**Cevap (Osman/Claude, 06.10): ✅ uygulandı — dal `feat/kutlama-efektleri`, PR [#46](https://github.com/alkanyus/LOTP/pull/46). Şema yok, motor değişmedi;
+merge/yayın Yusuf'ta.** Tuş (lamba + hale, "+1", rakam sıçraması, bant titremesi), beyaz lamba (iki taraf, skor
+artmaz), madalya konfetisi, şampiyonluk katmanı (kupa pop + "Şampiyon" + bol konfeti), "+X" (Sen yokken raporunda
+skill kazanımı). `prefers-reduced-motion` açıkken hepsi kapalı. Şartnamenin açık bıraktığı yerlerde yorumlarım
+(değiştirmek istersen tek satır):
+1. **Renk:** "SEN=kırmızı, RAKİP=yeşil" — tasarım sisteminin taraf kuralı korunuyor (kırmızı = SOL, yeşil = SAĞ, oyuncuyu
+   SEN etiketi söyler). Canlı periyotta oyuncu hep solda → kırmızı (şartnameyle aynı). Biten maç "Canlı izle" ile
+   oynatılınca oyuncu B tarafındaysa sağda/yeşilde durur.
+2. **"Canlı izle" düğmesi (eklendi):** B'den beri `/turnuva/[id]`'de maçlar yalnız geçmiş kipte (skor + Skor detayı)
+   görünüyordu → tuş efektinin görüneceği ekran yoktu. Kendi maçlarına "Canlı izle" koydum (CanliMac'in var olan canlı
+   kipi); skor yine baştan görünür, spoiler kuralı değişmedi. İstemezsen kaldırırım.
+3. **Beyaz lamba yeri:** bandın pist ortasına bakan ucunda (gerçek cihazlardaki gibi içte), yalnız yanarken görünür →
+   epede/kılıçta boş lamba durmaz. Taraf, motor satırındaki addan bulunur (motor değişmedi).
+4. **"Madalya/geçmiş":** kutlama turnuva sonuç ekranında oynar; Kariyer Geçmişi'nden eski bir turnuva açılınca aynı
+   ekran geldiği için orada da oynar. Kupa vitrini (#3) gelince aynı bileşen "yeni" rozetlerde kullanılabilir.
+5. **"Büyük başarı":** şimdilik yalnız şampiyonluk (milli takım daveti sonuç ekranında yok).
+6. **Ses eklenmedi:** opsiyonel; §5'teki "ses varsayılan açık mı kapalı mı?" kararı açık ve mevcut ayar varsayılan
+   **açık** — karar gelince kısa bip + madalya jingle'ı (dosyasız, WebAudio) eklenir.
+7. **Sıralama yükselmesi "+X":** eski sıra verisi sonuç ekranında yok → yalnız skill kazanımında.
+
 ---
 
 ## 7. #3 Kupa/madalya vitrini + kariyer zaman çizgisi — uygulama şartnamesi (onaylandı 06.10)
@@ -208,6 +228,38 @@ olduğundan tarihler oyun takvimiyle tutarlı.
 **Renkler:** altın `#e0b23f`/koyu metin `#8a6410`, gümüş `#eceef1`/`#5a6068`, bronz `#f3e3d5`/`#7a4e2b`.
 **Teslim:** Osman branch + PR; canlıya Yusuf alır.
 
+**Cevap (Osman/Claude, 06.10): ✅ uygulandı — dal `feat/kupa-vitrini`, PR [#47](https://github.com/alkanyus/LOTP/pull/47) (#46'nın üstüne kurulu; merge/yayın
+Yusuf'ta).**
+
+🚨 **Squash'tan ÖNCE prod DB:** şema yalnız EKLEMELİ — `Achievement.worldDay` (INTEGER, boş olabilir). B'deki gibi
+`migrate deploy` DEĞİL: `npx prisma db execute --file prisma/migrations/20261006190000_achievement_worldday/migration.sql`
+(prod `DATABASE_URL` ile). Yerelde aynı komutla uygulandı, ardından `db push` "already in sync" dedi. Kod yeni sütunu
+yazdığı için önce DB, sonra kod.
+
+Uygulananlar: vitrin (9 rozet: şampiyonluk, altın/gümüş/bronz madalya, milli takım, klasman 1.liği + kilitli Avrupa
+Şampiyonası / Dünya Kupası / Olimpiyat; her biri ×N + son kazanım tarihi), zaman çizgisi (eskiden yeniye, GMT tam tarih,
+dönüm noktası etiketi, sonda "Sırada: …"); yeni başarılar kazanıldığı dünya gününü yazar (canlı turnuva + eski yol).
+Uçtan uca: yerelde hızlandırılmış saatle bir turnuva oynandı → yeni "İlk Turnuva" başarısı `worldDay` ile yazıldı,
+sayfada "6 Ekim 2026" göründü. Şartnamenin açık bıraktığı yerlerde yorumlarım (değiştirmek istersen tek satır):
+1. **Kaynak:** şampiyonluk ve altın/gümüş/bronz sayıları turnuva derecelerinden okunur (başarı kaydında derece yok);
+   milli takım ve klasman 1.liği başarılardan. Altın madalya sayısı = şampiyonluk sayısı (eskrimde şampiyon altın da
+   alır) — istersen altın rozetini kaldırırım.
+2. **Kilitli hedefler** o seviyede madalyayla (ilk 3) açılır; oyundaki adlarıyla "Avrupa Şampiyonası" (şartnamede
+   Avrupa Kupası) ve "Dünya Kupası". Olimpiyat seviyesi oyunda yok → şimdilik hep kilitli.
+3. **Kazanılmamış normal rozetler** gri boş yuva + "Henüz yok" (kilit ikonu yalnız üst kademe hedeflerinde).
+4. **Renkler:** metal renkleri şartnamedeki gibi (disk zemini + ikon). Altın çiftinin kontrastı 2,7:1 (gümüş 5,5,
+   bronz 5,7) → yazılar diskin dışında, tema renginde; ikon da koyulaşsın istersen `#5c4108` (4,8:1). "Accent" =
+   tasarım sistemindeki tek prestij rengi `--prio` (milli takım için zaten izinli) → bayrak rozeti prio çerçeveli.
+   Tabler yerine kendi ikon setimize bayrak + taç eklendi (pist-konsolu kural 4: ikon yalnız `Icon.tsx`).
+5. **Dönüm noktası** = ilk şampiyonluk, milli takım, klasman 1.liği. İlk şampiyonlukta motor iki kayıt yazıyor
+   ("İlk Şampiyonluk" + "Şampiyonluk") → zaman çizgisinde tek düğüm.
+6. **Eski başarılar:** tarih yok → "Q1" gibi çeyrek. Mevcut `date` alanından toplu doldurmak mümkün ama her eski
+   kariyerde gün sayısının dünya günüyle aynı olduğundan emin değilim → yapmadım.
+7. **Sayfa düzeni:** vitrin en üstte → istatistikler → zaman çizgisi → Turnuvalarım → Rakiplikler. Önem yıldızlı eski
+   "Başarılar" listesi kalktı (aynı kayıtlar artık zaman çizgisinde).
+8. **Ek düzeltme:** "Turnuvalarım" tarihi oyun-içi takvimdendi ("16.01.2026") ve aynı sayfadaki vitrinle çelişiyordu →
+   artık turnuvanın dünya gününden GMT tarihi (eski turnuvada tarih yok, "Q · H" kalır).
+
 ---
 
 ## 8. #4 Bugün ekranı cila — uygulama şartnamesi (onaylandı 06.10)
@@ -226,3 +278,33 @@ sıradaki turnuva kartları aynen kalır; aşağıdakiler eklenir/zenginleşir. 
   rozet dili.)
 
 **Renkler:** sinyal/metal renkleri temadan bağımsız; radar/accent tema değişkenleri. **Teslim:** Osman branch + PR.
+
+**Cevap (Osman/Claude, 06.10): ✅ uygulandı — dal `feat/bugun-cila`, PR [#48](https://github.com/alkanyus/LOTP/pull/48) (#47'nin üstüne kurulu; merge/yayın
+Yusuf'ta).**
+
+🚨 **Squash'tan ÖNCE prod DB (2. SQL, #47'ninkinden sonra):** şema yalnız EKLEMELİ — `GameState.skillQuarterBase`
+(TEXT, boş olabilir): `npx prisma db execute --file prisma/migrations/20261006210000_skill_quarter_base/migration.sql`.
+Yerelde aynı komutla uygulandı, `db push` "already in sync" dedi.
+
+Uygulananlar: büyük profil başlığı (baş-harf rozeti, isim, silah · kategori · yaş, kulüp, sağda büyük reyting),
+yetenek radarı (dolu = şimdi, kesikli = geçen çeyrek, büyüyen eksende yeşil "+N"), kondisyon/form çubuklarında ≥%70
+ışıltı, "Son başarılar" şeridi (yeni olan parıltılı). Uçtan uca: yerelde gün ilerleyince çeyrek başı değerleri o günün
+antrenmanından önce kaydedildi. Yorumlarım (değiştirmek istersen tek satır):
+1. **Radar eksenleri** = 10 alt yetenek (şartname "gruplar/alt yetenekler" diyordu; 4 eksen elmas gibi kalıyordu).
+   Ölçek, altındaki yetenek çubuklarıyla aynı yaş grubu bandı (U10 = 30 …) → iki gösterim aynı şeyi söyler.
+2. **"Geçen çeyrek" verisi yoktu** → `GameState.skillQuarterBase`: her çeyreğin ilk işlenen gününde, antrenmandan önce
+   yetenekler dondurulur (çeyrek başı = geçen çeyreğin sonu). Mevcut oyuncularda ilk kayıt güncellemeden sonraki ilk gün
+   ilerlemesinde olur; canlı dünya hâlâ 1. çeyrekte (2. çeyrek ~14 Aralık) → o zamana kadar kesikli çizgi "güncelleme
+   günü"nü gösterir, sonra gerçek "geçen çeyrek". Kayıt yokken kesikli çizgi ve "+N" hiç çizilmez.
+3. **"+N"** tam sayıya yuvarlanır, en az +1 olunca görünür. Renk şartnamedeki gibi yeşil (`--sig-green`) — tasarım
+   sisteminde yeşil "sağ taraf" demek; şartname açıkça yeşil istediği için böyle bıraktım.
+4. **Reyting** büyük başlığa taşındı → altındaki üçlü değer kutusundan reyting kalktı (kondisyon + form kaldı), aynı
+   sayı iki kez yazmasın diye.
+5. **Kulüp** satırında kulüp adı (yoksa şehir) bayrakla; yaş korunuyor.
+6. **Işıltı** eşiği ≥ %70 (şartnamenin örneği), mürekkep renginde yavaş nabız (2,4 sn); trafik lambası rengi yok.
+7. **Son başarılar:** en yeni 6 rozet, sayfanın üstünde (§2.2 "üstte parlayan rozet şeridi"); "Vitrin ›" Kariyer
+   Geçmişi'ne gider; başarı yoksa şerit hiç görünmez. "Yeni" = son 3 dünya gününde kazanılan ("görüldü" bilgisi
+   tutulmadığı için güne bağlı); yeni rozetin diski 3 kez halka saçar ve altında "Yeni" yazar (hareket kapalıyken de
+   anlaşılsın diye).
+8. **Rozet dili** vitrinle ortak modülde (`src/app/ui/achievementBadge.ts`). Başarı kaydı dereceyi tutmadığı için
+   "İlk Madalya" / "Uluslararası Madalya" nötr metal (gümüş), "Quarter Ranking İlk 3" bronz.

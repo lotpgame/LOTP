@@ -51,7 +51,7 @@ export function LogLines({ log, shown, live }: { log: string[]; shown: number; l
                     : "pl-2.5 text-steel"
             }
           >
-            {whiteLight && <span className="lamp lamp-white h-2 w-2 shrink-0" aria-hidden="true" />}
+            {whiteLight && <span className={`lamp lamp-white h-2 w-2 shrink-0 ${newest ? "fx-lamp anim-hit" : ""}`} aria-hidden="true" />}
             {line}
           </li>
         );

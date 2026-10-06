@@ -3,16 +3,22 @@ import { redirect } from "next/navigation";
 import { clearAllReportsAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer, getCareerHeader, getUpcomingTournaments } from "@/server/careerService";
+import { getCareer, getCareerHeader, getRecentAchievements, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
+import { bandMax } from "@/app/ui/bands";
 import { buildHeadline } from "@/app/ui/headlineText";
+import { buildTimeline } from "@/app/ui/showcase";
 import { serverWorldDay } from "@/server/world";
 import { KimlikKarti } from "./KimlikKarti";
 import { NextTournament } from "./NextTournament";
+import { RecentAchievements } from "./RecentAchievements";
+import { SkillRadar } from "./SkillRadar";
 import { WeekStrip } from "./WeekStrip";
 import { buildWeek, todayFromHeader } from "./week";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState, toRoman } from "./parts";
+
+const GLOW_FROM = 70; // form/kondisyon ışıltısı eşiği (GORSEL §8: "ör. ≥%70")
 
 export const dynamic = "force-dynamic";
 
@@ -25,9 +31,11 @@ const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 export default async function BugunPage() {
   const c = await getCareer();
   if (!c) redirect("/");
-  const [h, upcoming] = await Promise.all([getCareerHeader(), getUpcomingTournaments()]);
+  const [h, upcoming, recentRows] = await Promise.all([getCareerHeader(), getUpcomingTournaments(), getRecentAchievements()]);
   if (!h) redirect("/");
   const locale = await getLocale();
+  // Son başarılar: ilk şampiyonluğun yinelenen kaydı ayıklanır (zaman çizgisiyle aynı kural), en yeni önce.
+  const recent = buildTimeline(recentRows).reverse().slice(0, 6);
 
   const condition = 100 - c.fatigue;
   // Sıradaki turnuvanın kayıt durumu: aynı seviyedeki en yakın yaklaşan turnuva (liste tarihe göre sıralı).
@@ -47,10 +55,15 @@ export default async function BugunPage() {
         ageCategory={h.ageCategory}
         age={c.age}
         city={h.city}
+        club={c.club?.name ?? null}
+        rating={c.overall}
         nationalTeam={c.nationalTeam}
         seasonNo={c.seasonNo}
         locale={locale}
       />
+
+      {/* 0b · SON BAŞARILAR — kupa vitriniyle aynı rozet dili; yeni olan parıltıyla (GORSEL §8) */}
+      <RecentAchievements items={recent} locale={locale} />
 
       {/* 1 · BUGÜN */}
       <section className="panel p-4">
@@ -109,13 +122,17 @@ export default async function BugunPage() {
               <div className="mt-1 text-[13px] text-steel">{t(locale, "report.title", { n: report.days })}</div>
               {gains.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {gains.map((g) => {
+                  {gains.map((g, i) => {
                     // `key` varsa dile göre çevrilir; eski (bu alan eklenmeden önce yazılmış) raporlarda
                     // yalnız sabit TR `label` olabilir — geriye dönük okunur (canlı veri kaybı olmasın).
                     const label = g.key ? t(locale, `skill.${g.key}`) : (g.label ?? "");
                     return (
                       <span key={g.key ?? g.label} className="rounded-md bg-arena-2 px-2 py-1 text-[13px]">
-                        <span className="num">+{g.delta.toFixed(1)}</span> {label}
+                        {/* kazanım rakamı sırayla yerine süzülür (GORSEL_ETKILESIM §6 "+X") */}
+                        <span className="num anim-rise inline-block" style={{ animationDelay: `${i * 70}ms` }}>
+                          +{g.delta.toFixed(1)}
+                        </span>{" "}
+                        {label}
                       </span>
                     );
                   })}
@@ -164,18 +181,32 @@ export default async function BugunPage() {
         </section>
       )}
 
-      {/* 3 · Üç anahtar değer */}
-      <section className="grid grid-cols-3 gap-2.5">
-        <Stat icon="rating" label={t(locale, "profil.overall")} value={c.overall.toFixed(1)} />
-        <Stat icon="condition" label={t(locale, "profil.condition")} value={`%${condition.toFixed(0)}`} gauge={condition} state={conditionState(locale, condition)} />
-        <Stat icon="form" label={t(locale, "profil.form")} value={`%${c.sharpness.toFixed(0)}`} gauge={c.sharpness} state={formState(locale, c.sharpness)} />
+      {/* 3 · Kondisyon + form (reyting büyük başlıkta) — yüksekken çubuklar hafifçe parlar (GORSEL §8) */}
+      <section className="grid grid-cols-2 gap-2.5">
+        <Stat
+          icon="condition"
+          label={t(locale, "profil.condition")}
+          value={`%${condition.toFixed(0)}`}
+          gauge={condition}
+          glow={condition >= GLOW_FROM}
+          state={conditionState(locale, condition)}
+        />
+        <Stat
+          icon="form"
+          label={t(locale, "profil.form")}
+          value={`%${c.sharpness.toFixed(0)}`}
+          gauge={c.sharpness}
+          glow={c.sharpness >= GLOW_FROM}
+          state={formState(locale, c.sharpness)}
+        />
       </section>
 
       <PisteLine className="my-1" />
 
-      {/* 4 · Yetenekler */}
-      <section>
-        <h2 className="display mb-3 text-[22px]">{t(locale, "profil.skills")}</h2>
+      {/* 4 · Yetenekler — radar (şimdi / geçen çeyrek / +N), altında kategori çubukları */}
+      <section className="flex flex-col gap-4">
+        <h2 className="display text-[22px]">{t(locale, "profil.skills")}</h2>
+        <SkillRadar skills={c.skills} base={c.skillBase?.values ?? null} max={bandMax(c.categoryId)} locale={locale} />
         <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
       </section>
 

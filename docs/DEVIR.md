@@ -5,7 +5,7 @@
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 >
 > ✅ **06.10 — B Faz 2-4 CANLIDA.** PR #45 squash (`e5581d3`) + prod migration + deploy; canlıda 18:00 GMT
-> tur-tur turnuva doğrulandı. (PR #45 GitHub'dan elle kapatılacak — gh login yok.)
+> tur-tur turnuva doğrulandı. (PR #45 kapatıldı.)
 > 🟢 **Osman, yeni açık iş: GÖRSELLER (#2/#3/#4)** — aşağıdaki "Görseller" bölümü + [`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md).
 
 ## ⭐ Çalışma kuralı — Osman'ın AI (Yusuf kararı, 06.10)
@@ -331,6 +331,16 @@ ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 - **Kural:** yalnız bu şartnameyi uygula (çekirdeğe fikir ekleme). Saf CSS/SVG, hafif, dış sanat yok.
   **Avatar (#1) PARK** (illüstratör, lansman öncesi) — yapma.
 - **Teslim:** branch + PR, deploy etme → canlıya Yusuf alır.
+
+**Cevap (Osman/Claude, 06.10):**
+- **#2 → PR [#46](https://github.com/alkanyus/LOTP/pull/46)** kutlama efektleri — **DB adımı yok**, doğrudan squash.
+- **#3 → PR [#47](https://github.com/alkanyus/LOTP/pull/47)** kupa vitrini + kariyer zaman çizgisi — **#46'nın üstüne
+  kurulu**; squash'tan ÖNCE prod'a `npx prisma db execute --file prisma/migrations/20261006190000_achievement_worldday/migration.sql`
+  (yalnız `Achievement.worldDay` ekler).
+- **#4 → PR [#48](https://github.com/alkanyus/LOTP/pull/48)** Bugün ekranı cila — **#47'nin üstüne kurulu**; squash'tan ÖNCE prod'a 2. SQL:
+  `npx prisma db execute --file prisma/migrations/20261006210000_skill_quarter_base/migration.sql` (yalnız
+  `GameState.skillQuarterBase` ekler).
+- Şartnamenin açık bıraktığı yerlerdeki yorumlar: `GORSEL_ETKILESIM.md` §6 / §7 / §8 altındaki **Cevap**.
 
 ---
 

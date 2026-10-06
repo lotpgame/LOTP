@@ -196,6 +196,9 @@ model GameState {
   trainingPlan String @default("TECHNICAL,PHYSICAL,REST")
   // Son "İlerle"nin antrenman özeti (haber kartı): JSON — skill kazanımları + kondisyon/keskinlik değişimi.
   lastReport String?
+  // Bugün radarı (GORSEL §8): çeyrek başında dondurulan yetenek değerleri, JSON {q, v:{anahtar: değer}} —
+  // radar "geçen çeyreği" kesikli çizer, büyüyen eksende "+N". Eklemeli alan; null = henüz dondurulmadı.
+  skillQuarterBase String?
   // M11.4: "yokken neler oldu" — offline'ken otomatik oynanan turnuvaların özeti (JSON dizi). Görülünce temizlenir.
   awayReport String?
   createdAt     DateTime @default(now())
@@ -328,6 +331,9 @@ model Achievement {
   importance Int      @default(1)
   quarter    Int      @default(1)
   date       DateTime
+  // Kazanıldığı dünya günü (kupa vitrini / zaman çizgisi: GMT takvim tarihi bundan). 06.10'dan önceki kayıtlarda
+  // null → gösterim çeyreğe (Q) düşer. Eklemeli alan (canlı veri korunur).
+  worldDay   Int?
   createdAt  DateTime @default(now())
 
   @@index([playerId])

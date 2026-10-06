@@ -29,6 +29,15 @@
   --sig-white: #f4f6f8;
   --prio: #c9962b;
 
+  /* Metal (kupa vitrini, docs/GORSEL_ETKILESIM.md §7) — madalya renkleri; sinyal değil, tema değiştirmez.
+     Zemin / koyu mürekkep çifti (altın · gümüş · bronz). */
+  --metal-gold: #e0b23f;
+  --metal-gold-ink: #8a6410;
+  --metal-silver: #eceef1;
+  --metal-silver-ink: #5a6068;
+  --metal-bronze: #f3e3d5;
+  --metal-bronze-ink: #7a4e2b;
+
   /* Konsol kapsamı (skor bandı, giriş ekranı vitrini) — her zaman koyu */
   --console-bg: #0b0e12;
   --console-ink: #e8ecf0;
@@ -74,6 +83,12 @@
   --color-sig-green: var(--sig-green);
   --color-sig-white: var(--sig-white);
   --color-prio: var(--prio);
+  --color-metal-gold: var(--metal-gold);
+  --color-metal-gold-ink: var(--metal-gold-ink);
+  --color-metal-silver: var(--metal-silver);
+  --color-metal-silver-ink: var(--metal-silver-ink);
+  --color-metal-bronze: var(--metal-bronze);
+  --color-metal-bronze-ink: var(--metal-bronze-ink);
   --color-console: var(--console-bg);
   --color-console-ink: var(--console-ink);
   --color-console-steel: var(--console-steel);
@@ -221,6 +236,54 @@ dialog.modal {
     background: var(--prio);
     box-shadow: 0 0 8px var(--prio);
   }
+  /* Şenlik katmanı (docs/GORSEL_ETKILESIM.md §6). Taban hali görünmez: hareketi azalt tercihinde
+     animasyon çalışmaz → "+1", konfeti ve kupa katmanı hiç belirmez. */
+  .fx-lamp {
+    position: relative;
+  }
+  .fx-lamp::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    opacity: 0;
+  }
+  .fx-plus,
+  .fx-confetti,
+  .fx-overlay {
+    opacity: 0;
+  }
+  .fx-overlay {
+    background: rgb(0 0 0 / 0.3); /* şampiyonluk katmanının hafif karartması (dialog arka planı gibi) */
+  }
+  .fx-confetti {
+    position: absolute;
+    width: 7px;
+    height: 11px;
+    border-radius: 1px;
+  }
+  /* Bugün cila (GORSEL §8): form/kondisyon parçalarının ışıltısı ve yeni rozet parıltısı — taban hali görünmez. */
+  .fx-glow {
+    position: relative;
+  }
+  .fx-glow::after,
+  .fx-shine::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .fx-glow::after {
+    inset: -1px;
+    border-radius: 3px;
+    box-shadow: 0 0 6px 1px var(--ink);
+  }
+  .fx-shine::after {
+    inset: -5px;
+    border-radius: 9999px;
+    border: 2px solid var(--ink);
+  }
 }
 
 /* TEK hareket bloğu — hareketi azalt tercihine saygı; JS animasyon kütüphanesi yok. */
@@ -265,6 +328,203 @@ dialog.modal {
     }
     .anim-live {
       animation: live-dot 1.2s ease-in-out infinite;
+    }
+
+    /* Tuş: lamba büyüyüp hale saçar, skor rakamı sıçrar, "+1" yükselir, skor bandı hafif titrer. */
+    @keyframes lamp-hit {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      35% {
+        transform: scale(1.5);
+      }
+    }
+    @keyframes lamp-halo {
+      from {
+        transform: scale(1);
+        opacity: 0.85;
+      }
+      to {
+        transform: scale(3.4);
+        opacity: 0;
+      }
+    }
+    @keyframes score-pop {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      40% {
+        transform: scale(1.18);
+      }
+    }
+    @keyframes plus-rise {
+      0% {
+        transform: translateY(6px) scale(0.7);
+        opacity: 0;
+      }
+      20% {
+        transform: translateY(0) scale(1.1);
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-14px) scale(1);
+        opacity: 0;
+      }
+    }
+    @keyframes band-shake {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      20% {
+        transform: translateX(-3px);
+      }
+      40% {
+        transform: translateX(3px);
+      }
+      60% {
+        transform: translateX(-2px);
+      }
+      80% {
+        transform: translateX(1px);
+      }
+    }
+    /* Kazanım rakamı ("+0.4") yerine süzülür. */
+    @keyframes rise-in {
+      from {
+        transform: translateY(6px);
+        opacity: 0;
+      }
+      to {
+        transform: none;
+        opacity: 1;
+      }
+    }
+    /* Konfeti: parça --x1/--y1'e fırlar, sonra --x2/--y2'ye düşer (değerler parça başına satır içi). */
+    @keyframes confetti-burst {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 0;
+        animation-timing-function: cubic-bezier(0.15, 0.8, 0.3, 1);
+      }
+      6% {
+        opacity: 1;
+      }
+      30% {
+        transform: translate(var(--x1), var(--y1)) rotate(var(--r1));
+        animation-timing-function: cubic-bezier(0.45, 0, 0.8, 0.6);
+      }
+      80% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--x2), var(--y2)) rotate(var(--r2));
+        opacity: 0;
+      }
+    }
+    @keyframes confetti-rain {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 0;
+      }
+      5%,
+      90% {
+        opacity: 1;
+      }
+      50% {
+        transform: translate(var(--x1), 50vh) rotate(var(--r1));
+      }
+      100% {
+        transform: translate(var(--x2), 110vh) rotate(var(--r2));
+        opacity: 0;
+      }
+    }
+    /* Şampiyonluk katmanı: belirir, kalır, söner; kupa kartı yaylanarak açılır. */
+    @keyframes overlay-life {
+      0%,
+      100% {
+        opacity: 0;
+      }
+      10%,
+      80% {
+        opacity: 1;
+      }
+    }
+    @keyframes trophy-pop {
+      0% {
+        transform: scale(0.3);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(1.12);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    .anim-hit {
+      animation: lamp-hit 380ms ease-out 1;
+    }
+    .anim-hit::after {
+      animation: lamp-halo 600ms ease-out 1;
+    }
+    .anim-score {
+      animation: score-pop 320ms ease-out 1;
+    }
+    .anim-plus {
+      animation: plus-rise 900ms ease-out 1;
+    }
+    .anim-shake {
+      animation: band-shake 280ms ease-in-out 1;
+    }
+    .anim-rise {
+      animation: rise-in 420ms ease-out 1 both;
+    }
+    .anim-confetti {
+      animation: confetti-burst var(--d, 1800ms) linear var(--delay, 0ms) 1 both;
+    }
+    .anim-rain {
+      animation: confetti-rain var(--d, 2400ms) linear var(--delay, 0ms) 1 both;
+    }
+    .anim-overlay {
+      animation: overlay-life 2800ms ease-in-out 1 both;
+    }
+    .anim-trophy {
+      animation: trophy-pop 520ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 120ms 1 both;
+    }
+
+    /* Form/kondisyon yüksekken dolu parçalar yavaşça nabız gibi parlar; yeni rozet halkası 3 kez dışa yayılır. */
+    @keyframes seg-pulse {
+      0%,
+      100% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 0.55;
+      }
+    }
+    @keyframes shine-ring {
+      from {
+        transform: scale(0.9);
+        opacity: 0.9;
+      }
+      to {
+        transform: scale(1.35);
+        opacity: 0;
+      }
+    }
+    .anim-glow::after {
+      animation: seg-pulse 2.4s ease-in-out infinite;
+    }
+    .anim-shine::after {
+      animation: shine-ring 900ms ease-out 3;
     }
     .press:active {
       transform: scale(0.98);

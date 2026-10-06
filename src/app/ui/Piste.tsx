@@ -41,13 +41,19 @@ export function PisteLine({ className = "" }: { className?: string }) {
   );
 }
 
-/** 10 parçalı gösterge (kondisyon/form) — trafik lambası renkleri yok, durum yazıyla söylenir. */
-export function Segments({ value, className = "" }: { value: number; className?: string }) {
+/**
+ * 10 parçalı gösterge (kondisyon/form) — trafik lambası renkleri yok, durum yazıyla söylenir.
+ * `glow`: değer yüksekken dolu parçalar hafifçe nabız gibi parlar (GORSEL §8; hareketi azalt açıkken parıltı yok).
+ */
+export function Segments({ value, glow = false, className = "" }: { value: number; glow?: boolean; className?: string }) {
   const filled = Math.round(Math.max(0, Math.min(100, value)) / 10);
   return (
     <div className={`flex gap-[3px] ${className}`} aria-hidden="true">
       {Array.from({ length: 10 }, (_, i) => (
-        <span key={i} className={`h-2 flex-1 rounded-[2px] ${i < filled ? "bg-ink" : "bg-line"}`} />
+        <span
+          key={i}
+          className={`h-2 flex-1 rounded-[2px] ${i < filled ? `bg-ink ${glow ? "fx-glow anim-glow" : ""}` : "bg-line"}`}
+        />
       ))}
     </div>
   );

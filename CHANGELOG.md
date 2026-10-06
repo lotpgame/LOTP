@@ -12,6 +12,57 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 
+### Eklendi (06.10 — Bugün ekranı cilası, GORSEL_ETKILESIM #4)
+> Dal + PR #48 (#47'nin üstüne; şartname `docs/GORSEL_ETKILESIM.md` §8). **Şema eklemeli:**
+> `GameState.skillQuarterBase` → squash'tan ÖNCE prod'a
+> `npx prisma db execute --file prisma/migrations/20261006210000_skill_quarter_base/migration.sql`.
+- **Büyük profil başlığı:** baş-harf rozeti, isim, silah · kategori · yaş, kulüp, sağda büyük reyting (reyting artık
+  değer kutularında tekrar edilmez; kondisyon + form kaldı).
+- **Yetenek radarı:** 10 alt yetenek ekseni; dolu alan = şimdi, kesikli = geçen çeyrek, büyüyen eksende yeşil "+N"
+  (tam sayıya yuvarlı). Ölçek yetenek çubuklarıyla aynı yaş bandı. Geometri saf ve testli (`src/app/ui/radar.ts`).
+- **Geçen çeyrek verisi:** her çeyreğin ilk işlenen gününde yetenekler antrenmandan önce dondurulur
+  (`src/engine/skill/quarterBase.ts`, testli); mevcut oyuncularda ilk kayıt güncellemeden sonraki ilk gün ilerlemesinde.
+- **Form/kondisyon ışıltısı:** değer ≥ %70 iken dolu çubuk parçaları yavaşça parlar; hareketi azalt açıkken yok.
+- **Son başarılar şeridi** (sayfanın üstünde): en yeni 6 rozet, vitrinle aynı rozet dili (ortak
+  `src/app/ui/achievementBadge.ts`); son 3 günde kazanılan "Yeni" etiketli, diski kısa bir halka parıltısıyla açılır.
+- Testler 199/199 (radar geometrisi + çeyrek başı kaydı yeni). Yerelde uçtan uca: gün ilerleyince çeyrek başı
+  değerleri kaydedildi; telefonda koyu/açık temada kontrol edildi.
+
+### Eklendi (06.10 — Kupa vitrini + kariyer zaman çizgisi, GORSEL_ETKILESIM #3)
+> Dal + PR #47 (#46'nın üstüne; Yusuf'un şartnamesi `docs/GORSEL_ETKILESIM.md` §7). **Şema eklemeli:**
+> `Achievement.worldDay` → squash'tan ÖNCE prod'a
+> `npx prisma db execute --file prisma/migrations/20261006190000_achievement_worldday/migration.sql`.
+- **Kupa vitrini** (Kariyer Geçmişi'nin en üstü): şampiyonluk, altın/gümüş/bronz madalya, milli takım, klasman 1.liği
+  rozetleri — her biri kaç kez (×N) + son kazanımın tam tarihi; kazanılmamışlar gri yuva; üst kademe hedefleri (Avrupa
+  Şampiyonası, Dünya Kupası, Olimpiyat) kilitli. Metal renkleri şartnamedeki gibi (`--metal-*`, tema değiştirmez).
+- **Kariyer zaman çizgisi:** başarılar eskiden yeniye; her düğüm GMT tam tarih + olay + ikon; ilk şampiyonluk, milli
+  takım, klasman 1.liği "Dönüm noktası" etiketli; sonda "Sırada: …" (ulaşılmamış ilk kariyer basamağı). Önem yıldızlı
+  eski "Başarılar" listesi kalktı.
+- **Tarih:** yeni başarılar kazanıldığı dünya gününü yazar (canlı turnuva + eski yol); eski kayıtlarda çeyrek (Q).
+  "Turnuvalarım" da oyun-içi takvim tarihi yerine turnuvanın dünya gününden GMT tarihini gösterir.
+- İkon setine bayrak + taç; başarı adları çevriliyor (TR/EN/DE). Saf hesap `src/app/ui/showcase.ts` (6 test, toplam
+  193/193). Yerelde uçtan uca: turnuva bitince yeni başarı `worldDay` ile yazıldı, sayfada GMT tarihiyle göründü.
+
+### Eklendi (06.10 — Kutlama efektleri, GORSEL_ETKILESIM #2)
+> Dal + PR #46 (Yusuf'un şartnamesi: `docs/GORSEL_ETKILESIM.md` §6; `master`'a push/deploy yok). **Şema yok, motor
+> değişmedi, prod DB adımı yok** — hepsi istemci + saf CSS, kütüphane yok. B Faz 2-4'ün üstüne kurulu.
+- **Tuş:** canlı anlatımda tuş düşünce o tarafın lambası büyüyüp hale saçar, skor rakamı sıçrar, rakamın omzundan
+  **"+1"** yükselir (sol kırmızı / sağ yeşil; epede çift tuşta iki taraf), skor bandı hafif titrer (`ScoreBug` `hitFx`).
+  Giriş ekranındaki duran örnek bant değişmedi.
+- **Beyaz lamba:** `⚪` satırı açılınca hedef dışına dokunan sporcunun beyaz lambası bandın pist ortasına bakan ucunda
+  yanar, **skor artmaz**; iki tarafta da olabilir. Taraf, motor satırındaki addan bulunur (`whiteLampSide`, testli:
+  "Ali" / "Ali Kaya" gibi önek adlarda uzun ad kazanır, aynı adda lamba yanmaz).
+- **Canlı izle:** `/turnuva/[id]`'de kendi maçlarında "Canlı izle" + "Skor detayı" yan yana — biten maç skor bandıyla
+  satır satır yeniden oynar (tuş efektleri burada görünür), bitince "Tekrar izle / Kapat". SEN etiketi doğru tarafta.
+- **Madalya (2.–3.):** sonuç kartından konfeti patlaması. **Şampiyonluk:** tam ekran katman — kupa kartı yaylanarak
+  açılır, "Şampiyon" yazısı, bol konfeti (patlama + yağmur); ~3 sn sonra kendiliğinden kalkar, dokunmayı engellemez.
+  Konfeti renkleri eskrim lambaları + altın (`Celebration` → `HeadlineCard`: yeni ve eski sonuç ekranı).
+- **"+X" kazanım:** "Sen yokken" antrenman raporunda skill kazanım rakamları sırayla yerine süzülür.
+- **Erişilebilirlik:** yeni hareketlerin hepsi `globals.css`'teki tek hareket bloğunda (`prefers-reduced-motion:
+  no-preference`); şenlik öğelerinin taban hali görünmez → hareketi azalt açıkken "+1", konfeti, kupa katmanı hiç belirmez.
+- Ses eklenmedi (şartnamede opsiyonel; GORSEL §5 "ses varsayılan açık mı?" kararı bekleniyor). Testler 187/187
+  (`whiteLampSide` + madalya işareti yeni).
+
 ### Eklendi (06.10 — B Faz 2-4: canlı turnuva TUR TUR, taktik pencereleri, canlı panel, ölçek)
 > ⚠️ **Dal + PR (Yusuf'un şartnamesi, teslim kuralı):** `master`'a push/deploy yok; Yusuf squash edip alır.
 > **Şema eklemeli** — merge'den ÖNCE prod'a `npx prisma db push` (bkz. DEVIR.md).

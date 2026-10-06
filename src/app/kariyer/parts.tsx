@@ -52,6 +52,7 @@ export function Stat({
   label,
   value,
   gauge,
+  glow,
   icon,
   state,
   word,
@@ -59,6 +60,8 @@ export function Stat({
   label: string;
   value: string;
   gauge?: number;
+  /** Gösterge yüksekken (Bugün: kondisyon/form ≥ %70) dolu parçalar hafifçe parlar (GORSEL §8). */
+  glow?: boolean;
   icon?: IconName;
   state?: string;
   /** Değer sayı değil kelime (örn. gün adı): dar başlık fontu — mono'da "Cumartesi" kartı taşırıyordu. */
@@ -74,7 +77,7 @@ export function Stat({
         <span className={`${word ? "display" : "num"} text-[22px] leading-none`}>{value}</span>
         {state && <span className="text-[13px] text-steel">{state}</span>}
       </div>
-      {gauge != null && <Segments value={gauge} className="mt-2" />}
+      {gauge != null && <Segments value={gauge} glow={glow} className="mt-2" />}
     </div>
   );
 }

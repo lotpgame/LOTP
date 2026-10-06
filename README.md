@@ -15,6 +15,9 @@ Manager tarzı). Oyuncu bir eskrimci yaratır ve yıllar süren kariyerini yöne
 - Değişiklik geçmişi: [`CHANGELOG.md`](CHANGELOG.md)
 - Arayüz tasarım sistemi ("Pist Konsolu" — renk, ikon, navigasyon kuralları):
   [`docs/tasarim/pist-konsolu.md`](docs/tasarim/pist-konsolu.md)
+- Şenlik katmanı / görsel & etkileşim şartnameleri (Yusuf): [`docs/GORSEL_ETKILESIM.md`](docs/GORSEL_ETKILESIM.md) —
+  #2 kutlama efektleri (tuş "+1", beyaz lamba, madalya konfetisi, şampiyonluk katmanı), #3 kupa vitrini + kariyer
+  zaman çizgisi ve #4 Bugün ekranı cilası (büyük profil, yetenek radarı, ışıltı, son başarılar) uygulandı
 - Katkı kuralları (branch + PR, canlı veri koruma): [`CONTRIBUTING.md`](CONTRIBUTING.md) ·
   bilinen riskler: [`docs/ROADMAP.md`](docs/ROADMAP.md) §H
 - Tam tasarım dokümanları: [`docs/gdd/`](docs/gdd/) (GDD, 26 bölüm)
@@ -131,10 +134,12 @@ dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır,
 Postgres) → **M10** ortak dünya + sunucu saati → **M11** ortak turnuva simülasyonu + klasman → **M12**
 ölçek/servis. **İlerleme:** M9.1 (kimlik/veri sahipliği), M9.2 (telefonla giriş — auth yönü Google+IP'ye
 dönecek), M10 (ortak dünya saati — GMT, etkinlik 18:00 GMT — + turnuva kaydı/önceden taktik), M11 (ortak
-turnuva + klasman) yapıldı. **Gerçek-zamanlı çok-oyunculu turnuva (B):** Faz 0-1 canlıda (sunucu-otoriteli,
-tek gerçeklik); **Faz 2-4** (kilitli çizelgeyle TUR TUR çözüm, tur aralarında taktik penceresi, 4 sn'de bir
+turnuva + klasman) yapıldı. **Gerçek-zamanlı çok-oyunculu turnuva (B):** Faz 0-4 canlıda (sunucu-otoriteli,
+tek gerçeklik; 06.10'dan beri kilitli çizelgeyle TUR TUR çözüm, tur aralarında taktik penceresi, 4 sn'de bir
 yenilenen canlı panel, kilitli/tekrarlanabilir tur çözümü, taktik doğrulama + istek sınırı + olay kaydı,
-256 kişilik başsız test) yazıldı — dal + PR ile teslim, yayına Yusuf alır. Sıradaki: M12 (ölçek/servis).
+256 kişilik başsız test). Şenlik katmanı: kutlama efektleri (GORSEL #2) ve kupa vitrini + kariyer zaman çizgisi
+(#3) ve Bugün ekranı cilası (#4: büyük profil, yetenek radarı, ışıltı, son başarılar) dal + PR'da, yayına Yusuf alır.
+Sıradaki: M12 (ölçek/servis).
 
 Diğer derinlik maddeleri (§G backlog): AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
 gelişmiş taktik (counter/pressure).

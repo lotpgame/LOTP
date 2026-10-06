@@ -1,10 +1,12 @@
 /**
  * Manşet kartı — gazete düzeni: üst çizgi, kicker, büyük başlık, alt satır. Şampiyonlukta solda altın blok
  * (tek prestij rengi). İsteğe bağlı WhatsApp paylaşımı: yalnız hazır metinli bağlantı, gönderen kullanıcı.
+ * Madalya/şampiyonlukta kart açılırken kutlama oynar (Celebration — turnuva sonuç ekranları bu kartı kullanır).
  */
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { t, type Locale } from "@/i18n";
+import { Celebration } from "./Celebration";
 import { Icon } from "./Icon";
 import { headlineShareText, type Headline } from "./headlineText";
 
@@ -31,7 +33,8 @@ export function HeadlineCard({
   children?: ReactNode;
 }) {
   return (
-    <article className={`border-t-2 border-ink pt-3 ${h.champion ? "border-l-[6px] border-l-prio pl-3" : ""}`}>
+    <article className={`relative border-t-2 border-ink pt-3 ${h.champion ? "border-l-[6px] border-l-prio pl-3" : ""}`}>
+      {h.champion ? <Celebration level="champion" label={t(locale, "pos.champion")} /> : h.medal && <Celebration level="medal" />}
       {kicker && <div className="kicker">{kicker}</div>}
       <h2 className="display mt-1.5 text-[26px] leading-[1.02]">{h.title}</h2>
       {h.deck.length > 0 && <p className="mt-2 text-[14px] text-steel">{h.deck.join(" · ")}</p>}

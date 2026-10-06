@@ -50,6 +50,7 @@ import {
   type SkillValue,
 } from "@/engine/skill";
 import { applyTraining, TRAINING_TYPES, type TrainingType } from "@/engine/training";
+import { parseSkillQuarterBase, rollSkillQuarterBase } from "@/engine/skill/quarterBase";
 import { START_AGE, createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
 import {
   MATCH_FORMATS,
@@ -350,6 +351,8 @@ export interface CareerDTO {
   trainingPlan: string[]; // 7 günlük plan (Pzt..Paz); turnuva günleri yalnız katılmazsan uygulanır
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
+  // Bugün radarı: çeyrek başında dondurulan değerler ("geçen çeyrek" kesikli çizgisi); henüz yoksa null.
+  skillBase: { quarter: number; values: Record<string, number> } | null;
   ranking: RankingRowDTO[];
   today: TodayDTO; // bugünün etkinliği (İlerle/Katıl/Geç için)
   seasonCalendar: SeasonEventDTO[]; // bu yılın turnuva takvimi (h1..h12)
@@ -747,10 +750,44 @@ export async function getCareer(): Promise<CareerDTO | null> {
       current: roundSkill(skills[def.key].current),
       potential: roundSkill(skills[def.key].potential),
     })),
+    skillBase: (() => {
+      const b = parseSkillQuarterBase(gs.skillQuarterBase);
+      return b ? { quarter: b.q, values: b.v } : null;
+    })(),
     ranking,
     today,
     seasonCalendar,
   };
+}
+
+export interface RecentAchievementDTO {
+  type: string;
+  detail: string;
+  dateMs: number | null; // kazanıldığı dünya gününün GMT başlangıcı; eski kayıtta null (→ Q)
+  quarter: number;
+  order: number;
+  isNew: boolean; // son 3 dünya gününde kazanıldı → şeritte vurgulu
+}
+
+/** Bugün ekranı "Son başarılar" şeridi (GORSEL §8): en yeni başarılar, yeniden eskiye. Yalnız okur. */
+export async function getRecentAchievements(limit = 6): Promise<RecentAchievementDTO[]> {
+  const gs = await currentGameState();
+  if (!gs) return [];
+  const cfg = worldClockConfig();
+  const today = serverWorldDay();
+  const rows = await prisma.achievement.findMany({
+    where: { playerId: gs.humanPlayerId },
+    orderBy: [{ date: "desc" }, { id: "desc" }],
+    take: limit + 2, // ilk şampiyonluğun yinelenen kaydı ayıklanınca da `limit` kalsın
+  });
+  return rows.map((a) => ({
+    type: a.type,
+    detail: a.detail,
+    dateMs: a.worldDay != null ? worldDayStartMs(a.worldDay, cfg) : null,
+    quarter: a.quarter,
+    order: a.date.getTime(),
+    isNew: a.worldDay != null && a.worldDay >= today - 2,
+  }));
 }
 
 /** Menü/başlık + sabit "İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
@@ -1262,6 +1299,11 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const fatigueBefore = fatigue;
   const sharpnessBefore = sharpness;
   const startDay = gs.dayIndex;
+  // Bugün radarı (GORSEL §8): her çeyreğin ilk işlenen gününde, antrenmandan ÖNCE yetenekler dondurulur.
+  let skillBase = parseSkillQuarterBase(gs.skillQuarterBase);
+  const markQuarterStart = () => {
+    skillBase = rollSkillQuarterBase(skillBase, quarterOf(d), Object.fromEntries(SKILLS.map((s) => [s.key, skills[s.key].current])));
+  };
 
   // Bir antrenman/dinlenme seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok
   // bir kez.) Turnuvaya katılmadığın gün de PLANINDAKİ seans uygulanır (Dinlenme koyabilirsin).
@@ -1309,6 +1351,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // skipFirst=true (Geç): baştaki turnuvayı antrenmanla geçip sonraki turnuvaya kadar ilerle.
   let firstDay = true;
   for (let guard = 0; guard < DAYS_PER_QUARTER * 2; guard++) {
+    markQuarterStart(); // çeyrek sınırı bu gündeyse değerler tam sınırda dondurulur
     if (d > eventDay) break; // etkinliği (19:00) gelmemiş günü işleme — bekle (sıradaki turnuva sayaçta)
     if (injuryDays > 0) {
       fatigue = clamp(fatigue - INJURY_REST_RECOVERY, 1, 100);
@@ -1391,7 +1434,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       },
     });
     await worldAdvanceTx(tx, gs, d);
-    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report } });
+    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase) } });
   });
 
   // M11.2: geçmiş bir turnuvaya kayıtlıysak, güncel durumu tazeleyip offline oynat.
@@ -1552,7 +1595,18 @@ export async function buyEquipment(itemId: string): Promise<void> {
 
 export interface CareerHistoryDTO {
   name: string;
-  achievements: { type: string; label: string; detail: string; importance: number; date: string }[];
+  // Kronolojik (eskiden yeniye). dateMs = kazanıldığı dünya gününün GMT başlangıcı (eski kayıtta null → Q);
+  // order = sıra anahtarı (kayıt tarihi). Vitrin/zaman çizgisi bunlardan kurulur (src/app/ui/showcase.ts).
+  achievements: {
+    type: string;
+    label: string;
+    detail: string;
+    importance: number;
+    date: string;
+    dateMs: number | null;
+    quarter: number;
+    order: number;
+  }[];
   stats: {
     totalTournaments: number;
     championships: number;
@@ -1567,8 +1621,11 @@ export interface CareerHistoryDTO {
     id: number;
     name: string;
     level: string;
+    levelCode: string; // TournamentLevel (vitrinde üst kademe hedefleri için)
     categoryId: string;
     date: string;
+    dateMs: number | null; // turnuvanın dünya günü (GMT başlangıcı); eski turnuvada null
+    order: number;
     position: number;
     quarter: number; // oyun yılı (Q)
     month: number; // H1..H12
@@ -1584,11 +1641,12 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   const hid = human.id;
   const locale = await getLocale();
 
+  const cfg = worldClockConfig();
+  const dayMs = (worldDay: number | null) => (worldDay != null ? worldDayStartMs(worldDay, cfg) : null);
   const [achievements, entries, matches] = await Promise.all([
     prisma.achievement.findMany({
       where: { playerId: hid },
-      orderBy: [{ importance: "desc" }, { date: "desc" }],
-      take: 40,
+      orderBy: [{ date: "asc" }, { id: "asc" }],
     }),
     prisma.tournamentParticipant.findMany({
       where: { playerId: hid },
@@ -1609,8 +1667,11 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       id: e.tournamentId,
       name: tournamentDisplayName(locale, e.tournament.categoryId.split("-")[0], e.tournament.level as TournamentLevel),
       level: t(locale, `tournament.${e.tournament.level}`),
+      levelCode: e.tournament.level,
       categoryId: e.tournament.categoryId,
       date: e.tournament.date.toISOString(),
+      dateMs: dayMs(e.tournament.worldDay),
+      order: e.tournament.date.getTime(),
       position: e.finalPosition ?? 0,
       quarter: e.tournament.quarter,
       month: e.tournament.week, // week alanı ayı (h1..h12) saklar
@@ -1649,6 +1710,9 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       detail: a.detail,
       importance: a.importance,
       date: a.date.toISOString(),
+      dateMs: dayMs(a.worldDay),
+      quarter: a.quarter,
+      order: a.date.getTime(),
     })),
     stats: {
       totalTournaments: entries.length,
@@ -3461,6 +3525,7 @@ async function finalizeTournament(
             importance: a.importance,
             quarter,
             date: gs.currentDate,
+            worldDay: gs.dayIndex, // turnuva günü (gün aşağıda ilerler) — vitrin/zaman çizgisi tarihi
           },
         });
       }

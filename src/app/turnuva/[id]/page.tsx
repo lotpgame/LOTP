@@ -125,7 +125,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
               {yourPool.map((m, i) => (
                 <div key={i}>
                   <div className="mb-1 kicker">{m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
                 </div>
               ))}
             </div>
@@ -147,7 +147,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
               {yourDE.map((m, i) => (
                 <div key={i}>
                   <div className="mb-1 kicker">{t(locale, "canli.eleme")} · {m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past locale={locale} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
                 </div>
               ))}
             </div>

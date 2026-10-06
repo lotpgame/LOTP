@@ -379,7 +379,7 @@ async function writeStepOutcome(
  */
 async function applyLiveEffectsTx(
   tx: Tx,
-  t: { id: number; level: string; categoryId: string; quarter: number; name: string; date: Date; seedKey: string },
+  t: { id: number; level: string; categoryId: string; quarter: number; name: string; date: Date; worldDay: number | null; seedKey: string },
   standings: { playerId: number; position: number }[],
 ): Promise<void> {
   const level = t.level as TournamentLevel;
@@ -462,6 +462,7 @@ async function applyLiveEffectsTx(
           importance: a.importance,
           quarter: t.quarter,
           date: t.date,
+          worldDay: t.worldDay, // kupa vitrini / zaman çizgisi tam tarihi (GORSEL §7)
         },
       });
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentPeriodNo, isPriorityPhase, periodBand } from "@/app/ui/liveBand";
+import { currentPeriodNo, isPriorityPhase, periodBand, whiteLampSide } from "@/app/ui/liveBand";
 
 const TR_LOG = [
   "Maç gücü A hafif önde.",
@@ -54,5 +54,31 @@ describe("periodBand", () => {
 
   it("henüz başlık yoksa undefined (band gösterilmez)", () => {
     expect(periodBand("tr", TR_LOG, 0)).toBeUndefined();
+  });
+});
+
+describe("whiteLampSide", () => {
+  // Motorun gerçek satır biçimi (src/engine/combat whiteLampLine), iki dilde.
+  const FOIL_LOG = [
+    "▸ 1. Periyot — sen: Dengeli, rakip: Saldırgan",
+    "⚪ Beyaz lamba — Ali Kaya hedef dışına dokundu. Sayı yok.",
+    "Ali Kaya tuşu buldu — 1–0.",
+    "⚪ White light — Ali hit off-target. No touch.",
+  ];
+
+  it("son açılan satır beyaz lambaysa adı geçen sporcunun tarafı (skor satırı değil)", () => {
+    expect(whiteLampSide(FOIL_LOG, 2, "Ali Kaya", "Ali")).toEqual({ side: "left", key: 1 });
+    expect(whiteLampSide(FOIL_LOG, 4, "Ali Kaya", "Ali")).toEqual({ side: "right", key: 3 });
+  });
+
+  it("biri diğerinin öneki olsa da doğru tarafı bulur (uzun ad kazanır)", () => {
+    expect(whiteLampSide(FOIL_LOG, 2, "Ali", "Ali Kaya")).toEqual({ side: "right", key: 1 });
+  });
+
+  it("son satır beyaz lamba değilse, ad eşleşmezse ya da iki ad aynıysa undefined", () => {
+    expect(whiteLampSide(FOIL_LOG, 3, "Ali Kaya", "Ali")).toBeUndefined();
+    expect(whiteLampSide(FOIL_LOG, 2, "Can", "Efe")).toBeUndefined();
+    expect(whiteLampSide(FOIL_LOG, 2, "Ali Kaya", "Ali Kaya")).toBeUndefined();
+    expect(whiteLampSide(FOIL_LOG, 0, "Ali Kaya", "Ali")).toBeUndefined();
   });
 });

@@ -12,6 +12,7 @@ export interface HistoryTournament {
   level: string;
   categoryId: string;
   date: string;
+  dateMs: number | null; // dünya gününün GMT başlangıcı — eski turnuvada yok (oyun-içi takvim tarihi gösterilmez)
   position: number;
   quarter: number;
   month: number;
@@ -58,7 +59,8 @@ export function TournamentsFilter({ tournaments, locale }: { tournaments: Histor
                 <span className="min-w-0">
                   <span className="block truncate text-[15px] font-medium">{tour.name}</span>
                   <span className="text-[13px] text-steel">
-                    {tour.level} · Q{tour.quarter} · H{tour.month} · {new Date(tour.date).toLocaleDateString(dateLoc)}
+                    {tour.level} · Q{tour.quarter} · H{tour.month}
+                    {tour.dateMs != null && ` · ${new Date(tour.dateMs).toLocaleDateString(dateLoc, { timeZone: "UTC" })}`}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

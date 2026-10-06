@@ -18,6 +18,17 @@ describe("manşet cümleleri", () => {
     expect(buildHeadline("tr", { ...base, position: 2 }).champion).toBe(false);
   });
 
+  it("madalya işareti yalnız 1.–3. derecede (bilinmeyen derece 0 sayılmaz)", () => {
+    expect([1, 2, 3, 5, 9, 0].map((position) => buildHeadline("tr", { ...base, position }).medal)).toEqual([
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
+
   it("alt satır: son maç, pul özeti (averaj işaretli), katılımcı sayısı", () => {
     const h = buildHeadline("tr", {
       ...base,

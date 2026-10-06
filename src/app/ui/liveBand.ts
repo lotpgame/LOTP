@@ -22,6 +22,31 @@ export function isPriorityPhase(log: string[], shown: number): boolean {
   return log.slice(0, shown).some((l) => PRIORITY_RE.test(l));
 }
 
+/**
+ * Son açılan satır beyaz lamba (⚪, flöre hedef dışı) ise o lambanın tarafı. Motor satırı
+ * "⚪ … — {ad} …" yazar; ad hangi tarafın adıyla başlıyorsa beyaz lamba o tarafta yanar (skor değişmez).
+ * Biri diğerinin önekiyse ("Ali" / "Ali Kaya") uzun ad kazanır; iki ad aynıysa taraf belirsiz → undefined.
+ * `key` = satır sırası: art arda iki beyaz lambada da lamba yeniden yanıp söner.
+ */
+export function whiteLampSide(
+  log: string[],
+  shown: number,
+  leftName: string,
+  rightName: string,
+): { side: "left" | "right"; key: number } | undefined {
+  const i = Math.min(shown, log.length) - 1;
+  if (i < 0 || !log[i].startsWith("⚪")) return undefined;
+  const dash = log[i].indexOf("— ");
+  if (dash < 0) return undefined;
+  const who = log[i].slice(dash + 2);
+  const l = leftName !== "" && who.startsWith(leftName);
+  const r = rightName !== "" && who.startsWith(rightName);
+  if (l && r && leftName.length === rightName.length) return undefined;
+  if (l && (!r || leftName.length > rightName.length)) return { side: "left", key: i };
+  if (r) return { side: "right", key: i };
+  return undefined;
+}
+
 /** Altın tuş (la belle) periyot numarasını geçersiz kılar; yoksa güncel periyot etiketi. */
 export function periodBand(locale: Locale, log: string[], shown: number): { label: string; prio?: boolean } | undefined {
   if (isPriorityPhase(log, shown)) return { label: t(locale, "live.goldenPoint"), prio: true };

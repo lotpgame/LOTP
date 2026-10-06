@@ -24,6 +24,8 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
 
 1. **Renk:** `emerald-*`, `sky-*` ve gradient kartlar kalkar. Ana buton `.btn-ink`, ikincil `.btn-ghost`.
    Tek prestij rengi `--prio` (altın) — yalnız 1.'lik, şampiyonluk, altın tuş, öncelik, milli takım.
+   İstisna (06.10, GORSEL §7): kupa vitrininin rozet disklerinde madalya metalleri `--metal-gold/silver/bronze`
+   (+ `-ink`) — yalnız orada, tema değiştirmez; metin diskin dışında tema renginde kalır.
 2. **Taraf renkleri (eskrim cihazı):** kırmızı = SOL, yeşil = SAĞ; iyi/kötü anlamı YOK. Canlı maçta
    oyuncu hep solda → kırmızı; "sen" renkle değil **SEN** etiketiyle belirtilir. Beyaz lamba yalnız
    flöre/kılıçta (epede yok). ⏳ Yusuf onayı bekliyor (P0-4 öncesi).
@@ -41,7 +43,11 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
    **Tıklanabilir satırlar sağda ok (`chevron-right`) taşır** → yeni kullanıcı neye basılacağını görür.
 8. **Köşe:** `rounded-md` (çip, buton) ve `rounded-xl` (panel). Panel = `.panel`, gölge yok.
 9. **Hareket:** yalnız `globals.css`'teki tek blok (`@supports` + `prefers-reduced-motion`): `anim-lamp`,
-   `anim-check`, `anim-live`. JS animasyon kütüphanesi yok.
+   `anim-check`, `anim-live`; şenlik katmanı (06.10, GORSEL_ETKILESIM §6): `anim-hit` (lamba + hale), `anim-score`,
+   `anim-plus` ("+1"), `anim-shake` (skor bandı), `anim-rise` (kazanım rakamı), `anim-confetti` / `anim-rain`,
+   `anim-overlay`, `anim-trophy`, `anim-glow` (kondisyon/form çubuk ışıltısı), `anim-shine` (yeni rozet halkası).
+   Şenlik öğelerinin taban hali görünmez (`fx-*`) → hareketi azalt açıkken hiç
+   belirmez. JS animasyon kütüphanesi yok.
 10. **Metin:** dokunulan her görünür metin `t()` anahtarı olur (TR önce, sonra EN; DE/ES/FR TR'ye düşer).
 11. **Navigasyon:** telefonda alt 5 sekme (Bugün, Antrenman, Turnuvalar, Klasman, Daha fazla); masaüstünde
     (lg ≥ 1024 px) sol sidebar. İkisi `CareerNav.tsx`'teki tek `MAIN`/`MORE` tanımından. Aktif sayfa:
@@ -320,7 +326,30 @@ yönünden: manşet tarzı sonuç cümleleri (P1). Kulüp dolabından: oluşturm
   beyaz lambaya gönderme. Eski canlı-animasyon yoluna (`LogLines`) da aynı tedavi eklendi (geriye dönük
   uyumluluk), ama `ScoreBug`'ın kırmızı/yeşil skor lambalarına üçüncü bir renk EKLENMEDİ — o ekran B ile
   emekliye ayrıldığı için orana uymuyordu. Gerçek bir maç logunda (mevcut turnuva verisi, uydurma değil)
-  tarayıcıda görsel olarak doğrulandı.
+  tarayıcıda görsel olarak doğrulandı. **(06.10'da değişti:** Yusuf'un kutlama şartnamesi `ScoreBug`'a taraf
+  başına beyaz lamba istedi — aşağıda "Şenlik katmanı #2".)
+
+- **Şenlik katmanı #2 — kutlama efektleri** (2026-10-06, Yusuf'un şartnamesi `docs/GORSEL_ETKILESIM.md` §6, dal + PR):
+  tuşta o tarafın lambası hale saçar, rakam sıçrar, "+1" yükselir, bant titrer (`ScoreBug` `hitFx` — yalnız canlı
+  anlatım; giriş ekranındaki duran bant değişmedi). Beyaz lamba taraf başına, bandın pist ortasına bakan ucunda ve
+  yalnız yanarken görünür (epede boş lamba yok); skor değişmez. Madalyada sonuç kartından konfeti, şampiyonlukta tam
+  ekran kupa kartı (konsol kapsamı, altın kupa + "Şampiyon") + bol konfeti; konfeti renkleri = lamba renkleri + altın.
+  `/turnuva/[id]`'de kendi maçlarına "Canlı izle" eklendi (canlı kip zaten vardı; B'den beri yalnız geçmiş kip
+  görünüyordu). Taraf rengi kuralı aynı: renk tarafı, SEN etiketi oyuncuyu söyler.
+
+- **Şenlik katmanı #3 — kupa vitrini + kariyer zaman çizgisi** (2026-10-06, GORSEL §7, dal + PR): Kariyer Geçmişi'nin
+  başında 3 sütunlu rozet ızgarası — metal diskte ikon (altın/gümüş/bronz; milli takım `--prio` çerçeve), altında ad,
+  ×N ve "son: tarih" tema renginde (altın disk çiftinin kontrastı 2,7:1 olduğu için yazı diske konmadı); kazanılmamış =
+  gri yuva, üst kademe hedefi = soluk + kilit. Zaman çizgisi: sol rayda 32 px ikon düğümleri, dönüm noktası düğümü
+  ve etiketi `--prio`, sonda kesikli "Sırada" düğümü. İkon setine `flag` ve `crown` eklendi (aynı ızgara/çizgi).
+
+- **Şenlik katmanı #4 — Bugün ekranı cilası** (2026-10-06, GORSEL §8, dal + PR): kimlik kartı büyük profil başlığına
+  döndü (64 px baş-harf rozeti, kulüp satırı, sağda 34 px reyting; reyting artık değer kutularında tekrar edilmez).
+  Altında "Son başarılar" şeridi (vitrinle aynı rozet dili — ortak `ui/achievementBadge.ts`; yeni rozet halkası +
+  "Yeni"). Kondisyon/form ≥ %70 iken dolu parçalar mürekkep renginde yavaşça parlar. Yetenekler başlığının altında 10
+  eksenli radar: tema renkleriyle ızgara, dolu = şimdi (`--ink` %16), kesikli = geçen çeyrek (`--steel`), etiketler
+  Barlow Condensed 14 px, büyüme `--sig-green` "+N" (şartname gereği). Telefonda (375 px) en uzun etiket sığacak
+  şekilde yarıçap 76 px.
 
 ## Sırada
 

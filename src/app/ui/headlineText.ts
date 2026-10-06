@@ -18,6 +18,7 @@ export interface Headline {
   title: string;
   deck: string[]; // alt satır parçaları (" · " ile birleştirilir)
   champion: boolean;
+  medal: boolean; // derece 1–3 (eskrimde iki bronz) → sonuç ekranında kutlama
 }
 
 // Eleme derecesi → manşet anahtarı. Türkçe sayı ekleri sabit ("son 16'da", "son 64'te") → her tur ayrı anahtar.
@@ -51,7 +52,7 @@ export function buildHeadline(locale: Locale, h: HeadlineInput): Headline {
   }
   if (h.fieldSize) deck.push(t(locale, "headline.deckField", { n: h.fieldSize }));
 
-  return { title, deck, champion: h.position === 1 };
+  return { title, deck, champion: h.position === 1, medal: h.position >= 1 && h.position <= 3 };
 }
 
 /** WhatsApp'a hazır metin — kullanıcı kendisi gönderir (otomatik gönderim yok). */
