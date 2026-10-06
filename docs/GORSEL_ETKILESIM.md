@@ -207,3 +207,22 @@ olduğundan tarihler oyun takvimiyle tutarlı.
 
 **Renkler:** altın `#e0b23f`/koyu metin `#8a6410`, gümüş `#eceef1`/`#5a6068`, bronz `#f3e3d5`/`#7a4e2b`.
 **Teslim:** Osman branch + PR; canlıya Yusuf alır.
+
+---
+
+## 8. #4 Bugün ekranı cila — uygulama şartnamesi (onaylandı 06.10)
+
+**Yer:** **Bugün / ana ekran** (`/kariyer`, alt menü ilk sekme) — en çok görülen ekran. Bugünkü aktivite +
+sıradaki turnuva kartları aynen kalır; aşağıdakiler eklenir/zenginleşir. Saf SVG/CSS; hafif, dış sanat yok.
+
+- **Büyük profil başlığı:** isim + silah/kategori/kulüp + büyük **reyting**. (Avatar park edildiği için şimdilik
+  baş-harf rozeti; avatar gelince oraya girer.)
+- **Skill radar grafiği:** eksenler Skill engine gruplarından/alt-skillerinden; **dolu alan = şimdiki**,
+  **kesikli = geçen çeyrek** → büyüyen eksende **yeşil "+N"**. Veri: Skill engine (permanent skill, ondalık →
+  UI'da yuvarla). Radar geometrisi istemcide hesaplanır. (İstenirse ayrı "Yetenekler detay"ında da kullanılır.)
+- **Form/Kondisyon ışıltısı:** çubuklar; değer yüksekken (ör. ≥%70) hafif **nabız/parıltı**. Veri: conditioning
+  (sharpness/fatigue). **`prefers-reduced-motion` → parıltı kapalı** (zorunlu).
+- **Son başarılar şeridi:** Memory'den son rozetler; **yeni** olan vurgulu (kısa parıltı). (#3 vitriniyle aynı
+  rozet dili.)
+
+**Renkler:** sinyal/metal renkleri temadan bağımsız; radar/accent tema değişkenleri. **Teslim:** Osman branch + PR.
