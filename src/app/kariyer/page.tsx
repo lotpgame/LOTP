@@ -3,20 +3,17 @@ import { redirect } from "next/navigation";
 import { clearAllReportsAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer, getCareerHeader, getRecentAchievements, getUpcomingTournaments } from "@/server/careerService";
+import { getCareer, getCareerHeader, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { bandMax } from "@/app/ui/bands";
 import { buildHeadline } from "@/app/ui/headlineText";
-import { buildTimeline } from "@/app/ui/showcase";
 import { serverWorldDay } from "@/server/world";
 import { KimlikKarti } from "./KimlikKarti";
-import { NextTournament } from "./NextTournament";
-import { RecentAchievements } from "./RecentAchievements";
 import { SkillRadar } from "./SkillRadar";
 import { WeekStrip } from "./WeekStrip";
 import { buildWeek, todayFromHeader } from "./week";
-import { SkillsByCategory, Stat, StatBar, conditionState, formState, toRoman } from "./parts";
+import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
 
 const GLOW_FROM = 70; // form/kondisyon ışıltısı eşiği (GORSEL §8: "ör. ≥%70")
 
@@ -31,15 +28,11 @@ const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 export default async function BugunPage() {
   const c = await getCareer();
   if (!c) redirect("/");
-  const [h, upcoming, recentRows] = await Promise.all([getCareerHeader(), getUpcomingTournaments(), getRecentAchievements()]);
+  const [h, upcoming] = await Promise.all([getCareerHeader(), getUpcomingTournaments()]);
   if (!h) redirect("/");
   const locale = await getLocale();
-  // Son başarılar: ilk şampiyonluğun yinelenen kaydı ayıklanır (zaman çizgisiyle aynı kural), en yeni önce.
-  const recent = buildTimeline(recentRows).reverse().slice(0, 6);
 
   const condition = 100 - c.fatigue;
-  // Sıradaki turnuvanın kayıt durumu: aynı seviyedeki en yakın yaklaşan turnuva (liste tarihe göre sıralı).
-  const nextRegistered = h.nextTournament ? upcoming.find((u) => u.level === h.nextTournament!.level)?.registered : undefined;
 
   const report = h.report;
   const gains = report?.gains ?? [];
@@ -62,47 +55,8 @@ export default async function BugunPage() {
         locale={locale}
       />
 
-      {/* 0b · SON BAŞARILAR — kupa vitriniyle aynı rozet dili; yeni olan parıltıyla (GORSEL §8) */}
-      <RecentAchievements items={recent} locale={locale} />
-
-      {/* 1 · BUGÜN */}
-      <section className="panel p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <span className="kicker">{t(locale, "bugun.kicker", { date: c.dateLabel })}</span>
-          <span className="text-[13px] text-steel">
-            {t(locale, "profil.season")} <span className="num text-ink">{toRoman(c.seasonNo)}</span> ·{" "}
-            {t(locale, "bugun.xp", { n: c.experience })}
-          </span>
-        </div>
-
-        {h.injured ? (
-          <div className="mt-3 flex min-h-11 items-center gap-3">
-            <Icon name="injury" size={22} className="shrink-0 text-sig-red" />
-            <span className="text-[15px]">{t(locale, "profil.injured", { n: h.injuryDaysRemaining })}</span>
-          </div>
-        ) : h.today.kind === "TOURNAMENT" ? (
-          <Link href="/kariyer/turnuvalar" className="mt-3 flex min-h-11 items-center gap-3 rounded-md active:bg-arena-2">
-            <Icon name={h.today.qualified ? "tournament" : "lock"} size={22} className="shrink-0" />
-            <span className="min-w-0 flex-1 text-[15px]">
-              {t(locale, "bugun.tournamentToday", { label: h.today.label ?? "" })}
-              {!h.today.qualified && <span className="block text-[13px] text-steel">{h.today.requirement}</span>}
-            </span>
-            <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
-          </Link>
-        ) : (
-          <Link href="/kariyer/antrenman" className="mt-3 flex min-h-11 items-center gap-3 rounded-md active:bg-arena-2">
-            <Icon name="train" size={22} className="shrink-0" />
-            <span className="min-w-0 flex-1 text-[15px]">{t(locale, "bugun.training", { label: h.today.trainingLabel ?? "" })}</span>
-            <span className="shrink-0 text-[13px] text-steel">{t(locale, "bugun.seePlan")}</span>
-            <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
-          </Link>
-        )}
-      </section>
-
-      {h.nextTournament && !h.canAttend && (
-        <NextTournament info={h.nextTournament} variant="card" locale={locale} registered={nextRegistered} />
-      )}
-
+      {/* Sadeleştirme (#38): Son başarılar + "Bugün" aktivite bölümü + Sıradaki turnuva kartı kaldırıldı.
+          "Önümüzdeki 7 gün" şeridi zaten bugünkü etkinliği/sıradaki turnuvayı gösteriyor. */}
       <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(h, locale))} locale={locale} />
 
       {/* 2 · SEN YOKKEN — antrenman raporu + yokken oynanan turnuvalar tek panelde */}

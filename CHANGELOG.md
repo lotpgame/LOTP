@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Kaldırıldı (06.10 — Bugün sayfası sadeleştirildi, NOTLAR #38)
+- Bugün ekranından (`/kariyer`) çıkarıldı: **"Son başarılar" şeridi**, **"Bugün · antrenman/turnuva" aktivite
+  bölümü**, **"Sıradaki turnuva" kartı**. **"Önümüzdeki 7 gün" şeridi** kaldı — zaten bugünkü etkinliği +
+  sıradaki turnuvayı gösterdiği için diğerleri gereksiz tekrardı. Kimlik kartı, kondisyon/form, yetenek
+  radarı, "sen yokken" raporu aynen duruyor.
+
 ### Eklendi (06.10 — turnuva canlı oynatma, Aşama 1)
 - Canlı turnuvada oyuncunun **en yeni maçı artık otomatik CANLI akar** (`CanliMac` autoPlay): tuş-tuş
   anlatım, skor bandında lamba flash (kırmızı/yeşil/beyaz) + tuş efekti — sonuç anında patlamak yerine
