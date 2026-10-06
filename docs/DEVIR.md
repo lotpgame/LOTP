@@ -6,7 +6,7 @@
 >
 > ✅ **06.10 — B Faz 2-4 CANLIDA.** PR #45 squash (`e5581d3`) + prod migration + deploy; canlıda 18:00 GMT
 > tur-tur turnuva doğrulandı. (PR #45 kapatıldı.)
-> 🟢 **Osman, yeni açık iş: GÖRSELLER (#2/#3/#4)** — aşağıdaki "Görseller" bölümü + [`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md).
+> ✅ **06.10 — GÖRSELLER (#2/#3/#4) CANLIDA.** PR #46/#47/#48 (stack) squash (`d6b808a`) + 2 prod migration + deploy. **Açık iş YOK** — Osman yeni DEVIR görevi bekliyor. (PR #46/#47/#48 GitHub'dan elle kapatılacak.)
 
 ## ⭐ Çalışma kuralı — Osman'ın AI (Yusuf kararı, 06.10)
 
@@ -319,7 +319,9 @@ uca doğrulandı — ayrıntı: yukarıdaki "B Faz 0+1" açık maddesi. Faz 2 (t
 sırada; §5'teki diğer açık kararlar (tik tetikleme=lazy catch-up yeterli görünüyor, canlı yenileme=15 sn
 ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
-## 🟢 Yusuf → Osman: GÖRSELLER (#2/#3/#4) — UYGULA (açık iş, 06.10)
+## ✅ (CANLIDA 06.10) GÖRSELLER (#2/#3/#4) — TAMAMLANDI
+
+> **Durum:** PR #46/#47/#48 (stack) → squash `d6b808a` + 2 migration (`achievement_worldday`, `skill_quarter_base`) + deploy. 199/199 test yeşil. Aşağısı referans.
 
 **Görev:** Oyunu çocuk/genç için cilalama. Şartnameler **[`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md)** §6-7-8'de hazır:
 - **#2 Kutlama juice'u** (maç/sonuç/madalya): tuş→lamba flash + "+1" uçan + titreme; **beyaz lamba İKİ taraflı**;
@@ -454,6 +456,7 @@ advisory lock + koşullu güncellemeye dayanıyor (Neon'da standart).
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-10-06 | **GÖRSELLER (#2/#3/#4) CANLIYA ALINDI.** Osman stack halinde yaptı (PR #46 kutlama juice, #47 kupa vitrini, #48 Bugün cila — `feat/bugun-cila` üçünü içerir). Yusuf adına squash `d6b808a` → 2 prod migration (`Achievement.worldDay`, `GameState.skillQuarterBase`; eklemeli) `db execute` ile uygulandı + doğrulandı → deploy. 199/199 test yeşil. Osman çalışma kuralı A uyguladı (DEVIR görevi + branch/PR). PR #46/#47/#48 elle kapatılacak. | Yusuf + Claude |
 | 2026-10-06 | **B Faz 2-4 CANLIYA ALINDI.** Osman'ın PR #45 dalı Yusuf adına squash → `e5581d3` → push → Vercel deploy. **Prod Neon migration** (eklemeli: Tournament/Participant/Match yeni kolonlar + `TournamentEvent`) `prisma db execute` ile uygulandı + doğrulandı. ⚠️ Prod migration geçmişi `_prisma_migrations`'da kayıtlı DEĞİL (ham SQL ile yönetiliyor, drift) → yeni migration'larda `migrate deploy` DEĞİL, yalnız yeni SQL `db execute` ile uygulanır. 183/183 test yeşil. PR #45 elle kapatılacak (gh login yok). | Yusuf + Claude |
 | 2026-10-06 | **B Faz 2-4 dal + PR olarak teslim edildi** (`feat/b-faz2-4-canli-turnuva`, PR [#45](https://github.com/alkanyus/LOTP/pull/45)): kilitli 18:00 GMT çizelgesiyle tur-tur çözüm (max 6 kişi/havuz), tur aralarında taktik penceresi (yedek: kayıtlı → son → Dengeli), 18:00'a kadar başlangıç-öncesi taktik, 4 sn'de bir tazelenen canlı panel, advisory lock + koşullu güncelleme, toplu DB yazımı, taktik doğrulama + istek sınırı + olay kaydı (`TournamentEvent`), 256 kişilik başsız test. Şema eklemeli → merge öncesi prod `db push`. Merge/yayın Yusuf'ta | Osman + Claude |
 | 2026-10-06 | **Saat modeli TR → GMT.** Oyun zamanı artık GMT (dünya saati); oyuncu kendi yerel saatine çevirir (UI'da sağ üst GMT saat rozeti). Gün başı 00:00 GMT, etkinlik **18:00 GMT** (`EVENT_HOUR=18`, epoch 21 Eylül 2026 00:00 UTC=`1789948800000`; eski epoch'tan +3 saat, dayIndex haftası korundu → canlı kariyerler bozulmadı). Gösterimler GMT'ye çevrildi, "TR saati"→"GMT". Ayrıca Ayarlar'a **Klasik/Yatay görünüm** seçeneği (varsayılan Klasik). Testler 169/169. Yusuf adına `59ccd11` push → Vercel bloğu açıldı → canlıda 18:00 GMT doğrulandı. Vercel env `WORLD_EPOCH_MS=1789948800000`. Turnuva başlangıcı: Avrupa prime-time için 18:00 GMT seçildi (CET 19:00/20:00, TR 21:00). | Yusuf + Claude |
