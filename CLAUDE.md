@@ -235,6 +235,8 @@ saatine çevirir (UI'da sağ üstteki GMT saat rozeti bunun için — `WorldCloc
   sahipliği, test stratejisi). Kod yazmadan önce ilgili aşama buradan okunur.
 - Playtest değişiklik notları: [`docs/NOTLAR.md`](docs/NOTLAR.md) — kullanıcının oynarken
   "değişmeli" dedikleri; verildikçe eklenir, hallolunca ✅ işaretlenir.
+- Görsel & etkileşim tasarımı (çocuk/genç ilgisi, sayfa sayfa cafcaf): [`docs/GORSEL_ETKILESIM.md`](docs/GORSEL_ETKILESIM.md)
+  — avatar/kimlik, kutlama juice'u, animasyonlu pist, kupa vitrini. Tasarım bizde, Osman uygular.
 - Tasarım dokümanları: `docs/gdd/` (26 dosya, `.docx`) — NE yapılacağı.
 - Okuma: pandoc/python bu makinede YOK. `.docx` şöyle okunur (çalıştığı doğrulandı):
   `unzip -p dosya.docx word/document.xml | node -e '...'` ile `<w:p>`→satır, taglar
