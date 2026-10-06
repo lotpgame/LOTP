@@ -4,8 +4,8 @@
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 >
-> 🔴 **Yusuf, ÖNCE "Senden beklenenler (Yusuf)" bölümüne bak:** Salı 06.10 19:00 TR'den önce 3 madde var
-> (Vercel env `WORLD_EPOCH_MS`, push ile düzeltmeleri canlıya indirmek, CI deploy kararı).
+> ✅ **06.10 — Saat/deploy işleri kapandı** (aşağıdaki "Senden beklenenler" çözüldü). **Osman, yeni açık iş:**
+> aşağıdaki **"B Faz 2-4 şartnamesi"** bölümü — kilitli zaman çizelgesiyle. Yusuf "başlat" deyince uygula.
 
 ## Nasıl kullanılır
 
@@ -205,19 +205,16 @@ bu onayla merge edildi.
 
 ## Senden beklenenler (Yusuf)
 
-**🔴 Salı 06.10 19:00 TR'den ÖNCE (sıradaki turnuva günü) — sırayla:**
+**✅ ÇÖZÜLDÜ (06.10) — eski 3 madde:**
 
-1. **Vercel env `WORLD_EPOCH_MS = 1789938000000` doğru mu?** (Vercel → Project → Settings → Environment
-   Variables → Production.) Farklıysa ya da yoksa ayarla; env değişikliği yalnız YENİ dağıtımda etkili olur.
-   Ayrıntı: aşağıda "Dünya saati 3 saat kayıyordu".
-2. **Cevap satırlarını yaz + PUSH et.** Benim merge'lerim Vercel Hobby'de engelleniyor (hook dahil), ancak
-   SENİN push'unla canlıya iniyor: #43 (epoch) indi, **#44 (kayıtsız oyuncu turnuvaya giremiyordu) henüz canlıda
-   değil.** Push'tan sonra Vercel → Deployments'ta en üstteki Production dağıtımının commit'i `afe2e4d` ya da
-   sonrası ve "Ready" olsun. Eski bir dağıtımı "Redeploy" etme (eski kodu yeniden derler). Ayrıntı: aşağıda
-   "Benim merge'lerim canlıya inmiyor".
-3. **Karar:** CI deploy'unu Vercel CLI + senin token'ınla yapalım mı? Evet → token'ı sen oluşturursun
-   (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` GitHub secret'ları), workflow'u ben yazarım; böylece
-   benim merge'lerim de kendiliğinden iner. Hayır → her Osman merge'ünden sonra senin bir push'un gerekir.
+1. ~~Vercel env `WORLD_EPOCH_MS`~~ → **Saat modeli TR'den GMT'ye geçti** (Yusuf kararı, 05.10). Env artık
+   **`WORLD_EPOCH_MS = 1789948800000`** (21 Eylül 2026 Pzt 00:00 UTC; kod ile aynı). Yusuf ayarladı. Oyun
+   zamanı GMT: gün başı 00:00 GMT, etkinlik **18:00 GMT**. Ayrıntı: CLAUDE.md §7.
+2. ~~Push + canlıya indir~~ → **İndi.** Yusuf adına commit `59ccd11` push edildi → Vercel bloğu açıldı
+   (HEAD artık sahibin commit'i) → deploy "Ready" → **canlıda 18:00 GMT doğrulandı.** #44 de artık canlıda.
+3. ~~CI deploy kararı~~ → **Çözüm netleşti (Pro'ya gerek yok):** Vercel Hobby yalnız sahibin (Yusuf) commit'ini
+   deploy eder. Bundan sonra Osman'ın işi gelince Claude onun branch'ini **Yusuf adına squash** edip push eder
+   → HEAD hep Yusuf'un → hep deploy olur. Token/CLI kurmaya gerek kalmadı.
 
 **Kısa karar / bilgi (acil değil):**
 
@@ -313,10 +310,68 @@ uca doğrulandı — ayrıntı: yukarıdaki "B Faz 0+1" açık maddesi. Faz 2 (t
 sırada; §5'teki diğer açık kararlar (tik tetikleme=lazy catch-up yeterli görünüyor, canlı yenileme=15 sn
 ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
+## 🟢 Yusuf → Osman: B Faz 2-4 ŞARTNAMESİ (06.10) — kilitli çizelge, UYGULA
+
+**İşbölümü (değişmez):** Tasarım/çekirdek kararlar **Yusuf+Claude'da**. Osman **yalnız bu şartnameyi uygular**;
+oyunun temeline (kural/mekanik/çizelge) kendi fikrini eklemez. Takılırsan **Cevap** satırına yaz, Yusuf netleştirir.
+Önce oku: GDD 23 (`..._23_Multiplayer_Mimarisi.docx`) + [`docs/TURNUVA_MULTIPLAYER.md`](TURNUVA_MULTIPLAYER.md).
+Faz 0-1 bitti; bu şartname **Faz 2-3-4**.
+
+### Kilitli zaman çizelgesi (oyun zamanı = GMT; T = turnuva başlangıcı = **18:00 GMT**)
+| An | Olay |
+|---|---|
+| **T+0** (18:00 GMT) | Bracket çekilir, **havuzlar kurulur** (max **6 kişi/havuz**; havuz sayısı katılımcıya göre) |
+| **T+5** | Havuz turu 1 çözülür |
+| **T+7** | Havuz turu 2 |
+| **T+9** | Havuz turu 3 |
+| **T+11** | Havuz turu 4 |
+| **T+13** | Havuz turu 5 → **havuzlar biter (T+15)** |
+| **T+17** | **Havuz sonuçları + eleme tablosu** paylaşılır |
+| **T+20** | **Eleme turu 1** |
+| **T+30** | Eleme turu 2 |
+| **T+40** | Eleme turu 3 |
+| **…** | **+10 dk**'da bir, **finale kadar** (tur sayısı katılımcıya göre) |
+
+**Taktik penceresi = önceki tur çözümünden bu tur çözümüne kadar.** Havuzlarda ~2 dk; elemede **10 dk**
+(ilk eleme penceresi T+17→T+20 = 3 dk, sonrası hep 10 dk). Bu değerler Yusuf kararıdır — değiştirme.
+
+### Faz 2 — Taktik pencereleri (çekirdek değişiklik)
+- Turnuva artık tek seferde değil **TUR TUR** çözülür; her tur yukarıdaki çizelgedeki anında çözülür.
+- Oyuncu, kendi **sıradaki maçı** için pencere açıkken taktik gönderir → DB'ye yazılır (`pendingTactic`).
+- Çözümde sunucu o taktiği okur; yoksa **fallback: kayıtlı taktik → son kullanılan → BALANCED.**
+- **Taktik seti = mevcut combat motorundaki set** (yeni taktik türü İCAT ETME).
+- **Kabul:** (a) gönderilen taktikle çözülen maç, sabit seed testiyle kanıtlanır; (b) taktik göndermeyen
+  fallback ile oynar; (c) iki farklı tarayıcı aynı turnuvada **birebir aynı** sonucu görür (paralel evren yok).
+
+### Faz 3 — Canlı senkron (istemci yalnız gösterir + taktik yollar)
+- İstemci ~3-5 sn polling: skor bandı, o anki tur, **sıradaki kendi maçın + taktik formu**, geri sayım.
+- Manuel "geç/oyna" yok (otomatik akış, NOTLAR #25). Pencere kapalıyken form kilitli, açıkken aktif.
+- **Kabul:** pencere açılınca form belirir/kapanınca kilitlenir; offline oyuncu hiç dokunmadan turnuvayı
+  tamamlar (fallback) ve döndüğünde doğru sonucu görür.
+
+### Faz 4 — Ölçek (256) + cila
+- 256 katılımcı; tur çözümü **toplu DB yazımı** + **kilit/koşullu güncelleme** (aynı maç iki kez çözülmez,
+  idempotent). Taktik gönderimi **doğrulanır** (geçerli + oyuncunun kendi maçı + pencere açık; GDD 23.57);
+  sahte/başkasının maçına istek **reddedilir**. **Rate limit** (23.58) + olay **log'u** (23.59).
+- **Kabul:** 256'lık simülasyon turnuvası tutarlı tamamlanır (başsız test); eşzamanlı iki tik aynı turu iki kez
+  çözmez; geçersiz taktik isteği reddedilir.
+
+**🚦 Teslim kuralı (ÖNEMLİ — Yusuf, 06.10):** Osman **`master`'a PUSH ETMEZ, deploy ETMEZ.** Kendi
+**dalında (branch)** çalışır, iş bitince GitHub'dan bize iletir (**branch + PR**). Yusuf/Claude dalı
+**Yusuf adına squash** edip `master`'a alır → canlıya iner. (Vercel Hobby: canlıya inen commit sahibin
+olmalı; Osman'ın commit'i doğrudan deploy OLMAZ.) Yani Osman yalnız **kodu yazıp gönderir**, yayına Yusuf alır.
+
+**Çakışma kuralı:** bu iş sürerken Yusuf/Claude canlı-turnuva sunucu koduna dokunmaz
+(`resolveScopedTournament`, `finalizeTournament`, `revealDueMatches`, staggering). Not: `src/engine/schedule`
+şu an kullanılmıyor (18:00 tabanına hizalandı) — bu çizelgeyi orada ya da kendi yerinde kurabilirsin.
+
 ## Karar günlüğü
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-10-06 | **Saat modeli TR → GMT.** Oyun zamanı artık GMT (dünya saati); oyuncu kendi yerel saatine çevirir (UI'da sağ üst GMT saat rozeti). Gün başı 00:00 GMT, etkinlik **18:00 GMT** (`EVENT_HOUR=18`, epoch 21 Eylül 2026 00:00 UTC=`1789948800000`; eski epoch'tan +3 saat, dayIndex haftası korundu → canlı kariyerler bozulmadı). Gösterimler GMT'ye çevrildi, "TR saati"→"GMT". Ayrıca Ayarlar'a **Klasik/Yatay görünüm** seçeneği (varsayılan Klasik). Testler 169/169. Yusuf adına `59ccd11` push → Vercel bloğu açıldı → canlıda 18:00 GMT doğrulandı. Vercel env `WORLD_EPOCH_MS=1789948800000`. Turnuva başlangıcı: Avrupa prime-time için 18:00 GMT seçildi (CET 19:00/20:00, TR 21:00). | Yusuf + Claude |
+| 2026-10-06 | **Vercel deploy bloğu çözüldü (Pro'suz).** Hobby yalnız sahibin (Yusuf, y.alkan1984) commit'ini deploy eder; Osman'ın commit'leri atlanıyordu. Çözüm: canlıya inen commit hep Yusuf adına olacak — Osman'ın işi gelince Claude branch'ini Yusuf adına **squash** edip push eder. | Yusuf + Claude |
+| 2026-10-06 | **B Faz 2-4 şartnamesi** DEVIR'e yazıldı (kilitli çizelge: başlangıç 18:00 GMT, havuz turları 2 dk arayla T+5..T+13, sonuç T+17, eleme +10 dk; max 6 kişi/havuz; taktik penceresi = tur arası). Osman "başlat" komutuyla uygulayacak; tasarım Yusuf+Claude'da. | Yusuf + Claude |
 | 2026-10-03 | Kayıtsız oyuncu turnuvaya giremiyordu (B Faz 1 regresyonu, benim): `resolveScopedTournament` alanı yalnız kayıt satırlarından kuruyordu, tetikleyen kayıtlı değilse sahadan düşüyor/alan boşalınca gün sessizce ilerliyordu. Düzeltildi: tetikleyen her zaman sahada (kayıt şartı yok), rakip yoksa açık hata, turnuva kurulduktan sonra gelen kayıtsız oyuncu izleyici (`youParticipated=false`, "sahada değildin" notu, sahte "son sıra" başlığı yok). Yerelde 2 oyuncuyla tarayıcıda doğrulandı. `src/server` canlı-turnuva yolu (benim alanım), şema yok. PR #44 master'da; **canlıda DEĞİL** — Vercel Hobby benim commit'lerimi (hook dahil) engelliyor, Yusuf'un bir sonraki push'u gerekiyor (bkz. açık iş) | Osman + Claude |
 | 2026-10-02 | Dünya saati 3 saat kayması düzeltildi: `WORLD_EPOCH_MS` UTC yerine TR saatine (Europe/Istanbul) hizalandı — `EVENT_HOUR=19` artık gerçekten 19:00 TR'de tetikleniyor (önceden fiilen 22:00'ydi). Yusuf'un canlı test bulgusu (19:15'te turnuvaya giremiyordu) üzerine bulundu. `src/engine` istisnası (oyun motoru değil, saf tarih-saat hatası). Testler güncellendi (169/169 yeşil). Açık: Vercel'de ayrı bir `WORLD_EPOCH_MS` env var'ı varsa Yusuf'un güncellemesi gerekiyor | Osman + Claude |
 | 2026-09-30 | B Faz 0+1 canlıya alındı (PR #41): canlı turnuva sunucu-otoriteli oldu, "paralel evren" hatası kökten çözüldü, `/turnuva/[id]` tarayıcıda uçtan uca doğrulandı. Yusuf prod DB'ye şemayı uyguladı (veri-düzeltmesi gerekmedi), onayı Osman iletti, merge edildi. Ardından beyaz lamba UI eklendi (`⚪ Beyaz lamba` log satırı artık `lamp-white` ışıltılı noktayla öne çıkıyor, tarayıcıda gerçek maç loguyla doğrulandı) — P1 listesindeki son "beyaz lamba" maddesi kapandı | Osman + Yusuf + Claude |
