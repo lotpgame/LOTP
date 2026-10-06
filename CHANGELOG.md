@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.10 — turnuva canlı oynatma, Aşama 1)
+- Canlı turnuvada oyuncunun **en yeni maçı artık otomatik CANLI akar** (`CanliMac` autoPlay): tuş-tuş
+  anlatım, skor bandında lamba flash (kırmızı/yeşil/beyaz) + tuş efekti — sonuç anında patlamak yerine
+  izlenir. Önceki maçlar durağan sonuç (past) gösterir. (Sunucu çözümü değişmedi; yalnız gösterim.)
+  Sıradaki: havuz maçı ~1 dk pencereye yayma + eleme periyot-periyot taktik (Aşama 2).
+
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 

@@ -57,6 +57,10 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   const yourMatches = tour.matches.filter((m): m is RevealedMatch => !m.isPending && (m.aIsHuman || m.bIsHuman));
   const yourPool = yourMatches.filter((m) => m.phase === "POOL");
   const yourDE = yourMatches.filter((m) => m.phase === "DE");
+  // B canlı oynatma (Aşama 1): turnuva canlıyken oyuncunun EN YENİ maçı otomatik canlı akar
+  // (CanliMac autoPlay — tuş-tuş + lamba/juice); önceki maçlar durağan (past) sonuç gösterir.
+  const liveNow = tour.live?.status === "RUNNING";
+  const liveMatch = liveNow ? (yourDE[yourDE.length - 1] ?? yourPool[yourPool.length - 1]) : null;
   const firstDeRound = yourDE[0]?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
   const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
@@ -122,10 +126,10 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           <>
             <h3 className="mt-4 kicker">{t(locale, "idp.poolMatches")}</h3>
             <div className="mt-2 space-y-3">
-              {yourPool.map((m, i) => (
-                <div key={i}>
+              {yourPool.map((m) => (
+                <div key={`${m.round}-${m.aName}-${m.bName}`}>
                   <div className="mb-1 kicker">{m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past={m !== liveMatch} autoPlay={m === liveMatch} youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
                 </div>
               ))}
             </div>
@@ -144,10 +148,10 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           <>
             <h3 className="mt-4 kicker">{t(locale, "idp.deMatches")}</h3>
             <div className="mt-2 space-y-3">
-              {yourDE.map((m, i) => (
-                <div key={i}>
+              {yourDE.map((m) => (
+                <div key={`${m.round}-${m.aName}-${m.bName}`}>
                   <div className="mb-1 kicker">{t(locale, "canli.eleme")} · {m.round}</div>
-                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
+                  <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past={m !== liveMatch} autoPlay={m === liveMatch} youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
                 </div>
               ))}
             </div>
