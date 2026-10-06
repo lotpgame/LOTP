@@ -4,11 +4,17 @@
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 >
-> ✅ **06.10 — Saat/deploy işleri kapandı** (aşağıdaki "Senden beklenenler" çözüldü). **Osman, yeni açık iş:**
-> aşağıdaki **"B Faz 2-4 şartnamesi"** bölümü — kilitli zaman çizelgesiyle. Yusuf "başlat" deyince uygula.
->
-> 🟢 **06.10 akşam — B Faz 2-4 yazıldı, PR [#45](https://github.com/alkanyus/LOTP/pull/45) (Osman/Claude).** Yusuf: önce prod'a `npx prisma db push` (şema
-> eklemeli), sonra dalı squash et — ayrıntı şartnamenin altındaki **Cevap**.
+> ✅ **06.10 — B Faz 2-4 CANLIDA.** PR #45 squash (`e5581d3`) + prod migration + deploy; canlıda 18:00 GMT
+> tur-tur turnuva doğrulandı. (PR #45 GitHub'dan elle kapatılacak — gh login yok.)
+> 🟢 **Osman, yeni açık iş: GÖRSELLER (#2/#3/#4)** — aşağıdaki "Görseller" bölümü + [`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md).
+
+## ⭐ Çalışma kuralı — Osman'ın AI (Yusuf kararı, 06.10)
+
+1. **Osman'ın AI YALNIZ bu DEVIR'de açıkça verilen görevleri uygular.** Serbest dolaşma / kendi kafasından
+   özellik-çekirdek ekleme YOK. Tasarım Yusuf+Claude'da; Osman şartnameyi koda döker (GORSEL/TURNUVA docs).
+2. **Teslim:** branch + PR; `master`'a push/deploy YOK — canlıya Yusuf alır (Vercel Hobby).
+3. **Temizlik:** bir görevin kodu Yusuf/Claude tarafından alınıp canlıya uygulanınca, o madde bu dosyadan
+   **Karar günlüğü**ne taşınır / kapatılır → açık liste hep güncel kalır, kafa karışmaz.
 
 ## Nasıl kullanılır
 
@@ -313,7 +319,25 @@ uca doğrulandı — ayrıntı: yukarıdaki "B Faz 0+1" açık maddesi. Faz 2 (t
 sırada; §5'teki diğer açık kararlar (tik tetikleme=lazy catch-up yeterli görünüyor, canlı yenileme=15 sn
 ilk sürüm) kendi takdirimle uyguladım, sorun çıkarsa buraya yazarım.
 
-## 🟢 Yusuf → Osman: B Faz 2-4 ŞARTNAMESİ (06.10) — kilitli çizelge, UYGULA
+## 🟢 Yusuf → Osman: GÖRSELLER (#2/#3/#4) — UYGULA (açık iş, 06.10)
+
+**Görev:** Oyunu çocuk/genç için cilalama. Şartnameler **[`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md)** §6-7-8'de hazır:
+- **#2 Kutlama juice'u** (maç/sonuç/madalya): tuş→lamba flash + "+1" uçan + titreme; **beyaz lamba İKİ taraflı**;
+  madalya→konfeti; şampiyonluk→kupa+konfeti. `prefers-reduced-motion` zorunlu.
+- **#3 Kupa/madalya vitrini + kariyer zaman çizgisi** (Geçmiş sayfası): rozetler (kupa/altın-gümüş-bronz/milli
+  takım/klasman), kilitli üst hedefler, **tam tarih** (worldDay→GMT).
+- **#4 Bugün ekranı cila** (`/kariyer`): büyük profil, **skill radar** (geçen çeyrek "+N"), form/kondisyon
+  ışıltısı, başarı şeridi.
+- **Kural:** yalnız bu şartnameyi uygula (çekirdeğe fikir ekleme). Saf CSS/SVG, hafif, dış sanat yok.
+  **Avatar (#1) PARK** (illüstratör, lansman öncesi) — yapma.
+- **Teslim:** branch + PR, deploy etme → canlıya Yusuf alır.
+
+---
+
+## ✅ (CANLIDA 06.10) B Faz 2-4 ŞARTNAMESİ — TAMAMLANDI
+
+> **Durum:** Uygulandı (PR #45), squash `e5581d3` + prod migration + deploy; canlıda 18:00 GMT tur-tur doğrulandı.
+> Aşağısı referans için duruyor (tam tasarım: `TURNUVA_MULTIPLAYER.md`).
 
 **İşbölümü (değişmez):** Tasarım/çekirdek kararlar **Yusuf+Claude'da**. Osman **yalnız bu şartnameyi uygular**;
 oyunun temeline (kural/mekanik/çizelge) kendi fikrini eklemez. Takılırsan **Cevap** satırına yaz, Yusuf netleştirir.
