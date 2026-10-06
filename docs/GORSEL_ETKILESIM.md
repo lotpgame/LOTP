@@ -162,3 +162,22 @@
 - Kozmetikler yalnız başarıyla mı açılsın, yoksa Denar ile (adil, kozmetik) satın alma da olsun mu?
 - Animasyonlu pist: tam figür animasyonu mu, yoksa sembolik (nokta/çubuk ileri-geri) mi? (çaba farkı büyük)
 - Ses varsayılan açık mı kapalı mı?
+
+---
+
+## 6. #2 Kutlama juice'u — uygulama şartnamesi (onaylandı 06.10)
+
+Saf CSS / Web Animations; **kütüphane yok, hafif.** `prefers-reduced-motion` açıksa efektler sakinleşir/kapanır
+(**zorunlu**). Ses opsiyonel — mevcut `SoundToggle`'a bağlı. Hepsi istemci; tetikleyici veriler zaten var.
+
+**Tetik noktaları → efekt:**
+- **Tuş (sayı):** combat log'da tuş düştüğünde → **o tarafın renkli lambası** (SEN=kırmızı, RAKİP=yeşil) flash
+  + skorda **"+1" uçan sayı** + skor bandında **hafif titreme**.
+- **Beyaz lamba (hedef dışı):** log'da `⚪`/"Beyaz lamba" satırı → **o tarafın beyaz lambası** flash, **skor ARTMAZ.**
+  **İki tarafta da olabilir** (her sporcunun kendi beyaz lambası; motorda hedef-dışı tuşu bulan tarafa göre).
+- **Madalya (derece 1-3):** turnuva sonucunda → **konfeti** patlaması.
+- **Şampiyonluk (derece 1 / büyük başarı):** → **kupa "pop" + bol konfeti + "Şampiyon" metni.**
+- **Seviye/skill artışı, ranking yükselme (ops.):** "+X" uçan sayı / çubuk dolma.
+
+**Nerede:** ScoreBug + canlı maç ekranı, turnuva sonuç ekranı, madalya/geçmiş. Yoğunluk küçük→büyük orantılı
+(tuş < madalya < şampiyonluk). Lamba renkleri sinyal renkleri (temadan bağımsız).
