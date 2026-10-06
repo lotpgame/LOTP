@@ -216,9 +216,15 @@ model Tournament {
   // Aynı scopeKey'e kayıtlı herkes AYNI turnuvada oynar; bir kez oluşturulur (dedup), sonrakiler okur.
   // Eski (tek-oyunculu) satırlarda null; canlı yol henüz null (b-2'de paylaşıma taşınacak).
   scopeKey   String?  @unique
+  // B Faz 2 (canlı, tur-tur çözüm): T+0 anı (18:00 GMT), turnuva günü ve çözülmüş adım sayısı
+  // (1..5 havuz turu, 6 sonuç+tablo, 7.. eleme). Yalnız yeni canlı turnuvalarda dolu; eskilerde null/0.
+  startsAt   DateTime?
+  worldDay   Int?
+  step       Int      @default(0)
 
   participants TournamentParticipant[]
   matches      Match[]
+  events       TournamentEvent[]
 
   createdAt DateTime @default(now())
 
@@ -244,6 +250,15 @@ model TournamentParticipant {
   touchesReceived Int?
   indicator       Int?
   seedRank        Int? // havuz sonrası Turnuva Ranking sırası (1 = en iyi)
+
+  // B Faz 2: turnuva başı oyuncu anlık görüntüsü (Combatant JSON — çözüm hep bundan, sonradan değişen
+  // skill/kondisyon sonucu etkilemez), turnuva-içi yorgunluk ve taktik kaynakları (gönderilen → kayıtlı →
+  // son kullanılan → BALANCED).
+  snapshot         String?
+  fatigue          Int?
+  registeredTactic String?
+  pendingTactic    String?
+  lastTactic       String?
 
   @@unique([tournamentId, playerId])
   @@index([tournamentId])
@@ -275,9 +290,31 @@ model Match {
   seed String // bu maçın tohumu (replay/debug, GDD 20.29) — PENDING'te de bilinir, deterministik
   log  String? // metin anlatım (satırlar \n ile) — PENDING iken null
 
+  // B Faz 2: tur numarası (havuz 1..5 / eleme 1..N), eleme tablosundaki yer ve maçta kullanılan taktikler.
+  roundNo Int?
+  slot    Int?
+  tacticA String?
+  tacticB String?
+
   createdAt DateTime @default(now())
 
   @@index([tournamentId])
+}
+
+/// B Faz 4 (GDD 23.59): canlı turnuvanın olay kaydı — çekim, tur çözümü, taktik gönderimi/reddi, sonuç.
+/// Hata analizi + taktik istek sınırı (GDD 23.58) için.
+model TournamentEvent {
+  id           Int        @id @default(autoincrement())
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  playerId     Int?
+  type         String // DRAW | STEP | FINISH | TACTIC | TACTIC_REJECTED
+  step         Int?
+  detail       String?
+  createdAt    DateTime   @default(now())
+
+  @@index([tournamentId, createdAt])
+  @@index([tournamentId, playerId, createdAt])
 }
 
 /// Kariyer başarısı / kilometre taşı (GDD 22.37). Memory Engine üretir; silinmez.

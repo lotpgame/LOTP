@@ -18,6 +18,7 @@ export interface NextTournamentInfo {
   startMs: number;
   daysUntil: number;
   isToday: boolean;
+  worldDay: number;
   qualified: boolean;
   requirement: string;
 }
@@ -135,11 +136,20 @@ export function NextTournament({
           <span className="flex items-center gap-1.5 text-[13px] text-steel">
             <Icon name="lock" size={15} /> {info.requirement}
           </span>
+        ) : registered && info.isToday && !openNow ? (
+          // 06.10 kuralı: bugünün turnuvasında kayıtlı taktik 18:00 GMT'ye kadar değişebilir.
+          <Link href={registerHref} className="btn-ghost press shrink-0">
+            <span className="lamp lamp-prio h-2.5 w-2.5" aria-hidden="true" />
+            {t(locale, "tour.changeTactic")}
+          </Link>
         ) : registered ? (
           <span className="flex min-h-11 items-center gap-2 text-[14px] font-semibold">
             <span className="lamp lamp-prio h-2.5 w-2.5" aria-hidden="true" />
             {t(locale, "next.registered")}
           </span>
+        ) : info.isToday ? (
+          // Bugünün turnuvasına yeni kayıt gün-00:00'da kapandı — "Kaydol" kapalı bir kayda götürmesin.
+          <span className="max-w-[45%] text-right text-[13px] text-steel">{t(locale, "turnuvalar.todayClosed")}</span>
         ) : (
           <Link href={registerHref} className="btn-ink press shrink-0">
             {t(locale, "next.register")}

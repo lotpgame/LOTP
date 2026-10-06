@@ -22,10 +22,56 @@ export const SCHEDULE = {
   poolStartMinute: 18 * 60, // 18:00 GMT — turnuva başlar (gün 00:00 GMT döner, etkinlik 18:00 GMT)
   deStartMinute: 18 * 60 + 45, // 18:45 — elemeler (pul bitiminden ~15 dk sonra)
   finalsStartMinute: 19 * 60 + 30, // 19:30 — Yarı Final + Final
-  // ⚠️ NOT: bu modül şu an hiçbir yerde import EDİLMİYOR. Canlı turnuva (B) zamanlaması
-  // careerService'te tetikleme-anına göre staggerlanıyor. Kesin kadans (pul 2 dk / sonuç T+17 /
-  // eleme 10 dk) B Faz 2'de DEVIR şartnamesine göre (Osman) yeniden kurulacak.
+  // ⚠️ NOT: bu sabitler eski (M11.1) gün-içi plan içindir, canlı turnuva KULLANMAZ. Canlı turnuvanın
+  // kilitli kadansı (B Faz 2, DEVIR şartnamesi 06.10) aşağıda: LIVE_SCHEDULE.
 } as const;
+
+// ——— B Faz 2 (docs/DEVIR.md "B Faz 2-4 şartnamesi", 06.10): canlı turnuvanın KİLİTLİ çizelgesi ———
+// T = turnuva başlangıcı (18:00 GMT). Değerler oyun sahibinin kararıdır — değiştirilmez.
+
+/** Kilitli kadans, T'ye göre dakika: havuz turları T+5..T+13 (2 dk arayla), sonuç T+17, eleme T+20'den 10 dk'da bir. */
+export const LIVE_SCHEDULE = {
+  poolRoundMinutes: [5, 7, 9, 11, 13],
+  poolResultsMinute: 17,
+  deFirstMinute: 20,
+  deStepMinutes: 10,
+} as const;
+
+/** Canlı turnuvanın çözüm adımı: 1..5 havuz turları, 6 havuz sonuçları + eleme tablosu, 7.. eleme turları. */
+export type LiveStep = { kind: "POOL"; roundNo: number } | { kind: "RESULTS" } | { kind: "DE"; roundNo: number };
+
+export const LIVE_POOL_STEPS = LIVE_SCHEDULE.poolRoundMinutes.length;
+export const LIVE_RESULTS_STEP = LIVE_POOL_STEPS + 1;
+
+export function liveStep(step: number): LiveStep {
+  if (!Number.isInteger(step) || step < 1) throw new RangeError("Adım 1'den başlar");
+  if (step <= LIVE_POOL_STEPS) return { kind: "POOL", roundNo: step };
+  if (step === LIVE_RESULTS_STEP) return { kind: "RESULTS" };
+  return { kind: "DE", roundNo: step - LIVE_RESULTS_STEP };
+}
+
+/** Adımın T'ye göre dakikası: 5, 7, 9, 11, 13 · 17 · 20, 30, 40, … */
+export function liveStepMinute(step: number): number {
+  const s = liveStep(step);
+  if (s.kind === "POOL") return LIVE_SCHEDULE.poolRoundMinutes[s.roundNo - 1];
+  if (s.kind === "RESULTS") return LIVE_SCHEDULE.poolResultsMinute;
+  return LIVE_SCHEDULE.deFirstMinute + (s.roundNo - 1) * LIVE_SCHEDULE.deStepMinutes;
+}
+
+/** `deRounds` turluk eleme tablosu olan bir turnuvanın toplam adım sayısı. */
+export function liveTotalSteps(deRounds: number): number {
+  return LIVE_RESULTS_STEP + deRounds;
+}
+
+const REAL_DAY_MS = 86_400_000;
+
+/**
+ * Adımın gerçek-zaman anı (ms). Dünya saati dev'de kısaltılmışsa (WORLD_MS_PER_DAY) dakikalar da aynı
+ * oranda kısalır; üretimde (1 oyun günü = 1 gerçek gün) birebir dakika.
+ */
+export function liveStepAtMs(startMs: number, step: number, msPerDay: number = REAL_DAY_MS): number {
+  return startMs + liveStepMinute(step) * 60_000 * (msPerDay / REAL_DAY_MS);
+}
 
 export type Phase = "POOL" | "DE";
 

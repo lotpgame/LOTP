@@ -23,15 +23,18 @@ import {
   getCategoryRanking,
   hasCareer,
   leaveLiveTournament,
+  leaveTournament,
   playLiveMatch,
   registerTournament,
   resetCareer,
   setTrainingPlan,
   signInWithPhone,
   signOut,
+  submitTournamentTactic,
   unregisterTournament,
   upgradeEquipment,
 } from "@/server/careerService";
+import type { TacticSubmitResult } from "@/server/liveTournament";
 
 export async function createCareerAction(formData: FormData): Promise<void> {
   if (await hasCareer()) redirect("/kariyer");
@@ -110,6 +113,22 @@ export async function advanceLiveStageAction(): Promise<void> {
 /** Biten canlı turnuvadan kariyere döner (durum temizlenir). */
 export async function leaveLiveTournamentAction(): Promise<void> {
   await leaveLiveTournament();
+  redirect("/kariyer");
+}
+
+/** B Faz 2-3: canlı turnuvada sıradaki maç için taktik gönderir. Doğrulama/pencere/istek sınırı sunucuda. */
+export async function submitLiveTacticAction(tournamentId: number, tactic: string): Promise<TacticSubmitResult> {
+  const id = Number(tournamentId);
+  if (!Number.isInteger(id) || id <= 0) return { ok: false, reason: "invalid" };
+  const res = await submitTournamentTactic(id, String(tactic));
+  if (res.ok) revalidatePath(`/turnuva/${id}`);
+  return res;
+}
+
+/** Turnuva sayfasından kariyere döner; turnuva bittiyse ve bugünkü turnuvansa gün ilerler. */
+export async function leaveTournamentAction(formData: FormData): Promise<void> {
+  const id = Number(formData.get("tournamentId"));
+  if (Number.isInteger(id) && id > 0) await leaveTournament(id);
   redirect("/kariyer");
 }
 

@@ -7,7 +7,18 @@
  */
 import { cookies } from "next/headers";
 import { continentOfCountry, parsePhone } from "@/engine/geo";
-import { serverEventDay, serverWorldDay, worldClockConfig } from "./world";
+import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
+import {
+  createLiveTournament,
+  getLiveView,
+  submitLiveTactic,
+  tickLiveTournament,
+  type LiveEntrant,
+  type LiveViewDTO,
+  type TacticSubmitResult,
+} from "./liveTournament";
+import { MAX_FIELD, deRoundLabel } from "@/engine/tournament/live";
+import { LIVE_POOL_STEPS, LIVE_RESULTS_STEP } from "@/engine/schedule";
 import { worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
@@ -55,7 +66,6 @@ import {
   bracketSize,
   computePoolSizes,
   roundLabel,
-  simulateTournament,
   type PoolPlayerResult,
   type TournamentMatch,
   type TournamentOutcome,
@@ -805,6 +815,7 @@ export interface NextTournamentDTO {
   startMs: number; // turnuva gününün gerçek zamanda başladığı/başlayacağı an (her akşam gün geçişi)
   daysUntil: number; // kaç oyun günü sonra (0 = bugün)
   isToday: boolean;
+  worldDay: number; // turnuvanın dünya günü (kayıt listesiyle eşleştirmek için)
   qualified: boolean; // katılım hakkı (yaş/uygunluk/sakatlık)
   requirement: string; // uygun değilse şart metni
 }
@@ -834,6 +845,7 @@ function findNextTournament(
       startMs: worldEventStartMs(d, cfg), // turnuva o günün 18:00 GMT'sinde başlar
       daysUntil: d - worldDay,
       isToday: d === worldDay,
+      worldDay: d,
       qualified: !injured && qualifies(act.qualification, humanRank),
       requirement: t(locale, `qual.${act.qualification}`),
     };
@@ -958,6 +970,8 @@ export interface UpcomingTournamentDTO {
   requirement: string;
   registered: boolean;
   tactic: string; // önceden verilen taktik (kayıtlıysa) ya da varsayılan
+  isToday: boolean; // bugünün turnuvası (başlamadan önce listede: yeni kayıt kapalı, taktik 18:00 GMT'ye kadar değişir)
+  registrationOpen: boolean; // yeni kayıt mümkün mü (turnuva gününün 00:00'ında kapanır)
 }
 
 /** Önümüzdeki turnuvalar + kayıt durumu (mevcut kullanıcının insanı için). */
@@ -980,8 +994,10 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
 
   const cfg = worldClockConfig();
   const out: UpcomingTournamentDTO[] = [];
-  // Kayıt turnuva gününün 00:00'ında kapanır → yalnız GELECEK günler (today+1) kaydedilebilir.
-  for (let d = today + 1; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
+  // Yeni kayıt turnuva gününün 00:00'ında kapanır (yalnız gelecek günler); 06.10 kuralı: bugünün turnuvası
+  // başlayana kadar (18:00 GMT) listede kalır → kayıtlı oyuncu taktiğini değiştirebilir.
+  const firstDay = Date.now() < serverEventStartMs(today) ? today : today + 1;
+  for (let d = firstDay; d <= today + REGISTER_LOOKAHEAD_DAYS; d++) {
     const act = activityForDay(d);
     if (act.kind !== "TOURNAMENT") continue;
     const id = currentIdentity(human, careerQuarter(d, gs.careerStartDay)); // o günkü yaş kategorisi
@@ -1007,6 +1023,8 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       requirement: t(locale, `qual.${act.qualification}`),
       registered: reg != null,
       tactic: reg?.tactic ?? human.tactic,
+      isToday: d === today,
+      registrationOpen: d > today,
     });
   }
   return out;
@@ -1017,8 +1035,21 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
-  // Kayıt turnuva gününün 00:00'ında kapanır (bir gün öncesine kadar; oyun sahibi kuralı).
-  if (worldDay <= serverWorldDay()) throw new Error("Bu turnuvaya kayıt kapandı (turnuva günü). Bir gün öncesine kadar kaydolabilirsin.");
+  const today = serverWorldDay();
+  if (worldDay < today) throw new Error("Bu turnuvanın günü geçti.");
+  if (worldDay === today) {
+    // 06.10 kuralı: YENİ kayıt turnuva gününün 00:00'ında kapanır; mevcut kayıtlı oyuncu taktiğini turnuva
+    // başlayana (18:00 GMT) kadar değiştirebilir. Sonrasında taktik tur aralarında turnuva ekranından verilir.
+    const reg = await prisma.registration.findUnique({
+      where: { playerId_worldDay_level: { playerId: gs.humanPlayerId, worldDay, level } },
+    });
+    if (!reg) throw new Error("Bu turnuvaya kayıt kapandı (turnuva günü). Bir gün öncesine kadar kaydolabilirsin.");
+    if (Date.now() >= serverEventStartMs(worldDay)) {
+      throw new Error("Turnuva başladı — taktiğini artık tur aralarında turnuva ekranından verebilirsin.");
+    }
+    await prisma.registration.update({ where: { id: reg.id }, data: { tactic } });
+    return;
+  }
   const act = activityForDay(worldDay);
   if (act.kind !== "TOURNAMENT" || act.level !== level) throw new Error("O gün bu turnuva yok.");
   const id = currentIdentity(human, careerQuarter(worldDay, gs.careerStartDay));
@@ -1193,7 +1224,17 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const regRows = await prisma.registration.findMany({
     where: { playerId: human.id, worldDay: { gte: gs.dayIndex, lte: eventDay } },
   });
-  const regByDay = new Map(regRows.map((r) => [`${r.worldDay}:${r.level}`, r]));
+  const regByDay = new Map<string, unknown>(regRows.map((r) => [`${r.worldDay}:${r.level}`, r]));
+  // B Faz 2: kayıtsız girip sahada oynadığı (tetikleyen) turnuva günleri de kayıtlı gibi kapanır —
+  // yoksa o gün "kaçırıldı" sayılıp ayrıca antrenman uygulanır ve "yokken" özeti yazılmazdı.
+  const played = await prisma.tournamentParticipant.findMany({
+    where: { playerId: human.id, tournament: { worldDay: { gte: gs.dayIndex, lte: eventDay } } },
+    select: { tournament: { select: { worldDay: true, level: true } } },
+  });
+  for (const p of played) {
+    const key = `${p.tournament.worldDay}:${p.tournament.level}`;
+    if (!regByDay.has(key)) regByDay.set(key, p);
+  }
 
   // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
   const psych = psychologyOf(human);
@@ -1415,10 +1456,10 @@ async function appendAwayReport(gsId: number, entry: AwayTournamentEntry): Promi
 }
 
 /**
- * Bugünkü turnuvaya KATILIR. B (docs/TURNUVA_MULTIPLAYER.md, Faz 1): turnuva artık istemci-güdümlü
- * değil — sunucu tek seferde çözer (`resolveScopedTournament`, kayıtlı taktiklerle) ve maçlar tur tur
- * açılır (`Match.status`/`scheduledAt`). Kapsam-içi HERKES aynı `/turnuva/[id]` sayfasını izler —
- * kim ilk "katıl"a basarsa çözen odur, sonrakiler aynı sonucu (henüz açılmamış kısımlar dahil) görür.
+ * Bugünkü turnuvaya GİRER. B Faz 2: turnuva 18:00 GMT'de bir kez çekilir ve kilitli çizelgeyle TUR TUR
+ * sunucuda çözülür; bu çağrı turnuvayı getirir (gerekirse çeker), "şimdi"ye kadar ilerletir ve canlı
+ * sayfaya yönlendirir. Turnuva sürerken oyuncu turnuva gününde kalır (izler, tur aralarında taktik
+ * verir); turnuva bittiyse gün tamamlanmıştır → gün ilerler.
  */
 export async function attendTournament(): Promise<AdvanceResult> {
   const state = await loadState();
@@ -1438,17 +1479,45 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (!qualifies(act.qualification, humanRank)) {
     throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
   }
-  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
-  const scopeKey = tournamentScopeKey(act.level, country?.code ?? "??", human.club?.city ?? "", attendId.categoryId, gs.dayIndex);
-  // Bu ortak turnuva zaten çözüldüyse (başka oyuncu ilk bastı) → aynı canlı yayını izlemeye katıl.
-  const existing = await prisma.tournament.findUnique({ where: { scopeKey } });
-  if (existing) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
-    return { live: true, tournamentId: existing.id };
+  const id = await ensureLiveTournament(gs, human, act.level, { attendee: true });
+  if (id == null) throw new Error("Turnuva için yeterli rakip yok."); // günü SESSİZCE harcama — görünür hata
+  await tickLiveTournament(id, { locale: await getLocale() });
+  const t = await prisma.tournament.findUnique({ where: { id }, select: { status: true } });
+  if (t?.status === "FINISHED") await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
+  return { live: true, tournamentId: id };
+}
+
+/** Canlı turnuvada sıradaki maç için taktik gönderir (pencere/doğrulama/istek sınırı sunucuda). */
+export async function submitTournamentTactic(tournamentId: number, tactic: string): Promise<TacticSubmitResult> {
+  const state = await loadState();
+  if (!state) return { ok: false, reason: "not_participant" };
+  return submitLiveTactic(tournamentId, state.human.id, tactic);
+}
+
+/**
+ * Canlı turnuva sayfasından kariyere dönüş. Turnuva BİTTİYSE ve oyuncunun bugünkü turnuvasıysa (aynı
+ * kapsam + gün) o gün tamamlanmıştır → gün ilerler. Sürüyorsa ya da başka bir turnuvaya bakıyorsa dokunmaz.
+ */
+export async function leaveTournament(tournamentId: number): Promise<void> {
+  const state = await loadState();
+  if (!state) return;
+  const { gs, human } = state;
+  if (gs.liveTournament) {
+    await leaveLiveTournament(); // B-öncesi oturum
+    return;
   }
-  const result = await resolveScopedTournament(gs, human, act.level, scopeKey, { stagger: true });
-  if (!result) throw new Error("Turnuva için yeterli rakip yok."); // günü SESSİZCE harcama — görünür hata
-  return { live: true, tournamentId: result.fin.id };
+  const t = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    select: { status: true, worldDay: true, scopeKey: true },
+  });
+  if (!t || t.status !== "FINISHED" || t.worldDay !== gs.dayIndex || !t.scopeKey) return;
+  const act = activityForDay(gs.dayIndex);
+  if (act.kind !== "TOURNAMENT") return;
+  const id = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
+  const mine = tournamentScopeKey(act.level, country?.code ?? "??", human.club?.city ?? "", id.categoryId, gs.dayIndex);
+  if (mine !== t.scopeKey) return;
+  await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
 }
 
 /** Ekipmanı bir seviye yükseltir (Economy: parayla, GDD 15/16). Hafta ilerletmez. */
@@ -1602,19 +1671,25 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
  * gizli kalır, henüz açılmamış maçlar isim/skor olmadan (`isPending`) döner.
  */
 export async function getTournament(id: number): Promise<TournamentResultDTO | null> {
-  await revealDueMatches(id);
+  const head = await prisma.tournament.findUnique({ where: { id }, select: { startsAt: true } });
+  if (!head) return null;
+  const locale = await getLocale();
+  // B Faz 2 turnuvası (startsAt dolu) tur tur çözülür: önce "şimdi"ye kadar ilerletilir. Faz 1 turnuvaları
+  // (anında çözülmüş) için yalnız zamanı gelen maçlar görünür yapılır.
+  const liveModel = head.startsAt != null;
+  if (liveModel) await tickLiveTournament(id, { locale });
+  else await revealDueMatches(id);
   const tourn = await prisma.tournament.findUnique({
     where: { id },
     include: {
       participants: { include: { player: true } },
-      matches: { orderBy: { orderIndex: "asc" } }, // PENDING + RESOLVED birlikte — pending'i biz maskeleriz
+      matches: { orderBy: { orderIndex: "asc" } },
     },
   });
   if (!tourn) return null;
   const gs = await currentGameState();
   const humanId = gs?.humanPlayerId ?? -1;
   const fieldSize = tourn.participants.length;
-  const locale = await getLocale();
 
   const nameById = new Map(
     tourn.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
@@ -1626,12 +1701,18 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   const you = tourn.participants.find((p) => p.playerId === humanId);
 
   const pendingMatches = tourn.matches.filter((m) => m.status === "PENDING");
-  const isFullyRevealed = pendingMatches.length === 0;
+  // Faz 1: tüm maçlar açılınca biter. Canlı model: son adım çözülünce (status FINISHED).
+  const isFullyRevealed = liveModel ? tourn.status === "FINISHED" : pendingMatches.length === 0;
   const nextRevealAt = pendingMatches
     .map((m) => m.scheduledAt)
     .filter((d): d is Date => d != null)
     .sort((a, b) => a.getTime() - b.getTime())[0];
   const resolvedPoolMatches = tourn.matches.filter((m) => m.phase === "POOL" && m.status === "RESOLVED");
+  // Canlı modelde çözülen her şey gerçek zamanlıdır (önceden hesaplanmış sonuç yok) → spoiler yok, hemen
+  // gösterilir; havuz tablosu (galibiyet/averaj) sonuç adımında yazılır.
+  const showPoolSheets = isFullyRevealed || liveModel;
+  const showPools = isFullyRevealed || (liveModel && tourn.step >= LIVE_RESULTS_STEP);
+  const live = liveModel ? await tournamentLiveDto(id, humanId, nameById, fieldSize, locale) : null;
 
   return {
     tournamentId: tourn.id,
@@ -1639,13 +1720,13 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
     level: t(locale, `tournament.${tourn.level}`),
     categoryId: tourn.categoryId,
     isFullyRevealed,
-    nextRevealAt: nextRevealAt?.toISOString() ?? null,
+    nextRevealAt: liveModel ? (live?.nextAt ?? null) : (nextRevealAt?.toISOString() ?? null),
     youParticipated: you != null,
     yourPosition: isFullyRevealed && you ? (you.finalPosition ?? fieldSize) : null,
     yourSeedRank: you?.seedRank ?? null, // seed pul aşamasından belli olur — spoiler değil
     championName: isFullyRevealed ? (champion ? (nameById.get(champion.playerId) ?? "?") : "?") : null,
-    pools: isFullyRevealed ? buildPoolsView(tourn.participants, nameById, humanId) : [],
-    poolSheets: isFullyRevealed
+    pools: showPools ? buildPoolsView(tourn.participants, nameById, humanId) : [],
+    poolSheets: showPoolSheets
       ? buildPoolSheets(
           resolvedPoolMatches.map((m) => ({ aId: m.playerAId!, bId: m.playerBId!, scoreA: m.scoreA!, scoreB: m.scoreB! })),
           new Map(tourn.participants.filter((p) => p.poolNumber != null).map((p) => [p.playerId, p.poolNumber as number])),
@@ -1662,20 +1743,71 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       : [],
     matches: tourn.matches.map((m) => {
       const isPending = m.status === "PENDING";
+      // Faz 1'de açılmamış maç = gizli sonuç → isim de gizli. Canlı modelde bekleyen maçın eşleşmesi kamuya
+      // açık çekim bilgisidir → isimler görünür (skor yok).
+      const showNames = !isPending || (liveModel && m.playerAId != null && m.playerBId != null);
+      const nameOf = (pid: number | null) => (pid == null ? null : (nameById.get(pid) ?? formatPlayerCode(pid)));
       return {
         phase: m.phase,
         round: localizeRound(locale, m.round),
         isPending,
-        aName: isPending ? null : (nameById.get(m.playerAId!) ?? formatPlayerCode(m.playerAId!)),
-        bName: isPending ? null : (nameById.get(m.playerBId!) ?? formatPlayerCode(m.playerBId!)),
+        aName: showNames ? nameOf(m.playerAId) : null,
+        bName: showNames ? nameOf(m.playerBId) : null,
         scoreA: isPending ? null : m.scoreA,
         scoreB: isPending ? null : m.scoreB,
         log: isPending || m.log == null ? null : m.log.split("\n"),
-        aIsHuman: !isPending && m.playerAId === humanId,
-        bIsHuman: !isPending && m.playerBId === humanId,
+        aIsHuman: showNames && m.playerAId === humanId,
+        bIsHuman: showNames && m.playerBId === humanId,
       };
     }),
     currentDate: (gs?.currentDate ?? tourn.date).toISOString(),
+    live,
+  };
+}
+
+/** Sıradaki çözüm adımının adı (canlı panel): "Havuz turu 3/5" · "Havuz sonuçları…" · "Eleme: Son 16". */
+function liveStepLabel(locale: Locale, kind: "POOL" | "RESULTS" | "DE", roundNo: number | null, fieldSize: number): string {
+  if (kind === "POOL") return t(locale, "live.step.pool", { n: roundNo ?? 1, total: LIVE_POOL_STEPS });
+  if (kind === "RESULTS") return t(locale, "live.step.results");
+  return t(locale, "live.step.de", { round: localizeRound(locale, deRoundLabel(bracketSize(fieldSize), roundNo ?? 1)) });
+}
+
+/** Canlı panelin verisi: sıradaki adım + izleyen oyuncunun kendi durumu (katılımcı değilse `you` null). */
+async function tournamentLiveDto(
+  id: number,
+  humanId: number,
+  nameById: Map<number, string>,
+  fieldSize: number,
+  locale: Locale,
+): Promise<TournamentLiveDTO | null> {
+  const v: LiveViewDTO | null = await getLiveView(id, humanId >= 0 ? humanId : null);
+  if (!v) return null;
+  const nm = v.you?.nextMatch;
+  return {
+    status: v.status,
+    stepLabel: v.next ? liveStepLabel(locale, v.next.kind, v.next.roundNo, fieldSize) : null,
+    nextKind: v.next?.kind ?? null,
+    nextAt: v.next?.at ?? null,
+    serverNow: v.serverNow,
+    you: v.you
+      ? {
+          eliminated: v.you.eliminated,
+          nextMatch: nm
+            ? {
+                opponentName: nm.opponentId != null ? (nameById.get(nm.opponentId) ?? formatPlayerCode(nm.opponentId)) : null,
+                round: localizeRound(locale, nm.round),
+                phase: nm.phase,
+                at: nm.at,
+                isNextStep: v.next != null && nm.step === v.next.step,
+              }
+            : null,
+          windowOpen: v.you.windowOpen,
+          windowClosesAt: v.you.windowClosesAt,
+          effectiveTactic: v.you.effectiveTactic,
+          pendingSet: v.you.pendingSet,
+          registeredTactic: v.you.registeredTactic,
+        }
+      : null,
   };
 }
 
@@ -1738,6 +1870,31 @@ export interface TournamentResultDTO {
     bIsHuman: boolean;
   }[];
   currentDate: string;
+  live: TournamentLiveDTO | null; // B Faz 2-3: tur-tur canlı turnuva paneli (eski turnuvalarda null)
+}
+
+/** Canlı turnuva paneli (B Faz 3): sıradaki adım + geri sayım + kendi sıradaki maçın ve taktik penceresi. */
+export interface TournamentLiveDTO {
+  status: "RUNNING" | "FINISHED";
+  stepLabel: string | null;
+  nextKind: "POOL" | "RESULTS" | "DE" | null;
+  nextAt: string | null; // ISO — sıradaki adımın sunucuda çözüleceği an
+  serverNow: string; // ISO — istemci saat farkını düzeltmek için
+  you: {
+    eliminated: boolean;
+    nextMatch: {
+      opponentName: string | null; // eleme rakibi önceki tur bitince belli olur
+      round: string;
+      phase: "POOL" | "DE";
+      at: string;
+      isNextStep: boolean; // sıradaki adımda mı (değilse bu tur bay)
+    } | null;
+    windowOpen: boolean;
+    windowClosesAt: string | null;
+    effectiveTactic: Tactic; // şimdi bırakırsan bu taktikle oynarsın
+    pendingSet: boolean;
+    registeredTactic: Tactic | null;
+  } | null;
 }
 
 /**
@@ -3000,116 +3157,131 @@ interface CombatantRow {
 }
 
 /**
- * M11.3b-1 — bir turnuva gününü ORTAK örnek olarak çözer. Kapsam anahtarı (scopeKey) ile dedup:
- * ilk çözen kayıtlı oyuncu tüm kapsam-içi gerçek oyuncuları (+ AI dolgu) tek turnuvada oynatır,
- * sonuç + klasman + herkesin kişisel etkileri yazılır (Model A). Sonradan senkronlayan kayıtlı
- * katılımcı yeniden oynatmaz — etkileri zaten uygulandı, sadece kendi gününü ilerletir.
+ * B Faz 2 — turnuva alanındaki bir oyuncunun TURNUVA BAŞI anlık görüntüsü (Combatant). Çekimde bir kez
+ * alınıp DB'ye yazılır; turnuvanın bütün turları bundan çözülür (sonradan değişen skill/kondisyon sonucu
+ * etkilemez → herkes aynı sonucu görür). Günün hâli oyuncudan değil turnuva anahtarından tohumlanır.
  */
+function snapshotCombatant(
+  p: CombatantRow,
+  isHuman: boolean,
+  quarter: number,
+  ageCategory: AgeCategory,
+  scopeKey: string,
+): Combatant {
+  const age = currentAge(p.birthDate, quarter);
+  const ph = computePhysique(geneticsOf(p), age);
+  const traits = activeTraitsOf(p.traits, age); // o yaşta aktif trait'ler (kademeli açılım)
+  const mood = dailyMood(createRng(`${scopeKey}:mood:${p.id}`));
+  const conditionBonus =
+    psychologyCombatModifier(psychologyOf(p)) +
+    traitCombatModifier(traits) +
+    equipmentCombatModifier(p.equipmentLevel) +
+    equipmentCombatBonus(parseOwned(p.ownedEquipment)) + // Gladius ekipman (çok küçük)
+    experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
+    mood;
+  return {
+    id: p.id,
+    name: `${p.firstName} ${p.lastName}`,
+    weapon: p.weapon as Weapon,
+    skills: rowsToSkills(p.skills),
+    fatigue: p.fatigue,
+    sharpness: p.sharpness,
+    conditionBonus,
+    age,
+    physical: { reachCm: ph.reachCm, legLengthCm: ph.legLengthCm, buildFactor: p.buildFactor, leftHanded: p.leftHanded },
+    ageCategory,
+    tactic: isHuman ? undefined : tacticFromTraits(traits), // insanın taktiği maç maç belirlenir
+    traits,
+  };
+}
+
 /**
- * B (docs/TURNUVA_MULTIPLAYER.md): scopeKey kapsamındaki turnuvayı ÇÖZER — kapsam-içi tüm kayıtlı
- * gerçek oyuncuları (+ AI dolgu) toplar, tek seferde simüle eder, `finalizeTournament` ile yazar.
- * Hem offline otomatik yol (`autoResolveTournament`, stagger:false) hem canlı "katıl" yolu
- * (`attendTournament`, stagger:true) BU fonksiyonu paylaşır — ikisi de aynı "tek çözüm, ortak
- * gerçeklik" garantisini alır, yalnız görünürlük hızı farklı. `humans.length===0` veya alan <2 ise
- * `null` döner (çağıran kendi "günü ilerlet" davranışını uygular).
+ * B Faz 2 — kapsam turnuvasını döndürür; T+0 (18:00 GMT) geçtiyse ve henüz yoksa ÇEKER: kapsam-içi
+ * kayıtlı gerçek oyuncular (kayıt sırasıyla, saha tavanı MAX_FIELD) + `attendee` ise "Turnuvaya Gir"e
+ * basan oyuncu kayıtsız da olsa (02.10 kuralı) + saha FIELD_TARGET'ın altındaysa AI dolgu. Havuzlar ve
+ * maç çizelgesi DB'ye yazılır; sonrakiler aynı turnuvayı okur. T+0 gelmediyse ya da alan kurulamıyorsa null.
  */
-async function resolveScopedTournament(
-  gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
+async function ensureLiveTournament(
+  gs: { dayIndex: number; careerStartDay: number; currentDate: Date },
   human: NonNullable<Awaited<ReturnType<typeof loadState>>>["human"],
   level: TournamentLevel,
-  scopeKey: string,
-  opts: { stagger: boolean },
-): Promise<{ outcome: TournamentOutcome; fin: Awaited<ReturnType<typeof finalizeTournament>> } | null> {
+  opts: { attendee: boolean },
+): Promise<number | null> {
   const quarter = quarterOf(gs.dayIndex);
   const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
   const myCity = human.club?.city ?? "";
+  const scopeKey = tournamentScopeKey(level, country?.code ?? "??", myCity, base.categoryId, gs.dayIndex);
+  const existing = await prisma.tournament.findUnique({ where: { scopeKey }, select: { id: true } });
+  if (existing) return existing.id;
+  const startsAt = serverEventStartMs(gs.dayIndex);
+  if (Date.now() < startsAt) return null;
 
-  // Kapsam-içi tüm kayıtlı gerçek oyuncuları topla (+ herkesin taktiği).
   const myScope = geoScopeForLevel(level, country?.code ?? "??", myCity);
-  const regs = await prisma.registration.findMany({ where: { worldDay: gs.dayIndex, level } });
-  const tacticByPlayer = new Map(regs.map((r) => [r.playerId, r.tactic as Tactic]));
-  if (!tacticByPlayer.has(human.id)) tacticByPlayer.set(human.id, human.tactic as Tactic); // kayıtsız: kendi varsayılanı
-  const categoryByPlayer = new Map(regs.map((r) => [r.playerId, r.categoryId]));
+  const regs = await prisma.registration.findMany({ where: { worldDay: gs.dayIndex, level }, orderBy: { id: "asc" } });
+  const regOrder = new Map(regs.map((r, i) => [r.playerId, i]));
+  const regTactic = new Map(regs.map((r) => [r.playerId, r.tactic as Tactic]));
+  const regCategory = new Map(regs.map((r) => [r.playerId, r.categoryId]));
   const regPlayers = await prisma.player.findMany({
     where: { id: { in: regs.map((r) => r.playerId) }, isAI: false },
     include: { skills: true, club: true, nationality: true },
   });
-  // Diğer gerçek oyuncular: kayıtlı + AYNI kategori + AYNI coğrafi kapsam.
-  const coHumans = regPlayers.filter(
-    (p) =>
-      p.id !== human.id &&
-      categoryByPlayer.get(p.id) === base.categoryId &&
-      geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope,
-  );
-  // Çözücü (canlı katılan) HER ZAMAN sahada ve en başta (günü ilerleyen taraf o) — kayıt şartı yok:
-  // kayıt gün-00:00'da kapanır ama o gün gelen oyuncu da oynar. (Kayıt satırından süzülürse kayıtsız
-  // oyuncu sessizce dışarıda kalıyordu: "Turnuvaya gir"e basıyor, hiçbir şey olmuyor, günü gidiyordu.)
-  const humans = [human, ...coHumans];
+  const inScope = regPlayers
+    .filter(
+      (p) =>
+        regCategory.get(p.id) === base.categoryId &&
+        geoScopeForLevel(level, p.nationality.code, p.club?.city ?? "") === myScope,
+    )
+    .sort((a, b) => regOrder.get(a.id)! - regOrder.get(b.id)!);
+  const humans: CombatantRow[] = [
+    ...(opts.attendee && !inScope.some((p) => p.id === human.id) ? [human] : []),
+    ...inScope,
+  ].slice(0, MAX_FIELD);
 
   const aiNeeded = Math.max(0, FIELD_TARGET - humans.length);
-  const aiPlayers = await prisma.player.findMany({
-    where: { isAI: true, gender: human.gender, weapon: human.weapon },
-    include: { skills: true },
-    take: aiNeeded,
-  });
+  const aiPlayers = aiNeeded
+    ? await prisma.player.findMany({
+        where: { isAI: true, gender: human.gender, weapon: human.weapon },
+        include: { skills: true },
+        orderBy: { id: "asc" },
+        take: aiNeeded,
+      })
+    : [];
+  if (humans.length + aiPlayers.length < 2) return null;
 
-  const toCombatant = (p: CombatantRow, isHuman: boolean): Combatant => {
-    const age = currentAge(p.birthDate, quarter);
-    const ph = computePhysique(geneticsOf(p), age);
-    const traits = activeTraitsOf(p.traits, age); // o yaşta aktif trait'ler (kademeli açılım)
-    // Form HERKESTE (insan+AI): psikoloji + trait + ekipman + GÜNÜN HÂLİ (o güne özel, oyuncu+gün tohumlu).
-    const mood = dailyMood(createRng(`${gs.seed}:mood:${p.id}:${gs.dayIndex}`));
-    const conditionBonus =
-      psychologyCombatModifier(psychologyOf(p)) +
-      traitCombatModifier(traits) +
-      equipmentCombatModifier(p.equipmentLevel) +
-      equipmentCombatBonus(parseOwned(p.ownedEquipment)) + // Gladius ekipman (çok küçük)
-      experienceCombatModifier(p.experience) + // #28: birikmiş tecrübe (küçük, tavanlı)
-      mood;
-    return {
-      id: p.id,
-      name: `${p.firstName} ${p.lastName}`,
-      weapon: p.weapon as Weapon,
-      skills: rowsToSkills(p.skills),
-      fatigue: p.fatigue,
-      sharpness: p.sharpness,
-      conditionBonus,
-      age,
-      physical: { reachCm: ph.reachCm, legLengthCm: ph.legLengthCm, buildFactor: p.buildFactor, leftHanded: p.leftHanded },
-      ageCategory: base.ageCategory as AgeCategory,
-      tactic: isHuman ? (tacticByPlayer.get(p.id) ?? "BALANCED") : tacticFromTraits(traits),
-      traits,
-    };
-  };
-
-  const field: Combatant[] = [
-    ...humans.map((p) => toCombatant(p, true)),
-    ...aiPlayers.map((p) => toCombatant(p, false)),
+  const ageCategory = base.ageCategory as AgeCategory;
+  const entrants: LiveEntrant[] = [
+    ...humans.map((p) => ({
+      playerId: p.id,
+      isHuman: true,
+      combatant: snapshotCombatant(p, true, quarter, ageCategory, scopeKey),
+      registeredTactic: regTactic.get(p.id) ?? null,
+    })),
+    ...aiPlayers.map((p) => ({
+      playerId: p.id,
+      isHuman: false,
+      combatant: snapshotCombatant(p, false, quarter, ageCategory, scopeKey),
+      registeredTactic: null,
+    })),
   ];
-  if (field.length < 2) return null;
-
-  // B: tohum artık her zaman scopeKey'den (paylaşılan) — çözen kimin gs.seed'i olduğu önemli değil.
-  const seedKey = `tour:${scopeKey}`;
-  const de = deFormat(base.ageCategory);
-  const locale = await getLocale();
-  const outcome = simulateTournament(field, createRng(seedKey), {
-    poolSize: POOL_SIZE,
-    poolTouches: MATCH_FORMATS.POOL,
-    deTouches: de.touches,
-    byPeriods: { periods: de.periods, locale }, // M11.3a: eleme maçları periyot kırılımlı loglanır
+  return createLiveTournament({
+    scopeKey,
+    name: `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`,
+    categoryId: base.categoryId,
+    level,
+    quarter,
+    week: monthOfQuarter(gs.dayIndex),
+    date: gs.currentDate,
+    worldDay: gs.dayIndex,
+    startsAt: new Date(startsAt),
+    entrants,
   });
-
-  // humans[0] = çözücü (günü ilerler); diğer kapsam-içi oyunculara da etki uygulanır (Model A).
-  const fin = await finalizeTournament(gs, humans, level, base, outcome, seedKey, { scopeKey, stagger: opts.stagger });
-  return { outcome, fin };
 }
 
 /**
- * M11.3b-1 — bir turnuva gününü ORTAK örnek olarak çözer. Kapsam anahtarı (scopeKey) ile dedup:
- * ilk çözen kayıtlı oyuncu tüm kapsam-içi gerçek oyuncuları (+ AI dolgu) tek turnuvada oynatır,
- * sonuç + klasman + herkesin kişisel etkileri yazılır (Model A). Sonradan senkronlayan kayıtlı
- * katılımcı yeniden oynatmaz — etkileri zaten uygulandı, sadece kendi gününü ilerletir.
+ * Geçmiş ve KAYITLI olunan bir turnuva gününü kapatır (oyuncu o gün yoktu): turnuva örneğini getirir
+ * (gerekirse çeker), "şimdi"ye kadar çözer — gün geçtiği için tamamı çözülür — ve "yokken neler oldu"ya
+ * yazar; sonra oyuncunun günü ilerler. Sonuç, turnuvayı canlı izleyenlerinkiyle birebir aynıdır.
  */
 async function autoResolveTournament(
   gs: { id: number; seed: string; currentDate: Date; dayIndex: number; careerStartDay: number },
@@ -3118,30 +3290,23 @@ async function autoResolveTournament(
 ): Promise<void> {
   const quarter = quarterOf(gs.dayIndex);
   const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
-
-  // Kapsam anahtarı: bu oyuncunun ülkesi + (İl ise) şehri.
-  const country = await prisma.country.findUnique({ where: { id: human.nationalityId } });
-  const myCity = human.club?.city ?? "";
-  const scopeKey = tournamentScopeKey(level, country?.code ?? "??", myCity, base.categoryId, gs.dayIndex);
-
-  // Dedup: bu örnek zaten çözüldüyse (başka kayıtlı oyuncu tetiklemiş), etkiler uygulanmıştır →
-  // sadece kendi günümü ilerlet (yeniden oynatma).
-  const existing = await prisma.tournament.findUnique({ where: { scopeKey } });
-  if (existing) {
-    // Etkiler çözücü tarafından uygulandı → yeniden oynatma. Yine de "yokken neler oldu"ya ekle.
+  const id = await ensureLiveTournament(gs, human, level, { attendee: false });
+  if (id != null) {
+    await tickLiveTournament(id, { locale: await getLocale() });
+    const t = await prisma.tournament.findUnique({ where: { id }, select: { name: true, status: true } });
     const part = await prisma.tournamentParticipant.findFirst({
-      where: { tournamentId: existing.id, playerId: human.id },
+      where: { tournamentId: id, playerId: human.id },
       select: { finalPosition: true },
     });
-    if (part) {
+    if (t?.status === "FINISHED" && part) {
       const rank = await prisma.ranking.findUnique({
         where: { playerId_categoryId_quarter: { playerId: human.id, categoryId: base.categoryId, quarter } },
         select: { position: true },
       });
-      const fieldSize = await prisma.tournamentParticipant.count({ where: { tournamentId: existing.id } });
+      const fieldSize = await prisma.tournamentParticipant.count({ where: { tournamentId: id } });
       await appendAwayReport(gs.id, {
-        tournamentId: existing.id,
-        name: existing.name,
+        tournamentId: id,
+        name: t.name,
         categoryId: base.categoryId,
         position: part.finalPosition ?? fieldSize,
         fieldSize,
@@ -3150,42 +3315,15 @@ async function autoResolveTournament(
         dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
       });
     }
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
-    return;
   }
-
-  const result = await resolveScopedTournament(gs, human, level, scopeKey, { stagger: false });
-  if (!result) {
-    await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
-    return;
-  }
-  const { outcome, fin } = result;
-  // M11.4: çözücünün "yokken neler oldu" özetine ekle.
-  await appendAwayReport(gs.id, {
-    tournamentId: fin.id,
-    name: `${base.ageCategory} ${TOURNAMENT_LABEL_TR[level]}`,
-    categoryId: base.categoryId,
-    position: outcome.standings.find((s) => s.playerId === human.id)?.position ?? outcome.pools.length,
-    fieldSize: outcome.pools.length,
-    points: fin.earnedPoints,
-    newRank: fin.newRank,
-    dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
-  });
+  await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
 }
-
-// B Faz 1 (docs/TURNUVA_MULTIPLAYER.md §2.1, §4): canlı izlenen turnuvalarda maçlar toplu değil,
-// "yayınlanıyormuş" gibi tur tur açılsın diye — sonuç anında hesaplanır (ownership hâlâ tek geçiş,
-// paralel evren yok) ama görünürlük (Match.status/scheduledAt) zamana yayılır. Değerler ilk sürüm,
-// ayarlanabilir (Faz 4 "cila").
-const B_ROUND_INTERVAL_MS = 60_000; // tur başına (Pul N / Çeyrek Final / ...) gecikme
-const B_INTRA_ROUND_STEP_MS = 3_000; // aynı tur içindeki maçlar arası küçük kayma (canlı akış hissi)
 
 /**
  * Turnuva sonucunu + klasmanı + kişisel etkileri yazar. M11.3b: `humans` kapsam-içi tüm gerçek
  * oyuncular; humans[0] ÇÖZÜCÜ (yalnız onun günü ilerler). Kişisel etkiler (ödül/psikoloji/keskinlik/
  * sakatlık/başarı) her human'a uygulanır (Model A). `scopeKey` verilirse ortak örnek olarak dedup'lanır.
- * `stagger: true` (B, canlı yol) ise maçlar PENDING yazılır + tur tur açılacak `scheduledAt` alır —
- * sonuç YİNE de bu çağrıda kesinleşir (ödül/ranking/vs. hemen uygulanır), yalnız GÖRÜNÜRLÜK gecikir.
+ * Yalnız B-öncesi canlı oturumların bitişinde kullanılır; yeni turnuvalar liveTournament.ts'te tur tur çözülür.
  */
 async function finalizeTournament(
   gs: { id: number; seed: string; currentDate: Date; dayIndex: number },
@@ -3194,7 +3332,7 @@ async function finalizeTournament(
   base: ReturnType<typeof currentIdentity>,
   outcome: TournamentOutcome,
   seedKey: string,
-  opts: { scopeKey?: string; stagger?: boolean } = {},
+  opts: { scopeKey?: string } = {},
 ): Promise<{ id: number; earnedPoints: number; earnedXp: number; newRank: number | null }> {
   const quarter = quarterOf(gs.dayIndex);
   const week = monthOfQuarter(gs.dayIndex); // Tournament.week alanı artık ayı saklar
@@ -3241,22 +3379,8 @@ async function finalizeTournament(
       });
     }
 
-    // B: aynı tura ait maçlar aynı "dalga"da açılır (Pul N hepsi, Çeyrek Final hepsi, ...) — tur
-    // sırası outcome.matches'teki ilk-görülme sırasıyla belirlenir (pul → DE, doğal akış).
-    const roundOrder: string[] = [];
-    for (const m of outcome.matches) if (!roundOrder.includes(m.round)) roundOrder.push(m.round);
-    const startMs = Date.now();
-    const withinRoundIndex = new Map<string, number>();
-
     for (let i = 0; i < outcome.matches.length; i++) {
       const m = outcome.matches[i];
-      const scheduledAt = opts.stagger
-        ? (() => {
-            const ri = withinRoundIndex.get(m.round) ?? 0;
-            withinRoundIndex.set(m.round, ri + 1);
-            return new Date(startMs + roundOrder.indexOf(m.round) * B_ROUND_INTERVAL_MS + ri * B_INTRA_ROUND_STEP_MS);
-          })()
-        : undefined;
       await tx.match.create({
         data: {
           tournamentId: tournament.id,
@@ -3270,7 +3394,6 @@ async function finalizeTournament(
           winnerId: m.winnerId,
           seed: seedKey,
           log: m.log.join("\n"),
-          ...(opts.stagger ? { status: "PENDING", scheduledAt } : {}),
         },
       });
     }

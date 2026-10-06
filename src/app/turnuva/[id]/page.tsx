@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { leaveLiveTournamentAction } from "@/app/actions";
+import { leaveTournamentAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 import { LiveAutoRefresh } from "./LiveAutoRefresh";
+import { LiveTournamentPanel } from "./LiveTournamentPanel";
 import { PulKagidi } from "./PulKagidi";
 import { Icon } from "@/app/ui/Icon";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
@@ -72,7 +73,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-      {!tour.isFullyRevealed && <LiveAutoRefresh />}
+      {/* Canlı turnuva (B Faz 3): ~4 sn'de bir sunucudan tazelenir. Eski (anında çözülmüş) turnuva: 15 sn. */}
+      {!tour.isFullyRevealed && <LiveAutoRefresh everyMs={tour.live ? 4_000 : 15_000} />}
       <Link href="/kariyer" className="inline-flex min-h-11 items-center text-[14px] text-steel underline underline-offset-2">
         {t(locale, "idp.back")}
       </Link>
@@ -82,7 +84,9 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
       {!tour.youParticipated && <p className="mt-3 panel p-3 text-[14px] text-steel">{t(locale, "idp.spectator")}</p>}
 
-      {!tour.isFullyRevealed ? (
+      {tour.live?.status === "RUNNING" ? (
+        <LiveTournamentPanel tournamentId={tour.tournamentId} live={tour.live} locale={locale} />
+      ) : !tour.isFullyRevealed ? (
         <div className="mt-5 panel border-ink p-4">
           <div className="flex items-center gap-2">
             <span className="lamp bg-ink anim-live h-2 w-2" aria-hidden="true" />
@@ -128,7 +132,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           </>
         )}
 
-        {tour.yourSeedRank != null && tour.isFullyRevealed && (
+        {tour.yourSeedRank != null && (tour.isFullyRevealed || tour.live != null) && (
           <div className="mt-4 panel p-3 text-[14px]">
             <span className="font-medium">{t(locale, "idp.poolResultLead")}</span>{" "}
             {t(locale, "idp.seedFrom", { n: tour.yourSeedRank })}
@@ -151,8 +155,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         )}
       </section>
 
-      {/* Pul kağıtları (poule) — spoiler olmasın diye tüm turnuva açılana kadar gizli */}
-      {tour.isFullyRevealed && tour.poolSheets.length > 0 && (
+      {/* Pul kağıtları: eski turnuvada her şey açılınca; canlıda çözüldükçe (veri DTO'da zaten kapılı). */}
+      {tour.poolSheets.length > 0 && (
         <section className="mt-8">
           <h2 className="display text-[20px]">{t(locale, "canli.poolSheets")}</h2>
           <p className="mt-1 text-[13px] text-steel">{t(locale, "idp.poolSheetsNote")}</p>
@@ -184,6 +188,24 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                   .filter((m) => m.phase === "DE" && m.round === round)
                   .map((m, i) => {
                     if (m.isPending) {
+                      // Canlıda eşleşme belli olduysa isimler görünür (skor yok); değilse kilitli yer.
+                      if (m.aName && m.bName) {
+                        const mineNext = m.aIsHuman || m.bIsHuman;
+                        return (
+                          <div
+                            key={i}
+                            className={`rounded-md border border-dashed p-2.5 text-[13px] text-steel ${
+                              mineNext ? "border-l-2 border-l-sig-red border-line" : "border-line"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate">{m.aName}</span>
+                              <Icon name="lock" size={13} className="shrink-0" />
+                            </div>
+                            <div className="mt-0.5 truncate">{m.bName}</div>
+                          </div>
+                        );
+                      }
                       return (
                         <div key={i} className="flex items-center gap-1.5 rounded-md border border-line p-2.5 text-[13px] text-steel">
                           <Icon name="lock" size={14} className="shrink-0" />
@@ -220,7 +242,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       {tour.isFullyRevealed && <FinalStandings standings={tour.standings} locale={locale} />}
 
       <div className="mt-8">
-        <form action={leaveLiveTournamentAction}>
+        <form action={leaveTournamentAction}>
+          <input type="hidden" name="tournamentId" value={tour.tournamentId} />
           <button className="btn-ink press h-12 w-full text-[16px]">
             {t(locale, "idp.backHome")}
           </button>

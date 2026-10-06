@@ -130,8 +130,11 @@ dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır,
 [`docs/ROADMAP.md`](docs/ROADMAP.md) §B2: **M9** kimlik + kalıcı DB (User + `Player.userId`, AI ortak;
 Postgres) → **M10** ortak dünya + sunucu saati → **M11** ortak turnuva simülasyonu + klasman → **M12**
 ölçek/servis. **İlerleme:** M9.1 (kimlik/veri sahipliği), M9.2 (telefonla giriş — auth yönü Google+IP'ye
-dönecek), M10.1 (ortak dünya saati: "Haftayı İlerle" kalktı, zaman gerçek zamanla akar, otomatik dünyaya
-yetiş) yapıldı; sıradaki M10.2 (turnuva kaydı + önceden taktik) → M11 (ortak turnuva simülasyonu).
+dönecek), M10 (ortak dünya saati — GMT, etkinlik 18:00 GMT — + turnuva kaydı/önceden taktik), M11 (ortak
+turnuva + klasman) yapıldı. **Gerçek-zamanlı çok-oyunculu turnuva (B):** Faz 0-1 canlıda (sunucu-otoriteli,
+tek gerçeklik); **Faz 2-4** (kilitli çizelgeyle TUR TUR çözüm, tur aralarında taktik penceresi, 4 sn'de bir
+yenilenen canlı panel, kilitli/tekrarlanabilir tur çözümü, taktik doğrulama + istek sınırı + olay kaydı,
+256 kişilik başsız test) yazıldı — dal + PR ile teslim, yayına Yusuf alır. Sıradaki: M12 (ölçek/servis).
 
 Diğer derinlik maddeleri (§G backlog): AI'ların bağımsız turnuvaları + emeklilik/yeni nesil,
 gelişmiş taktik (counter/pressure).

@@ -25,7 +25,9 @@ export function ViewSettings({ locale }: { locale: Locale }) {
     } catch {
       // yoksay
     }
-    setMode(saved === "landscape" ? "landscape" : "portrait");
+    // Senkron değil (NextTournament'taki desen): effect içinde doğrudan setState lint'i kırıyordu.
+    const id = setTimeout(() => setMode(saved === "landscape" ? "landscape" : "portrait"), 0);
+    return () => clearTimeout(id);
   }, []);
 
   const choose = (next: ViewMode) => {

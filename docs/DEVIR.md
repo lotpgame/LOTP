@@ -1,11 +1,14 @@
 # Devir notu — Yusuf ↔ Osman
 
-> Son güncelleme: **2026-10-03** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
+> Son güncelleme: **2026-10-06** (Osman tarafı). Açık kararlar ve işler yalnız bu dosyada tutulur.
 > **Yusuf'un Claude'u:** oturum başında bu dosyayı oku. Açık madde varsa Yusuf'la sırayla geç, kararlarını
 > **Cevap:** satırlarına yaz, sonra commit + push et.
 >
 > ✅ **06.10 — Saat/deploy işleri kapandı** (aşağıdaki "Senden beklenenler" çözüldü). **Osman, yeni açık iş:**
 > aşağıdaki **"B Faz 2-4 şartnamesi"** bölümü — kilitli zaman çizelgesiyle. Yusuf "başlat" deyince uygula.
+>
+> 🟢 **06.10 akşam — B Faz 2-4 yazıldı, PR [#45](https://github.com/alkanyus/LOTP/pull/45) (Osman/Claude).** Yusuf: önce prod'a `npx prisma db push` (şema
+> eklemeli), sonra dalı squash et — ayrıntı şartnamenin altındaki **Cevap**.
 
 ## Nasıl kullanılır
 
@@ -378,10 +381,46 @@ olmalı; Osman'ın commit'i doğrudan deploy OLMAZ.) Yani Osman yalnız **kodu y
 (`resolveScopedTournament`, `finalizeTournament`, `revealDueMatches`, staggering). Not: `src/engine/schedule`
 şu an kullanılmıyor (18:00 tabanına hizalandı) — bu çizelgeyi orada ya da kendi yerinde kurabilirsin.
 
+**Cevap (Osman/Claude, 06.10): ✅ Faz 2-3-4 yazıldı — dal `feat/b-faz2-4-canli-turnuva`, PR [#45](https://github.com/alkanyus/LOTP/pull/45). Merge
+ETMEDİM (teslim kuralı): squash + yayın sizde.**
+
+🚨 **Merge'den ÖNCE prod DB (aynı desen):** şema yalnız EKLEMELİ — `Tournament` (`startsAt`, `worldDay`, `step`
+varsayılan 0), `TournamentParticipant` (`snapshot`, `fatigue`, `registeredTactic`, `pendingTactic`, `lastTactic`),
+`Match` (`roundNo`, `slot`, `tacticA`, `tacticB`) + yeni tablo `TournamentEvent`. Sıra: (1) Neon yedeği / restore
+noktası, (2) `npx prisma db push` (veri silme uyarısı ÇIKMAMALI; çıkarsa DUR), (3) squash + push. Kayıt:
+`prisma/migrations/20261006120000_b_faz2_live_rounds/`. Kod bu sütunları okuyup yazdığı için önce DB, sonra kod.
+
+**Kabul kriterleri → kanıt:**
+- **Faz 2** (a) sabit tohum testi (`live-tournament.test.ts` "gönderilen taktikle çözülür") + yerelde arayüzden
+  "Defans" gönderen oyuncunun maçı `DEFENSIVE` ile çözüldü; (b) göndermeyen kayıtlıysa kayıtlı taktiğiyle,
+  kayıtsızsa son kullandığıyla oynadı; (c) tek DB durumu + test: girdi sırası ters çevrilince sonuç birebir aynı;
+  (d) 18:00 GMT öncesi arayüzden taktik değişti ("Kayıtlı · Atak"), sonrasında sunucu reddediyor.
+- **Faz 3:** panel pencere açıkken etkin, kapalıyken kilitli; geri sayım sunucu saatine göre; sayfa 4 sn'de bir
+  tazelenir. Offline oyuncu hiç dokunmadan yedek taktikle tamamlar, dönünce aynı DB sonucunu görür.
+- **Faz 4:** 256 kişilik başsız test geçti; iç içe koşan iki turnuva tek başına koşanlarla birebir aynı; yerelde
+  3 eşzamanlı istek 5. turu bir kez çözdü (olay kaydında adım başına tek STEP); geçersiz taktik / katılımcı
+  olmayan / maçı olmayan istek reddedildi; 10 denemeden sonra istek sınırı devreye girdi.
+
+**Şartnamenin açık bıraktığı yerlerde uyguladığım yorumlar (değiştirmek istersen tek satır):**
+1. Gönderilen taktik yalnız O maça uygulanır, sonra tüketilir; sonraki maçta yine göndermezse yedek sırası:
+   kayıtlı → son kullanılan → Dengeli. (Kayıtlı oyuncuda "son kullanılan" hiç devreye girmez — şartnamedeki sıra.)
+2. Turnuva T+0'dan sonra ona dokunan ilk istekte çekilir (cron yok, §5.1). Kimse dokunmazsa ilk dokunan geldiğinde
+   zamanı geçmiş turlar sırayla, yedek taktiklerle çözülür — çizelge kilitli, sonuç değişmez.
+3. Havuz turları hep 5 adım (küçük havuzda son turlar boş geçer) — çizelge kilitli.
+4. Dev'de dünya günü kısaltılınca (`WORLD_MS_PER_DAY`) çizelge dakikaları da aynı oranda kısalır; üretimde birebir.
+5. Taktik istek sınırı: oyuncu başına, turnuva başına 60 sn'de 10. Sayfa yenileme 4 sn.
+
+**Bilinen sınırlar:** (1) Vercel Hobby fonksiyon kotası — her izleyici 4 sn'de bir istek atar; test ölçeğinde
+sorun değil, büyük ölçekte SSE/cron (M12) gerekir. (2) Maç anlatım dili, adımı çözen isteğin dilinde yazılır
+(Faz 1'de de böyleydi). (3) `ViewSettings.tsx` lint hatası master CI'ını kırmızı yapıyordu → aynı PR'da
+`NextTournament` deseniyle düzeltildi (davranış aynı). (4) Yerel eşzamanlılık testi PGlite'ta; mantık Postgres
+advisory lock + koşullu güncellemeye dayanıyor (Neon'da standart).
+
 ## Karar günlüğü
 
 | Tarih | Karar | Kim |
 |---|---|---|
+| 2026-10-06 | **B Faz 2-4 dal + PR olarak teslim edildi** (`feat/b-faz2-4-canli-turnuva`, PR [#45](https://github.com/alkanyus/LOTP/pull/45)): kilitli 18:00 GMT çizelgesiyle tur-tur çözüm (max 6 kişi/havuz), tur aralarında taktik penceresi (yedek: kayıtlı → son → Dengeli), 18:00'a kadar başlangıç-öncesi taktik, 4 sn'de bir tazelenen canlı panel, advisory lock + koşullu güncelleme, toplu DB yazımı, taktik doğrulama + istek sınırı + olay kaydı (`TournamentEvent`), 256 kişilik başsız test. Şema eklemeli → merge öncesi prod `db push`. Merge/yayın Yusuf'ta | Osman + Claude |
 | 2026-10-06 | **Saat modeli TR → GMT.** Oyun zamanı artık GMT (dünya saati); oyuncu kendi yerel saatine çevirir (UI'da sağ üst GMT saat rozeti). Gün başı 00:00 GMT, etkinlik **18:00 GMT** (`EVENT_HOUR=18`, epoch 21 Eylül 2026 00:00 UTC=`1789948800000`; eski epoch'tan +3 saat, dayIndex haftası korundu → canlı kariyerler bozulmadı). Gösterimler GMT'ye çevrildi, "TR saati"→"GMT". Ayrıca Ayarlar'a **Klasik/Yatay görünüm** seçeneği (varsayılan Klasik). Testler 169/169. Yusuf adına `59ccd11` push → Vercel bloğu açıldı → canlıda 18:00 GMT doğrulandı. Vercel env `WORLD_EPOCH_MS=1789948800000`. Turnuva başlangıcı: Avrupa prime-time için 18:00 GMT seçildi (CET 19:00/20:00, TR 21:00). | Yusuf + Claude |
 | 2026-10-06 | **Vercel deploy bloğu çözüldü (Pro'suz).** Hobby yalnız sahibin (Yusuf, y.alkan1984) commit'ini deploy eder; Osman'ın commit'leri atlanıyordu. Çözüm: canlıya inen commit hep Yusuf adına olacak — Osman'ın işi gelince Claude branch'ini Yusuf adına **squash** edip push eder. | Yusuf + Claude |
 | 2026-10-06 | **B Faz 2-4 şartnamesi** DEVIR'e yazıldı (kilitli çizelge: başlangıç 18:00 GMT, havuz turları 2 dk arayla T+5..T+13, sonuç T+17, eleme +10 dk; max 6 kişi/havuz; taktik penceresi = tur arası). Osman "başlat" komutuyla uygulayacak; tasarım Yusuf+Claude'da. | Yusuf + Claude |

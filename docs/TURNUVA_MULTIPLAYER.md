@@ -13,7 +13,7 @@
 > herkesin sonucu aynı ve tutarlıdır. Bu, oyunun multiplayer çekirdeğidir (release öncesi kilometre taşı).
 >
 > Bu doküman NASIL yapılacağının kalıcı kaynağıdır. Kod yazmadan önce ilgili faz buradan okunur.
-> Son güncelleme: 2026-09-30.
+> Son güncelleme: 2026-10-06 (Faz 2-4 dal + PR).
 >
 > **⭐ Uygulama sahibi: OSMAN tarafı (kendi AI'ı) — Yusuf kararı (30.09).** Tasarımı Yusuf/Claude verdi;
 > Osman onaylayınca fazları (0→4) kendi tarafında kodlar (aynı GitHub'dan okur). **Çakışma önleme:** bu iş
@@ -124,12 +124,29 @@ simülasyonundan** miras sonuç alıyor. (Osman'ın bulgusu, DEVIR 29.09.)
   gelen kayıtsız oyuncu sahaya eklenemez (tek gerçeklik, bracket sabit): sayfayı İZLEYİCİ olarak açar
   (`youParticipated=false`, "sahada değildin" notu, şampiyon + klasman görünür). Kayıtlı geç gelen,
   zaten alanda olduğu için normal katılımcı görünümü alır.
-- **Faz 2 — Taktik pencereleri.** Tur başı taktik gönderimi + fallback + çözümde uygulama.
-- **Faz 3 — Canlı senkron (istemci).** Polling tabanlı canlı ekran (ilerleme, o anki maç, sıradaki maçın +
-  taktik formu). Manuel "geç" yok (NOTLAR #25 ile uyumlu — otomatik akış). Faz 1'in ilk sürümü
-  (`LiveAutoRefresh`, 15 sn'de bir tam sayfa yenileme) bunun yerini tutuyor, geçici.
-- **Faz 4 — Ölçek + cila.** 256 oyuncu (toplu DB yazımı, kilitler, yarış koşulları), yeniden bağlanma,
-  offline oyuncu (fallback taktik), cron liveness, gözlemleme.
+- **✅ Faz 2 — Taktik pencereleri + tur-tur çözüm (06.10, dal + PR — DEVIR şartnamesi).** Faz 1'in "tamamı anında
+  hesapla, görünürlüğü geciktir" sadeleştirmesi kaldırıldı: turnuva artık **gerçekten tur tur** çözülür.
+  Kilitli çizelge (T = 18:00 GMT): T+0 çekim (en çok 6 kişi/havuz), havuz turları T+5/7/9/11/13, sonuç + eleme
+  tablosu T+17, eleme T+20'den 10 dk'da bir (`engine/schedule` `LIVE_SCHEDULE`). Adım mantığı saf:
+  `engine/tournament/live.ts` (`applyLiveStep`) — sunucu ve başsız testler aynı fonksiyonu çağırır. Her maçın
+  tohumu `tour:${scopeKey}` + aşama + tur + yer → yeniden çözüm idempotent, paralel turnuvalar bağımsız. Oyuncu
+  anlık görüntüsü çekimde `TournamentParticipant.snapshot`'a yazılır. Taktik: sıradaki kendi maçı için
+  önceki adımın çözümünden bu adımın çözümüne kadar (`pendingTactic`); yoksa kayıtlı → son kullanılan →
+  BALANCED. Kayıtlı oyuncu turnuva gününde taktiğini 18:00 GMT'ye kadar `Registration`'dan değiştirir.
+  Turnuva, T+0'dan sonra ona dokunan ilk istekte çekilir (cron yok); geç dokunulursa zamanı gelmiş turlar
+  aynı istekte sırayla, yedek taktiklerle çözülür (çizelge kilitli). Kayıtsız tetikleyen kuralı (02.10) korundu.
+- **✅ Faz 3 — Canlı senkron (istemci) (06.10).** `/turnuva/[id]` canlı paneli (`LiveTournamentPanel`): sıradaki
+  adım + sunucu saatine göre geri sayım, sıradaki maç/rakip, pencere açıkken etkin kapalıyken kilitli taktik
+  formu, bay/elendin durumları. Sayfa 4 sn'de bir tazelenir (`LiveAutoRefresh`), geri sayım bitince hemen;
+  manuel "geç/oyna" yok. Pul kağıtları ve eleme çatalı çözüldükçe dolar (canlıda spoiler kavramı yok).
+- **✅ Faz 4 — Ölçek + sağlamlık (06.10).** Sert oyuncu tavanı yok (kategori-bazlı paralel turnuvalar); tek
+  turnuva saha hedefi `MAX_FIELD = 256` (büyütülebilir). Her adım tek işlemde, turnuva başına Postgres advisory
+  lock + `Tournament.step` koşullu güncelleme; maç satırı yalnız PENDING iken yazılır → eşzamanlı tikler aynı
+  turu iki kez çözmez. Toplu DB yazımı (`UPDATE … FROM (VALUES …)`, parametreli). Taktik gönderimi doğrulanır
+  (GDD 23.57), istek sınırı 60 sn'de 10 (23.58), her deneme `TournamentEvent` kaydına (23.59). Sunucu kodu
+  `src/server/liveTournament.ts`'te (careerService'ten ayrı). Başsız test: 256 kişilik turnuva tutarlı biter.
+  **Bilinçli dışarıda kalanlar:** cron liveness (lazy catch-up yeterli — bkz. §5.1), SSE/websocket (polling
+  yeterli), yeniden bağlanma ayrı akış gerektirmiyor (durum tamamen DB'de, sayfa açılınca kaldığı yerden).
 
 Her faz kendi başına test edilir (saf motor + orkestrasyon testleri; sabit seed → tekrarlanabilir).
 
@@ -139,9 +156,10 @@ Her faz kendi başına test edilir (saf motor + orkestrasyon testleri; sabit see
 
 1. **✅ Tik tetikleme (Osman, 30.09):** Lazy catch-up yeterli — cron'a şimdilik gerek yok (test
    ölçeğinde hep biri online). Faz 4'te gerekirse eklenir.
-2. **Taktik penceresi süresi:** Faz 2'de netleşecek — henüz uygulanmadı (Faz 1 kayıtlı taktikle çalışıyor).
-3. **Ölçek/eşleşme:** Faz 1 mevcut `POOL_SIZE`/`FIELD_TARGET` sabitlerini aynen kullanıyor (test
-   ölçeği); 256 için Faz 4'te gözden geçirilecek.
+2. **✅ Taktik penceresi süresi (Yusuf, 06.10):** önceki tur çözümünden bu tur çözümüne kadar — havuzda ~2 dk,
+   elemede 10 dk (ilk eleme penceresi T+17→T+20 = 3 dk). Faz 2'de uygulandı.
+3. **✅ Ölçek/eşleşme (Yusuf, 06.10):** max 6 kişi/havuz; toplam oyuncu sınırsız, ölçek kategori-bazlı paralel
+   turnuvalarla; tek turnuva saha hedefi 256 (`MAX_FIELD`, büyütülebilir). AI dolgu hâlâ `FIELD_TARGET` (24) altına.
 4. **✅ Canlı yenileme sıklığı (Osman, 30.09):** İlk sürüm 15 sn (`LiveAutoRefresh`, tam sayfa
    yenileme). Faz 3'te gerçek polling/SSE'ye taşınacak.
 5. **✅ Zamanlama (Osman, 30.09): "Hemen değiştir".** Mevcut canlı yol doğrudan B ile değiştirildi,

@@ -22,7 +22,7 @@ export default async function TurnuvalarPage() {
   const header = await getCareerHeader();
   // #5a: turnuva zamanı geldiyse burada CANLI görünür ve giriş buradan yapılır (alt çubukta Katıl yok).
   const liveNow = header?.canAttend && header.today.kind === "TOURNAMENT" ? header.today : null;
-  const nextRegistered = next ? upcoming.find((u) => u.level === next.level)?.registered : undefined;
+  const nextRegistered = next ? upcoming.find((u) => u.worldDay === next.worldDay)?.registered : undefined;
 
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
 
@@ -84,7 +84,10 @@ export default async function TurnuvalarPage() {
                 )}
               </div>
 
-              {u.qualified ? (
+              {u.isToday && !u.registered ? (
+                // Bugünün turnuvası: yeni kayıt gün-00:00'da kapandı (06.10 kuralı) — yalnız kayıtlı taktik değiştirir.
+                <p className="mt-3 text-[13px] text-steel">{t(locale, "turnuvalar.todayClosed")}</p>
+              ) : u.qualified ? (
                 // Taktik seçici "Kaydol"a basınca açılır (liste kısa kalır). JS yok: native <details>.
                 // Listede ikincil buton — ekrandaki tek ana (mürekkep) buton üstteki kartta.
                 <details className="group mt-3">
@@ -98,11 +101,12 @@ export default async function TurnuvalarPage() {
                     <input type="hidden" name="worldDay" value={u.worldDay} />
                     <input type="hidden" name="level" value={u.level} />
                     <TacticSegment defaultValue={u.tactic} locale={locale} />
+                    {u.isToday && <p className="text-[13px] text-steel">{t(locale, "turnuvalar.todayTactic")}</p>}
                     <div className="flex gap-2">
                       <button className="btn-ink press flex-1">
                         {u.registered ? t(locale, "turnuvalar.update") : t(locale, "tour.confirm")}
                       </button>
-                      {u.registered && (
+                      {u.registered && !u.isToday && (
                         <button
                           formAction={unregisterTournamentAction}
                           className="min-h-11 px-3 text-[14px] text-steel underline underline-offset-2"

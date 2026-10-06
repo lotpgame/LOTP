@@ -12,6 +12,48 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.
 
+### Eklendi (06.10 — B Faz 2-4: canlı turnuva TUR TUR, taktik pencereleri, canlı panel, ölçek)
+> ⚠️ **Dal + PR (Yusuf'un şartnamesi, teslim kuralı):** `master`'a push/deploy yok; Yusuf squash edip alır.
+> **Şema eklemeli** — merge'den ÖNCE prod'a `npx prisma db push` (bkz. DEVIR.md).
+- **Faz 2 — tur tur çözüm (kilitli çizelge, T = 18:00 GMT):** turnuva artık tek seferde hesaplanmıyor. T+0'da
+  havuzlar çekilir (en çok **6 kişi/havuz**, havuz sayısı katılımcıya göre; havuz-içi round-robin en çok 5 tur),
+  havuz turları **T+5/7/9/11/13**'te, havuz sonuçları + eleme tablosu **T+17**'de, eleme turları **T+20'den 10 dk'da
+  bir** finale kadar sunucuda çözülür. Her maçın kendi tohumu var (turnuva anahtarı + aşama + tur + yer) → kim,
+  ne zaman, kaç kez çözerse çözsün aynı sonuç; iki tarayıcı birebir aynısını görür. Oyuncu anlık görüntüsü
+  (skill/kondisyon/form) çekimde DB'ye yazılır, turnuva boyunca ondan oynanır.
+- **Taktik penceresi:** oyuncu, **sıradaki kendi maçı** için önceki turun çözümünden bu turun çözümüne kadar
+  taktik gönderir (havuzda ~2 dk, elemede 10 dk; ilk eleme penceresi 3 dk). Göndermeyen yedek kaynakla oynar:
+  **kayıtlı taktik → son kullanılan → Dengeli**. Taktik seti combat motorundaki üçlü (yeni taktik yok).
+- **Başlangıç-öncesi taktik (06.10 kuralı):** kayıtlı oyuncu o günün turnuvası için taktiğini **18:00 GMT'ye kadar**
+  değiştirebilir ("Yaklaşan turnuvalar"da bugün de listelenir; "Sıradaki turnuva" kartında "Taktiği değiştir").
+  Yeni kayıt yine gün-00:00'da kapanır; 18:00'dan sonra değişiklik reddedilir (tur pencereleri devralır).
+- **Faz 3 — canlı panel (`/turnuva/[id]`):** sıradaki adım + saniye saniye geri sayım (sunucu saatine göre),
+  sıradaki maçın/rakibin, açıkken etkin kapalıyken kilitli taktik formu, "göndermezsen: …" bilgisi, bay/elendin
+  durumları. Sayfa **4 sn'de bir** sunucudan tazelenir, geri sayım bitince hemen; manuel "geç/oyna" yok. Pul
+  kağıtları ve eleme çatalı çözüldükçe dolar (eşleşmeler isimleriyle, skor maç çözülünce).
+- **Faz 4 — ölçek + sağlamlık:** sert oyuncu tavanı yok (ölçek = kategori-bazlı paralel turnuvalar); tek turnuva
+  saha hedefi `MAX_FIELD = 256` (büyütülebilir sabit). Tur çözümü **toplu DB yazımı** (tek `UPDATE … FROM VALUES`),
+  turnuva başına **Postgres advisory lock + `step` koşullu güncelleme** → eşzamanlı istekler aynı turu iki kez
+  çözmez. Taktik gönderimi **doğrulanır** (GDD 23.57: geçerli taktik + katılımcı + sürüyor + sıradaki adımda kendi
+  maçı + pencere açık), **istek sınırı** (23.58: 60 sn'de 10) ve her deneme **olay kaydı**na yazılır (23.59:
+  `TournamentEvent` — çekim, adım, taktik, red, final).
+- **Saf motor:** `src/engine/tournament/live.ts` (çekim, round-robin, eleme tablosu, adım çözümü, başsız
+  simülasyon) + `src/engine/schedule` `LIVE_SCHEDULE`. **Sunucu:** yeni `src/server/liveTournament.ts`
+  (ROADMAP R5: careerService'ten ayrı modül). B Faz 1'in anında-çöz + görünürlük gecikmesi kaldırıldı
+  (`resolveScopedTournament` + stagger); eski (Faz 1) turnuvalar okunmaya devam eder.
+- **Gün akışı:** turnuva sürerken oyuncu turnuva gününde kalır (izler/taktik verir); bitince "Kariyere dön" ya da
+  sonraki "Turnuvaya Gir" günü ilerletir. Kayıtsız girip sahada oynayan oyuncunun günü de kayıtlı gibi kapanır
+  ("yokken" özeti dahil, ayrıca antrenman uygulanmaz).
+- **Testler:** +14 (`live-tournament.test.ts`): kadans, max-6 havuz, round-robin, deterministik çekim, bay'lı
+  tablo, taktik kaynağı, sabit tohumla "gönderilen taktikle çözülür", **256 kişilik** uçtan uca, iç içe
+  koşan paralel turnuvalar, idempotent yeniden çözüm. 183/183 yeşil.
+- **Yerel uçtan uca (gerçek tarayıcı + PGlite, çizelge 1/4 hızda):** başlangıç-öncesi taktik değişikliği; kayıtsız
+  tetikleyen + kayıtlı oyuncu aynı sahada; arayüzden gönderilen taktik o turun maçında kullanıldı, göndermeyen
+  kayıtlı/son taktikle oynadı; 3 eşzamanlı istek bir turu bir kez çözdü; geçersiz/katılımcı-dışı/maçsız taktik
+  reddedildi, 10 denemeden sonra istek sınırı devreye girdi.
+- **Not:** master'daki CI, `ViewSettings.tsx` lint hatası yüzünden kırmızıydı (effect içinde senkron `setState`);
+  `NextTournament`'taki desenle düzeltildi (davranış aynı).
+
 ### Değiştirildi (05.10 — oyun zamanı TR saati → GMT dünya saati)
 - **Karar (Yusuf):** Oyun zamanı artık **GMT (dünya saati)**. TR saati kullanılmaz; oyuncu bulunduğu
   bölgeye göre kendi yerel saatine çevirir. Gün başı **00:00 GMT**'de döner, günlük etkinlik (turnuva)
