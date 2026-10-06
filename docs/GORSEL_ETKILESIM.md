@@ -181,3 +181,29 @@ Saf CSS / Web Animations; **kütüphane yok, hafif.** `prefers-reduced-motion` a
 
 **Nerede:** ScoreBug + canlı maç ekranı, turnuva sonuç ekranı, madalya/geçmiş. Yoğunluk küçük→büyük orantılı
 (tuş < madalya < şampiyonluk). Lamba renkleri sinyal renkleri (temadan bağımsız).
+
+---
+
+## 7. #3 Kupa/madalya vitrini + kariyer zaman çizgisi — uygulama şartnamesi (onaylandı 06.10)
+
+**Yer:** Kariyer Geçmişi sayfası (`/kariyer/gecmis`). Saf HTML/CSS/SVG + Tabler ikon; hafif, dış sanat yok.
+**Veri kaynağı:** Achievements/Memory engine (veri sahibi oradadır — **okur**, yeni başarı üretmez).
+
+**Kupa vitrini (ızgara):** başarı türüne göre rozet —
+- Şampiyonluk → `ti-trophy` (altın); Derece madalyaları → `ti-medal` **altın/gümüş/bronz** (metal renkleri, sinyal değil);
+  Milli takım → `ti-flag` (accent); Klasman 1.liği → `ti-crown` (altın).
+- Her rozet: **sayı** (×N) + **son kazanım tam tarihi**.
+- **Kilitli hedefler** (henüz kazanılmamış üst kademe: Avrupa Kupası, Dünya Kupası, Olimpiyat) → soluk + `ti-lock`
+  + "kilitli" → "daha var, topla" hissi (koleksiyon motivasyonu).
+
+**Kariyer zaman çizgisi (kronolojik):** her düğüm = **tam tarih** (gün · ay · yıl, **GMT**) + olay + tür ikonu.
+Büyük dönüm noktaları (ilk şampiyonluk, milli takım daveti) **vurgulu** (accent etiket). En sona "sırada…" düğümü
+(bir sonraki hedef) opsiyonel.
+
+**Tam tarih (önemli):** her başarı **kazanıldığı dünya-gününü (worldDay)** saklamalı → gösterimde GMT takvim
+tarihine çevrilir (`worldDayStartMs` → `toLocaleDateString("tr-TR",{timeZone:"UTC",...})`). Yeni başarılarda tarih
+kaydı **zorunlu**; eski kayıtta yoksa çeyrek/sezon'a düş (geriye uyumlu, eklemeli şema). İl=Salı, Türkiye=Perşembe
+olduğundan tarihler oyun takvimiyle tutarlı.
+
+**Renkler:** altın `#e0b23f`/koyu metin `#8a6410`, gümüş `#eceef1`/`#5a6068`, bronz `#f3e3d5`/`#7a4e2b`.
+**Teslim:** Osman branch + PR; canlıya Yusuf alır.
