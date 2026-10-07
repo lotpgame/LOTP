@@ -15,11 +15,21 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   sıradaki turnuvayı gösterdiği için diğerleri gereksiz tekrardı. Kimlik kartı, kondisyon/form, yetenek
   radarı, "sen yokken" raporu aynen duruyor.
 
+### Değişti (07.10 — turnuva canlı oynatma, Aşama 2a: tempo)
+- Canlı maç artık **okunabilir tempoda ~1 dk'ya yayılıyor** (`CanliMac`): satır başına açılma süresi log
+  uzunluğuna göre hesaplanıp 1.2–3 sn arasına sıkıştırılıyor (kullanıcı geri bildirimi: "yazılar çok hızlı
+  geldiğinde sıkıntı"). "Hızlı" düğmesi hâlâ 250 ms'e indiriyor. Sonuç artık cat diye patlamıyor, izleniyor.
+
+### Kaldırıldı (07.10 — geçmiş maçta "Canlı izle", NOTLAR #39)
+- Bitmiş/geçmiş maçta **"Canlı izle" (replay) düğmesi kaldırıldı** (`CanliMac`): geçmiş maç = gitmiş maç,
+  gereksiz yere motoru/animasyonu yormaz. Geçmiş maçta artık yalnız **skor + "Skor detayı"** (tuş-tuş döküm)
+  var; detay düğmesi tam genişlik tek buton oldu. Canlı maç izleme aynen duruyor.
+
 ### Eklendi (06.10 — turnuva canlı oynatma, Aşama 1)
 - Canlı turnuvada oyuncunun **en yeni maçı artık otomatik CANLI akar** (`CanliMac` autoPlay): tuş-tuş
   anlatım, skor bandında lamba flash (kırmızı/yeşil/beyaz) + tuş efekti — sonuç anında patlamak yerine
   izlenir. Önceki maçlar durağan sonuç (past) gösterir. (Sunucu çözümü değişmedi; yalnız gösterim.)
-  Sıradaki: havuz maçı ~1 dk pencereye yayma + eleme periyot-periyot taktik (Aşama 2).
+  Sıradaki: eleme maçında periyot-periyot taktik penceresi (Aşama 2b — sunucu motoru değişikliği).
 
 > ✅ **30.09.2026 — B Faz 0+1 canlıda.** Şema göçü Yusuf tarafından prod'a uygulandı, PR #41 merge edildi.
 > Canlı turnuva artık sunucu-otoriteli. Ayrıntı: DEVIR.md Karar günlüğü.

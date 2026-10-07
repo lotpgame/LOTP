@@ -45,20 +45,23 @@ export function CanliMac({
   const [shown, setShown] = useState(autoPlay ? instantThrough : 0);
   const [playing, setPlaying] = useState(autoPlay);
   const [fast, setFast] = useState(false);
-  const [replay, setReplay] = useState(false); // geçmiş maç "Canlı izle" ile yeniden oynatılıyor
   const [detail, setDetail] = useState(false);
 
-  const live = !past || replay;
+  // Geçmiş maçta "Canlı izle" (replay) kaldırıldı (NOTLAR: geçmiş gitmiş maç, gereksiz) → yalnız skor + detay.
+  const live = !past;
   const started = shown > 0 || playing;
   const done = shown >= log.length && started;
   const aWon = scoreA >= scoreB;
 
+  // 2a: canlı maç OKUNABİLİR tempoda ~1 dk'ya yayılır (kullanıcı: "yazılar çok hızlı geldiğinde sıkıntı").
+  // Satır başına süre log uzunluğuna göre hesaplanır, 1.2–3 sn arasına sıkıştırılır; "Hızlı" ile 250ms'e iner.
+  const stepMs = fast ? 250 : Math.min(3000, Math.max(1200, Math.round(55000 / Math.max(1, log.length))));
   // Bir sonraki satırı gecikmeyle açar; bittiğinde durur (setState zamanlayıcı içinde → güvenli).
   useEffect(() => {
     if (!live || !playing || shown >= log.length) return;
-    const id = setTimeout(() => setShown((s) => s + 1), fast ? 250 : 800);
+    const id = setTimeout(() => setShown((s) => s + 1), stepMs);
     return () => clearTimeout(id);
-  }, [live, playing, shown, fast, log.length]);
+  }, [live, playing, shown, stepMs, log.length]);
 
   const start = () => {
     setShown(0);
@@ -74,23 +77,12 @@ export function CanliMac({
           <SideScore a={scoreA} b={scoreB} />
           <span className={`min-w-0 truncate text-right ${!aWon ? "font-semibold" : "text-steel"}`}>{bName}</span>
         </div>
-        <div className="grid grid-cols-2 border-t border-line text-[13px] text-steel">
-          <button
-            type="button"
-            onClick={() => {
-              setReplay(true);
-              start();
-            }}
-            className="press flex min-h-11 items-center justify-center gap-1.5 border-r border-line"
-          >
-            <span className="lamp lamp-red h-2 w-2" aria-hidden="true" />
-            {t(locale, "mac.watch")}
-          </button>
+        <div className="border-t border-line text-[13px] text-steel">
           <button
             type="button"
             onClick={() => setDetail((d) => !d)}
             aria-expanded={detail}
-            className="flex min-h-11 items-center justify-center gap-1"
+            className="flex min-h-11 w-full items-center justify-center gap-1"
           >
             {t(locale, "mac.detail")}
             <Icon name="chevron-down" size={15} className={`transition-transform ${detail ? "rotate-180" : ""}`} />
@@ -154,19 +146,6 @@ export function CanliMac({
                 <button type="button" onClick={start} className="btn-ghost press flex-1">
                   {t(locale, "mac.rewatch")}
                 </button>
-                {replay && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setReplay(false);
-                      setShown(0);
-                      setPlaying(false);
-                    }}
-                    className="btn-ghost press flex-1"
-                  >
-                    {t(locale, "common.close")}
-                  </button>
-                )}
               </div>
             )}
           </>
