@@ -32,6 +32,22 @@ export function TournamentsFilter({ tournaments, locale }: { tournaments: Histor
   const [q, setQ] = useState<number | "all">("all");
   const shown = q === "all" ? tournaments : tournaments.filter((tr) => tr.quarter === q);
 
+  // Her Quarter (= oyun yılı) için takvim yılı: o quarter'daki en erken turnuvanın tarihinden.
+  // Böylece filtre çipi "2026 · Q1" der → yıllar geçince "Q1" hangi yıl belirsiz kalmaz (gerçek tarih).
+  const quarterYear = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const tr of tournaments) {
+      if (tr.dateMs == null) continue;
+      const cur = m.get(tr.quarter);
+      if (cur == null || tr.dateMs < cur) m.set(tr.quarter, tr.dateMs);
+    }
+    return m;
+  }, [tournaments]);
+  const yearOf = (qq: number) => {
+    const ms = quarterYear.get(qq);
+    return ms != null ? new Date(ms).getUTCFullYear() : null;
+  };
+
   return (
     <>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -41,7 +57,7 @@ export function TournamentsFilter({ tournaments, locale }: { tournaments: Histor
         </Chip>
         {quarters.map((qq) => (
           <Chip key={qq} on={q === qq} onClick={() => setQ(qq)}>
-            Q{qq}
+            {yearOf(qq) != null ? `${yearOf(qq)} · Q${qq}` : `Q${qq}`}
           </Chip>
         ))}
       </div>
@@ -59,8 +75,10 @@ export function TournamentsFilter({ tournaments, locale }: { tournaments: Histor
                 <span className="min-w-0">
                   <span className="block truncate text-[15px] font-medium">{tour.name}</span>
                   <span className="text-[13px] text-steel">
-                    {tour.level} · Q{tour.quarter} · H{tour.month}
-                    {tour.dateMs != null && ` · ${new Date(tour.dateMs).toLocaleDateString(dateLoc, { timeZone: "UTC" })}`}
+                    {/* Gösterim = seviye + GERÇEK tarih (Q·H kalktı, NOTLAR #22); Q yalnız filtre çipinde kalır. */}
+                    {tour.level}
+                    {tour.dateMs != null &&
+                      ` · ${new Date(tour.dateMs).toLocaleDateString(dateLoc, { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" })}`}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">

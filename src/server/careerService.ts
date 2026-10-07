@@ -1670,7 +1670,8 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       levelCode: e.tournament.level,
       categoryId: e.tournament.categoryId,
       date: e.tournament.date.toISOString(),
-      dateMs: dayMs(e.tournament.worldDay),
+      // GERÇEK tarih: dünya gününden (GMT); eski kayıtta worldDay yoksa oyun-içi `date`e düş (asla bare "Q" gösterme).
+      dateMs: dayMs(e.tournament.worldDay) ?? e.tournament.date.getTime(),
       order: e.tournament.date.getTime(),
       position: e.finalPosition ?? 0,
       quarter: e.tournament.quarter,
@@ -1710,7 +1711,8 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
       detail: a.detail,
       importance: a.importance,
       date: a.date.toISOString(),
-      dateMs: dayMs(a.worldDay),
+      // GERÇEK tarih: dünya gününden (GMT); eski başarıda worldDay yoksa oyun-içi `date`e düş (asla bare "Q").
+      dateMs: dayMs(a.worldDay) ?? a.date.getTime(),
       quarter: a.quarter,
       order: a.date.getTime(),
     })),
@@ -3372,10 +3374,11 @@ async function autoResolveTournament(
   level: TournamentLevel,
 ): Promise<void> {
   const quarter = quarterOf(gs.dayIndex);
+  const locale = await getLocale();
   const base = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const id = await ensureLiveTournament(gs, human, level, { attendee: false });
   if (id != null) {
-    await tickLiveTournament(id, { locale: await getLocale() });
+    await tickLiveTournament(id, { locale });
     const t = await prisma.tournament.findUnique({ where: { id }, select: { name: true, status: true } });
     const part = await prisma.tournamentParticipant.findFirst({
       where: { tournamentId: id, playerId: human.id },
@@ -3395,7 +3398,11 @@ async function autoResolveTournament(
         fieldSize,
         points: rankingPointsForPosition(part.finalPosition ?? fieldSize, level),
         newRank: rank?.position ?? null,
-        dateLabel: `Q${quarter} · H${monthOfQuarter(gs.dayIndex)}`,
+        // Turnuvanın GERÇEK tarihi (GMT), Q·H değil (NOTLAR #22: gösterim = gerçek takvim tarihi).
+        dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString(
+          locale === "en" ? "en-GB" : locale === "de" ? "de-DE" : "tr-TR",
+          { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" },
+        ),
       });
     }
   }
