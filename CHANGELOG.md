@@ -15,6 +15,21 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   sıradaki turnuvayı gösterdiği için diğerleri gereksiz tekrardı. Kimlik kartı, kondisyon/form, yetenek
   radarı, "sen yokken" raporu aynen duruyor.
 
+### Eklendi (07.10 — turnuva canlı oynatma, Aşama 2b: eleme periyot-periyot + periyot arası taktik)
+> **Şema eklemeli:** `Match.deState` (TEXT, nullable) → squash'tan ÖNCE prod'a
+> `npx prisma db execute --file prisma/migrations/20261007120000_match_destate/migration.sql` (uygulandı 07.10).
+- **Eleme maçı artık periyot periyot çözülüyor** (`liveTournament`): her eleme turu `dePeriods` (3 / U10 2) alt-adıma
+  bölünür; her alt-adım bir periyodu çözer. Kilitli kadans (NOTLAR #39): **1 periyot ~1 dk, periyot arası 30 sn**
+  (`LIVE_SCHEDULE.dePeriodMinutes`/`dePeriodBreakMinutes`). Kombat simülasyonunun kendi periyodu FIE gerçekçiliği için
+  3 dk kalır — bu yalnız gerçek-dünya tempo/pencere ayarıdır.
+- **Periyot arası taktik penceresi:** oyuncu maç başında + her periyot arasında (30 sn) taktik değiştirebilir; pencere,
+  periyodun OYNANMAYA başladığı an kapanır (`liveStepWindowClose*`). Panelde başlık "N. periyot taktiği" olur.
+- **Devam eden eleme maçı canlı izlenir:** periyotlar açıldıkça log/skor büyür; `CanliMac` yeni satırları akıtır
+  (maç bitmeden periyot periyot görünür). Devam eden maçın durumu `Match.deState` (DeBoutState JSON) ile saklanır.
+- **Determinizm güvencesi:** combat'ta paylaşılan `advanceDeBoutPeriod` çekirdeği — her periyotta aynı taktik verilirse
+  periyot-adım çözüm, atomik `simulateBoutByPeriods` ile BİREBİR aynı sonucu verir (testle kanıtlı).
+- Testler 204/204 (eleme periyot determinizmi + periyot arası taktik + uçtan uca yeni).
+
 ### Değişti (07.10 — turnuva canlı oynatma, Aşama 2a: tempo)
 - Canlı maç artık **okunabilir tempoda ~1 dk'ya yayılıyor** (`CanliMac`): satır başına açılma süresi log
   uzunluğuna göre hesaplanıp 1.2–3 sn arasına sıkıştırılıyor (kullanıcı geri bildirimi: "yazılar çok hızlı

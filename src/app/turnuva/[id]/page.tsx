@@ -60,7 +60,12 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   // B canlı oynatma (Aşama 1): turnuva canlıyken oyuncunun EN YENİ maçı otomatik canlı akar
   // (CanliMac autoPlay — tuş-tuş + lamba/juice); önceki maçlar durağan (past) sonuç gösterir.
   const liveNow = tour.live?.status === "RUNNING";
-  const liveMatch = liveNow ? (yourDE[yourDE.length - 1] ?? yourPool[yourPool.length - 1]) : null;
+  // Aşama 2b: devam eden (periyotları açılan) eleme maçı — bitmeden canlı izlenir, periyot arası taktik verilir.
+  const liveDe = liveNow
+    ? (tour.matches.find((m) => m.phase === "DE" && m.inProgress && (m.aIsHuman || m.bIsHuman) && m.aName && m.bName && m.log) ?? null)
+    : null;
+  // Devam eden eleme maçı varken o canlı akar; yoksa en yeni biten maç (havuz/eleme) otomatik oynatılır.
+  const liveMatch = liveNow && !liveDe ? (yourDE[yourDE.length - 1] ?? yourPool[yourPool.length - 1]) : null;
   const firstDeRound = yourDE[0]?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
   const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
@@ -144,10 +149,17 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           </div>
         )}
 
-        {yourDE.length > 0 && (
+        {(yourDE.length > 0 || liveDe) && (
           <>
             <h3 className="mt-4 kicker">{t(locale, "idp.deMatches")}</h3>
             <div className="mt-2 space-y-3">
+              {liveDe && (
+                <div>
+                  <div className="mb-1 kicker">{t(locale, "canli.eleme")} · {liveDe.round}</div>
+                  {/* Devam eden eleme maçı: log periyotlar açıldıkça büyür → CanliMac yeni satırları canlı akıtır. */}
+                  <CanliMac aName={liveDe.aName!} bName={liveDe.bName!} scoreA={liveDe.scoreA ?? 0} scoreB={liveDe.scoreB ?? 0} log={liveDe.log!} autoPlay past={false} youSide={liveDe.aIsHuman ? "left" : "right"} locale={locale} />
+                </div>
+              )}
               {yourDE.map((m) => (
                 <div key={`${m.round}-${m.aName}-${m.bName}`}>
                   <div className="mb-1 kicker">{t(locale, "canli.eleme")} · {m.round}</div>

@@ -1810,16 +1810,20 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       // Faz 1'de açılmamış maç = gizli sonuç → isim de gizli. Canlı modelde bekleyen maçın eşleşmesi kamuya
       // açık çekim bilgisidir → isimler görünür (skor yok).
       const showNames = !isPending || (liveModel && m.playerAId != null && m.playerBId != null);
+      // Aşama 2b: canlı eleme maçı periyot periyot çözülür; başladıysa (log birikti) o ana kadarki skor/log açılır.
+      const inProgress = liveModel && isPending && m.phase === "DE" && m.log != null;
+      const revealScore = !isPending || inProgress;
       const nameOf = (pid: number | null) => (pid == null ? null : (nameById.get(pid) ?? formatPlayerCode(pid)));
       return {
         phase: m.phase,
         round: localizeRound(locale, m.round),
         isPending,
+        inProgress,
         aName: showNames ? nameOf(m.playerAId) : null,
         bName: showNames ? nameOf(m.playerBId) : null,
-        scoreA: isPending ? null : m.scoreA,
-        scoreB: isPending ? null : m.scoreB,
-        log: isPending || m.log == null ? null : m.log.split("\n"),
+        scoreA: revealScore ? m.scoreA : null,
+        scoreB: revealScore ? m.scoreB : null,
+        log: revealScore && m.log != null ? m.log.split("\n") : null,
         aIsHuman: showNames && m.playerAId === humanId,
         bIsHuman: showNames && m.playerBId === humanId,
       };
@@ -1830,10 +1834,20 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
 }
 
 /** Sıradaki çözüm adımının adı (canlı panel): "Havuz turu 3/5" · "Havuz sonuçları…" · "Eleme: Son 16". */
-function liveStepLabel(locale: Locale, kind: "POOL" | "RESULTS" | "DE", roundNo: number | null, fieldSize: number): string {
+function liveStepLabel(
+  locale: Locale,
+  kind: "POOL" | "RESULTS" | "DE",
+  roundNo: number | null,
+  periodNo: number | null,
+  fieldSize: number,
+): string {
   if (kind === "POOL") return t(locale, "live.step.pool", { n: roundNo ?? 1, total: LIVE_POOL_STEPS });
   if (kind === "RESULTS") return t(locale, "live.step.results");
-  return t(locale, "live.step.de", { round: localizeRound(locale, deRoundLabel(bracketSize(fieldSize), roundNo ?? 1)) });
+  const round = localizeRound(locale, deRoundLabel(bracketSize(fieldSize), roundNo ?? 1));
+  // Eleme maçı periyot periyot oynanır → sıradaki adım hangi periyot (Aşama 2b).
+  return periodNo != null
+    ? t(locale, "live.step.dep", { round, p: periodNo })
+    : t(locale, "live.step.de", { round });
 }
 
 /** Canlı panelin verisi: sıradaki adım + izleyen oyuncunun kendi durumu (katılımcı değilse `you` null). */
@@ -1849,7 +1863,7 @@ async function tournamentLiveDto(
   const nm = v.you?.nextMatch;
   return {
     status: v.status,
-    stepLabel: v.next ? liveStepLabel(locale, v.next.kind, v.next.roundNo, fieldSize) : null,
+    stepLabel: v.next ? liveStepLabel(locale, v.next.kind, v.next.roundNo, v.next.periodNo, fieldSize) : null,
     nextKind: v.next?.kind ?? null,
     nextAt: v.next?.at ?? null,
     serverNow: v.serverNow,
@@ -1862,11 +1876,13 @@ async function tournamentLiveDto(
                 round: localizeRound(locale, nm.round),
                 phase: nm.phase,
                 at: nm.at,
+                periodNo: nm.periodNo,
                 isNextStep: v.next != null && nm.step === v.next.step,
               }
             : null,
           windowOpen: v.you.windowOpen,
           windowClosesAt: v.you.windowClosesAt,
+          windowPeriodNo: v.you.windowPeriodNo,
           effectiveTactic: v.you.effectiveTactic,
           pendingSet: v.you.pendingSet,
           registeredTactic: v.you.registeredTactic,
@@ -1932,6 +1948,7 @@ export interface TournamentResultDTO {
     log: string[] | null;
     aIsHuman: boolean;
     bIsHuman: boolean;
+    inProgress: boolean; // canlı eleme maçı başladı ama bitmedi (periyotlar açılıyor; log/skor o ana kadarki)
   }[];
   currentDate: string;
   live: TournamentLiveDTO | null; // B Faz 2-3: tur-tur canlı turnuva paneli (eski turnuvalarda null)
@@ -1951,10 +1968,12 @@ export interface TournamentLiveDTO {
       round: string;
       phase: "POOL" | "DE";
       at: string;
+      periodNo: number | null; // elemede: sıradaki periyot (1 = maç başı); havuzda null
       isNextStep: boolean; // sıradaki adımda mı (değilse bu tur bay)
     } | null;
     windowOpen: boolean;
     windowClosesAt: string | null;
+    windowPeriodNo: number | null; // elemede: taktik penceresinin ait olduğu periyot (1 = maç başı)
     effectiveTactic: Tactic; // şimdi bırakırsan bu taktikle oynarsın
     pendingSet: boolean;
     registeredTactic: Tactic | null;

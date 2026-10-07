@@ -11,10 +11,10 @@
  */
 import { prisma } from "@/db";
 import { Prisma } from "@/generated/prisma/client";
-import { TACTICS, deFormat, type Combatant, type Tactic } from "@/engine/combat";
+import { TACTICS, deFormat, type Combatant, type DeBoutState, type Tactic } from "@/engine/combat";
 import { clamp, type TournamentLevel } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
-import { LIVE_RESULTS_STEP, liveStep, liveStepAtMs } from "@/engine/schedule";
+import { LIVE_RESULTS_STEP, liveStep, liveStepAtMs, liveStepWindowCloseMs } from "@/engine/schedule";
 import { bracketSize } from "@/engine/tournament";
 import {
   applyLiveStep,
@@ -64,8 +64,26 @@ function msPerDay(): number {
   return worldClockConfig().msPerDay ?? MS_PER_GAME_DAY;
 }
 
-function stepAt(startsAt: Date, step: number): Date {
-  return new Date(liveStepAtMs(startsAt.getTime(), step, msPerDay()));
+/** Turnuvanın eleme periyot sayısı (kategoriye göre: U10 → 2, diğer → 3). Adım↔zaman eşlemesi buna bağlı. */
+function dePeriodsOf(categoryId: string): number {
+  return deFormat(categoryId.split("-")[0]).periods;
+}
+
+/** Adımın gerçek-zaman çözüm anı. */
+function stepAt(startsAt: Date, step: number, dePeriods: number): Date {
+  return new Date(liveStepAtMs(startsAt.getTime(), step, dePeriods, msPerDay()));
+}
+
+/** Adımın taktik penceresi kapanış anı (eleme periyodunun oynanmaya başladığı an; havuzda çözüm anı). */
+function windowCloseAt(startsAt: Date, step: number, dePeriods: number): Date {
+  return new Date(liveStepWindowCloseMs(startsAt.getTime(), step, dePeriods, msPerDay()));
+}
+
+/** Bir maçın SIRADAKİ çözüm adımı: havuz tek adım; eleme için oynanmış periyot sayısına göre bir sonraki periyot. */
+function matchNextStep(m: { phase: string; roundNo: number | null; deState: string | null }, dePeriods: number): number {
+  if (m.phase === "POOL") return m.roundNo!;
+  const periodsPlayed = m.deState ? (JSON.parse(m.deState) as DeBoutState).periodsPlayed : 0;
+  return LIVE_RESULTS_STEP + (m.roundNo! - 1) * dePeriods + periodsPlayed + 1;
 }
 
 // ——— Çekim (T+0) ———
@@ -96,6 +114,7 @@ export interface CreateLiveArgs {
  */
 export async function createLiveTournament(args: CreateLiveArgs): Promise<number> {
   const seedKey = liveSeedKey(args.scopeKey);
+  const dePeriods = dePeriodsOf(args.categoryId);
   const draw = drawLivePools(
     args.entrants.map((e) => e.playerId),
     seedKey,
@@ -137,7 +156,7 @@ export async function createLiveTournament(args: CreateLiveArgs): Promise<number
           round: `Pul ${m.poolNo}`,
           orderIndex: i,
           status: "PENDING",
-          scheduledAt: stepAt(args.startsAt, liveMatchStep(m)),
+          scheduledAt: stepAt(args.startsAt, liveMatchStep(m, dePeriods), dePeriods),
           playerAId: m.aId,
           playerBId: m.bId,
           seed: m.seed,
@@ -166,13 +185,13 @@ export async function createLiveTournament(args: CreateLiveArgs): Promise<number
  * bir şey yoksa yalnız tek bir okuma yapar (her sayfa yoklamasında çağrılabilir).
  */
 export async function tickLiveTournament(tournamentId: number, opts: { locale?: Locale; nowMs?: number } = {}): Promise<void> {
-  for (let guard = 0; guard < 64; guard++) {
+  for (let guard = 0; guard < 128; guard++) {
     const t = await prisma.tournament.findUnique({
       where: { id: tournamentId },
-      select: { status: true, step: true, startsAt: true },
+      select: { status: true, step: true, startsAt: true, categoryId: true },
     });
     if (!t || t.status !== "RUNNING" || !t.startsAt) return;
-    if (stepAt(t.startsAt, t.step + 1).getTime() > (opts.nowMs ?? Date.now())) return;
+    if (stepAt(t.startsAt, t.step + 1, dePeriodsOf(t.categoryId)).getTime() > (opts.nowMs ?? Date.now())) return;
     await prisma.$transaction((tx) => resolveNextStepTx(tx, tournamentId, t.step, opts.locale), TX_OPTS);
   }
 }
@@ -217,6 +236,7 @@ interface MatchRow {
   tacticA: string | null;
   tacticB: string | null;
   seed: string;
+  deState: string | null;
 }
 
 function toLiveMatch(m: MatchRow): LiveMatchState {
@@ -231,6 +251,7 @@ function toLiveMatch(m: MatchRow): LiveMatchState {
     bId: m.playerBId,
     seed: m.seed,
     status: resolved ? "RESOLVED" : "PENDING",
+    de: !resolved && m.deState ? (JSON.parse(m.deState) as DeBoutState) : null, // devam eden eleme maçının birikmiş durumu
     result: resolved
       ? {
           scoreA: m.scoreA ?? 0,
@@ -252,6 +273,7 @@ async function resolveNextStepTx(tx: Tx, tournamentId: number, expectedStep: num
   const t = await tx.tournament.findUnique({ where: { id: tournamentId } });
   if (!t || t.status !== "RUNNING" || !t.startsAt || !t.scopeKey || t.step !== expectedStep) return false;
   const step = t.step + 1;
+  const dePeriods = dePeriodsOf(t.categoryId);
 
   const parts = await tx.tournamentParticipant.findMany({ where: { tournamentId } });
   const players = new Map(parts.map((p) => [p.playerId, toLivePlayer(p)]));
@@ -264,7 +286,7 @@ async function resolveNextStepTx(tx: Tx, tournamentId: number, expectedStep: num
     locale,
   });
 
-  await writeStepOutcome(tx, t, out, matchRows.length);
+  await writeStepOutcome(tx, t, out, matchRows.length, dePeriods);
 
   const moved = await tx.tournament.updateMany({
     where: { id: tournamentId, step: expectedStep, status: "RUNNING" },
@@ -273,7 +295,7 @@ async function resolveNextStepTx(tx: Tx, tournamentId: number, expectedStep: num
   if (moved.count !== 1) throw new Error("Turnuva adımı eşzamanlı değişti — işlem geri alındı");
 
   await tx.tournamentEvent.create({
-    data: { tournamentId, type: "STEP", step, detail: stepSummary(out) },
+    data: { tournamentId, type: "STEP", step, detail: stepSummary(out, dePeriods) },
   });
   if (out.finished && out.standings) {
     await applyLiveEffectsTx(tx, { ...t, seedKey }, out.standings);
@@ -283,11 +305,12 @@ async function resolveNextStepTx(tx: Tx, tournamentId: number, expectedStep: num
   return true;
 }
 
-function stepSummary(out: LiveStepOutcome): string {
-  const s = liveStep(out.step);
+function stepSummary(out: LiveStepOutcome, dePeriods: number): string {
+  const s = liveStep(out.step, dePeriods);
   if (s.kind === "RESULTS") return `havuz sonuçları + eleme tablosu (${out.created.length} satır)`;
-  const label = s.kind === "POOL" ? `havuz turu ${s.roundNo}` : `eleme turu ${s.roundNo}`;
-  return `${label}: ${out.resolved.length} maç${out.finished ? " · final" : ""}`;
+  if (s.kind === "POOL") return `havuz turu ${s.roundNo}: ${out.resolved.length} maç`;
+  const played = out.resolved.length + out.periodUpdates.length;
+  return `eleme turu ${s.roundNo} · periyot ${s.periodNo}: ${played} maç (${out.resolved.length} bitti)${out.finished ? " · final" : ""}`;
 }
 
 async function writeStepOutcome(
@@ -295,6 +318,7 @@ async function writeStepOutcome(
   t: { id: number; startsAt: Date | null },
   out: LiveStepOutcome,
   existingMatchCount: number,
+  dePeriods: number,
 ): Promise<void> {
   const tid = t.id;
   if (out.resolved.length) {
@@ -306,8 +330,22 @@ async function writeStepOutcome(
     );
     await tx.$executeRaw`
       UPDATE "Match" AS m
-      SET "status" = 'RESOLVED', "scoreA" = v.sa, "scoreB" = v.sb, "winnerId" = v.w, "log" = v.lg, "tacticA" = v.ta, "tacticB" = v.tb
+      SET "status" = 'RESOLVED', "scoreA" = v.sa, "scoreB" = v.sb, "winnerId" = v.w, "log" = v.lg, "tacticA" = v.ta, "tacticB" = v.tb, "deState" = NULL
       FROM (VALUES ${values}) AS v(seed, sa, sb, w, lg, ta, tb)
+      WHERE m."tournamentId" = ${tid} AND m."seed" = v.seed AND m."status" = 'PENDING'`;
+  }
+  if (out.periodUpdates.length) {
+    // Eleme maçı sürüyor: birikmiş durum (deState) + o ana dek skor/log yazılır (status PENDING kalır → UI canlı akıtır).
+    const values = Prisma.join(
+      out.periodUpdates.map(
+        (u) =>
+          Prisma.sql`(${u.seed}::text, ${u.de.scoreA}::int, ${u.de.scoreB}::int, ${u.de.log.join("\n")}::text, ${JSON.stringify(u.de)}::text)`,
+      ),
+    );
+    await tx.$executeRaw`
+      UPDATE "Match" AS m
+      SET "scoreA" = v.sa, "scoreB" = v.sb, "log" = v.lg, "deState" = v.ds
+      FROM (VALUES ${values}) AS v(seed, sa, sb, lg, ds)
       WHERE m."tournamentId" = ${tid} AND m."seed" = v.seed AND m."status" = 'PENDING'`;
   }
   if (out.players.length) {
@@ -318,6 +356,15 @@ async function writeStepOutcome(
       UPDATE "TournamentParticipant" AS p
       SET "fatigue" = v.f, "lastTactic" = v.lt, "pendingTactic" = NULL
       FROM (VALUES ${values}) AS v(pid, f, lt)
+      WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
+  }
+  if (out.periodPlayers.length) {
+    // Bir periyot oynadı ama maçı sürüyor: yorgunluk maç bitince; şimdilik yalnız bekleyen taktik tüketilir.
+    const values = Prisma.join(out.periodPlayers.map((p) => Prisma.sql`(${p.playerId}::int, ${p.lastTactic}::text)`));
+    await tx.$executeRaw`
+      UPDATE "TournamentParticipant" AS p
+      SET "lastTactic" = v.lt, "pendingTactic" = NULL
+      FROM (VALUES ${values}) AS v(pid, lt)
       WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
   }
   if (out.poolStats && out.ranking) {
@@ -343,7 +390,7 @@ async function writeStepOutcome(
         round: deRoundLabel(size, m.roundNo),
         orderIndex: existingMatchCount + i,
         status: "PENDING",
-        scheduledAt: stepAt(t.startsAt!, liveMatchStep(m)),
+        scheduledAt: stepAt(t.startsAt!, liveMatchStep(m, dePeriods), dePeriods),
         playerAId: m.aId,
         playerBId: m.bId,
         seed: m.seed,
@@ -492,8 +539,9 @@ export async function submitLiveTactic(
   await tickLiveTournament(tournamentId, { nowMs });
   return prisma.$transaction(async (tx) => {
     await lockTournament(tx, tournamentId);
-    const t = await tx.tournament.findUnique({ where: { id: tournamentId }, select: { status: true, step: true, startsAt: true } });
+    const t = await tx.tournament.findUnique({ where: { id: tournamentId }, select: { status: true, step: true, startsAt: true, categoryId: true } });
     if (!t || !t.startsAt) return { ok: false as const, reason: "invalid" as const };
+    const dePeriods = dePeriodsOf(t.categoryId);
     const reject = async (reason: TacticRejectReason, step: number | null = null) => {
       await tx.tournamentEvent.create({ data: { tournamentId, playerId, type: "TACTIC_REJECTED", step, detail: reason } });
       return { ok: false as const, reason };
@@ -510,9 +558,11 @@ export async function submitLiveTactic(
     if (!part) return reject("not_participant");
     if (t.status !== "RUNNING") return reject("not_running");
     const next = t.step + 1;
-    if (stepAt(t.startsAt, next).getTime() <= nowMs) return reject("window_closed", next);
-    const s = liveStep(next);
+    // Pencere, adımın ÇÖZÜMÜNDE değil, (elemede) periyodun OYNANMAYA başladığı an kapanır — periyot arası taktik.
+    if (windowCloseAt(t.startsAt, next, dePeriods).getTime() <= nowMs) return reject("window_closed", next);
+    const s = liveStep(next, dePeriods);
     if (s.kind === "RESULTS") return reject("no_match", next);
+    // Sıradaki adım bu oyuncunun maçının (bu turdaki, henüz bitmemiş) periyodu mu? PENDING = maç sürüyor.
     const match = await tx.match.findFirst({
       where: {
         tournamentId,
@@ -534,9 +584,10 @@ export async function submitLiveTactic(
 
 export interface LiveYouDTO {
   eliminated: boolean;
-  nextMatch: { opponentId: number | null; round: string; phase: "POOL" | "DE"; step: number; at: string } | null;
-  windowOpen: boolean; // sıradaki adımda kendi maçın var ve süre dolmadı
+  nextMatch: { opponentId: number | null; round: string; phase: "POOL" | "DE"; step: number; at: string; periodNo: number | null } | null;
+  windowOpen: boolean; // sıradaki adımda kendi maçın/periyodun var ve pencere kapanmadı
   windowClosesAt: string | null;
+  windowPeriodNo: number | null; // elemede: pencerenin ait olduğu periyot (1 = maç başı taktiği)
   effectiveTactic: Tactic; // şu an bırakırsan bu taktikle oynarsın
   pendingSet: boolean;
   registeredTactic: Tactic | null;
@@ -546,7 +597,7 @@ export interface LiveViewDTO {
   status: "RUNNING" | "FINISHED";
   step: number;
   totalSteps: number | null; // eleme tablosu belli olunca (sonuç adımından sonra)
-  next: { step: number; kind: "POOL" | "RESULTS" | "DE"; roundNo: number | null; at: string } | null;
+  next: { step: number; kind: "POOL" | "RESULTS" | "DE"; roundNo: number | null; periodNo: number | null; at: string } | null;
   startsAt: string;
   serverNow: string;
   you: LiveYouDTO | null;
@@ -556,23 +607,25 @@ export interface LiveViewDTO {
 export async function getLiveView(tournamentId: number, viewerPlayerId: number | null, nowMs: number = Date.now()): Promise<LiveViewDTO | null> {
   const t = await prisma.tournament.findUnique({
     where: { id: tournamentId },
-    select: { status: true, step: true, startsAt: true, _count: { select: { participants: true } } },
+    select: { status: true, step: true, startsAt: true, categoryId: true, _count: { select: { participants: true } } },
   });
   if (!t || !t.startsAt) return null;
+  const dePeriods = dePeriodsOf(t.categoryId);
   const running = t.status === "RUNNING";
   const deRounds = t.step >= LIVE_RESULTS_STEP ? Math.log2(bracketSize(t._count.participants)) : null;
   const nextStep = t.step + 1;
-  const ns = running ? liveStep(nextStep) : null;
+  const ns = running ? liveStep(nextStep, dePeriods) : null;
   const view: LiveViewDTO = {
     status: running ? "RUNNING" : "FINISHED",
     step: t.step,
-    totalSteps: deRounds != null ? LIVE_RESULTS_STEP + deRounds : null,
+    totalSteps: deRounds != null ? LIVE_RESULTS_STEP + deRounds * dePeriods : null,
     next: ns
       ? {
           step: nextStep,
           kind: ns.kind,
           roundNo: ns.kind === "RESULTS" ? null : ns.roundNo,
-          at: stepAt(t.startsAt, nextStep).toISOString(),
+          periodNo: ns.kind === "DE" ? ns.periodNo : null,
+          at: stepAt(t.startsAt, nextStep, dePeriods).toISOString(),
         }
       : null,
     startsAt: t.startsAt.toISOString(),
@@ -589,13 +642,19 @@ export async function getLiveView(tournamentId: number, viewerPlayerId: number |
     where: { tournamentId, OR: [{ playerAId: viewerPlayerId }, { playerBId: viewerPlayerId }] },
     orderBy: { orderIndex: "asc" },
   });
+  // Sıradaki maç/periyot: her bekleyen maç için BİR SONRAKİ periyot adımı; en erkeni oyuncunun sırası.
   const pending = myMatches
     .filter((m) => m.status === "PENDING" && m.roundNo != null)
-    .map((m) => ({ m, step: liveMatchStep({ phase: m.phase === "POOL" ? "POOL" : "DE", roundNo: m.roundNo! }) }))
+    .map((m) => ({ m, step: matchNextStep(m, dePeriods) }))
     .sort((a, b) => a.step - b.step)[0];
   const lostDe = myMatches.some((m) => m.phase === "DE" && m.status === "RESOLVED" && m.winnerId != null && m.winnerId !== viewerPlayerId);
   const live = toLivePlayer(part);
-  const windowOpen = running && pending != null && pending.step === nextStep && stepAt(t.startsAt, nextStep).getTime() > nowMs;
+  // Pencere açık = sıradaki tur adımı tam da oyuncunun bekleyen periyodu ve o periyot henüz oynanmaya başlamadı.
+  const windowOpen = running && pending != null && pending.step === nextStep && windowCloseAt(t.startsAt, nextStep, dePeriods).getTime() > nowMs;
+  const periodNoOf = (st: number) => {
+    const s = liveStep(st, dePeriods);
+    return s.kind === "DE" ? s.periodNo : null;
+  };
   view.you = {
     eliminated: lostDe,
     nextMatch: pending
@@ -604,11 +663,13 @@ export async function getLiveView(tournamentId: number, viewerPlayerId: number |
           round: pending.m.round,
           phase: pending.m.phase === "POOL" ? "POOL" : "DE",
           step: pending.step,
-          at: stepAt(t.startsAt, pending.step).toISOString(),
+          at: stepAt(t.startsAt, pending.step, dePeriods).toISOString(),
+          periodNo: periodNoOf(pending.step),
         }
       : null,
     windowOpen,
-    windowClosesAt: windowOpen ? stepAt(t.startsAt, nextStep).toISOString() : null,
+    windowClosesAt: windowOpen ? windowCloseAt(t.startsAt, nextStep, dePeriods).toISOString() : null,
+    windowPeriodNo: windowOpen ? periodNoOf(nextStep) : null,
     effectiveTactic: effectiveTactic(live),
     pendingSet: live.pendingTactic != null,
     registeredTactic: live.registeredTactic,

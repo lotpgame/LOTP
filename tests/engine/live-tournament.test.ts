@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SKILL_KEYS, type PlayerSkills, type SkillValue } from "@/engine/skill";
-import type { Combatant, Tactic } from "@/engine/combat";
+import { deBoutFinishLine, type Combatant, type Tactic } from "@/engine/combat";
 import {
   LIVE_RESULTS_STEP,
   liveStep,
   liveStepAtMs,
   liveStepMinute,
+  liveStepWindowCloseMinute,
   liveTotalSteps,
 } from "@/engine/schedule";
 import {
@@ -13,9 +14,11 @@ import {
   MAX_POOL_SIZE,
   applyLiveStep,
   buildDeBracket,
+  commitLiveStep,
   drawLivePools,
   effectiveTactic,
   livePoolSizes,
+  resolveLiveDePeriod,
   resolveLiveMatch,
   roundRobinRounds,
   simulateLiveTournament,
@@ -50,21 +53,39 @@ function field(n: number, humans: Record<number, Tactic | null> = {}): Map<numbe
 
 const CTX = { seedKey: "IL:TR#İstanbul:U10-M-EPE:15", deFormat: { touches: 10, periods: 2 } };
 
-describe("canlı turnuva çizelgesi (kilitli kadans)", () => {
-  it("adımlar: havuz T+5..T+13 (2 dk), sonuç T+17, eleme T+20'den 10 dk'da bir", () => {
-    expect([1, 2, 3, 4, 5].map(liveStepMinute)).toEqual([5, 7, 9, 11, 13]);
-    expect(liveStepMinute(LIVE_RESULTS_STEP)).toBe(17);
-    expect([7, 8, 9, 10].map(liveStepMinute)).toEqual([20, 30, 40, 50]);
-    expect(liveStep(6)).toEqual({ kind: "RESULTS" });
-    expect(liveStep(8)).toEqual({ kind: "DE", roundNo: 2 });
-    expect(liveTotalSteps(5)).toBe(11);
+describe("canlı turnuva çizelgesi (kilitli kadans + eleme periyot alt-adımları)", () => {
+  const P = 3; // standart eleme periyot sayısı (U10 = 2)
+
+  it("havuz T+5..T+13 (2 dk), sonuç T+17; eleme turu 3 periyot alt-adıma bölünür (1 dk + 30 sn ara)", () => {
+    expect([1, 2, 3, 4, 5].map((s) => liveStepMinute(s, P))).toEqual([5, 7, 9, 11, 13]);
+    expect(liveStepMinute(LIVE_RESULTS_STEP, P)).toBe(17);
+    expect(liveStep(6, P)).toEqual({ kind: "RESULTS" });
+    // Eleme turu 1: periyotlar 21 / 22.5 / 24 (turBaşı 20 + (p-1)×1.5 + 1). Tur 2: turBaşı 30 → 31 / 32.5 / 34.
+    expect([7, 8, 9].map((s) => liveStepMinute(s, P))).toEqual([21, 22.5, 24]);
+    expect([10, 11, 12].map((s) => liveStepMinute(s, P))).toEqual([31, 32.5, 34]);
+    expect(liveStep(7, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 1 });
+    expect(liveStep(9, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 3 });
+    expect(liveStep(10, P)).toEqual({ kind: "DE", roundNo: 2, periodNo: 1 });
+    expect(liveTotalSteps(5, P)).toBe(6 + 5 * 3); // 21
+  });
+
+  it("U10 (2 periyot): eleme turu 2 alt-adım", () => {
+    expect(liveStep(7, 2)).toEqual({ kind: "DE", roundNo: 1, periodNo: 1 });
+    expect(liveStep(9, 2)).toEqual({ kind: "DE", roundNo: 2, periodNo: 1 });
+    expect(liveTotalSteps(5, 2)).toBe(6 + 5 * 2); // 16
+  });
+
+  it("taktik penceresi: periyot OYNANMAYA başladığı an kapanır (= çözüm − 1 dk, periyot arası pencere)", () => {
+    expect(liveStepWindowCloseMinute(1, P)).toBe(5); // havuz: maç öncesi (çözümle aynı)
+    expect(liveStepWindowCloseMinute(7, P)).toBe(20); // eleme tur 1 periyot 1 → turBaşı
+    expect(liveStepWindowCloseMinute(8, P)).toBe(21.5); // periyot 2 → periyot 1 bitişi + 30 sn arası
   });
 
   it("gerçek an: üretimde birebir dakika, kısaltılmış günde orantılı", () => {
     const T = Date.UTC(2026, 9, 6, 18, 0, 0);
-    expect(liveStepAtMs(T, 1)).toBe(T + 5 * 60_000);
-    expect(liveStepAtMs(T, 7)).toBe(T + 20 * 60_000);
-    expect(liveStepAtMs(T, 7, 86_400_000 / 2)).toBe(T + 10 * 60_000);
+    expect(liveStepAtMs(T, 1, P)).toBe(T + 5 * 60_000);
+    expect(liveStepAtMs(T, 7, P)).toBe(T + 21 * 60_000);
+    expect(liveStepAtMs(T, 7, P, 86_400_000 / 2)).toBe(T + 10.5 * 60_000);
   });
 });
 
@@ -150,13 +171,67 @@ describe("taktik kaynağı (şartname)", () => {
   });
 });
 
+describe("eleme periyot-periyot (Aşama 2b)", () => {
+  const seed = "de-2b";
+  const m = { phase: "DE" as const, roundNo: 1, slot: 0, poolNo: null, aId: 1, bId: 2, seed };
+  const deCtx = { seedKey: "x", deFormat: { touches: 15, periods: 3 } };
+  const human = (id: number, reg: Tactic, pending: Tactic | null = null): LivePlayerState => ({
+    combatant: combatant(id),
+    isHuman: true,
+    poolNumber: 1,
+    registeredTactic: reg,
+    pendingTactic: pending,
+    lastTactic: null,
+    fatigue: 0,
+  });
+
+  it("aynı taktik her periyotta → atomik (tek adım) çözümle BİREBİR aynı (determinizm güvencesi)", () => {
+    const a = human(1, "OFFENSIVE");
+    const b = human(2, "DEFENSIVE");
+    const atomic = resolveLiveMatch(m, a, b, deCtx);
+    let state: ReturnType<typeof resolveLiveDePeriod>["state"] | null = null;
+    for (let p = 1; p <= 3 && !state?.decided; p++) {
+      state = resolveLiveDePeriod(m, a, b, deCtx, state).state;
+    }
+    expect(state!.scoreA).toBe(atomic.scoreA);
+    expect(state!.scoreB).toBe(atomic.scoreB);
+    expect(state!.winnerId).toBe(atomic.winnerId);
+    // Anlatım da birebir: birikmiş periyot log'u + final satır = atomik maç log'u.
+    expect([...state!.log, deBoutFinishLine(a.combatant, b.combatant, state!)]).toEqual(atomic.log);
+  });
+
+  it("periyot arası taktik gerçekten uygulanır: 2. periyodun başlığı seçilen taktiği gösterir", () => {
+    const run = (p2: Tactic) => {
+      const a = human(1, "BALANCED");
+      const b = human(2, "BALANCED");
+      a.pendingTactic = "OFFENSIVE"; // 1. periyot hücum
+      let r = resolveLiveDePeriod(m, a, b, deCtx, null);
+      a.pendingTactic = p2; // periyot arasında değiştir
+      a.lastTactic = r.tacticA;
+      r = resolveLiveDePeriod(m, a, b, deCtx, r.state);
+      return r.state;
+    };
+    const p2line = (st: ReturnType<typeof run>) => st.log.find((l) => /2\. Periyot/.test(l));
+    expect(p2line(run("DEFENSIVE"))).not.toEqual(p2line(run("OFFENSIVE")));
+  });
+
+  it("uçtan uca: insan her eleme periyodunda taktik verse de turnuva tutarlı biter", () => {
+    const sim = simulateLiveTournament(field(6, { 1: "BALANCED" }), deCtx, (step) =>
+      step > LIVE_RESULTS_STEP ? "OFFENSIVE" : null,
+    );
+    expect(sim.standings).toHaveLength(6);
+    expect(sim.steps).toBe(liveTotalSteps(Math.log2(8), deCtx.deFormat.periods)); // 8'lik tablo, 3 tur × 3 periyot
+    expect(sim.matches.filter((x) => x.phase === "DE").every((x) => x.status === "RESOLVED")).toBe(true);
+  });
+});
+
 function invariants(n: number, sim: ReturnType<typeof simulateLiveTournament>) {
   expect(sim.standings).toHaveLength(n);
   expect(new Set(sim.standings.map((s) => s.playerId)).size).toBe(n);
   expect(sim.standings.filter((s) => s.position === 1)).toHaveLength(1);
   expect(sim.matches.every((m) => m.status === "RESOLVED")).toBe(true);
   expect(sim.ranking).toHaveLength(n);
-  expect(sim.steps).toBe(liveTotalSteps(Math.log2(nextPow2(n))));
+  expect(sim.steps).toBe(liveTotalSteps(Math.log2(nextPow2(n)), CTX.deFormat.periods));
 }
 
 function nextPow2(n: number) {
@@ -180,7 +255,7 @@ describe("uçtan uca (saf) — sunucuyla aynı adım fonksiyonu", () => {
   it(`saha hedefi (${MAX_FIELD}) kadar katılımcıyla da tutarlı tamamlanır`, () => {
     const sim = simulateLiveTournament(field(MAX_FIELD, { 1: "DEFENSIVE", 2: null }), CTX);
     invariants(MAX_FIELD, sim);
-    expect(sim.steps).toBe(liveTotalSteps(8)); // 256'lık tablo = 8 eleme turu
+    expect(sim.steps).toBe(liveTotalSteps(8, CTX.deFormat.periods)); // 256'lık tablo = 8 eleme turu × periyot
   }, 20_000);
 
   it("deterministik: aynı girdi birebir aynı sonuç (iki tarayıcı aynıyı görür)", () => {
@@ -222,13 +297,7 @@ describe("uçtan uca (saf) — sunucuyla aynı adım fonksiyonu", () => {
       for (const T of [A, B]) {
         if (T.done) continue;
         const out = applyLiveStep(step, T.players, T.matches, T.ctx);
-        for (const r of out.resolved) {
-          const m = T.matches.find((x) => x.seed === r.seed)!;
-          Object.assign(m, { status: "RESOLVED", result: r.result });
-        }
-        for (const u of out.players) Object.assign(T.players.get(u.playerId)!, { fatigue: u.fatigue, lastTactic: u.lastTactic, pendingTactic: null });
-        for (const c of out.created) T.matches.push({ ...c, status: "PENDING", result: null });
-        for (const f of out.filled) Object.assign(T.matches.find((x) => x.seed === f.seed)!, { aId: f.aId, bId: f.bId });
+        commitLiveStep(T.players, T.matches, out);
         if (out.finished) {
           T.done = true;
           T.standings = out.standings!;

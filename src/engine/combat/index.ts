@@ -628,12 +628,112 @@ export interface BoutByPeriodsOpts {
   locale?: Locale;
 }
 
+/** Periyot-periyot eleme maçının birikmiş durumu — atomik (offline) ve canlı periyot-adım çözümü ORTAK kullanır. */
+export interface DeBoutState {
+  scoreA: number;
+  scoreB: number;
+  clockSec: number;
+  periodsPlayed: number; // tamamlanan periyot sayısı
+  log: string[]; // birikmiş anlatım (final "🏁 kazandı" satırı HARİÇ)
+  decided: boolean;
+  winnerId?: number;
+}
+
+/** Boş eleme maçı durumu (periyot 0). */
+export function newDeBout(): DeBoutState {
+  return { scoreA: 0, scoreB: 0, clockSec: 0, periodsPlayed: 0, log: [], decided: false };
+}
+
+export interface DeBoutPeriodOpts {
+  touches: number; // maç hedefi (15 / 10)
+  periods: number; // toplam periyot (3 / 2)
+  tacticA: Tactic; // bu periyodun A taktiği
+  tacticB: Tactic; // bu periyodun B taktiği
+  locale?: Locale;
+}
+
 /**
- * Bir bout'u PERİYOT PERİYOT çözer — pür sürüm (offline otomatik oynatma, AI-vs-AI ve replay için).
- * Canlı insan maçı `playLiveMatch` içinde interaktif kalır (periyot başına HTTP çağrısı). Buradaki tek
- * mekanizma (M11.3): her periyot öncesi her tarafın taktiği KAYNAĞINDAN gelir (AI=stil, offline=önceden/
- * default, online-replay=kaydı). Süre dolunca yüksek skor kazanır; son periyotta eşitse altın tuş (la belle).
- * Log periyot başlıklı + tuş-tuş — offline oyuncu maç-içi event'leri görebilsin (ROADMAP §B2/M11).
+ * Eleme maçının BİR periyodunu ilerletir — atomik çözüm ile canlı periyot-adım çözümünün ORTAK çekirdeği
+ * (iki yol da birebir aynı sonucu versin diye). `matchSeed` maçın tohumu; her periyot `${matchSeed}:p{N}`
+ * alt-tohumundan deterministik (narration ayrı akış). Son periyotta karar yoksa süre/altın tuş uygulanır.
+ * Durumu MUTATE ETMEZ; yeni `DeBoutState` döndürür. Her periyot kendi taktiğiyle çağrılır (canlıda insan
+ * periyot arasında değiştirebilir, GDD 18.22; AI/offline sabit stil).
+ */
+export function advanceDeBoutPeriod(
+  a: Combatant,
+  b: Combatant,
+  matchSeed: string,
+  state: DeBoutState,
+  opts: DeBoutPeriodOpts,
+): DeBoutState {
+  const { touches, periods, tacticA, tacticB, locale = "tr" } = opts;
+  if (state.decided) return state;
+  const periodNo = state.periodsPlayed + 1;
+  const log = [...state.log];
+  const pa: Combatant = { ...a, tactic: tacticA };
+  const pb: Combatant = { ...b, tactic: tacticB };
+  // U10: 1. periyot 5 tuşta biter (FIE gençler); diğerlerinde tavan = maç hedefi.
+  const periodCap = touches === 10 && periodNo === 1 ? 5 : touches;
+  const pr = simulatePeriod(pa, pb, createRng(`${matchSeed}:p${periodNo}`), {
+    target: touches,
+    startA: state.scoreA,
+    startB: state.scoreB,
+    startClockSec: state.clockSec,
+    periodEndSec: periodNo * PERIOD_SECONDS,
+    includeHeader: periodNo === 1,
+    periodCap,
+    locale,
+  });
+  if (periodNo === 1 && pr.log.length > 0) log.push(pr.log[0]); // "Maç gücü …" satırı
+  log.push(
+    locale === "en"
+      ? `▸ Period ${periodNo} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`
+      : `▸ ${periodNo}. Periyot — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+  );
+  log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
+
+  let scoreA = pr.scoreA;
+  let scoreB = pr.scoreB;
+  let decided = pr.decided;
+  let winnerId = pr.winnerId;
+
+  if (!decided && periodNo >= periods) {
+    // Süre bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (öncelikli, FIE).
+    if (scoreA !== scoreB) {
+      winnerId = scoreA > scoreB ? a.id : b.id;
+      const wname = winnerId === a.id ? a.name : b.name;
+      log.push(
+        locale === "en"
+          ? `⏱ Time up — ${wname} finished ahead ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`
+          : `⏱ Süre doldu — ${wname} ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} önde bitirdi.`,
+      );
+    } else {
+      const lb = simulateLaBelle(a, b, createRng(`${matchSeed}:belle`), { startA: scoreA, startB: scoreB, locale });
+      log.push(...lb.log);
+      scoreA = lb.scoreA;
+      scoreB = lb.scoreB;
+      winnerId = lb.winnerId;
+    }
+    decided = true;
+  }
+
+  return { scoreA, scoreB, clockSec: pr.clockSec, periodsPlayed: periodNo, log, decided, winnerId };
+}
+
+/** Eleme maçının final "🏁 … maçı kazandı" satırı (maç tamamlanınca eklenir — canlıda son periyotta). */
+export function deBoutFinishLine(a: Combatant, b: Combatant, state: DeBoutState, locale: Locale = "tr"): string {
+  const winIsA = state.winnerId === a.id;
+  const wname = winIsA ? a.name : b.name;
+  return locale === "en"
+    ? `🏁 ${wname} won the match ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`
+    : `🏁 ${wname} maçı ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA} kazandı.`;
+}
+
+/**
+ * Bir bout'u PERİYOT PERİYOT çözer — atomik sürüm (offline otomatik oynatma, AI-vs-AI, replay, başsız sim).
+ * Canlı insan maçı `liveTournament` içinde periyot-adım çözülür (periyot arası taktik penceresi) ama AYNI
+ * `advanceDeBoutPeriod` çekirdeğini kullanır → her periyotta aynı taktik verilirse sonuç buna birebir eşittir.
+ * Her periyot öncesi her tarafın taktiği KAYNAĞINDAN gelir (AI=stil, offline=önceden/default, replay=kaydı).
  */
 export function simulateBoutByPeriods(
   a: Combatant,
@@ -645,80 +745,26 @@ export function simulateBoutByPeriods(
   const tacticA = opts.tacticA ?? (() => a.tactic ?? "BALANCED");
   const tacticB = opts.tacticB ?? (() => b.tactic ?? "BALANCED");
 
-  const log: string[] = [];
-  let scoreA = 0;
-  let scoreB = 0;
-  let clock = 0;
-  let decided = false;
-  let winnerId: number | undefined;
-
-  for (let periodNo = 1; periodNo <= periods && !decided; periodNo++) {
-    const ta = tacticA(periodNo);
-    const tb = tacticB(periodNo);
-    const pa: Combatant = { ...a, tactic: ta };
-    const pb: Combatant = { ...b, tactic: tb };
-    // U10: 1. periyot 5 tuşta biter (FIE gençler); diğerlerinde tavan = maç hedefi.
-    const periodCap = touches === 10 && periodNo === 1 ? 5 : touches;
-    const pr = simulatePeriod(pa, pb, createRng(`${rng.seed}:p${periodNo}`), {
-      target: touches,
-      startA: scoreA,
-      startB: scoreB,
-      startClockSec: clock,
-      periodEndSec: periodNo * PERIOD_SECONDS,
-      includeHeader: periodNo === 1,
-      periodCap,
+  let state = newDeBout();
+  for (let periodNo = 1; periodNo <= periods && !state.decided; periodNo++) {
+    state = advanceDeBoutPeriod(a, b, rng.seed, state, {
+      touches,
+      periods,
+      tacticA: tacticA(periodNo),
+      tacticB: tacticB(periodNo),
       locale,
     });
-    if (periodNo === 1 && pr.log.length > 0) log.push(pr.log[0]); // "Maç gücü …" satırı
-    log.push(
-      locale === "en"
-        ? `▸ Period ${periodNo} — ${a.name}: ${t(locale, `tactic.${ta}`)}, ${b.name}: ${t(locale, `tactic.${tb}`)}`
-        : `▸ ${periodNo}. Periyot — ${a.name}: ${t(locale, `tactic.${ta}`)}, ${b.name}: ${t(locale, `tactic.${tb}`)}`,
-    );
-    log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
-    scoreA = pr.scoreA;
-    scoreB = pr.scoreB;
-    clock = pr.clockSec;
-    decided = pr.decided;
-    winnerId = pr.winnerId;
-
-    if (!decided && periodNo >= periods) {
-      // Süre bitti: skor farklıysa yüksek kazanır, eşitse altın tuş (öncelikli, FIE).
-      if (scoreA !== scoreB) {
-        winnerId = scoreA > scoreB ? a.id : b.id;
-        const wname = winnerId === a.id ? a.name : b.name;
-        log.push(
-          locale === "en"
-            ? `⏱ Time up — ${wname} finished ahead ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`
-            : `⏱ Süre doldu — ${wname} ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} önde bitirdi.`,
-        );
-      } else {
-        const lb = simulateLaBelle(a, b, createRng(`${rng.seed}:belle`), { startA: scoreA, startB: scoreB, locale });
-        log.push(...lb.log);
-        scoreA = lb.scoreA;
-        scoreB = lb.scoreB;
-        winnerId = lb.winnerId;
-      }
-      decided = true;
-    }
   }
 
-  const winIsA = winnerId === a.id;
-  const wname = winIsA ? a.name : b.name;
-  log.push(
-    locale === "en"
-      ? `🏁 ${wname} won the match ${winIsA ? scoreA : scoreB}-${winIsA ? scoreB : scoreA}.`
-      : `🏁 ${wname} maçı ${winIsA ? scoreA : scoreB}-${winIsA ? scoreB : scoreA} kazandı.`,
-  );
-
+  const log = [...state.log, deBoutFinishLine(a, b, state, locale)];
   const m = buildMatchup(a, b); // analiz satırı için (nötr)
   return {
     aId: a.id,
     bId: b.id,
-    scoreA,
-    scoreB,
-    winnerId: winnerId!,
-    loserId: winnerId === a.id ? b.id : a.id,
+    scoreA: state.scoreA,
+    scoreB: state.scoreB,
+    winnerId: state.winnerId!,
+    loserId: state.winnerId === a.id ? b.id : a.id,
     log,
     fatigueGain: Math.max(2, Math.round(touches * 0.45)),
     analysis: { effA: m.esA.total, effB: m.esB.total, winProbA: m.baseP, modsA: m.esA.modifiers, modsB: m.esB.modifiers },

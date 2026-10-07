@@ -299,6 +299,9 @@ model Match {
   tacticA String?
   tacticB String?
 
+  // Aşama 2b: eleme maçı PERİYOT PERİYOT çözülürken birikmiş durum (DeBoutState JSON). Maç bitince NULL'a döner.
+  deState String?
+
   createdAt DateTime @default(now())
 
   @@index([tournamentId])

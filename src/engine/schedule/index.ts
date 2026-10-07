@@ -29,48 +29,83 @@ export const SCHEDULE = {
 // ——— B Faz 2 (docs/DEVIR.md "B Faz 2-4 şartnamesi", 06.10): canlı turnuvanın KİLİTLİ çizelgesi ———
 // T = turnuva başlangıcı (18:00 GMT). Değerler oyun sahibinin kararıdır — değiştirilmez.
 
-/** Kilitli kadans, T'ye göre dakika: havuz turları T+5..T+13 (2 dk arayla), sonuç T+17, eleme T+20'den 10 dk'da bir. */
+/**
+ * Kilitli kadans, T'ye göre dakika: havuz turları T+5..T+13 (2 dk arayla), sonuç T+17, eleme T+20'den 10 dk'da bir.
+ * Eleme maçı PERİYOT PERİYOT oynanır (Aşama 2b, NOTLAR #39): 1 periyot = 1 dk, periyot arası = 30 sn (taktik
+ * penceresi). Bir eleme turu `dePeriods` alt-adıma bölünür; her alt-adım bir periyodu çözer.
+ */
 export const LIVE_SCHEDULE = {
   poolRoundMinutes: [5, 7, 9, 11, 13],
   poolResultsMinute: 17,
   deFirstMinute: 20,
   deStepMinutes: 10,
+  dePeriodMinutes: 1, // bir periyot canlı ~1 dk (NOTLAR #39 kilitli)
+  dePeriodBreakMinutes: 0.5, // periyot arası 30 sn = taktik değişim penceresi (NOTLAR #39 kilitli)
 } as const;
 
-/** Canlı turnuvanın çözüm adımı: 1..5 havuz turları, 6 havuz sonuçları + eleme tablosu, 7.. eleme turları. */
-export type LiveStep = { kind: "POOL"; roundNo: number } | { kind: "RESULTS" } | { kind: "DE"; roundNo: number };
+/**
+ * Canlı turnuvanın çözüm adımı: 1..5 havuz turları, 6 havuz sonuçları + eleme tablosu, 7.. eleme periyot
+ * alt-adımları. Bir eleme turu `dePeriods` ardışık alt-adımdır (her biri bir periyot). `periodNo` 1'den başlar.
+ */
+export type LiveStep =
+  | { kind: "POOL"; roundNo: number }
+  | { kind: "RESULTS" }
+  | { kind: "DE"; roundNo: number; periodNo: number };
 
 export const LIVE_POOL_STEPS = LIVE_SCHEDULE.poolRoundMinutes.length;
 export const LIVE_RESULTS_STEP = LIVE_POOL_STEPS + 1;
 
-export function liveStep(step: number): LiveStep {
+/** Adım → aşama. Eleme adımları için `dePeriods` (turnuva kategorisine göre 3 / U10 2) gerekir. */
+export function liveStep(step: number, dePeriods: number): LiveStep {
   if (!Number.isInteger(step) || step < 1) throw new RangeError("Adım 1'den başlar");
   if (step <= LIVE_POOL_STEPS) return { kind: "POOL", roundNo: step };
   if (step === LIVE_RESULTS_STEP) return { kind: "RESULTS" };
-  return { kind: "DE", roundNo: step - LIVE_RESULTS_STEP };
+  if (dePeriods < 1) throw new RangeError("dePeriods en az 1");
+  const local = step - LIVE_RESULTS_STEP - 1; // 0-tabanlı eleme periyot indeksi
+  return { kind: "DE", roundNo: Math.floor(local / dePeriods) + 1, periodNo: (local % dePeriods) + 1 };
 }
 
-/** Adımın T'ye göre dakikası: 5, 7, 9, 11, 13 · 17 · 20, 30, 40, … */
-export function liveStepMinute(step: number): number {
-  const s = liveStep(step);
+/**
+ * Adımın T'ye göre ÇÖZÜM dakikası (= periyodun bittiği an): havuz 5/7/9/11/13, sonuç 17; eleme turu k'nın
+ * periyodu p → turBaşı + (p-1)×(1dk+30sn) + 1dk (periyot oynanıp bitince sonuç belli olur). turBaşı = 20,30,40…
+ */
+export function liveStepMinute(step: number, dePeriods: number): number {
+  const s = liveStep(step, dePeriods);
   if (s.kind === "POOL") return LIVE_SCHEDULE.poolRoundMinutes[s.roundNo - 1];
   if (s.kind === "RESULTS") return LIVE_SCHEDULE.poolResultsMinute;
-  return LIVE_SCHEDULE.deFirstMinute + (s.roundNo - 1) * LIVE_SCHEDULE.deStepMinutes;
+  const roundStart = LIVE_SCHEDULE.deFirstMinute + (s.roundNo - 1) * LIVE_SCHEDULE.deStepMinutes;
+  const slot = LIVE_SCHEDULE.dePeriodMinutes + LIVE_SCHEDULE.dePeriodBreakMinutes; // bir periyot + arası
+  return roundStart + (s.periodNo - 1) * slot + LIVE_SCHEDULE.dePeriodMinutes;
 }
 
-/** `deRounds` turluk eleme tablosu olan bir turnuvanın toplam adım sayısı. */
-export function liveTotalSteps(deRounds: number): number {
-  return LIVE_RESULTS_STEP + deRounds;
+/**
+ * Adımın TAKTİK penceresinin kapanış dakikası. Havuz/sonuç: çözüm anıyla aynı (maç öncesi). Eleme periyodu:
+ * periyot OYNANMAYA başladığı an (= çözüm − 1dk); yani 30 sn'lik periyot arası + önceki boşluk pencere olur.
+ */
+export function liveStepWindowCloseMinute(step: number, dePeriods: number): number {
+  const s = liveStep(step, dePeriods);
+  if (s.kind !== "DE") return liveStepMinute(step, dePeriods);
+  return liveStepMinute(step, dePeriods) - LIVE_SCHEDULE.dePeriodMinutes;
+}
+
+/** `deRounds` turluk, `dePeriods` periyotluk eleme tablosu olan bir turnuvanın toplam adım sayısı. */
+export function liveTotalSteps(deRounds: number, dePeriods: number): number {
+  return LIVE_RESULTS_STEP + deRounds * dePeriods;
 }
 
 const REAL_DAY_MS = 86_400_000;
 
 /**
- * Adımın gerçek-zaman anı (ms). Dünya saati dev'de kısaltılmışsa (WORLD_MS_PER_DAY) dakikalar da aynı
+ * Adımın gerçek-zaman ÇÖZÜM anı (ms). Dünya saati dev'de kısaltılmışsa (WORLD_MS_PER_DAY) dakikalar da aynı
  * oranda kısalır; üretimde (1 oyun günü = 1 gerçek gün) birebir dakika.
  */
-export function liveStepAtMs(startMs: number, step: number, msPerDay: number = REAL_DAY_MS): number {
-  return startMs + liveStepMinute(step) * 60_000 * (msPerDay / REAL_DAY_MS);
+export function liveStepAtMs(startMs: number, step: number, dePeriods: number, msPerDay: number = REAL_DAY_MS): number {
+  return startMs + liveStepMinute(step, dePeriods) * 60_000 * (msPerDay / REAL_DAY_MS);
+}
+
+/** Adımın taktik penceresi kapanış anı (ms) — eleme periyodunun oynanmaya başladığı an. */
+export function liveStepWindowCloseMs(startMs: number, step: number, dePeriods: number, msPerDay: number = REAL_DAY_MS): number {
+  return startMs + liveStepWindowCloseMinute(step, dePeriods) * 60_000 * (msPerDay / REAL_DAY_MS);
 }
 
 export type Phase = "POOL" | "DE";

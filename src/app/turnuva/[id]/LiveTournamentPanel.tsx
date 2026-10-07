@@ -118,7 +118,11 @@ export function LiveTournamentPanel({
               </div>
               {you.nextMatch.isNextStep ? (
                 <div className="mt-3">
-                  <div className="text-[13px] font-semibold">{t(locale, "live.tactic.title")}</div>
+                  <div className="text-[13px] font-semibold">
+                    {you.windowPeriodNo != null && you.windowPeriodNo > 1
+                      ? t(locale, "live.tactic.periodTitle", { p: you.windowPeriodNo })
+                      : t(locale, "live.tactic.title")}
+                  </div>
                   <div className="mt-1.5 flex w-full rounded-md border border-line p-0.5" role="group">
                     {TACTICS.map((tac) => {
                       const active = tac === you.effectiveTactic;

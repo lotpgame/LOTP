@@ -9,7 +9,17 @@
  * Bu modül maç kuralı/taktik İCAT ETMEZ: havuz ve eleme maçları mevcut combat motoruyla oynanır.
  */
 import { createRng } from "../probability";
-import { MATCH_FORMATS, simulateBoutByPeriods, simulateMatch, type Combatant, type Tactic } from "../combat";
+import {
+  MATCH_FORMATS,
+  advanceDeBoutPeriod,
+  deBoutFinishLine,
+  newDeBout,
+  simulateBoutByPeriods,
+  simulateMatch,
+  type Combatant,
+  type DeBoutState,
+  type Tactic,
+} from "../combat";
 import { LIVE_RESULTS_STEP, liveStep } from "../schedule";
 import { bracketSeedOrder, bracketSize, roundLabel } from "./index";
 import type { Locale } from "@/i18n";
@@ -76,9 +86,13 @@ export function deMatchSeed(seedKey: string, roundNo: number, slot: number): str
   return `${seedKey}:de:${roundNo}:${slot}`;
 }
 
-/** Maçın çözüldüğü adım (havuz turu r → adım r; eleme turu k → sonuç adımından k sonra). */
-export function liveMatchStep(m: Pick<LiveMatchRow, "phase" | "roundNo">): number {
-  return m.phase === "POOL" ? m.roundNo : LIVE_RESULTS_STEP + m.roundNo;
+/**
+ * Maçın BAŞLADIĞI (ilk periyodunun çözüldüğü) adım. Havuz turu r → adım r. Eleme turu k → sonuç adımından
+ * sonra k. turun 1. periyodu: `LIVE_RESULTS_STEP + (k-1)*dePeriods + 1`. (Eleme maçı `dePeriods` alt-adıma
+ * yayılır; bu fonksiyon turun İLK periyot adımını verir — çizelgeleme + "sıradaki maç" için.)
+ */
+export function liveMatchStep(m: Pick<LiveMatchRow, "phase" | "roundNo">, dePeriods: number): number {
+  return m.phase === "POOL" ? m.roundNo : LIVE_RESULTS_STEP + (m.roundNo - 1) * dePeriods + 1;
 }
 
 export interface LiveDraw {
@@ -151,6 +165,8 @@ export interface ResolvedLiveMatch {
 export interface LiveMatchState extends LiveMatchRow {
   status: "PENDING" | "RESOLVED";
   result: ResolvedLiveMatch | null;
+  // Eleme maçı devam ediyorsa (periyot-adım), o ana kadarki birikmiş durum. POOL'da / çözülmemişte yok.
+  de?: DeBoutState | null;
 }
 
 export interface LiveContext {
@@ -191,6 +207,54 @@ export function resolveLiveMatch(
     tacticA,
     tacticB,
     fatigueGain: r.fatigueGain,
+  };
+}
+
+/** Eleme maçının TEK periyodunu ilerletir (canlı periyot-adım). Önceki durumdan devam eder; o anki taktik
+ *  kaynağıyla (pending→kayıtlı→son→BALANCED) oynanır. Yorgunluk maç boyunca sabit (maç-başı), bitince uygulanır. */
+export function resolveLiveDePeriod(
+  m: LiveMatchRow,
+  a: LivePlayerState,
+  b: LivePlayerState,
+  ctx: LiveContext,
+  prev: DeBoutState | null | undefined,
+): { state: DeBoutState; tacticA: Tactic; tacticB: Tactic } {
+  const tacticA = tacticOf(a);
+  const tacticB = tacticOf(b);
+  const ca: Combatant = { ...a.combatant, fatigue: a.fatigue, tactic: tacticA };
+  const cb: Combatant = { ...b.combatant, fatigue: b.fatigue, tactic: tacticB };
+  const state = advanceDeBoutPeriod(ca, cb, m.seed, prev ?? newDeBout(), {
+    touches: ctx.deFormat.touches,
+    periods: ctx.deFormat.periods,
+    tacticA,
+    tacticB,
+    locale: ctx.locale,
+  });
+  return { state, tacticA, tacticB };
+}
+
+/** Birikmiş eleme durumundan tam maç sonucu (son periyot bitince — "🏁 kazandı" satırı eklenir). */
+function deResultFromState(
+  m: LiveMatchRow,
+  a: LivePlayerState,
+  b: LivePlayerState,
+  state: DeBoutState,
+  tacticA: Tactic,
+  tacticB: Tactic,
+  touches: number,
+  locale?: Locale,
+): ResolvedLiveMatch {
+  const ca: Combatant = { ...a.combatant };
+  const cb: Combatant = { ...b.combatant };
+  return {
+    scoreA: state.scoreA,
+    scoreB: state.scoreB,
+    winnerId: state.winnerId!,
+    loserId: state.winnerId === m.aId ? m.bId! : m.aId!,
+    log: [...state.log, deBoutFinishLine(ca, cb, state, locale)],
+    tacticA,
+    tacticB,
+    fatigueGain: Math.max(2, Math.round(touches * 0.45)),
   };
 }
 
@@ -329,8 +393,10 @@ export function buildDeBracket(ranking: readonly { playerId: number; seedRank: n
 /** Bir adımın sonucu — sunucu bunu DB'ye yazar, saf simülasyon kendi durumuna uygular. */
 export interface LiveStepOutcome {
   step: number;
-  resolved: { seed: string; result: ResolvedLiveMatch }[];
-  players: { playerId: number; fatigue: number; lastTactic: Tactic | null }[]; // maç yapanlar (bekleyen taktik tüketilir)
+  resolved: { seed: string; result: ResolvedLiveMatch }[]; // tam biten maçlar (havuz + biten eleme maçları)
+  periodUpdates: { seed: string; de: DeBoutState }[]; // eleme: periyot ilerledi ama maç HENÜZ bitmedi
+  players: { playerId: number; fatigue: number; lastTactic: Tactic | null }[]; // maçı BİTEN oyuncular (yorgunluk + bekleyen taktik tüketilir)
+  periodPlayers: { playerId: number; lastTactic: Tactic | null }[]; // bir periyot oynayan ama maçı sürenler (yalnız bekleyen taktik tüketilir)
   created: LiveMatchRow[]; // sonuç adımında: eleme tablosu satırları
   filled: { seed: string; aId: number | null; bId: number | null }[]; // eleme: sonraki turun dolan yerleri
   poolStats: PoolStat[] | null;
@@ -352,7 +418,9 @@ export function applyLiveStep(
   const out: LiveStepOutcome = {
     step,
     resolved: [],
+    periodUpdates: [],
     players: [],
+    periodPlayers: [],
     created: [],
     filled: [],
     poolStats: null,
@@ -360,7 +428,8 @@ export function applyLiveStep(
     standings: null,
     finished: false,
   };
-  const s = liveStep(step);
+  const dePeriods = ctx.deFormat.periods;
+  const s = liveStep(step, dePeriods);
 
   if (s.kind === "RESULTS") {
     const poolResults = matches
@@ -372,25 +441,64 @@ export function applyLiveStep(
     return out;
   }
 
-  const phase: LivePhase = s.kind === "POOL" ? "POOL" : "DE";
-  const due = matches.filter(
-    (m) => m.phase === phase && m.roundNo === s.roundNo && m.status === "PENDING" && m.aId != null && m.bId != null,
+  if (s.kind === "POOL") {
+    // Havuz maçı tek periyot (5 tuş) → atomik çözülür. Bir oyuncu turda en çok bir maç yapar.
+    const due = matches.filter(
+      (m) => m.phase === "POOL" && m.roundNo === s.roundNo && m.status === "PENDING" && m.aId != null && m.bId != null,
+    );
+    for (const m of due) {
+      const a = players.get(m.aId!);
+      const b = players.get(m.bId!);
+      if (!a || !b) throw new Error(`Maç oyuncusu bulunamadı: ${m.seed}`);
+      const result = resolveLiveMatch(m, a, b, ctx);
+      out.resolved.push({ seed: m.seed, result });
+      out.players.push({ playerId: m.aId!, fatigue: a.fatigue + result.fatigueGain, lastTactic: result.tacticA });
+      out.players.push({ playerId: m.bId!, fatigue: b.fatigue + result.fatigueGain, lastTactic: result.tacticB });
+    }
+    return out;
+  }
+
+  // ——— Eleme periyot alt-adımı (s.roundNo turunun s.periodNo periyodu) ———
+  // Bu periyoda hazır (bir önceki periyodu bitirmiş, henüz karara bağlanmamış) maçları bir periyot ilerlet.
+  const duePeriod = matches.filter(
+    (m) =>
+      m.phase === "DE" &&
+      m.roundNo === s.roundNo &&
+      m.status === "PENDING" &&
+      m.aId != null &&
+      m.bId != null &&
+      (m.de?.periodsPlayed ?? 0) === s.periodNo - 1 &&
+      !m.de?.decided,
   );
-  // Bir oyuncu bir turda en çok bir maç yapar → turun maçları birbirinden bağımsız çözülür.
-  for (const m of due) {
+  for (const m of duePeriod) {
     const a = players.get(m.aId!);
     const b = players.get(m.bId!);
     if (!a || !b) throw new Error(`Maç oyuncusu bulunamadı: ${m.seed}`);
-    const result = resolveLiveMatch(m, a, b, ctx);
-    out.resolved.push({ seed: m.seed, result });
-    out.players.push({ playerId: m.aId!, fatigue: a.fatigue + result.fatigueGain, lastTactic: result.tacticA });
-    out.players.push({ playerId: m.bId!, fatigue: b.fatigue + result.fatigueGain, lastTactic: result.tacticB });
+    const { state, tacticA, tacticB } = resolveLiveDePeriod(m, a, b, ctx, m.de);
+    if (state.decided) {
+      const result = deResultFromState(m, a, b, state, tacticA, tacticB, ctx.deFormat.touches, ctx.locale);
+      out.resolved.push({ seed: m.seed, result });
+      out.players.push({ playerId: m.aId!, fatigue: a.fatigue + result.fatigueGain, lastTactic: tacticA });
+      out.players.push({ playerId: m.bId!, fatigue: b.fatigue + result.fatigueGain, lastTactic: tacticB });
+    } else {
+      out.periodUpdates.push({ seed: m.seed, de: state });
+      out.periodPlayers.push({ playerId: m.aId!, lastTactic: tacticA });
+      out.periodPlayers.push({ playerId: m.bId!, lastTactic: tacticB });
+    }
   }
 
-  if (phase === "POOL") return out;
+  // İlerletme/dereceler yalnız turun SON periyot adımında (o ana dek turun tüm maçları bitmiş olur).
+  if (s.periodNo < dePeriods) return out;
 
   const size = bracketSize(players.size);
   const rounds = Math.log2(size);
+  // Bu turun tüm maç sonuçları: erken biten önceki periyot adımlarında RESOLVED + bu adımda biten.
+  const resolvedThis = new Map(out.resolved.map((r) => [r.seed, r.result]));
+  const roundResults = matches
+    .filter((m) => m.phase === "DE" && m.roundNo === s.roundNo)
+    .map((m) => ({ m, result: m.result ?? resolvedThis.get(m.seed) ?? null }))
+    .filter((x): x is { m: LiveMatchState; result: ResolvedLiveMatch } => x.result != null);
+
   if (s.roundNo < rounds) {
     const next = new Map(
       matches
@@ -398,30 +506,29 @@ export function applyLiveStep(
         .map((m) => [m.slot, { seed: m.seed, aId: m.aId, bId: m.bId }]),
     );
     const touched = new Set<number>();
-    for (const r of out.resolved) {
-      const m = due.find((d) => d.seed === r.seed)!;
+    for (const { m, result } of roundResults) {
       const to = deAdvance(m.slot);
       const row = next.get(to.slot);
       if (!row) throw new Error(`Eleme tablosunda yer yok: tur ${s.roundNo + 1}, yer ${to.slot}`);
-      if (to.side === "A") row.aId = r.result.winnerId;
-      else row.bId = r.result.winnerId;
+      if (to.side === "A") row.aId = result.winnerId;
+      else row.bId = result.winnerId;
       touched.add(to.slot);
     }
     out.filled = [...touched].sort((x, y) => x - y).map((slot) => next.get(slot)!);
     return out;
   }
 
-  // Final çözüldü → dereceler: her elemede kaybeden turuna göre, kazanan şampiyon.
+  // Final turu bitti → dereceler: her elemede kaybeden turuna göre, kazanan şampiyon.
   out.finished = true;
-  const all = [...matches.filter((m) => m.phase === "DE" && m.result), ...due.map((m) => ({ ...m, result: null }))];
-  const resultBySeed = new Map(out.resolved.map((r) => [r.seed, r.result]));
+  const allDe = matches
+    .filter((m) => m.phase === "DE")
+    .map((m) => ({ m, result: m.result ?? resolvedThis.get(m.seed) ?? null }))
+    .filter((x): x is { m: LiveMatchState; result: ResolvedLiveMatch } => x.result != null);
   const standings: { playerId: number; position: number }[] = [];
   let championId: number | null = null;
-  for (const m of all) {
-    const res = m.result ?? resultBySeed.get(m.seed);
-    if (!res) continue;
-    standings.push({ playerId: res.loserId, position: deLoserPosition(size, m.roundNo) });
-    if (m.roundNo === rounds) championId = res.winnerId;
+  for (const { m, result } of allDe) {
+    standings.push({ playerId: result.loserId, position: deLoserPosition(size, m.roundNo) });
+    if (m.roundNo === rounds) championId = result.winnerId;
   }
   if (championId == null) throw new Error("Final sonucu yok");
   standings.push({ playerId: championId, position: 1 });
@@ -441,10 +548,19 @@ export function commitLiveStep(
     m.status = "RESOLVED";
     m.result = r.result;
   }
+  for (const u of out.periodUpdates) {
+    const m = bySeed.get(u.seed)!;
+    m.de = u.de; // maç sürüyor (status PENDING kalır); birikmiş skor/log/periyot güncellenir
+  }
   for (const u of out.players) {
     const p = players.get(u.playerId)!;
     p.fatigue = u.fatigue;
     p.lastTactic = u.lastTactic;
+    p.pendingTactic = null;
+  }
+  for (const u of out.periodPlayers) {
+    const p = players.get(u.playerId)!;
+    p.lastTactic = u.lastTactic; // yorgunluk maç bitince; şimdilik yalnız bekleyen taktik tüketilir
     p.pendingTactic = null;
   }
   for (const row of out.created) matches.push({ ...row, status: "PENDING", result: null });
