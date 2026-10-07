@@ -21,6 +21,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
   (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
 
+### Düzeltildi (07.10 — bitmiş turnuva offline dönen oyuncuya "CANLI" görünüyordu)
+- Offline (örn. 4-5 gün) dönen oyuncuya, canlı penceresi çoktan kapanmış bir turnuva ana ekranda **"CANLI /
+  turnuvaya gir"** olarak gösteriliyordu (özellikle GMT gece yarısı–18:00 arası: `eventDay` hâlâ dünkü turnuva).
+  Üstelik `canAttend=true` olduğu için otomatik senkron (`AutoAdvance`) hiç çalışmıyor, hesap o ekranda **takılı**
+  kalıyordu. Artık turnuva **canlı penceresi** (18:00 GMT + ~110 dk) kapandıysa "CANLI" gösterilmez; kayıtlıysan
+  turnuva otomatik oynanıp sonucu **"sen yokken"** raporuna düşer (antrenman gibi), Geçmiş'ten açıp bakarsın.
+  `isLive` artık `gün === eventDay && canlı pencere açık` (sunucu, `tournamentStillLive`). Bir dahaki açılışta
+  takılı hesaplar kendiliğinden çözülür.
+
 ### Eklendi (07.10 — "Kendi rengin": kişiye özel vurgu rengi)
 - **Ayarlar → Görünüm'e "Kendi rengin" eklendi** (serbest renk seçici + önizleme + kontrast uyarısı,
   localStorage, no-flash boot). Klasman, turnuva sıralaması, Milli Takım ve pul kağıdında **kendi adın +

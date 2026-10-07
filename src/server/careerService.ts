@@ -19,7 +19,7 @@ import {
 } from "./liveTournament";
 import { MAX_FIELD, deRoundLabel } from "@/engine/tournament/live";
 import { LIVE_POOL_STEPS, LIVE_RESULTS_STEP } from "@/engine/schedule";
-import { worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
+import { MS_PER_GAME_DAY, worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
   ageToCategory,
@@ -863,6 +863,18 @@ function findNextTournament(
   return null;
 }
 
+/**
+ * Bir turnuvanın CANLI (katılınabilir/izlenebilir) penceresi açık mı. Pencere = 18:00 GMT + en büyük saha
+ * süresi (~94 dk) + tampon. Pencere KAPANINCA turnuva bitmiş sayılır → offline dönen oyuncuya "CANLI/gir"
+ * gösterilmez; kayıtlıysa otomatik oynanıp sonucu "sen yokken" raporuna düşer (kullanıcı kararı 07.10).
+ * Dev'de gün kısalırsa (WORLD_MS_PER_DAY) pencere de orantılı kısalır.
+ */
+const TOURNAMENT_LIVE_MINUTES = 110;
+function tournamentStillLive(eventDay: number, nowMs: number = Date.now()): boolean {
+  const cfg = worldClockConfig();
+  return nowMs < serverEventStartMs(eventDay) + TOURNAMENT_LIVE_MINUTES * 60_000 * ((cfg.msPerDay ?? MS_PER_GAME_DAY) / MS_PER_GAME_DAY);
+}
+
 export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const state = await loadState();
   if (!state) return null;
@@ -900,8 +912,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
 
   const worldDay = serverWorldDay(); // 00:00 bugün — sıradaki turnuva/tarih için
   const eventDay = serverEventDay(); // etkinliği (19:00) gelmiş en son gün — işleme/canlı-katıl için
-  const arrived = gs.dayIndex <= eventDay; // bu günün etkinliği (19:00) geldi mi → işlenecek
-  const isLive = gs.dayIndex === eventDay; // canlı "Katıl" yalnız etkinliği yeni gelen turnuvada
+  const arrived = gs.dayIndex <= eventDay; // bu günün etkinliği (18:00 GMT) geldi mi → işlenecek
+  // Canlı "Katıl/İzle" yalnız etkinliği yeni gelen VE canlı penceresi henüz kapanmamış turnuvada. Pencere
+  // kapandıysa (turnuva bitti; ör. GMT gece yarısı sonrası dönen offline oyuncu) → "sen yokken" yoluna düşer.
+  const isLive = gs.dayIndex === eventDay && tournamentStillLive(eventDay);
   const canAttend = isLive && today.kind === "TOURNAMENT" && today.qualified === true;
   // Geçmiş turnuva (kayıtlıysa offline oynanır, değilse kaçırılır) + antrenman/iyileşme → otomatik işlenir.
   const needsSync = arrived && !canAttend;
@@ -1375,7 +1389,9 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     if (act.kind === "TOURNAMENT") {
       const eligible =
         qualifies(act.qualification, humanRank) && levelAllowedForCategory(act.level, cur.ageCategory);
-      const isLive = d === eventDay; // etkinliği en son gelen gün → canlı oynanabilir (19:00 geçti)
+      // Canlı oynanabilir = etkinliği en son gelen gün VE canlı penceresi hâlâ açık. Pencere kapandıysa
+      // turnuva bitti → aşağıda kayıtlıysa otomatik oynanır (sen yokken), değilse kaçırılır — "CANLI" yok.
+      const isLive = d === eventDay && tournamentStillLive(eventDay);
       if (eligible && isLive && !(firstDay && skipFirst)) break; // canlı turnuvada dur (Katıl/Geç)
       // M11.2: geçmiş (d < eventDay) + kayıtlı + uygun → offline otomatik oynat (önceden taktikle).
       const reg = regByDay.get(`${d}:${act.level}`);

@@ -48,7 +48,7 @@ Uydurma bir değişiklik eklenmedi — mevcut davranış zaten isteneni karşıl
 
 | # | Tarih | Kategori | Not | Çözüm |
 |---|-------|----------|-----|-------|
-| 2 | 2026-09-13 | denge | Kariyer varsayılan **8 yaş** başlasın (oyun 2026'da) | Oluşturma formunda doğum tarihi varsayılanı 2018-01-01 (→ 8 yaş); GAME_START zaten 2026. Farklı yaş hâlâ seçilebilir. |
+| 40 | 2026-10-07 | hata | **Offline dönen oyuncuya bitmiş turnuva "CANLI / gir" görünüyor.** Farklı hesap 4-5 gün offline; ana ekranda dünkü (bitmiş) turnuvayı "CANLI" gösteriyor + takılı kalıyor. İstenen: bitmiş turnuva "sen yokken" raporuna düşsün (antrenman gibi: su tarihte katıldın, Nth oldun), Geçmiş'ten açılsın. | **✅ YAPILDI (07.10):** turnuva "canlı" sayılması `isLive = gün === eventDay && tournamentStillLive(eventDay)` oldu (canlı pencere = 18:00 GMT + ~110 dk, en büyük saha süresi). Pencere kapandıysa "CANLI" yok → kayıtlıysa otomatik oynanıp "sen yokken" raporuna düşer, değilse kaçırılır. Eski kök sorun: `canAttend=true` iken `AutoAdvance` hiç çalışmıyor, hesap takılıydı → artık senkron çalışır, takılı hesap kendiliğinden çözülür. tsc+lint+204 test+build yeşil. |
 | 4 | 2026-09-13 | hata | Seçim kutularında **beyaz-üstüne-beyaz** okunmaz metin | `globals.css`'e `color-scheme: light dark` + `select option` tema renkleri eklendi. |
 | 5 | 2026-09-13 | ux | Profile **görsel** (resim) | Panele baş harfli avatar (yeşil daire) eklendi — asset gerektirmeyen hızlı görsel. Gerçek resim/portre sonra. |
 | 6 | 2026-09-13 | kural | "sahalardan" → **"pistlerden"** uzak | Sakatlık metni düzeltildi (eskrim terimi: pist). |
