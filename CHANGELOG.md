@@ -15,6 +15,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   sıradaki turnuvayı gösterdiği için diğerleri gereksiz tekrardı. Kimlik kartı, kondisyon/form, yetenek
   radarı, "sen yokken" raporu aynen duruyor.
 
+### Değişti (07.10 — turnuva saati GMT etiketi + ölü kod temizliği)
+- **Yaklaşan turnuva kartları** artık saat yanında **"GMT"** etiketi gösterir ("8 Ekim Perşembe 18:00 GMT")
+  → sıradaki turnuva kartıyla tutarlı, oyuncu saati yerel sanmaz (NOTLAR #19).
+- **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
+  (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
+
 ### Eklendi (07.10 — Milli Takım sayfası)
 - Profildeki **"Milli Takım" rozeti artık tıklanabilir** → `/kariyer/milli`. Milli takım = kategori Quarter
   Ranking **ilk 4**'ü (tek kaynak `NATIONAL_TEAM_SIZE`). Sayfa kadroyu **overall reytingleriyle** gösterir

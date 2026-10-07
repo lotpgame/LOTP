@@ -65,7 +65,8 @@ export default async function TurnuvalarPage() {
                 <div className="min-w-0">
                   <div className="text-[15px] font-semibold">{u.label}</div>
                   <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-steel">
-                    <Icon name="calendar" size={14} /> {u.dateLabel}
+                    {/* Tarih + saat (18:00 GMT) + "GMT" etiketi → sıradaki kartla tutarlı, yerel sanılmaz (#19). */}
+                    <Icon name="calendar" size={14} /> {u.dateLabel} {t(locale, "next.trTime")}
                   </div>
                 </div>
                 <LevelTag level={u.level} locale={locale} />

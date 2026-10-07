@@ -763,36 +763,6 @@ export async function getCareer(): Promise<CareerDTO | null> {
   };
 }
 
-export interface RecentAchievementDTO {
-  type: string;
-  detail: string;
-  dateMs: number | null; // kazanıldığı dünya gününün GMT başlangıcı; eski kayıtta null (→ Q)
-  quarter: number;
-  order: number;
-  isNew: boolean; // son 3 dünya gününde kazanıldı → şeritte vurgulu
-}
-
-/** Bugün ekranı "Son başarılar" şeridi (GORSEL §8): en yeni başarılar, yeniden eskiye. Yalnız okur. */
-export async function getRecentAchievements(limit = 6): Promise<RecentAchievementDTO[]> {
-  const gs = await currentGameState();
-  if (!gs) return [];
-  const cfg = worldClockConfig();
-  const today = serverWorldDay();
-  const rows = await prisma.achievement.findMany({
-    where: { playerId: gs.humanPlayerId },
-    orderBy: [{ date: "desc" }, { id: "desc" }],
-    take: limit + 2, // ilk şampiyonluğun yinelenen kaydı ayıklanınca da `limit` kalsın
-  });
-  return rows.map((a) => ({
-    type: a.type,
-    detail: a.detail,
-    dateMs: a.worldDay != null ? worldDayStartMs(a.worldDay, cfg) : null,
-    quarter: a.quarter,
-    order: a.date.getTime(),
-    isNew: a.worldDay != null && a.worldDay >= today - 2,
-  }));
-}
-
 /** Menü/başlık + sabit "İlerle" çubuğu için hafif durum (tüm kariyer sayfalarında ortak). */
 export interface TrainingReport {
   days: number; // kaç gün ilerledi
