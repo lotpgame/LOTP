@@ -132,8 +132,8 @@ export function MilliTakimFilter({
             >
               <span className="flex min-w-0 items-center gap-2.5">
                 <span className="num w-5 shrink-0 text-steel">{m.position}.</span>
-                {/* Kendi adın "(sen)" yerine kırmızı fontla ayırt edilir. */}
-                <span className={`truncate ${m.isHuman ? "text-sig-red" : ""}`}>{m.name}</span>
+                {/* Kendi adın "(sen)" yerine kendi renginle ayırt edilir (Ayarlar → Görünüm). */}
+                <span className={`truncate ${m.isHuman ? "text-me" : ""}`}>{m.name}</span>
               </span>
               <span className="num shrink-0 text-[18px]">{m.rating.toFixed(1)}</span>
             </li>

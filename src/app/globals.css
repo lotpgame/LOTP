@@ -29,6 +29,10 @@
   --sig-white: #f4f6f8;
   --prio: #c9962b;
 
+  /* "Kendi rengin" (Ayarlar → Görünüm): kendi adın + "sen" satır kenarı. Varsayılan = sig-red; kullanıcı
+     seçerse <html> style'ına yazılır (her iki temada o renk). */
+  --me: var(--sig-red);
+
   /* Metal (kupa vitrini, docs/GORSEL_ETKILESIM.md §7) — madalya renkleri; sinyal değil, tema değiştirmez.
      Zemin / koyu mürekkep çifti (altın · gümüş · bronz). */
   --metal-gold: #e0b23f;
@@ -80,6 +84,7 @@
   --color-steel: var(--steel);
   --color-ink: var(--ink);
   --color-sig-red: var(--sig-red);
+  --color-me: var(--me);
   --color-sig-green: var(--sig-green);
   --color-sig-white: var(--sig-white);
   --color-prio: var(--prio);

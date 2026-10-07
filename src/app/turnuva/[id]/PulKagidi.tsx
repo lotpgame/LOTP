@@ -72,7 +72,7 @@ export function PulKagidi({ sheet, locale }: { sheet: PoolSheetDTO; locale: Loca
                     scope="row"
                     className={`sticky left-0 z-10 h-9 border-t border-line px-3 text-left font-sans font-normal ${rowBg}`}
                   >
-                    {mine && <span className="absolute inset-y-0 left-0 w-[3px] bg-sig-red" aria-hidden="true" />}
+                    {mine && <span className="absolute inset-y-0 left-0 w-[3px] bg-me" aria-hidden="true" />}
                     <span className="flex max-w-[9.5rem] items-center gap-2 sm:max-w-[14rem]">
                       <span className="num w-4 shrink-0 text-right text-[12px] text-steel">{i + 1}</span>
                       <span className={`truncate ${mine ? "font-semibold" : ""}`}>{p.name}</span>

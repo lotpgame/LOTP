@@ -177,7 +177,7 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
       </div>
       <ol>
         {rows.map((r) => {
-          const edge = r.isHuman ? "bg-sig-red" : r.position === 1 ? "bg-prio" : r.position <= 3 ? "bg-steel" : "";
+          const edge = r.isHuman ? "bg-me" : r.position === 1 ? "bg-prio" : r.position <= 3 ? "bg-steel" : "";
           return (
             <li
               key={r.playerId}
@@ -189,7 +189,7 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
               <span className="num text-[17px]">{r.position}</span>
               <span className="min-w-0">
                 {/* Kendi adın "SEN" etiketi yerine kırmızı+kalın fontla ayırt edilir (satırdaki kırmızı kenarla uyumlu). */}
-                <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-sig-red" : ""}`}>{r.name}</span>
+                <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-me" : ""}`}>{r.name}</span>
                 {r.clubName && <span className="block truncate text-[13px] text-steel">{r.clubName}</span>}
               </span>
               <span className="num text-[15px]">{r.points.toFixed(1)}</span>

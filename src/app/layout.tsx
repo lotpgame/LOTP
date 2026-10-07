@@ -7,7 +7,7 @@ import { getLocale } from "@/i18n/server";
 import "./globals.css";
 import { InstagramWarning } from "./InstagramWarning";
 import { ThemeApplier } from "./ThemeApplier";
-import { THEME_BG_KEY, THEME_FG_KEY, VIEW_MODE_KEY } from "./themeKeys";
+import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY, VIEW_MODE_KEY } from "./themeKeys";
 import { isInstagramBrowser } from "./ui/inAppBrowser";
 
 // latin-ext: Türkçe karakterler (ş ğ ı İ) aynı fonttan gelsin.
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
 // Kayıtlı kişisel tema renklerini ilk boyamadan ÖNCE uygular (yanıp sönme olmasın). Yalnız #rgb/#rrggbb
 // kabul edilir; ThemeApplier aynı işi mount sonrası yedek olarak tekrarlar.
-const THEME_BOOT = `try{var h=/^#[0-9a-fA-F]{3,8}$/,d=document.documentElement.style,b=localStorage.getItem(${JSON.stringify(THEME_BG_KEY)}),f=localStorage.getItem(${JSON.stringify(THEME_FG_KEY)});if(b&&h.test(b))d.setProperty("--background",b);if(f&&h.test(f))d.setProperty("--foreground",f)}catch(e){}`;
+const THEME_BOOT = `try{var h=/^#[0-9a-fA-F]{3,8}$/,d=document.documentElement.style,b=localStorage.getItem(${JSON.stringify(THEME_BG_KEY)}),f=localStorage.getItem(${JSON.stringify(THEME_FG_KEY)}),m=localStorage.getItem(${JSON.stringify(THEME_ME_KEY)});if(b&&h.test(b))d.setProperty("--background",b);if(f&&h.test(f))d.setProperty("--foreground",f);if(m&&h.test(m))d.setProperty("--me",m)}catch(e){}`;
 
 // Görünüm modunu (yatay/dikey) ilk boyamadan ÖNCE <html>'e yazar (yanıp sönme olmasın).
 const VIEW_BOOT = `try{var v=localStorage.getItem(${JSON.stringify(VIEW_MODE_KEY)});document.documentElement.setAttribute("data-view",v==="landscape"?"landscape":"portrait")}catch(e){}`;

@@ -282,10 +282,10 @@ function FinalStandings({ standings, locale }: { standings: TournamentResultDTO[
             }`}
           >
             {(s.isHuman || s.position === 1) && (
-              <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-sig-red" : "bg-prio"}`} aria-hidden="true" />
+              <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-me" : "bg-prio"}`} aria-hidden="true" />
             )}
-            {/* Kendi adın "(sen)" yerine kırmızı fontla ayırt edilir (kırmızı kenarla uyumlu). */}
-            <span className={s.isHuman ? "text-sig-red" : ""}>{s.name}</span>
+            {/* Kendi adın "(sen)" yerine kendi renginle ayırt edilir (Ayarlar → Görünüm; varsayılan kırmızı). */}
+            <span className={s.isHuman ? "text-me" : ""}>{s.name}</span>
             <span className="text-steel">{positionLabel(locale, s.position)}</span>
           </li>
         ))}

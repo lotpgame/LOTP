@@ -21,9 +21,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
   (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
 
-### Değişti (07.10 — kendi adın "SEN/(sen)" etiketi yerine kırmızı font)
+### Eklendi (07.10 — "Kendi rengin": kişiye özel vurgu rengi)
+- **Ayarlar → Görünüm'e "Kendi rengin" eklendi** (serbest renk seçici + önizleme + kontrast uyarısı,
+  localStorage, no-flash boot). Klasman, turnuva sıralaması, Milli Takım ve pul kağıdında **kendi adın +
+  "sen" satır kenarı** artık bu renkte. Yeni `--me` CSS değişkeni (varsayılan = sig-red kırmızısı) tüm
+  "sen" göstergelerini tek yerden sürüyor; seçilen renk her iki temada geçerli. Tema renk sistemiyle aynı desen.
+
+### Değişti (07.10 — kendi adın "SEN/(sen)" etiketi yerine renkli font)
 - Klasman, turnuva final sıralaması ve Milli Takım listelerinde oyuncunun **kendi adı artık "(sen)"/"SEN"
-  etiketiyle değil, kırmızı+kalın fontla** ayırt ediliyor (satırdaki kırmızı kenar çizgisiyle uyumlu).
+  etiketiyle değil, kendi renginde (varsayılan kırmızı) + kalın fontla** ayırt ediliyor (satır kenarıyla uyumlu).
   Daha temiz görünüm; metin tekrarı kalktı.
 
 ### Eklendi (07.10 — Milli Takım sayfası)

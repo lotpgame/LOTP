@@ -405,7 +405,7 @@ function PoolIntro({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
                 key={i}
                 className={`relative flex min-h-11 items-center gap-2 border-b border-line px-3 text-[14px] last:border-b-0 ${mem.isHuman ? "bg-arena-2 font-semibold" : ""}`}
               >
-                {mem.isHuman && <span className="absolute inset-y-0 left-0 w-[3px] bg-sig-red" aria-hidden="true" />}
+                {mem.isHuman && <span className="absolute inset-y-0 left-0 w-[3px] bg-me" aria-hidden="true" />}
                 <span className="num w-5 text-steel">{i + 1}</span>
                 {mem.name}
               </li>
@@ -436,7 +436,7 @@ function Standings({ tour, locale }: { tour: LiveTournamentDTO; locale: Locale }
           <tbody>
             {tour.seeding?.map((s) => (
               <tr key={s.seedRank} className={`border-t border-line ${s.isHuman ? "bg-arena-2 font-semibold" : ""}`}>
-                <td className={`num py-2 pr-2 pl-1 ${s.isHuman ? "border-l-[3px] border-sig-red" : ""}`}>{s.seedRank}</td>
+                <td className={`num py-2 pr-2 pl-1 ${s.isHuman ? "border-l-[3px] border-me" : ""}`}>{s.seedRank}</td>
                 <td className="py-2 pr-2">{s.name}</td>
                 <td className="num py-2 px-2 text-center">
                   {s.wins}-{s.matches - s.wins}
@@ -607,7 +607,7 @@ async function DoneScreen({ tour, locale }: { tour: LiveTournamentDTO; locale: L
               className={`relative flex min-h-11 items-center justify-between gap-2 border-b border-line px-3 text-[14px] last:border-b-0 ${s.isHuman ? "bg-arena-2 font-semibold" : ""}`}
             >
               {(s.isHuman || s.position === 1) && (
-                <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-sig-red" : "bg-prio"}`} aria-hidden="true" />
+                <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-me" : "bg-prio"}`} aria-hidden="true" />
               )}
               <span className="truncate">{s.name}</span>
               <span className="shrink-0 text-steel">{positionLabel(locale, s.position)}</span>

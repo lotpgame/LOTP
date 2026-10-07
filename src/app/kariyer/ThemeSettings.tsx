@@ -5,7 +5,7 @@
  * varsayılanlarıyla eşleşir (Salon/Pist — bkz. globals.css); serbest renk seçiminde WCAG kontrast uyarısı.
  */
 import { useEffect, useState } from "react";
-import { THEME_BG_KEY, THEME_FG_KEY, applyTheme } from "@/app/ThemeApplier";
+import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY, applyMe, applyTheme } from "@/app/ThemeApplier";
 import { contrastRatio, MIN_CONTRAST } from "@/app/ui/contrast";
 import { Icon } from "@/app/ui/Icon";
 import { t, type Locale } from "@/i18n";
@@ -30,29 +30,34 @@ export function ThemeSettings({ locale }: { locale: Locale }) {
   const [bg, setBg] = useState<string | null>(null);
   const [fg, setFg] = useState<string | null>(null);
   const [custom, setCustom] = useState(false);
+  const [me, setMe] = useState<string | null>(null); // "kendi rengin" (yoksa varsayılan sig-red)
 
   // Kayıtlı değer varsa onu, yoksa sayfaya zaten uygulanmış (no-flash script'in bıraktığı) sistem
   // varsayılanını oku — sabit bir renk tahmin etmiyoruz (mount sonrası → hydration güvenli).
   useEffect(() => {
     let sbg: string | null = null;
     let sfg: string | null = null;
+    let sme: string | null = null;
     try {
       sbg = localStorage.getItem(THEME_BG_KEY);
       sfg = localStorage.getItem(THEME_FG_KEY);
+      sme = localStorage.getItem(THEME_ME_KEY);
     } catch {
       // yoksay
     }
     const id = setTimeout(() => {
+      const cs = getComputedStyle(document.documentElement);
       if (sbg && sfg) {
         setBg(sbg);
         setFg(sfg);
         setCustom(true);
       } else {
-        const cs = getComputedStyle(document.documentElement);
         setBg(cs.getPropertyValue("--background").trim() || "#f4f5f2");
         setFg(cs.getPropertyValue("--foreground").trim() || "#111418");
         setCustom(false);
       }
+      // "Kendi rengin": kayıtlı varsa onu, yoksa varsayılan sig-red (hex; --me var() olduğu için --sig-red okunur).
+      setMe(sme && /^#[0-9a-fA-F]{3,8}$/.test(sme) ? sme : cs.getPropertyValue("--sig-red").trim() || "#d91f26");
     }, 0);
     return () => clearTimeout(id);
   }, []);
@@ -82,6 +87,27 @@ export function ThemeSettings({ locale }: { locale: Locale }) {
     setBg(cs.getPropertyValue("--background").trim() || "#f4f5f2");
     setFg(cs.getPropertyValue("--foreground").trim() || "#111418");
     setCustom(false);
+  };
+
+  const persistMe = (color: string) => {
+    try {
+      localStorage.setItem(THEME_ME_KEY, color);
+    } catch {
+      // yoksay
+    }
+    applyMe(color);
+    setMe(color);
+  };
+
+  const resetMe = () => {
+    try {
+      localStorage.removeItem(THEME_ME_KEY);
+    } catch {
+      // yoksay
+    }
+    applyMe(null); // varsayılan sig-red'e dön
+    const cs = getComputedStyle(document.documentElement);
+    setMe(cs.getPropertyValue("--sig-red").trim() || "#d91f26");
   };
 
   if (bg == null || fg == null) return null; // ilk render: sistem rengi henüz okunmadı (yanıp sönme yok)
@@ -147,6 +173,37 @@ export function ThemeSettings({ locale }: { locale: Locale }) {
           <p role="status" className="mt-2 flex items-center gap-1.5 text-[13px] text-sig-red">
             <Icon name="info" size={15} className="shrink-0" />
             {t(locale, "settings.themeContrastWarning")}
+          </p>
+        )}
+      </div>
+
+      {/* Kendi rengin — klasman/turnuva/milli'de kendi adın + satır kenarı bu renkte (varsayılan kırmızı) */}
+      <div className="mt-5 border-t border-line pt-4">
+        <span className="kicker">{t(locale, "settings.meColor")}</span>
+        <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.meColorNote")}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-4">
+          <input
+            type="color"
+            value={me ?? "#d91f26"}
+            onChange={(e) => persistMe(e.target.value)}
+            aria-label={t(locale, "settings.meColor")}
+            className="h-11 w-16 cursor-pointer rounded-md border border-line bg-transparent"
+          />
+          {/* önizleme: kendi adın seçilen renkte, satır zemininde (kenar çizgisiyle) */}
+          <span className="flex items-center gap-2 rounded-md bg-arena-2 px-3 py-2 text-[15px]">
+            <span className="h-5 w-[3px] rounded-sm" style={{ background: me ?? undefined }} aria-hidden="true" />
+            <span className="font-semibold" style={{ color: me ?? undefined }}>
+              {t(locale, "settings.meColorPreviewName")}
+            </span>
+          </span>
+          <button type="button" onClick={resetMe} className="btn-ghost press">
+            {t(locale, "settings.themeReset")}
+          </button>
+        </div>
+        {me != null && contrastRatio(me, bg) < MIN_CONTRAST && (
+          <p role="status" className="mt-2 flex items-center gap-1.5 text-[13px] text-sig-red">
+            <Icon name="info" size={15} className="shrink-0" />
+            {t(locale, "settings.meColorContrast")}
           </p>
         )}
       </div>
