@@ -307,6 +307,9 @@ export interface RankingRowDTO {
   isHuman: boolean;
 }
 
+/** Milli takım kadrosu = kategori Quarter Ranking ilk N'i (GDD 17.32). Tek kaynak → davet/rozet/kadro tutarlı. */
+export const NATIONAL_TEAM_SIZE = 4;
+
 export interface CareerDTO {
   humanPlayerId: number;
   code: string;
@@ -623,7 +626,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
 
   const ranking = await buildRankingView(categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = humanRank != null && humanRank <= 4;
+  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
   const injured = human.injuryDaysRemaining > 0;
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
 
@@ -904,7 +907,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   // Kimlik başlığı rozetleri + turnuva uygunluğu için güncel kategori sıralaması (hep hesaplanır).
   const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = humanRank != null && humanRank <= 4;
+  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
 
   let today: TodayDTO;
   if (act.kind === "TRAINING") {
@@ -1156,6 +1159,44 @@ export async function getCategoryRanking(
   if (!state) return [];
   const { gs, human } = state;
   return buildRankingView(categoryId, quarterOf(gs.dayIndex), human.id, scope);
+}
+
+export interface NationalTeamMemberDTO {
+  playerId: number;
+  name: string;
+  rating: number; // overall reyting (milli takımda rakipleri yakından tanımak için)
+  position: number; // kategori sıralamasındaki yeri (1..N)
+  isHuman: boolean;
+}
+
+/**
+ * Bir kategorinin MİLLİ TAKIMI = o kategori Quarter Ranking ilk NATIONAL_TEAM_SIZE'ı, overall reytingleriyle.
+ * (Tek ülke/TR fazı: kategori sıralamasının ilk N'i. Çok-ülke fazında ülke filtresi eklenir.)
+ */
+export async function getNationalTeam(categoryId: string): Promise<NationalTeamMemberDTO[]> {
+  const state = await loadState();
+  if (!state) return [];
+  const { gs, human } = state;
+  const rows = await prisma.ranking.findMany({
+    where: { categoryId, quarter: quarterOf(gs.dayIndex) },
+    orderBy: [{ points: "desc" }, { playerId: "asc" }],
+    take: NATIONAL_TEAM_SIZE,
+  });
+  const players = await prisma.player.findMany({
+    where: { id: { in: rows.map((r) => r.playerId) } },
+    include: { skills: true },
+  });
+  const byId = new Map(players.map((p) => [p.id, p]));
+  return rows.map((r, i) => {
+    const p = byId.get(r.playerId);
+    return {
+      playerId: r.playerId,
+      name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
+      rating: p ? roundSkill(overall(rowsToSkills(p.skills))) : 0,
+      position: r.position ?? i + 1,
+      isHuman: r.playerId === human.id,
+    };
+  });
 }
 
 // Kondisyon modeli (A, #35, kullanıcı 29.09): GECE TAM TOPARLANMA — her sabah ~%99 kondisyonla başlanır.

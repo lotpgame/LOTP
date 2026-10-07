@@ -21,6 +21,7 @@ import {
   submitFeedback,
   createCareer,
   getCategoryRanking,
+  getNationalTeam,
   hasCareer,
   leaveLiveTournament,
   leaveTournament,
@@ -141,6 +142,12 @@ export async function getCategoryRankingAction(
   if (scope?.country && !/^[A-Z]{2}$/.test(scope.country)) throw new Error("Geçersiz ülke");
   if (scope?.continent && !/^(EU|AS|AM|AF)$/.test(scope.continent)) throw new Error("Geçersiz kıta");
   return getCategoryRanking(categoryId, scope ?? {});
+}
+
+/** Milli takım filtresi: seçilen kategorinin milli takımını (ilk 4 + overall) döndürür. */
+export async function getNationalTeamAction(categoryId: string) {
+  if (!/^[A-Z0-9]+-[MF]-(FL|EPE|KIL)$/.test(categoryId)) throw new Error("Geçersiz kategori");
+  return getNationalTeam(categoryId);
 }
 
 export async function resetCareerAction(): Promise<void> {

@@ -3,6 +3,7 @@
  * isim, silah/kategori/yaş, kulüp, sağda büyük reyting; altta lisans no + sezon. Federasyon lisans kartı hissi;
  * CareerNav'daki ince kabuk şeridinden ayrı (o her sayfada, bu yalnız Bugün'de).
  */
+import Link from "next/link";
 import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon } from "@/app/ui/Icon";
 import { Flag } from "./Flag";
@@ -59,9 +60,14 @@ export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, 
         </div>
       </div>
       {nationalTeam && (
-        <span className="mt-2 inline-flex items-center gap-1 rounded-md border border-prio/50 px-1.5 py-0.5 text-[12px] font-semibold text-prio">
+        // Rozete tıkla → milli takım kadrosu (diğer milli oyuncuların overall'ları + başka kategoriler).
+        <Link
+          href="/kariyer/milli"
+          className="press mt-2 inline-flex items-center gap-1 rounded-md border border-prio/50 px-1.5 py-0.5 text-[12px] font-semibold text-prio active:bg-prio/10"
+        >
           <Flag code="TR" /> {t(locale, "common.nationalTeam")}
-        </span>
+          <Icon name="chevron-right" size={13} />
+        </Link>
       )}
       <div className="mt-3 flex items-center justify-between border-t border-line pt-2 text-[12px] text-steel">
         <span className="num tracking-wide">

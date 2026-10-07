@@ -15,6 +15,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   sıradaki turnuvayı gösterdiği için diğerleri gereksiz tekrardı. Kimlik kartı, kondisyon/form, yetenek
   radarı, "sen yokken" raporu aynen duruyor.
 
+### Eklendi (07.10 — Milli Takım sayfası)
+- Profildeki **"Milli Takım" rozeti artık tıklanabilir** → `/kariyer/milli`. Milli takım = kategori Quarter
+  Ranking **ilk 4**'ü (tek kaynak `NATIONAL_TEAM_SIZE`). Sayfa kadroyu **overall reytingleriyle** gösterir
+  (milli oyuncuları yakından tanı), sen vurgulu.
+- **Kategori filtresi** (Klasman'daki gibi yaş/silah/cinsiyet çipleri): başka kategorilerin milli takımlarına
+  da bakılır. `getNationalTeam(categoryId)` + `getNationalTeamAction`.
+
 ### Değişti (07.10 — kariyer geçmişi: Q·H etiketleri → gerçek tarih, NOTLAR #22)
 - Geçmiş turnuva satırı, kariyer zaman çizgisi, kupa vitrini "son kazanım" ve "sen yokken" (away) turnuva
   etiketi artık **gerçek takvim tarihini** (GMT) gösteriyor; "Q1 · H3" kalktı. `worldDay` yoksa (eski kayıt)
