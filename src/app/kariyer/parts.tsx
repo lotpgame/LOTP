@@ -188,14 +188,8 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
               {edge && <span className={`absolute inset-y-0 left-0 w-[3px] ${edge}`} aria-hidden="true" />}
               <span className="num text-[17px]">{r.position}</span>
               <span className="min-w-0">
-                <span className="flex items-center gap-1.5">
-                  <span className={`truncate text-[15px] ${r.isHuman ? "font-semibold" : ""}`}>{r.name}</span>
-                  {r.isHuman && (
-                    <span className="shrink-0 rounded-[4px] border border-ink px-1 text-[11px] font-semibold leading-4 tracking-wider">
-                      {t(locale, "common.youShort").toLocaleUpperCase(locale)}
-                    </span>
-                  )}
-                </span>
+                {/* Kendi adın "SEN" etiketi yerine kırmızı+kalın fontla ayırt edilir (satırdaki kırmızı kenarla uyumlu). */}
+                <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-sig-red" : ""}`}>{r.name}</span>
                 {r.clubName && <span className="block truncate text-[13px] text-steel">{r.clubName}</span>}
               </span>
               <span className="num text-[15px]">{r.points.toFixed(1)}</span>

@@ -284,10 +284,8 @@ function FinalStandings({ standings, locale }: { standings: TournamentResultDTO[
             {(s.isHuman || s.position === 1) && (
               <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-sig-red" : "bg-prio"}`} aria-hidden="true" />
             )}
-            <span>
-              {s.name}
-              {s.isHuman ? ` (${t(locale, "common.youShort")})` : ""}
-            </span>
+            {/* Kendi adın "(sen)" yerine kırmızı fontla ayırt edilir (kırmızı kenarla uyumlu). */}
+            <span className={s.isHuman ? "text-sig-red" : ""}>{s.name}</span>
             <span className="text-steel">{positionLabel(locale, s.position)}</span>
           </li>
         ))}

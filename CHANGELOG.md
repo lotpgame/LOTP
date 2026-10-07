@@ -21,6 +21,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
   (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
 
+### Değişti (07.10 — kendi adın "SEN/(sen)" etiketi yerine kırmızı font)
+- Klasman, turnuva final sıralaması ve Milli Takım listelerinde oyuncunun **kendi adı artık "(sen)"/"SEN"
+  etiketiyle değil, kırmızı+kalın fontla** ayırt ediliyor (satırdaki kırmızı kenar çizgisiyle uyumlu).
+  Daha temiz görünüm; metin tekrarı kalktı.
+
 ### Eklendi (07.10 — Milli Takım sayfası)
 - Profildeki **"Milli Takım" rozeti artık tıklanabilir** → `/kariyer/milli`. Milli takım = kategori Quarter
   Ranking **ilk 4**'ü (tek kaynak `NATIONAL_TEAM_SIZE`). Sayfa kadroyu **overall reytingleriyle** gösterir
