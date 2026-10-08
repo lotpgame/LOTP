@@ -9,6 +9,13 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 
 ## Durum: Açık
 
+> 🔧 **08.10 — turnuva ekranı yeniden düzeni CANLIYA ALINDI (re-test bekliyor):** **#41** (olay anı üstte/podyum),
+> **#42** (tempo ~50sn'ye yayıldı), **#45** (baştan sarma/replay stabil key+instantThrough ile bitti; kontroller
+> kaldırıldı; panel+olay anı üstte → scroll-jump zararsız), **#46** (katlanır pul/geçmiş), **#47** (Hızlı/Atla/Tekrar
+> izle kaldırıldı), **#48** (düzen: üst olay anı → klasman/çatal → alt katlanır) **YAPILDI.** **Kalan:** #43 (pul
+> sonrası +30sn aşamalı), #44 (tam seeding tablosu; bay bildirimi yapıldı); **periyot arası taktik penceresinin
+> 30sn'de yakalanması** yeni düzende (panel üstte) test edilecek — çıkmazsa pencereyi genişletiriz.
+
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|
 | 41 | 2026-10-08 | ux | **"Olay anı" HEP EN ÜSTTE (podyum).** Oyuncuyu o an ilgilendiren şey hep en üstte dursun — bir podyum gibi: (a) oynanan maç varsa o maç; (b) pul bitip klasman bekleniyorsa o bilgi; (c) elemeden önce **klasman + bay atladı mı + sıradaki rakip**; (d) sonra eleme maçı. Gözlem (2b canlı test): o an oynanan maç listede aşağı düşüyor, sonraki üste çıkıp geri sayıyor → kafa karıştırıcı (hem pul hem eleme). İstenen: oyuncuyu ilgilendiren güncel "olay anı" **hep yukarıda**. | Açık — `turnuva/[id]` üstte "olay anı" bloğu (canlı maç / bekleme / klasman-bay-rakip), gerisi altta. |

@@ -21,6 +21,21 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
   (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
 
+### Değişti (08.10 — turnuva ekranı canlı düzen + canlı maç oynatma yeniden (NOTLAR #41/#42/#45/#46/#47/#48))
+Canlı turnuva ekranı (`/turnuva/[id]`) 2b canlı test geri bildirimlerine göre yeniden düzenlendi:
+- **Canlı düzen (podyum):** üstte **olay anı** (taktik paneli + o an oynanan maç), ortada **klasman/bay bilgisi +
+  eleme çatalı**, en altta **katlanır pul kağıtları + geçmiş maçlar** (ekran sadeleşir). Eski "en altta çatal,
+  üstünde pul" ters düzeni düzeltildi. Bitmiş turnuvada inceleme düzeni korundu.
+- **"Baştan sarma" bitti:** o an oynanan maç tek üst blokta **stabil React key** + `instantThrough` ile gösterilir →
+  sayfa tazelenince (4 sn) animasyon sıfırlanmıyor; eleme maçında **önceki periyotlar anında**, yalnız o anki periyot
+  satır satır akar. Olay anı + taktik paneli üstte olduğu için tazeleme "başa atsa" da oyuncu ilgili yerde kalır.
+- **Tempo:** maç ~50 sn'ye yayıldı (satır başına 1.8–3.8 sn) — daha okunur.
+- **Kaldırıldı:** canlı maçtaki "Hızlı"/"Atla" düğmeleri + biten maçtaki "Tekrar izle" (biten maça "Skor detayı"
+  yeterli).
+- **Bay (bye) bildirimi:** üst sırada bitip 1. turu atlayan oyuncuya bayrak + vurgu rengiyle açık bilgi.
+- Not: pul sonrası +30sn aşamalı açılış (#43) ve tam seeding tablosu (#44) sonraki adıma bırakıldı; taktik
+  penceresinin 30 sn'de yakalanması yeni düzende test edilecek.
+
 ### Düzeltildi (07.10 — bitmiş turnuva offline dönen oyuncuya "CANLI" görünüyordu)
 - Offline (örn. 4-5 gün) dönen oyuncuya, canlı penceresi çoktan kapanmış bir turnuva ana ekranda **"CANLI /
   turnuvaya gir"** olarak gösteriliyordu (özellikle GMT gece yarısı–18:00 arası: `eventDay` hâlâ dünkü turnuva).

@@ -2,10 +2,10 @@
 
 /**
  * Maç gösterimi iki kipte:
- * - Canlı (past=false): maç o an oynanıyor — anlatım satır satır gecikmeyle akar, sonuç
- *   izlenene kadar gizli (GDD 18.54, 18.70). CM 00/01 / Hattrick tarzı. Üstte skor bandı.
- * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "Skor detayı" ile tuş-tuş döküm açılır,
- *   "Canlı izle" aynı maçı skor bandıyla satır satır yeniden oynatır (tuş kutlaması orada görünür).
+ * - Canlı (past=false, autoPlay): maç o an oynanıyor — anlatım satır satır gecikmeyle akar (GDD 18.54).
+ *   `instantThrough` ile ÖNCEKİ periyotlar anında görünür, yalnız O ANKİ periyot animasyonla akar →
+ *   sayfa tazelenince "baştan sarma" olmaz (yeni periyot geldikçe oraya atlar). Kontrol yok (otomatik).
+ * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "Skor detayı" ile tuş-tuş döküm açılır.
  * Taraf renkleri eskrim cihazı gibi: A = sol = kırmızı, B = sağ = yeşil (iyi/kötü anlamı yok).
  */
 import { useEffect, useState, type ReactNode } from "react";
@@ -13,7 +13,7 @@ import { t, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 import { ScoreBug } from "@/app/ui/ScoreBug";
 import { whiteLampSide } from "@/app/ui/liveBand";
-import { LogLines, SideScore, SpeedControl, lastRevealedScore, periodBand, scoringSide } from "../canli/matchParts";
+import { LogLines, SideScore, lastRevealedScore, periodBand, scoringSide } from "../canli/matchParts";
 
 export interface CanliMacProps {
   aName: string;
@@ -21,10 +21,10 @@ export interface CanliMacProps {
   scoreA: number;
   scoreB: number;
   log: string[];
-  autoPlay?: boolean; // canlı ekranda yeni oynanan maç kendiliğinden akar
+  autoPlay?: boolean; // canlı ekranda o an oynanan maç kendiliğinden akar
   past?: boolean; // geçmiş/bitmiş maç → canlı izleme yerine skor + açılır detay
   afterDone?: ReactNode; // animasyon bitince gösterilir (ör. "pul sonuçlarını gör" paneli — spoiler önler)
-  instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız son periyodu animasyonla göster)
+  instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız o anki periyodu animasyonla göster)
   youSide?: "left" | "right"; // oyuncu hangi tarafta (SEN etiketi); verilmezse etiket yok
   locale?: Locale;
 }
@@ -42,33 +42,29 @@ export function CanliMac({
   youSide,
   locale = "tr",
 }: CanliMacProps) {
-  const [shown, setShown] = useState(autoPlay ? instantThrough : 0);
-  const [playing, setPlaying] = useState(autoPlay);
-  const [fast, setFast] = useState(false);
+  // Canlı: izlenen periyotlar anında (instantThrough), gerisi animasyonla. Canlı-değil-autoPlay = hepsi açık.
+  const [shown, setShown] = useState(past ? 0 : autoPlay ? instantThrough : log.length);
   const [detail, setDetail] = useState(false);
 
-  // Geçmiş maçta "Canlı izle" (replay) kaldırıldı (NOTLAR: geçmiş gitmiş maç, gereksiz) → yalnız skor + detay.
   const live = !past;
-  const started = shown > 0 || playing;
-  const done = shown >= log.length && started;
+  // Devam eden maçta önceki periyotlar ANINDA görünür (floor = instantThrough); yalnız o anki periyot animasyonla
+  // akar. `revealed` türetilir (state'i effect içinde İTMEYİZ) → yeni periyot gelince baştan sarma olmadan ilerler.
+  const floor = autoPlay ? Math.min(instantThrough, log.length) : 0;
+  const revealed = Math.max(shown, floor);
+  const started = revealed > 0 || autoPlay;
+  const done = revealed >= log.length && started;
   const aWon = scoreA >= scoreB;
 
-  // 2a: canlı maç OKUNABİLİR tempoda ~1 dk'ya yayılır (kullanıcı: "yazılar çok hızlı geldiğinde sıkıntı").
-  // Satır başına süre log uzunluğuna göre hesaplanır, 1.2–3 sn arasına sıkıştırılır; "Hızlı" ile 250ms'e iner.
-  const stepMs = fast ? 250 : Math.min(3000, Math.max(1200, Math.round(55000 / Math.max(1, log.length))));
-  // Bir sonraki satırı gecikmeyle açar; bittiğinde durur (setState zamanlayıcı içinde → güvenli).
+  // #42: yalnız O ANKİ periyodun satırları animasyonla akar; okunur tempoya (~50 sn) yayılır (satır başına 1.8–3.8 sn).
+  const animatingLines = Math.max(1, log.length - floor);
+  const stepMs = Math.min(3800, Math.max(1800, Math.round(50000 / animatingLines)));
   useEffect(() => {
-    if (!live || !playing || shown >= log.length) return;
-    const id = setTimeout(() => setShown((s) => s + 1), stepMs);
+    if (!live || !autoPlay || revealed >= log.length) return;
+    const id = setTimeout(() => setShown(revealed + 1), stepMs);
     return () => clearTimeout(id);
-  }, [live, playing, shown, stepMs, log.length]);
+  }, [live, autoPlay, revealed, stepMs, log.length]);
 
-  const start = () => {
-    setShown(0);
-    setPlaying(true);
-  };
-
-  // Geçmiş maç: skor açık; "Canlı izle" yeniden oynatır, "Skor detayı" tuş-tuş dökümü açar.
+  // Geçmiş maç: skor açık; "Skor detayı" tuş-tuş dökümü açar (canlı tekrar yok — NOTLAR #47).
   if (!live) {
     return (
       <div className="panel">
@@ -106,8 +102,9 @@ export function CanliMac({
     );
   }
 
-  const s = done ? { a: scoreA, b: scoreB } : started ? lastRevealedScore(log.slice(0, shown)) : null;
+  const s = done ? { a: scoreA, b: scoreB } : started ? lastRevealedScore(log.slice(0, revealed)) : null;
 
+  // Canlı maç: üstte skor bandı (lamba/juice), altında o anki periyot satır satır akar. Kontrol yok (otomatik).
   return (
     <>
       <div className="panel p-3">
@@ -119,37 +116,12 @@ export function CanliMac({
           scoreR={s?.b ?? 0}
           youSide={youSide}
           youLabel={t(locale, "live.you")}
-          flash={started && !done ? scoringSide(log, shown) : undefined}
-          white={started && !done ? whiteLampSide(log, shown, aName, bName) : undefined}
+          flash={started && !done ? scoringSide(log, revealed) : undefined}
+          white={started && !done ? whiteLampSide(log, revealed, aName, bName) : undefined}
           hitFx
-          band={started ? periodBand(locale, log, shown) : undefined}
+          band={started ? periodBand(locale, log, revealed) : undefined}
         />
-
-        {!started && (
-          <div className="mt-3 flex gap-2">
-            <button type="button" onClick={start} className="btn-ink press flex-1">
-              {t(locale, "mac.watch")}
-            </button>
-            <button type="button" onClick={() => setShown(log.length)} className="btn-ghost press flex-1">
-              {t(locale, "mac.result")}
-            </button>
-          </div>
-        )}
-
-        {started && (
-          <>
-            <LogLines log={log} shown={shown} live={!done} />
-            {!done ? (
-              <SpeedControl locale={locale} fast={fast} onFast={setFast} onSkip={() => setShown(log.length)} />
-            ) : (
-              <div className="mt-3 flex gap-2">
-                <button type="button" onClick={start} className="btn-ghost press flex-1">
-                  {t(locale, "mac.rewatch")}
-                </button>
-              </div>
-            )}
-          </>
-        )}
+        {started && <LogLines log={log} shown={revealed} live={!done} />}
       </div>
       {done && afterDone ? <div className="mt-3">{afterDone}</div> : null}
     </>
