@@ -308,3 +308,28 @@ antrenmanından önce kaydedildi. Yorumlarım (değiştirmek istersen tek satır
    anlaşılsın diye).
 8. **Rozet dili** vitrinle ortak modülde (`src/app/ui/achievementBadge.ts`). Başarı kaydı dereceyi tutmadığı için
    "İlk Madalya" / "Uluslararası Madalya" nötr metal (gümüş), "Quarter Ranking İlk 3" bronz.
+
+---
+
+## 9. #1 Avatar — karakter yüz portreleri (uygulama şartnamesi, onaylandı 08.10)
+
+**Karar (Yusuf, 08.10):** Avatar = **karakter YÜZ portreleri** ("setten seç" — katmanlı oluşturucu DEĞİL; maske fikri **iptal**). Kullanıcının attığı **lisanslı çizgi-film çocuk-sporcu seti STİL referansıdır — KOPYALANMAZ.** Osman **AI ile ÖZGÜN (telifsiz) bir set ÜRETİR** (benzer çekicilik/kalitede). Claude'un sohbetteki SVG örnekleri yalnız **konsept** (sade vektör); hedef kalite referanstaki gibi cafcaflı/gölgeli çizgi-film.
+
+**Sanat yönü (Osman'ın AI'ına — şartname):**
+- Dairesel kadrajda **baş-omuz portresi**; küçük boyutta (40–60 px) net okunur.
+- **Tek tutarlı stil** + **çeşitlilik**: farklı ten tonu, saç, cinsiyet → herkes kendini bulur.
+- Çocuk-dostu, canlı, pozitif. Eskrim dokunuşu opsiyonel (kıyafet yakası/aksesuar); **yüz görünür** (maske zorunlu değil).
+- **Şeffaf arka plan PNG** (daire kadrajı uygulama çizer). İlk set ~10–14 varyant.
+- **Telifsiz:** AI üretimi, bizim; referans sitenin görseli hiçbir biçimde kullanılmaz.
+
+**Yaşlandırma (açık madde — Yusuf sordu 08.10):** İleride her karakterin **çocuk / genç / yetişkin** varyantı üretilip avatar **oyuncunun yaş kategorisiyle büyüyebilir** (U10→U17→Büyükler). **İLK denemede STATİK** (tek yaş; 3× sanat gerektirmesin) — yaşlandırma **sonraki adım / V2**.
+
+**Sistem (kod):**
+- Şema **eklemeli**: `Player.avatar` (TEXT, nullable; seçilen avatar id). Boşsa **varsayılan silüet** → mevcut oyuncular bozulmaz, sonra seçerler.
+- **Seçici:** Sporcu Oluşturma ekranı + Ayarlar → Görünüm (ızgara, seçili halka — Claude mockup'ı sohbette).
+- **Gösterim:** Kimlik kartı (baş-harf rozetinin yerine), klasman / turnuva / milli takım / pul kağıdı listelerinde küçük yuvarlak.
+- Hepsi istemci + statik görsel varlık; motor (`src/engine`) değişmez.
+
+**İlk adım ("bir denesin bakalım ne çıkar" — Yusuf):** Osman **3–4 örnek portre** üretsin + seçici/kimlik kartına bağlasın (silüet varsayılan). Yusuf+Claude onaylar → tam set + tüm ekranlar.
+
+**Teslim:** branch + PR; canlıya Yusuf alır. Şema eklemeli → merge öncesi prod DB adımı ([[DEVIR]] deseni).

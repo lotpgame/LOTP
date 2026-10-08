@@ -6,7 +6,18 @@
 >
 > ✅ **06.10 — B Faz 2-4 CANLIDA.** PR #45 squash (`e5581d3`) + prod migration + deploy; canlıda 18:00 GMT
 > tur-tur turnuva doğrulandı. (PR #45 kapatıldı.)
-> ✅ **06.10 — GÖRSELLER (#2/#3/#4) CANLIDA.** PR #46/#47/#48 (stack) squash (`d6b808a`) + 2 prod migration + deploy. **Açık iş YOK** — Osman yeni DEVIR görevi bekliyor. (PR #46/#47/#48 GitHub'dan elle kapatılacak.)
+> ✅ **06.10 — GÖRSELLER (#2/#3/#4) CANLIDA.** PR #46/#47/#48 (stack) squash (`d6b808a`) + 2 prod migration + deploy. (PR #46/#47/#48 GitHub'dan elle kapatılacak.)
+> 🆕 **08.10 — Yeni görev: AVATAR** (karakter yüz portreleri, AI üretimi özgün set) → aşağıda "Yusuf → Osman: Avatar" + şartname `GORSEL_ETKILESIM.md` §9.
+
+## 🆕 Yusuf → Osman: Avatar — karakter yüz portreleri (AÇIK İŞ, 08.10)
+
+**Görev:** Oyuncu profil avatarı = **karakter YÜZ portreleri** ("setten seç"). **Tam şartname: [`GORSEL_ETKILESIM.md`](GORSEL_ETKILESIM.md) §9** (önce oku). Özet:
+- **Sanat SENİN AI'ınla ÜRETİLİR, ÖZGÜN (telifsiz).** Yusuf'un attığı lisanslı çizgi-film set **yalnız STİL referansı — kopyalanmaz.** Hedef: o çekicilik/kalite ama bizim özgün setimiz. (Claude'un sohbetteki SVG'leri sadece konsept.)
+- Baş-omuz portresi, dairesel kadraj, küçük boyutta net; **tek tutarlı stil + çeşitlilik** (ten/saç/cinsiyet); çocuk-dostu; şeffaf PNG; ~10–14 varyant. Maske YOK (yüz görünür).
+- **Sistem:** `Player.avatar` (TEXT, nullable, **eklemeli şema**) → boşsa varsayılan silüet. Seçici: Oluşturma + Ayarlar→Görünüm. Gösterim: kimlik kartı + klasman/turnuva/milli/pul.
+- **Yaşlandırma** (ileride, V2): karakterin çocuk/genç/yetişkin varyantı → avatar yaş kategorisiyle büyür. **İlk sette STATİK.**
+- **İLK ADIM:** önce **3–4 örnek portre** üret + seçici/kimlik kartına bağla (silüet varsayılan) → Yusuf+Claude onaylasın, sonra tam set. ("Bir denesin bakalım ne çıkar.")
+- **Teslim:** branch + PR, **push/deploy YOK** (canlıya Yusuf alır). Şema eklemeli → merge öncesi prod DB adımı.
 
 ## ⭐ Çalışma kuralı — Osman'ın AI (Yusuf kararı, 06.10)
 
