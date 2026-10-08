@@ -21,6 +21,14 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - **Ölü kod kaldırıldı:** `RecentAchievements.tsx` bileşeni + `getRecentAchievements`/`RecentAchievementDTO`
   (Bugün sayfası sadeleştirmesinden #38 sonra hiçbir yerde kullanılmıyordu). Davranış değişmez.
 
+### Eklendi/Değişti (08.10 — taktik penceresi genişletildi + turnuva klasmanı + aşamalı çatal (NOTLAR #43/#44/#45))
+- **Periyot arası taktik penceresi genişletildi (#45):** 30 sn çok kısaydı → pencere artık **tüm periyot dilimi**
+  (periyot çözülene kadar taktik set/değiştir edilebilir). Panel üstte olduğundan kolay yakalanır.
+- **Turnuva klasmanı / seeding tablosu (#44):** pul bitince tüm oyuncuların **seed sırası + G-M + averaj** listesi
+  gösterilir (kendi satırın vurgulu); eleme öncesi "diğerleri ne yapmış" verisi.
+- **Aşamalı açılış (#43):** pul bitince önce **klasman**, ~**30 sn sonra eleme çatalı** görünür (o aralıkta oyuncu
+  klasmanı inceler). Dev'de dünya günü kısaltılınca süre orantılı kısalır.
+
 ### Değişti (08.10 — turnuva ekranı canlı düzen + canlı maç oynatma yeniden (NOTLAR #41/#42/#45/#46/#47/#48))
 Canlı turnuva ekranı (`/turnuva/[id]`) 2b canlı test geri bildirimlerine göre yeniden düzenlendi:
 - **Canlı düzen (podyum):** üstte **olay anı** (taktik paneli + o an oynanan maç), ortada **klasman/bay bilgisi +

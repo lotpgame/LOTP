@@ -115,6 +115,30 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       </div>
     ) : null;
 
+  // #44: pul sonrası turnuva klasmanı (seed sırası) — kendi + diğer oyuncuların durumu (G-M · averaj).
+  const seedingTable =
+    tour.seeding.length > 0 ? (
+      <section>
+        <h2 className="display text-[20px]">{t(locale, "idp.seedingTitle")}</h2>
+        <ol className="mt-2 panel max-h-80 divide-y divide-line overflow-y-auto">
+          {tour.seeding.map((p) => (
+            <li
+              key={p.position}
+              className={`relative flex items-center gap-3 px-3 py-1.5 text-[14px] ${p.isHuman ? "bg-arena-2 font-semibold" : ""}`}
+            >
+              {p.isHuman && <span className="absolute inset-y-0 left-0 w-[3px] bg-me" aria-hidden="true" />}
+              <span className="num w-6 shrink-0 text-steel">{p.position}.</span>
+              <span className={`min-w-0 flex-1 truncate ${p.isHuman ? "text-me" : ""}`}>{p.name}</span>
+              <span className="num shrink-0 text-[13px] text-steel">
+                {p.wins}-{p.losses} · {p.indicator >= 0 ? "+" : ""}
+                {p.indicator}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ) : null;
+
   const bracket = (
     <section>
       <div className="flex items-baseline justify-between gap-2">
@@ -256,7 +280,8 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
 
           {/* 2) KLASMAN (seeding) + bay + eleme çatalı */}
           {seedInfo}
-          {deRounds.length > 0 && bracket}
+          {seedingTable}
+          {deRounds.length > 0 && tour.showBracket && bracket}
 
           {/* 3) EN ALTTA: pul kağıtları + geçmiş maçlar (katlanır, ekran sadeleşsin #46) */}
           {poolSheets && (
@@ -327,6 +352,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                 </div>
               )}
               {seedInfo}
+              {seedingTable}
               {yourDE.length > 0 && (
                 <div>
                   <h3 className="kicker">{t(locale, "idp.deMatches")}</h3>
@@ -344,7 +370,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           )}
 
           {poolSheets && <div className="mt-8">{poolSheets}</div>}
-          {deRounds.length > 0 && <div className="mt-8">{bracket}</div>}
+          {deRounds.length > 0 && tour.showBracket && <div className="mt-8">{bracket}</div>}
           {tour.isFullyRevealed && <FinalStandings standings={tour.standings} locale={locale} />}
         </>
       )}

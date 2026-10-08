@@ -75,10 +75,10 @@ describe("canlı turnuva çizelgesi (kilitli kadans + eleme periyot alt-adımlar
     expect(liveTotalSteps(5, 2)).toBe(6 + 5 * 2); // 16
   });
 
-  it("taktik penceresi: periyot OYNANMAYA başladığı an kapanır (= çözüm − 1 dk, periyot arası pencere)", () => {
-    expect(liveStepWindowCloseMinute(1, P)).toBe(5); // havuz: maç öncesi (çözümle aynı)
-    expect(liveStepWindowCloseMinute(7, P)).toBe(20); // eleme tur 1 periyot 1 → turBaşı
-    expect(liveStepWindowCloseMinute(8, P)).toBe(21.5); // periyot 2 → periyot 1 bitişi + 30 sn arası
+  it("taktik penceresi = çözüm anı (periyot çözülene kadar taktik verilebilir — NOTLAR #45 genişletme)", () => {
+    expect(liveStepWindowCloseMinute(1, P)).toBe(5); // havuz: çözümle aynı
+    expect(liveStepWindowCloseMinute(7, P)).toBe(21); // eleme tur 1 periyot 1 → çözüm anı
+    expect(liveStepWindowCloseMinute(8, P)).toBe(22.5); // periyot 2 → çözüm anı (tüm dilim pencere)
   });
 
   it("gerçek an: üretimde birebir dakika, kısaltılmış günde orantılı", () => {

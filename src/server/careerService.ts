@@ -18,7 +18,7 @@ import {
   type TacticSubmitResult,
 } from "./liveTournament";
 import { MAX_FIELD, deRoundLabel } from "@/engine/tournament/live";
-import { LIVE_POOL_STEPS, LIVE_RESULTS_STEP } from "@/engine/schedule";
+import { LIVE_POOL_STEPS, LIVE_RESULTS_STEP, liveStepAtMs } from "@/engine/schedule";
 import { MS_PER_GAME_DAY, worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
 import { prisma } from "@/db";
 import {
@@ -1805,6 +1805,29 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   // gösterilir; havuz tablosu (galibiyet/averaj) sonuç adımında yazılır.
   const showPoolSheets = isFullyRevealed || liveModel;
   const showPools = isFullyRevealed || (liveModel && tourn.step >= LIVE_RESULTS_STEP);
+  // #43: aşamalı açılış — pul bitince önce KLASMAN (seeding), ~30 sn sonra ELEME ÇATALI görünür. O aralıkta
+  // oyuncu klasmanı/diğerlerini inceler. (Çatal sonuç adımında kuruluyor ama 30 sn gizli tutulur.)
+  const cfgMsPerDay = worldClockConfig().msPerDay ?? MS_PER_GAME_DAY;
+  const resultsAtMs =
+    liveModel && tourn.startsAt
+      ? liveStepAtMs(tourn.startsAt.getTime(), LIVE_RESULTS_STEP, deFormat(tourn.categoryId.split("-")[0]).periods, cfgMsPerDay)
+      : null;
+  const showBracket =
+    isFullyRevealed || !liveModel || (resultsAtMs != null && Date.now() >= resultsAtMs + 30_000 * (cfgMsPerDay / MS_PER_GAME_DAY));
+  // #44: pul sonrası TURNUVA KLASMANI (seeding sırası) — oyuncu kendi + diğerlerinin durumunu görsün.
+  const seeding = showPools
+    ? [...tourn.participants]
+        .filter((p) => p.seedRank != null && p.seedRank > 0)
+        .sort((a, b) => (a.seedRank as number) - (b.seedRank as number))
+        .map((p) => ({
+          position: p.seedRank as number,
+          name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
+          wins: p.wins ?? 0,
+          losses: p.losses ?? 0,
+          indicator: p.indicator ?? 0,
+          isHuman: p.playerId === humanId,
+        }))
+    : [];
   const live = liveModel ? await tournamentLiveDto(id, humanId, nameById, fieldSize, locale) : null;
 
   return {
@@ -1818,6 +1841,8 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
     yourPosition: isFullyRevealed && you ? (you.finalPosition ?? fieldSize) : null,
     yourSeedRank: you?.seedRank ?? null, // seed pul aşamasından belli olur — spoiler değil
     championName: isFullyRevealed ? (champion ? (nameById.get(champion.playerId) ?? "?") : "?") : null,
+    seeding, // #44: pul sonrası turnuva klasmanı (seed sırası)
+    showBracket, // #43: eleme çatalı klasmandan ~30 sn sonra görünür
     pools: showPools ? buildPoolsView(tourn.participants, nameById, humanId) : [],
     poolSheets: showPoolSheets
       ? buildPoolSheets(
@@ -1966,6 +1991,8 @@ export interface TournamentResultDTO {
   pools: PoolViewDTO[];
   poolSheets: PoolSheetDTO[];
   standings: { position: number; name: string; isHuman: boolean }[];
+  seeding: { position: number; name: string; wins: number; losses: number; indicator: number; isHuman: boolean }[]; // #44: pul sonrası klasman (seed)
+  showBracket: boolean; // #43: eleme çatalı klasmandan ~30 sn sonra açılır
   matches: {
     phase: string;
     round: string;

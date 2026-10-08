@@ -12,9 +12,12 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 > 🔧 **08.10 — turnuva ekranı yeniden düzeni CANLIYA ALINDI (re-test bekliyor):** **#41** (olay anı üstte/podyum),
 > **#42** (tempo ~50sn'ye yayıldı), **#45** (baştan sarma/replay stabil key+instantThrough ile bitti; kontroller
 > kaldırıldı; panel+olay anı üstte → scroll-jump zararsız), **#46** (katlanır pul/geçmiş), **#47** (Hızlı/Atla/Tekrar
-> izle kaldırıldı), **#48** (düzen: üst olay anı → klasman/çatal → alt katlanır) **YAPILDI.** **Kalan:** #43 (pul
-> sonrası +30sn aşamalı), #44 (tam seeding tablosu; bay bildirimi yapıldı); **periyot arası taktik penceresinin
-> 30sn'de yakalanması** yeni düzende (panel üstte) test edilecek — çıkmazsa pencereyi genişletiriz.
+> izle kaldırıldı), **#48** (düzen: üst olay anı → klasman/çatal → alt katlanır) **YAPILDI.**
+>
+> 🔧 **08.10 (2. parti) CANLIYA ALINDI:** **#43** (pul sonrası aşamalı: klasman → ~30 sn sonra eleme çatalı),
+> **#44** (turnuva klasmanı/seeding tablosu: sıra + G-M + averaj, kendi vurgulu; bay bildirimi), **#45 taktik
+> penceresi GENİŞLETİLDİ** (30 sn → tüm periyot dilimi; periyot çözülene kadar taktik verilebilir) **YAPILDI.**
+> **Re-test:** periyot arası taktik artık panel üstte + geniş pencere → yakalanmalı. Tüm #41-48 canlıda; test et.
 
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|

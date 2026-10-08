@@ -79,13 +79,12 @@ export function liveStepMinute(step: number, dePeriods: number): number {
 }
 
 /**
- * Adımın TAKTİK penceresinin kapanış dakikası. Havuz/sonuç: çözüm anıyla aynı (maç öncesi). Eleme periyodu:
- * periyot OYNANMAYA başladığı an (= çözüm − 1dk); yani 30 sn'lik periyot arası + önceki boşluk pencere olur.
+ * Adımın TAKTİK penceresinin kapanış dakikası = o adımın ÇÖZÜM anı. Yani oyuncu, bir periyot/maç çözülene
+ * KADAR taktiğini verebilir/değiştirebilir (NOTLAR #45: 30 sn çok kısaydı — tüm periyot dilimine genişletildi;
+ * önceki periyodun sonucunu görüp sonrakini set etmek için bol vakit). Çözümde o anki taktik kullanılır.
  */
 export function liveStepWindowCloseMinute(step: number, dePeriods: number): number {
-  const s = liveStep(step, dePeriods);
-  if (s.kind !== "DE") return liveStepMinute(step, dePeriods);
-  return liveStepMinute(step, dePeriods) - LIVE_SCHEDULE.dePeriodMinutes;
+  return liveStepMinute(step, dePeriods);
 }
 
 /** `deRounds` turluk, `dePeriods` periyotluk eleme tablosu olan bir turnuvanın toplam adım sayısı. */
