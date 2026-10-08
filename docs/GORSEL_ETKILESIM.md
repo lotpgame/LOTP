@@ -311,7 +311,9 @@ antrenmanından önce kaydedildi. Yorumlarım (değiştirmek istersen tek satır
 
 ---
 
-## 9. #1 Avatar — karakter yüz portreleri (uygulama şartnamesi, onaylandı 08.10)
+## 9. #1 Avatar — karakter yüz portreleri (tasarım kaydı, onaylandı 08.10)
+
+> ℹ️ **Osman'a devir yalnız [`DEVIR.md`](DEVIR.md)'de** (kendi içinde tam). Bu bölüm bizim (Yusuf+Claude) tasarım kaydımızdır; Osman bu dosyaya yönlendirilmez.
 
 **Karar (Yusuf, 08.10):** Avatar = **karakter YÜZ portreleri** ("setten seç" — katmanlı oluşturucu DEĞİL; maske fikri **iptal**). Kullanıcının attığı **lisanslı çizgi-film çocuk-sporcu seti STİL referansıdır — KOPYALANMAZ.** Osman **AI ile ÖZGÜN (telifsiz) bir set ÜRETİR** (benzer çekicilik/kalitede). Claude'un sohbetteki SVG örnekleri yalnız **konsept** (sade vektör); hedef kalite referanstaki gibi cafcaflı/gölgeli çizgi-film.
 
