@@ -60,9 +60,9 @@ describe("canlı turnuva çizelgesi (kilitli kadans + eleme periyot alt-adımlar
     expect([1, 2, 3, 4, 5].map((s) => liveStepMinute(s, P))).toEqual([5, 7, 9, 11, 13]);
     expect(liveStepMinute(LIVE_RESULTS_STEP, P)).toBe(15);
     expect(liveStep(6, P)).toEqual({ kind: "RESULTS" });
-    // Eleme turu 1: periyotlar 21 / 22.5 / 24 (turBaşı 20 + (p-1)×1.5 + 1). Tur 2: turBaşı 26 (deStepMinutes=6) → 27 / 28.5 / 30.
-    expect([7, 8, 9].map((s) => liveStepMinute(s, P))).toEqual([21, 22.5, 24]);
-    expect([10, 11, 12].map((s) => liveStepMinute(s, P))).toEqual([27, 28.5, 30]);
+    // Eleme turu 1: OYNAMA BAŞLARI 20 / 21.5 / 23 (turBaşı 20 + (p-1)×1.5; reveal +1 dk). Tur 2: turBaşı 26 (deStepMinutes=6) → 26 / 27.5 / 29.
+    expect([7, 8, 9].map((s) => liveStepMinute(s, P))).toEqual([20, 21.5, 23]);
+    expect([10, 11, 12].map((s) => liveStepMinute(s, P))).toEqual([26, 27.5, 29]);
     expect(liveStep(7, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 1 });
     expect(liveStep(9, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 3 });
     expect(liveStep(10, P)).toEqual({ kind: "DE", roundNo: 2, periodNo: 1 });
@@ -75,17 +75,17 @@ describe("canlı turnuva çizelgesi (kilitli kadans + eleme periyot alt-adımlar
     expect(liveTotalSteps(5, 2)).toBe(6 + 5 * 2); // 16
   });
 
-  it("taktik penceresi = çözüm anı (periyot çözülene kadar taktik verilebilir — NOTLAR #45 genişletme)", () => {
-    expect(liveStepWindowCloseMinute(1, P)).toBe(5); // havuz: çözümle aynı
-    expect(liveStepWindowCloseMinute(7, P)).toBe(21); // eleme tur 1 periyot 1 → çözüm anı
-    expect(liveStepWindowCloseMinute(8, P)).toBe(22.5); // periyot 2 → çözüm anı (tüm dilim pencere)
+  it("taktik penceresi = oynama başı anı (periyot oynanmaya başlayana kadar taktik verilebilir)", () => {
+    expect(liveStepWindowCloseMinute(1, P)).toBe(5); // havuz: oynama başı
+    expect(liveStepWindowCloseMinute(7, P)).toBe(20); // eleme tur 1 periyot 1 → oynama başı
+    expect(liveStepWindowCloseMinute(8, P)).toBe(21.5); // periyot 2 → oynama başı
   });
 
   it("gerçek an: üretimde birebir dakika, kısaltılmış günde orantılı", () => {
     const T = Date.UTC(2026, 9, 6, 18, 0, 0);
     expect(liveStepAtMs(T, 1, P)).toBe(T + 5 * 60_000);
-    expect(liveStepAtMs(T, 7, P)).toBe(T + 21 * 60_000);
-    expect(liveStepAtMs(T, 7, P, 86_400_000 / 2)).toBe(T + 10.5 * 60_000);
+    expect(liveStepAtMs(T, 7, P)).toBe(T + 20 * 60_000);
+    expect(liveStepAtMs(T, 7, P, 86_400_000 / 2)).toBe(T + 10 * 60_000);
   });
 });
 

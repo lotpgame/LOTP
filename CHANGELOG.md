@@ -9,7 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Değişti (11.10 — eleme periyot modeli + turnuva zamanlaması (kullanıcı/koç onayı); NOTLAR #43/#52/#53)
+### Değişti (11.10 — periyot "pencere başında çözülür": tam sunucu-zaman hizası (kullanıcı modeli))
+- **Eleme periyodu artık OYNANMAYA BAŞLADIĞI an çözülür** (önceden periyot sonunda). `liveStepMinute` eleme için
+  `turBaşı + (p-1)×1.5` (eski `+1` kaldırıldı) → periyot oynama penceresi **başında** çözülür, istemci 1 oyun-dk
+  animasyonla oynatır, **sonuç +1 dk sonra** belli olur. Böylece saat etiketi kullanıcı modeliyle **birebir** hizalanır:
+  eleme tur 1 periyotları **18:20–21 / 18:21:30–22:30 / 18:23–24** (oynama pencereleri), aralarda 30 sn taktik.
+  Taktik penceresi = oynama başı anı (periyot oynanmadan önce kilitlenir). Havuz zaten böyleydi (maç [5,6]…).
+  Testler güncellendi (eleme oynama başları 20/21.5/23). 204 test + build yeşil.
 - **Eleme maçı en çok 3 periyot + baraja ulaşınca erken bitiş (motor):** `deFormat` U10 artık **10 tuş / en çok 3 periyot**
   (önceden sabit 2). Maç tuş barajına (U10 10, büyükler 15) ulaşınca **erken biter** → çoğu maç 2 periyotta, yakın/düşük
   tempolu maçlar 3. periyoda gider (büyük yaşlarda daha sık). Erken-bitiş mekanizması zaten vardı; U10'un üst sınırı 3'e çıktı.

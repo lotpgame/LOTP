@@ -66,8 +66,10 @@ export function liveStep(step: number, dePeriods: number): LiveStep {
 }
 
 /**
- * Adımın T'ye göre ÇÖZÜM dakikası (= periyodun bittiği an): havuz 5/7/9/11/13, sonuç 17; eleme turu k'nın
- * periyodu p → turBaşı + (p-1)×(1dk+30sn) + 1dk (periyot oynanıp bitince sonuç belli olur). turBaşı = 20,30,40…
+ * Adımın T'ye göre ÇÖZÜM = OYNANMAYA BAŞLAMA dakikası (11.10 kullanıcı modeli: "periyodu pencere başında çöz").
+ * Sunucu bu an periyodu çözer; istemci o andan itibaren 1 oyun-dk animasyonla oynatır → SONUÇ +1 dk sonra belli olur.
+ * Havuz: 5/7/9/11/13 (maç [5,6]…[13,14] oynanır). Sonuç: 15. Eleme turu k periyot p → turBaşı + (p-1)×(1dk+30sn):
+ * tur 1 → 20 / 21.5 / 23 (oynama [20,21]/[21.5,22.5]/[23,24]). turBaşı = 20, 26, 32… (deStepMinutes=6).
  */
 export function liveStepMinute(step: number, dePeriods: number): number {
   const s = liveStep(step, dePeriods);
@@ -75,13 +77,13 @@ export function liveStepMinute(step: number, dePeriods: number): number {
   if (s.kind === "RESULTS") return LIVE_SCHEDULE.poolResultsMinute;
   const roundStart = LIVE_SCHEDULE.deFirstMinute + (s.roundNo - 1) * LIVE_SCHEDULE.deStepMinutes;
   const slot = LIVE_SCHEDULE.dePeriodMinutes + LIVE_SCHEDULE.dePeriodBreakMinutes; // bir periyot + arası
-  return roundStart + (s.periodNo - 1) * slot + LIVE_SCHEDULE.dePeriodMinutes;
+  return roundStart + (s.periodNo - 1) * slot;
 }
 
 /**
- * Adımın TAKTİK penceresinin kapanış dakikası = o adımın ÇÖZÜM anı. Yani oyuncu, bir periyot/maç çözülene
- * KADAR taktiğini verebilir/değiştirebilir (NOTLAR #45: 30 sn çok kısaydı — tüm periyot dilimine genişletildi;
- * önceki periyodun sonucunu görüp sonrakini set etmek için bol vakit). Çözümde o anki taktik kullanılır.
+ * Adımın TAKTİK penceresinin kapanış dakikası = o adımın ÇÖZÜM/OYNAMA BAŞI anı. Yani oyuncu, periyot/maç
+ * OYNANMAYA BAŞLAYANA kadar taktiğini verebilir/değiştirebilir; o an kilitlenen taktikle oynanır (periyot
+ * oynanırken taktik kapalı → hazırlık aşaması oynamadan önce, kullanıcı modeli 11.10).
  */
 export function liveStepWindowCloseMinute(step: number, dePeriods: number): number {
   return liveStepMinute(step, dePeriods);

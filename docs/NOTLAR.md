@@ -32,7 +32,8 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 > - **#53 ✅ eleme turları arası → 6 dk** (`deStepMinutes`; 3 periyotluk maç ~4 oyun-dk + 2 dk ara = 6 dk). Turlar: Son32 T+20·Son16 T+26·Çeyrek T+32·Yarı T+38·Final T+44.
 > - **#43 ✅ zamanlama (kullanıcı modeli):** pul sonuçları T+15, **KLASMAN T+16**, **ÇATAL T+17** (kademeli); `poolResultsMinute` 17→15.
 > - **✅ Eleme periyot modeli (11.10 koç onayı):** U10 dahil eleme maçı **en çok 3 periyot**, baraja (10/15) ulaşınca **erken biter**; periyot/pul maçı **tam 1 oyun-dk oynanır** (animMs 0.7→1.0), aralarda taktik (havuz 1 dk / periyot arası 30 sn).
-> **AÇIK (sırada):** **#55** (bracket görseli yenileme), **#52** (combat-log "1. periyot bitti/başladı" satırları — şu an podyumda gösteriliyor, log'da yok), eleme maçının **oynama anında** akması için periyodu pencere BAŞINDA çözme (tam senkron; şu an sonuç adımda hesaplanıp animMs=1 dk sürüyor — deneyim aynı, saat etiketi +1 dk kayık olabilir), **denge:** U10'da 3. periyota gidiş sıklığı (tuş temposu barajı erken doldurursa p3 nadir olur — izlenecek).
+> - **✅ Tam saat hizası (11.10):** eleme periyodu artık **oynama penceresi başında çözülür** (`liveStepMinute` eleme `+1` kaldırıldı) → periyot [20,21]/[21.5,22.5]/[23,24] oynanır, sonuç +1 dk sonra; taktik oynamadan önce kilitlenir. Kullanıcı modeliyle birebir.
+> **AÇIK (sırada):** **#55** (bracket görseli yenileme), **#52** (combat-log "1. periyot bitti/başladı" satırları — şu an podyumda gösteriliyor, log'da yok), **denge:** U10'da 3. periyota gidiş sıklığı (tuş temposu barajı erken doldurursa p3 nadir olur — izlenecek).
 
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|
