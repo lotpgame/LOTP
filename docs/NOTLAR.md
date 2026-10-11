@@ -29,7 +29,8 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 > - **#52 (kısmi):** devre arası podyumda **tur + o ana dek skor + "N. periyot başlıyor"** net gösterilir (combat-log "periyot bitti" satırı henüz yok).
 > - **#44:** klasman + eleme çatalı **açılır-kapanır** oldu; bay + "rakip için önceki tur sonuçları bekleniyor" bilgisi netleşti.
 > - Ekran düzeni: başlık altına **turnuva tarihi**, üst "Kariyere dön" linki kaldırıldı (altta buton var), düzen: **çatal → bilgi → klasman**.
-> **AÇIK (sırada):** **#43/klasman zamanı** (pul bitiminden ~30 sn sonra klasman — şu an sonuç adımında ~4 oyun-dk sonra; `LIVE_SCHEDULE.poolResultsMinute` erkene çekilmeli), **#53** (deStepMinutes 10→5), **#55** (bracket görseli), **#52** (combat-log periyot sınırları), periyot-arası taktik penceresinin kaçırılmaması (podyum üstte ama kullanıcı çatala kaydırınca kaçırabiliyor → devre arası belirginleştirildi; izlenecek).
+> - **#53 ✅ eleme turları arası 10→5 dk** (`LIVE_SCHEDULE.deStepMinutes`; DE maçı ~4 oyun-dk, 5 dk dilime sığar).
+> **AÇIK (sırada):** **#43/klasman zamanı** (pul bitiminden ~30 sn sonra klasman — şu an sonuç adımında ~4 oyun-dk sonra; `LIVE_SCHEDULE.poolResultsMinute` erkene çekilmeli), **#55** (bracket görseli), **#52** (combat-log periyot sınırları), periyot-arası taktik penceresinin kaçırılmaması (podyum üstte ama kullanıcı çatala kaydırınca kaçırabiliyor → devre arası belirginleştirildi; izlenecek).
 
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|

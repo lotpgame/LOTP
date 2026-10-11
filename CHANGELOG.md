@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (11.10 — eleme turları arası 10→5 dk (NOTLAR #53))
+- **Eleme turları arası süre 10 dk → 5 dk** (`LIVE_SCHEDULE.deStepMinutes`). Bir eleme maçı ~4 oyun-dakikası sürdüğü
+  için (2–3 periyot × 1 dk + 30 sn aralar) 5 dk'lık dilime rahat sığar → turnuva daha akıcı, turlar arası bekleme kısaldı.
+
 ### Eklendi/Değişti (11.10 — #51 PODYUM aşama modeli + turnuva ekranı düzeni (NOTLAR #49/#50/#51/#52/#44))
 - **Podyum (#51):** canlı turnuva ekranının üstünde tek **podyum** (`LivePodium`) — sunucu-zamanına göre **OYNAMA**
   (o an akan maç + hangi periyot) ↔ **HAZIRLIK** (sıradaki maç/periyot + taktik + geri sayım) arasında geçer.
