@@ -37,14 +37,6 @@ function fmtLeft(ms: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-function hhmmGMT(iso: string, locale: Locale): string {
-  return new Date(iso).toLocaleTimeString(locale === "tr" ? "tr-TR" : locale, {
-    timeZone: "UTC",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function LivePodium({
   tournamentId,
   live,
@@ -105,17 +97,7 @@ export function LivePodium({
   const closesAtMs = you?.windowClosesAt ? new Date(you.windowClosesAt).getTime() : null;
   const windowOpen = !!you?.windowOpen && (closesAtMs == null || nowOr < closesAtMs);
   const periodNo = you?.nextMatch?.periodNo ?? null;
-
-  // Başlık (GMT saati sağ üstte, kırmızı canlı lambası).
-  const header = (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2">
-        <span className="lamp lamp-red anim-live h-2.5 w-2.5" aria-hidden="true" />
-        <h2 className="font-display text-[18px] font-bold">{t(locale, "live.title")}</h2>
-      </div>
-      {live.nextAt && <span className="num text-[13px] text-steel">{hhmmGMT(live.nextAt, locale)} GMT</span>}
-    </div>
-  );
+  // NOT: "Canlı turnuva" + GMT saat rozeti artık başlık hizasında (LiveStatusBadge, page.tsx) — burada tekrarlanmaz.
 
   // ——— OYNAMA ———
   if (isPlaying && podiumMatch) {
@@ -131,11 +113,8 @@ export function LivePodium({
     // Spoiler önlemi: elemede "sıradaki rakip" satırı gizli; havuzda sıradaki pul rakibi (sürpriz değil) gösterilir.
     const nextName = !isDe && you?.nextMatch?.opponentName ? you.nextMatch.opponentName : null;
     return (
-      <section className="flex flex-col gap-3">
-        <div className="panel border-ink p-4">
-          {header}
-          <div className="mt-2 text-[13px] font-medium text-steel">{statusLabel}</div>
-        </div>
+      <section className="flex flex-col gap-2">
+        <div className="text-[13px] font-medium text-steel">{statusLabel}</div>
         <CanliMac
           aName={podiumMatch.aName}
           bName={podiumMatch.bName}
@@ -167,12 +146,10 @@ export function LivePodium({
 
   return (
     <section className="panel border-ink p-4">
-      {header}
-
       {you?.eliminated ? (
-        <p className="mt-4 border-t border-line pt-3 text-[14px]">{t(locale, "live.you.eliminated")}</p>
+        <p className="text-[14px]">{t(locale, "live.you.eliminated")}</p>
       ) : you?.nextMatch ? (
-        <div className="mt-3">
+        <div>
           <div className="flex items-baseline justify-between gap-2">
             <div className="kicker">{showScoreSoFar ? t(locale, "podium.break") : t(locale, "podium.prep")}</div>
             {startsIn && <div className="num text-[22px] leading-none" aria-live="polite">{startsIn}</div>}
@@ -249,10 +226,36 @@ export function LivePodium({
           )}
         </div>
       ) : (
-        <p className="mt-4 border-t border-line pt-3 text-[14px] text-steel">
+        <p className="text-[14px] text-steel">
           {live.nextKind === "RESULTS" ? t(locale, "live.you.waitBracket") : t(locale, "live.you.none")}
         </p>
       )}
     </section>
+  );
+}
+
+/** "Canlı turnuva" rozeti + canlı GMT saati — turnuva başlığının hizasında (page.tsx). */
+export function LiveStatusBadge({ serverNow, locale }: { serverNow: string; locale: Locale }) {
+  const skew = useRef(0);
+  useEffect(() => {
+    skew.current = new Date(serverNow).getTime() - Date.now();
+  }, [serverNow]);
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setNowMs(Date.now() + skew.current);
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+  const clock =
+    nowMs == null
+      ? null
+      : new Date(nowMs).toLocaleTimeString(locale === "tr" ? "tr-TR" : locale, { timeZone: "UTC", hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="lamp lamp-red anim-live h-2.5 w-2.5" aria-hidden="true" />
+      <span className="font-display text-[13px] font-bold">{t(locale, "live.title")}</span>
+      {clock && <span className="num text-[12px] text-steel">{clock} GMT</span>}
+    </div>
   );
 }

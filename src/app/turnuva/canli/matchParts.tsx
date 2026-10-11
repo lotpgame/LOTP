@@ -28,13 +28,18 @@ export function scoringSide(log: string[], shown: number): "left" | "right" | "b
   return undefined;
 }
 
-/** Anlatım satırları: en yeni satır belirgin (sol çizgi, tuşu alan tarafın renginde), eskiler soluk. */
+/** Anlatım satırları: en yeni satır belirgin (sol çizgi, tuşu alan tarafın renginde), eskiler soluk.
+ * TERS sıra (kullanıcı 11.10): SON gelen tuş EN ÜSTTE kalır; eskiler aşağı iner (yukarıdan aşağıya yeni→eski). */
 export function LogLines({ log, shown, live }: { log: string[]; shown: number; live: boolean }) {
   const side = live ? scoringSide(log, shown) : undefined;
   const edge = side === "left" ? "border-sig-red" : side === "right" ? "border-sig-green" : "border-ink";
   return (
     <ul className="mt-3 space-y-1 text-[14px]">
-      {log.slice(0, shown).map((line, i) => {
+      {log
+        .slice(0, shown)
+        .map((line, i) => ({ line, i }))
+        .reverse()
+        .map(({ line, i }) => {
         const newest = live && i === shown - 1;
         const header = line.startsWith("▸");
         const whiteLight = line.startsWith("⚪"); // beyaz lamba — hedef dışı, sayı yok (flöre)

@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi/Değişti (11.10 — canlı maç spoiler + ekran cilası (playtest))
+- **SPOILER düzeltildi (BÜYÜK):** maç sunucuda oynama başında çözülünce sonucu hemen hazır oluyordu → **"Senin
+  Maçların"** (geçmiş) ve **eleme çatalı**, podyumda O AN oynanan maçın FİNAL skorunu gösterip animasyonu spoil
+  ediyordu. Artık podyumdaki maç, animasyon penceresi bitene (serverNow < playStart+animMs) kadar geçmişte/çatalda
+  **gizli** ("oynanıyor"); oynama bitince düşer.
+- **Maç anlatımı TERS akar:** son gelen tuş **en üstte** kalır (yeni→eski, yukarıdan aşağı) — kullanıcı tercihi.
+- **"Canlı turnuva" + GMT saat rozeti** podyumdan **turnuva başlığının hizasına** taşındı (sağ üst); podyum sadeleşti.
+- Eleme çatalından gereksiz **"Yana kaydır"** ipucu kaldırıldı. **Pul sonucu** kartı yeni format ("2)" ön eki kaldırıldı → başlık "Pul Sonucun" + cümle.
+
 ### Değişti (11.10 — periyot "pencere başında çözülür": tam sunucu-zaman hizası (kullanıcı modeli))
 - **Eleme periyodu artık OYNANMAYA BAŞLADIĞI an çözülür** (önceden periyot sonunda). `liveStepMinute` eleme için
   `turBaşı + (p-1)×1.5` (eski `+1` kaldırıldı) → periyot oynama penceresi **başında** çözülür, istemci 1 oyun-dk

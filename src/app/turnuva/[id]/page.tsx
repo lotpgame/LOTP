@@ -5,7 +5,7 @@ import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 import { LiveAutoRefresh } from "./LiveAutoRefresh";
-import { LivePodium, type PodiumMatch } from "./LivePodium";
+import { LivePodium, LiveStatusBadge, type PodiumMatch } from "./LivePodium";
 import { PulKagidi } from "./PulKagidi";
 import { Icon } from "@/app/ui/Icon";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
@@ -95,11 +95,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
         instantThrough: currentLive.phase === "DE" ? instantThroughFor(currentLive.log) : 0,
       }
     : null;
-  // Geçmiş (katlanır) = biten TÜM maçların. Podyum maçı oynanırken üstte akar; oynama bitince podyumdan düşer,
-  // burada kalır (#49: "oynanan maçlar direk senin maçlar bölümüne düşmeli"). Devam eden eleme maçı PENDING
-  // olduğundan zaten burada değil (yalnız podyumda canlı).
-  const histPool = yourPool;
-  const histDE = yourDE;
+  // SPOILER önlemi (11.10): maç sunucuda OYNAMA BAŞINDA çözülür → sonucu DTO'da hemen hazır. Podyum animasyonla
+  // gizlerken, podyumdaki maç animasyon penceresi BİTENE kadar (serverNow < playStart+animMs) geçmişte/çatalda
+  // GÖSTERİLMEZ — yoksa final skor podyum akışını spoil eder. Oynama bitince geçmişe düşer (#49).
+  const podiumPlayEndMs =
+    tour.live?.podium != null ? new Date(tour.live.podium.playStartAt).getTime() + tour.live.podium.animMs : null;
+  const podiumPlaying =
+    tour.live != null && podiumPlayEndMs != null && new Date(tour.live.serverNow).getTime() < podiumPlayEndMs;
+  const histPool = podiumPlaying ? yourPool.filter((m) => m !== currentLive) : yourPool;
+  const histDE = podiumPlaying ? yourDE.filter((m) => m !== currentLive) : yourDE;
 
   // Bay bilgisi: oyuncunun İLK eleme maçı — oynadıysa yourDE[0], oynamadıysa (daha yeni girdi) canlı sıradaki DE maçı.
   // Böylece elemeye girer girmez (maç oynamadan) de "Son 32'yi bay geçtin, ilk maçın Son 16" netçe görünür (#44).
@@ -123,9 +127,12 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   // Klasman/bay bilgisi (pul bitince): kendi seed sıran + bay geçtiysen açık bildirim (#44).
   const seedInfo =
     tour.yourSeedRank != null && (tour.isFullyRevealed || tour.live != null) ? (
-      <div className="panel p-3 text-[14px]">
-        <span className="font-medium">{t(locale, "idp.poolResultLead")}</span>{" "}
-        {t(locale, "idp.seedFrom", { n: tour.yourSeedRank })}
+      <div className="panel p-3">
+        <div className="flex items-center gap-1.5">
+          <Icon name="ranking" size={15} className="text-steel" />
+          <span className="kicker">{t(locale, "idp.poolResultLead")}</span>
+        </div>
+        <p className="mt-1.5 text-[14px]">{t(locale, "idp.seedFrom", { n: tour.yourSeedRank })}</p>
         {hadBye && (
           <div className="mt-1.5 flex items-start gap-1.5 text-[13px] text-prio">
             <Icon name="flag" size={15} className="mt-px shrink-0" />
@@ -175,9 +182,6 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
         <Icon name="trophy" size={18} className="text-steel" />
         <span className="flex-1 font-display text-[16px] font-semibold">{t(locale, "canli.bracket")}</span>
-        {deRounds.length > 1 && (
-          <span className="mr-1 inline-flex items-center gap-1 text-[12px] text-steel">{t(locale, "canli.bracketScrollHint")}</span>
-        )}
         <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
       </summary>
       <div className="snap-x snap-proximity overflow-x-auto px-4 pb-4">
@@ -210,6 +214,22 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                       <div key={i} className="flex items-center gap-1.5 rounded-md border border-line p-2.5 text-[13px] text-steel">
                         <Icon name="lock" size={14} className="shrink-0" />
                         {t(locale, "idp.pending")}
+                      </div>
+                    );
+                  }
+                  // SPOILER önlemi: podyumda ŞU AN oynanan (çözülmüş ama animasyonu bitmemiş) maçın skoru çatalda da gizli → "oynanıyor".
+                  if (podiumPlaying && m === currentLive) {
+                    const mineNow = m.aIsHuman || m.bIsHuman;
+                    return (
+                      <div
+                        key={i}
+                        className={`rounded-md border border-dashed p-2.5 text-[13px] text-steel ${mineNow ? "border-l-2 border-l-me border-line" : "border-line"}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate">{m.aName}</span>
+                          <span className="lamp lamp-red anim-live h-2 w-2 shrink-0" aria-hidden="true" />
+                        </div>
+                        <div className="mt-0.5 truncate">{m.bName}</div>
                       </div>
                     );
                   }
@@ -275,10 +295,15 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       {!tour.isFullyRevealed && <LiveAutoRefresh everyMs={tour.live ? 4_000 : 15_000} />}
 
-      <h1 className="font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
-      <p className="text-[14px] text-steel">
-        {tour.categoryId} · {tour.dateLabel}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
+          <p className="text-[14px] text-steel">
+            {tour.categoryId} · {tour.dateLabel}
+          </p>
+        </div>
+        {liveNow && tour.live && <LiveStatusBadge serverNow={tour.live.serverNow} locale={locale} />}
+      </div>
 
       {!tour.youParticipated && <p className="mt-3 panel p-3 text-[14px] text-steel">{t(locale, "idp.spectator")}</p>}
 
