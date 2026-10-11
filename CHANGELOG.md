@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (11.10 — hazırlıkta maçtaki gibi lambalı skor bandı (playtest))
+- **HAZIRLIK (podyum) artık ScoreBug gösterir** (maçtaki gibi kırmızı/yeşil lambalı bant): yeni maçta **adın (sol/kırmızı,
+  SEN) 0–0 rakip (sağ/yeşil)**, bantta "{tur} · Maç başlıyor"; devre arasında o ana dek skor + "N. periyot başlıyor".
+  Rakip belli değilse (eleme bekleniyor) metin. DTO'ya izleyenin adı eklendi (`live.youName`).
+
 ### Düzeltildi/Değişti (11.10 — canlı maç spoiler + ekran cilası (playtest))
 - **SPOILER düzeltildi (BÜYÜK):** maç sunucuda oynama başında çözülünce sonucu hemen hazır oluyordu → **"Senin
   Maçların"** (geçmiş) ve **eleme çatalı**, podyumda O AN oynanan maçın FİNAL skorunu gösterip animasyonu spoil

@@ -1960,6 +1960,7 @@ async function tournamentLiveDto(
   return {
     status: v.status,
     podium: null, // getTournament doldurur (#51 podyum sunucu-zaman çapası)
+    youName: humanId >= 0 ? (nameById.get(humanId) ?? null) : null,
     stepLabel: v.next ? liveStepLabel(locale, v.next.kind, v.next.roundNo, v.next.periodNo, fieldSize) : null,
     nextKind: v.next?.kind ?? null,
     nextAt: v.next?.at ?? null,
@@ -2061,6 +2062,7 @@ export interface TournamentLiveDTO {
   nextKind: "POOL" | "RESULTS" | "DE" | null;
   nextAt: string | null; // ISO — sıradaki adımın sunucuda çözüleceği an
   serverNow: string; // ISO — istemci saat farkını düzeltmek için
+  youName: string | null; // izleyen insanın adı (hazırlık ScoreBug önizlemesi için)
   you: {
     eliminated: boolean;
     nextMatch: {

@@ -15,6 +15,7 @@ import { submitLiveTacticAction } from "@/app/actions";
 import { TACTICS, type Tactic } from "@/engine/combat";
 import { t, type Locale } from "@/i18n";
 import { Icon, type IconName } from "@/app/ui/Icon";
+import { ScoreBug } from "@/app/ui/ScoreBug";
 import type { TournamentLiveDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 
@@ -143,6 +144,16 @@ export function LivePodium({
     periodNo != null && periodNo > 1 ? t(locale, "podium.periodStarts", { p: periodNo }) : t(locale, "podium.matchStarts");
   // Periyot arası: aynı maçın o ana dek skoru (devam eden eleme maçı).
   const showScoreSoFar = podiumMatch != null && podiumMatch.phase === "DE" && periodNo != null && periodNo > 1;
+  // Hazırlıkta maçtaki gibi lambalı SKOR BANDI (kullanıcı 11.10): devre arası → o ana dek skor; yeni maç → 0-0 önizleme
+  // (adın sol/kırmızı, rakip sağ/yeşil). Rakip belli değilse (eleme bekleniyor) bant yerine metin.
+  const prepBug: { left: string; right: string; sl: number; sr: number; youSide: "left" | "right" } | null =
+    you?.nextMatch == null
+      ? null
+      : showScoreSoFar && podiumMatch
+        ? { left: podiumMatch.aName, right: podiumMatch.bName, sl: podiumMatch.scoreA, sr: podiumMatch.scoreB, youSide: podiumMatch.aIsHuman ? "left" : "right" }
+        : you.nextMatch.opponentName && live.youName
+          ? { left: live.youName, right: you.nextMatch.opponentName, sl: 0, sr: 0, youSide: "left" }
+          : null;
 
   return (
     <section className="panel border-ink p-4">
@@ -154,33 +165,23 @@ export function LivePodium({
             <div className="kicker">{showScoreSoFar ? t(locale, "podium.break") : t(locale, "podium.prep")}</div>
             {startsIn && <div className="num text-[22px] leading-none" aria-live="polite">{startsIn}</div>}
           </div>
-          {showScoreSoFar && podiumMatch ? (
-            /* Devre arası: tur + o ana dek SKOR (adın–skor–rakip), altında "N. periyot başlıyor" (kullanıcı tasarımı). */
-            <>
-              <div className="mt-1 font-display text-[17px] font-semibold">{you.nextMatch.round}</div>
-              <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                <div className="min-w-0">
-                  <div className={`truncate text-[15px] ${podiumMatch.aIsHuman ? "font-semibold text-me" : ""}`}>{podiumMatch.aName}</div>
-                  {podiumMatch.aIsHuman && <span className="text-[11px] font-semibold text-me">{t(locale, "live.you")}</span>}
-                </div>
-                <div className="num text-[26px] font-bold leading-none">
-                  {podiumMatch.scoreA}–{podiumMatch.scoreB}
-                </div>
-                <div className="min-w-0 text-right">
-                  <div className={`truncate text-[15px] ${!podiumMatch.aIsHuman ? "font-semibold text-me" : ""}`}>{podiumMatch.bName}</div>
-                  {!podiumMatch.aIsHuman && <span className="text-[11px] font-semibold text-me">{t(locale, "live.you")}</span>}
-                </div>
-              </div>
-              <div className="mt-2 text-[14px] font-semibold">{prepTitle}</div>
-            </>
+          {prepBug ? (
+            <ScoreBug
+              className="mt-2"
+              left={prepBug.left}
+              right={prepBug.right}
+              scoreL={prepBug.sl}
+              scoreR={prepBug.sr}
+              youSide={prepBug.youSide}
+              youLabel={t(locale, "live.you")}
+              band={{ label: `${you.nextMatch.round} · ${prepTitle}` }}
+            />
           ) : (
             <>
               <div className="mt-1 text-[16px] font-semibold">{prepTitle}</div>
               <div className="mt-0.5 text-[15px]">
                 <span className="text-steel">{you.nextMatch.round} · </span>
-                {you.nextMatch.opponentName
-                  ? t(locale, "live.you.vs", { name: you.nextMatch.opponentName })
-                  : t(locale, "live.you.tbd")}
+                {t(locale, "live.you.tbd")}
               </div>
             </>
           )}
