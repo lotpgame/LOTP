@@ -9,9 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Değişti (11.10 — renklendirme + sadeleştirme (playtest))
-- **Kondisyon/Form çubukları trafik lambası renginde:** düşük **kırmızı**, orta **sarı (amber)**, yüksek **yeşil**
-  (`Segments traffic`). Durum yazısı (Dinç/Yorgun…) korundu.
+### Düzeltildi/Değişti (11.10 — renklendirme + sadeleştirme (playtest))
+- **Hata düzeltme:** turnuva seviye rengi (`levelColor`) client modülündeydi, sunucu bileşeni çağırınca Turnuvalar
+  sayfası hata veriyordu → saf fonksiyon ayrı `levelColor.ts`'e taşındı (hem sunucu hem istemci kullanır).
+- **Kondisyon/Form + kulüp TESİS KALİTESİ çubukları trafik lambası renginde:** düşük **kırmızı**, orta **sarı (amber)**,
+  yüksek **yeşil** (`Segments traffic`). Durum yazısı korundu.
+- **Kaldırılan açıklamalar:** yeteneklerdeki "Raylar U10 ölçeğinde…", klasmandaki "Kulüp sıralaması/dünya klasmanı V2",
+  kulüpteki "Tesis ve antrenörler… (kulüp değiştirme ileride)" notları (gereksiz).
 - **Turnuva kartları seviyeye göre renkli:** İl→yeşil, Türkiye→kırmızı, Open→nötr, Satellite→mavi, Avrupa→mor,
   Grand Prix→amber, Dünya Kupası→altın. Kartta hafif arka plan tinti + seviye renkli sol şerit; seviye etiketi (LevelTag) de renkli.
 - **Kaldırıldı:** yetenekler altındaki "Raylar U10 ölçeğinde dolar…" açıklaması (gereksiz).

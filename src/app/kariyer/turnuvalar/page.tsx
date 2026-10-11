@@ -7,7 +7,8 @@ import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments }
 import { Icon } from "@/app/ui/Icon";
 import { TacticSegment } from "@/app/ui/TacticSegment";
 import { serverWorldDay } from "@/server/world";
-import { LevelTag, levelColor, NextTournament } from "../NextTournament";
+import { LevelTag, NextTournament } from "../NextTournament";
+import { levelColor } from "../levelColor";
 import { WeekStrip } from "../WeekStrip";
 import { buildWeek, todayFromHeader } from "../week";
 

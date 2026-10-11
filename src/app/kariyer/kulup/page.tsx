@@ -33,7 +33,7 @@ export default async function KulupPage() {
               <span>{t(locale, "kulup.facility")}</span>
               <span className="num text-[15px]">{c.club.facility}/100</span>
             </div>
-            <Segments value={c.club.facility} className="mt-2" />
+            <Segments value={c.club.facility} traffic className="mt-2" />
           </div>
 
           {/* İki antrenör — eşit yetenek, farklı uzmanlık (GDD 13). */}
@@ -64,8 +64,6 @@ export default async function KulupPage() {
               ))}
             </div>
           </div>
-
-          <p className="mt-4 text-[13px] text-steel">{t(locale, "kulup.note")}</p>
         </section>
       ) : (
         <p className="mt-4 text-[14px] text-steel">{t(locale, "kulup.none")}</p>

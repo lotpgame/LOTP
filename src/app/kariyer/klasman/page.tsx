@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
-import { Icon } from "@/app/ui/Icon";
 import { KlasmanFilter } from "./KlasmanFilter";
 
 export const dynamic = "force-dynamic";
@@ -49,11 +48,6 @@ export default async function KlasmanPage() {
         <h2 className="kicker mb-2">{t(locale, "klasman.rankings")}</h2>
         <KlasmanFilter initialCategoryId={c.categoryId} initialRows={c.ranking} locale={locale} />
       </section>
-
-      <p className="flex items-start gap-2 text-[13px] text-steel">
-        <Icon name="info" size={16} className="mt-px shrink-0" />
-        {t(locale, "klasman.worldNoteShort")}
-      </p>
     </main>
   );
 }
