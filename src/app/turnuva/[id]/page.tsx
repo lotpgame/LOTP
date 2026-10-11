@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { leaveTournamentAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
@@ -6,7 +5,7 @@ import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
 import { CanliMac } from "./CanliMac";
 import { LiveAutoRefresh } from "./LiveAutoRefresh";
-import { LiveTournamentPanel } from "./LiveTournamentPanel";
+import { LivePodium, type PodiumMatch } from "./LivePodium";
 import { PulKagidi } from "./PulKagidi";
 import { Icon } from "@/app/ui/Icon";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
@@ -82,12 +81,33 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
       (yourPool[yourPool.length - 1] as RevealedMatch | undefined) ??
       null)
     : null;
-  // Geçmiş (katlanır) listeler — olay anı maçı hariç.
-  const histPool = yourPool.filter((m) => m !== currentLive);
-  const histDE = yourDE.filter((m) => m !== currentLive);
+  // #51: podyum (olay anı) maçı — sunucu-zaman çapasıyla LivePodium'a verilir.
+  const podium: PodiumMatch | null = currentLive
+    ? {
+        aName: currentLive.aName,
+        bName: currentLive.bName,
+        scoreA: currentLive.scoreA ?? 0,
+        scoreB: currentLive.scoreB ?? 0,
+        log: currentLive.log,
+        phase: currentLive.phase === "DE" ? "DE" : "POOL",
+        round: currentLive.round,
+        aIsHuman: currentLive.aIsHuman,
+        instantThrough: currentLive.phase === "DE" ? instantThroughFor(currentLive.log) : 0,
+      }
+    : null;
+  // Geçmiş (katlanır) = biten TÜM maçların. Podyum maçı oynanırken üstte akar; oynama bitince podyumdan düşer,
+  // burada kalır (#49: "oynanan maçlar direk senin maçlar bölümüne düşmeli"). Devam eden eleme maçı PENDING
+  // olduğundan zaten burada değil (yalnız podyumda canlı).
+  const histPool = yourPool;
+  const histDE = yourDE;
 
-  const firstDeRound = yourDE[0]?.round;
+  // Bay bilgisi: oyuncunun İLK eleme maçı — oynadıysa yourDE[0], oynamadıysa (daha yeni girdi) canlı sıradaki DE maçı.
+  // Böylece elemeye girer girmez (maç oynamadan) de "Son 32'yi bay geçtin, ilk maçın Son 16" netçe görünür (#44).
+  const nextDe = tour.live?.you?.nextMatch?.phase === "DE" ? tour.live.you.nextMatch : null;
+  const firstDeRound = yourDE[0]?.round ?? nextDe?.round;
   const hadBye = firstDeRound != null && deRounds.length > 0 && firstDeRound !== deRounds[0];
+  // İlk eleme rakibi henüz belli değil (önceki tur sonuçları bekleniyor) — oyuncuya açıkça yazılır.
+  const firstOppPending = nextDe != null && yourDE.length === 0 && !nextDe.opponentName;
   const myPool = tour.pools.flatMap((p) => p.players).find((p) => p.isHuman);
   const headline = tour.isFullyRevealed && tour.youParticipated
     ? buildHeadline(locale, {
@@ -112,15 +132,26 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
             <span>{t(locale, "idp.byeInfo", { round: deRounds[0], first: firstDeRound ?? "" })}</span>
           </div>
         )}
+        {firstOppPending && (
+          <div className="mt-1.5 flex items-start gap-1.5 text-[13px] text-steel">
+            <Icon name="clock" size={15} className="mt-px shrink-0" />
+            <span>{t(locale, "idp.oppPending", { round: firstDeRound ?? "" })}</span>
+          </div>
+        )}
       </div>
     ) : null;
 
   // #44: pul sonrası turnuva klasmanı (seed sırası) — kendi + diğer oyuncuların durumu (G-M · averaj).
+  // Açılır-kapanır (varsayılan açık): pul bitince gösterilir, isteyen kapatır (kullanıcı kararı).
   const seedingTable =
     tour.seeding.length > 0 ? (
-      <section>
-        <h2 className="display text-[20px]">{t(locale, "idp.seedingTitle")}</h2>
-        <ol className="mt-2 panel max-h-80 divide-y divide-line overflow-y-auto">
+      <details open className="panel group">
+        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
+          <Icon name="ranking" size={18} className="text-steel" />
+          <span className="flex-1 font-display text-[16px] font-semibold">{t(locale, "idp.seedingTitle")}</span>
+          <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
+        </summary>
+        <ol className="mx-4 mb-4 max-h-80 divide-y divide-line overflow-y-auto rounded-md border border-line">
           {tour.seeding.map((p) => (
             <li
               key={p.position}
@@ -136,21 +167,20 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
             </li>
           ))}
         </ol>
-      </section>
+      </details>
     ) : null;
 
   const bracket = (
-    <section>
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="display text-[20px]">{t(locale, "canli.bracket")}</h2>
+    <details open className="panel group">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
+        <Icon name="trophy" size={18} className="text-steel" />
+        <span className="flex-1 font-display text-[16px] font-semibold">{t(locale, "canli.bracket")}</span>
         {deRounds.length > 1 && (
-          <span className="inline-flex items-center gap-1 text-[12px] text-steel">
-            {t(locale, "canli.bracketScrollHint")}
-            <Icon name="chevron-right" size={14} />
-          </span>
+          <span className="mr-1 inline-flex items-center gap-1 text-[12px] text-steel">{t(locale, "canli.bracketScrollHint")}</span>
         )}
-      </div>
-      <div className="mt-3 snap-x snap-proximity overflow-x-auto pb-2">
+        <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="snap-x snap-proximity overflow-x-auto px-4 pb-4">
         <div className="flex min-w-max gap-3">
           {deRounds.map((round) => (
             <div key={round} className="flex min-w-[150px] shrink-0 snap-start flex-col justify-around gap-3">
@@ -207,7 +237,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           ))}
         </div>
       </div>
-    </section>
+    </details>
   );
 
   const poolSheets =
@@ -226,9 +256,9 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   // Geçmiş maçlar (katlanır) — isteyen açar bakar; olay anı maçı üstte olduğu için burada durağan.
   const historyMatches = (histPool.length > 0 || histDE.length > 0) && (
     <>
-      {histPool.map((m) => (
+      {histPool.map((m, i) => (
         <div key={matchKey(m)}>
-          <div className="mb-1 kicker">{m.round}</div>
+          <div className="mb-1 kicker">{m.round} · {t(locale, "canli.matchN", { n: i + 1 })}</div>
           <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
         </div>
       ))}
@@ -244,47 +274,24 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       {!tour.isFullyRevealed && <LiveAutoRefresh everyMs={tour.live ? 4_000 : 15_000} />}
-      <Link href="/kariyer" className="inline-flex min-h-11 items-center text-[14px] text-steel underline underline-offset-2">
-        {t(locale, "idp.back")}
-      </Link>
 
-      <h1 className="mt-2 font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
-      <p className="text-[14px] text-steel">{tour.categoryId}</p>
+      <h1 className="font-display text-[26px] font-bold leading-tight">{tour.name}</h1>
+      <p className="text-[14px] text-steel">
+        {tour.categoryId} · {tour.dateLabel}
+      </p>
 
       {!tour.youParticipated && <p className="mt-3 panel p-3 text-[14px] text-steel">{t(locale, "idp.spectator")}</p>}
 
       {liveNow ? (
-        /* ——— CANLI DÜZEN (#48): üstte olay anı, ortada klasman/çatal, altta katlanır geçmiş ——— */
+        /* ——— CANLI DÜZEN (#51): üstte PODYUM (olay anı: oynama↔hazırlık), ortada klasman/çatal, altta katlanır geçmiş ——— */
         <div className="mt-5 flex flex-col gap-6">
-          {/* 1) OLAY ANI: taktik paneli + o an oynanan maç (podyum, hep üstte) */}
-          <LiveTournamentPanel tournamentId={tour.tournamentId} live={tour.live!} locale={locale} />
-          {currentLive && (
-            <section>
-              <h2 className="kicker mb-1">
-                {currentLive.phase === "DE" ? `${t(locale, "canli.eleme")} · ${currentLive.round}` : currentLive.round}
-              </h2>
-              <CanliMac
-                key={matchKey(currentLive)}
-                aName={currentLive.aName}
-                bName={currentLive.bName}
-                scoreA={currentLive.scoreA ?? 0}
-                scoreB={currentLive.scoreB ?? 0}
-                log={currentLive.log}
-                autoPlay
-                instantThrough={currentLive.phase === "DE" ? instantThroughFor(currentLive.log) : 0}
-                youSide={currentLive.aIsHuman ? "left" : "right"}
-                locale={locale}
-                serverNow={tour.live!.serverNow}
-                playStartAt={tour.live!.podium?.playStartAt}
-                animMs={tour.live!.podium?.animMs}
-              />
-            </section>
-          )}
+          {/* 1) PODYUM: o an oynanan maç + taktiği TEK blokta, sunucu-zamanına göre oynama/hazırlık (hep üstte) */}
+          <LivePodium tournamentId={tour.tournamentId} live={tour.live!} podiumMatch={podium} locale={locale} />
 
-          {/* 2) KLASMAN (seeding) + bay + eleme çatalı */}
+          {/* 2) ELEME ÇATALI (üstte) → Pul sonucu/bay bilgisi (arada) → TURNUVA KLASMANI (altta); çatal+klasman açılır-kapanır */}
+          {deRounds.length > 0 && tour.showBracket && bracket}
           {seedInfo}
           {seedingTable}
-          {deRounds.length > 0 && tour.showBracket && bracket}
 
           {/* 3) EN ALTTA: pul kağıtları + geçmiş maçlar (katlanır, ekran sadeleşsin #46) */}
           {poolSheets && (
@@ -345,9 +352,9 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                 <div>
                   <h3 className="kicker">{t(locale, "idp.poolMatches")}</h3>
                   <div className="mt-2 space-y-3">
-                    {yourPool.map((m) => (
+                    {yourPool.map((m, i) => (
                       <div key={matchKey(m)}>
-                        <div className="mb-1 kicker">{m.round}</div>
+                        <div className="mb-1 kicker">{m.round} · {t(locale, "canli.matchN", { n: i + 1 })}</div>
                         <CanliMac aName={m.aName} bName={m.bName} scoreA={m.scoreA} scoreB={m.scoreB} log={m.log} past youSide={m.aIsHuman ? "left" : "right"} locale={locale} />
                       </div>
                     ))}

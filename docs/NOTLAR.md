@@ -18,6 +18,18 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 > **#44** (turnuva klasmanı/seeding tablosu: sıra + G-M + averaj, kendi vurgulu; bay bildirimi), **#45 taktik
 > penceresi GENİŞLETİLDİ** (30 sn → tüm periyot dilimi; periyot çözülene kadar taktik verilebilir) **YAPILDI.**
 > **Re-test:** periyot arası taktik artık panel üstte + geniş pencere → yakalanmalı. Tüm #41-48 canlıda; test et.
+>
+> 🔧 **11.10 — #51 PODYUM AŞAMA MODELİ + SUNUCU-ZAMAN SENKRONU (yerel offline testte doğrulandı, CANLIYA GİDİYOR):**
+> - **#45 ✅ (baştan sarma/replay):** canlı maç animasyonu artık **sunucu saatinden** sürer (reveal = now'ın saf fonksiyonu).
+>   Tazeleme/remount baştan sardırmaz; biten maç anında tam açılır (replay/asılı yok). Yerelde doğrulandı.
+> - **#51 ✅ (podyum):** tek **podyum** bileşeni (`LivePodium`) — sunucu-zamanına göre **OYNAMA** (o an akan maç + o periyot) ↔
+>   **HAZIRLIK** (sıradaki maç/periyot + taktik + geri sayım). Taktik artık podyumda, akan/sıradaki maça ait. Altta tek "Sıradaki" satırı.
+> - **#49 ✅:** biten maç podyumdan düşüp **"Senin Maçların"a** iner (yerelde doğrulandı). **#50 ✅:** "Pul 1 · N. maç".
+> - **#54 (kısmi):** oynarken yalnız o ana dek canlı skor; final skor + eleme "sıradaki rakip" maç bitene dek gizli (spoiler azaldı).
+> - **#52 (kısmi):** devre arası podyumda **tur + o ana dek skor + "N. periyot başlıyor"** net gösterilir (combat-log "periyot bitti" satırı henüz yok).
+> - **#44:** klasman + eleme çatalı **açılır-kapanır** oldu; bay + "rakip için önceki tur sonuçları bekleniyor" bilgisi netleşti.
+> - Ekran düzeni: başlık altına **turnuva tarihi**, üst "Kariyere dön" linki kaldırıldı (altta buton var), düzen: **çatal → bilgi → klasman**.
+> **AÇIK (sırada):** **#43/klasman zamanı** (pul bitiminden ~30 sn sonra klasman — şu an sonuç adımında ~4 oyun-dk sonra; `LIVE_SCHEDULE.poolResultsMinute` erkene çekilmeli), **#53** (deStepMinutes 10→5), **#55** (bracket görseli), **#52** (combat-log periyot sınırları), periyot-arası taktik penceresinin kaçırılmaması (podyum üstte ama kullanıcı çatala kaydırınca kaçırabiliyor → devre arası belirginleştirildi; izlenecek).
 
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|

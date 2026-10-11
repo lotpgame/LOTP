@@ -1849,20 +1849,31 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
         step = poolShown.indexOf(podiumRaw) + 1;
       }
       const playStartMs = liveStepAtMs(tourn.startsAt.getTime(), step, dePeriods, cfgMsPerDay);
-      // Bir "parça" (havuz maçı / bir periyot) animasyon süresi: 1 oyun-dakikası (adım aralığına sığar: havuz 2dk,
-      // eleme periyodu 1.5dk → bitince görünür bir "geçiş" boşluğu kalır). Dünya saati kısaysa gerçek süre de kısalır.
-      const animMs = 60_000 * (cfgMsPerDay / MS_PER_GAME_DAY);
+      // Bir "parça" (havuz maçı / bir periyot) animasyon süresi: 0.7 oyun-dakikası. Adım aralığına rahat sığar
+      // (havuz 2dk, eleme periyodu 1.5dk) → kalan süre "hazırlık" (sıradaki periyot taktiği) için açık kalır.
+      // Dünya saati kısaysa (dev) gerçek süre de orantılı kısalır.
+      const animMs = 0.7 * 60_000 * (cfgMsPerDay / MS_PER_GAME_DAY);
       live.podium = { playStartAt: new Date(playStartMs).toISOString(), animMs };
     } else {
       live.podium = null;
     }
   }
 
+  // Başlık altı: turnuvanın GERÇEK takvim tarihi (GMT). Saat podyumda zaten var → burada yalnız tarih (#başlık).
+  const dateMs = tourn.worldDay != null ? worldDayStartMs(tourn.worldDay, worldClockConfig()) : tourn.date.getTime();
+  const dateLabel = new Date(dateMs).toLocaleDateString("tr-TR", {
+    timeZone: "UTC",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return {
     tournamentId: tourn.id,
     name: tournamentDisplayName(locale, tourn.categoryId.split("-")[0], tourn.level as TournamentLevel),
     level: t(locale, `tournament.${tourn.level}`),
     categoryId: tourn.categoryId,
+    dateLabel,
     isFullyRevealed,
     nextRevealAt: liveModel ? (live?.nextAt ?? null) : (nextRevealAt?.toISOString() ?? null),
     youParticipated: you != null,
@@ -2009,6 +2020,7 @@ export interface TournamentResultDTO {
   name: string;
   level: string;
   categoryId: string;
+  dateLabel: string; // turnuvanın GERÇEK takvim tarihi (GMT), başlık altında
   // B (docs/TURNUVA_MULTIPLAYER.md, Faz 1): sonuç anında kesinleşir ama GÖRÜNÜRLÜK tur tur açılır —
   // spoiler olmasın diye tüm maçlar açılana kadar şampiyon/klasman/pul kağıdı gizli kalır.
   isFullyRevealed: boolean;

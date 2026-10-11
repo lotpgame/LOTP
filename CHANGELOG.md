@@ -9,6 +9,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi/Değişti (11.10 — #51 PODYUM aşama modeli + turnuva ekranı düzeni (NOTLAR #49/#50/#51/#52/#44))
+- **Podyum (#51):** canlı turnuva ekranının üstünde tek **podyum** (`LivePodium`) — sunucu-zamanına göre **OYNAMA**
+  (o an akan maç + hangi periyot) ↔ **HAZIRLIK** (sıradaki maç/periyot + taktik + geri sayım) arasında geçer.
+  Taktik artık ayrı panelde değil, **podyumda akan/sıradaki maça ait**. Podyumun altında tek **"Sıradaki: X"** satırı
+  (elemede sonuç sızmasın diye maç bitene dek gizli). "Olay anı" yerine o an NE olduğu yazılır ("Pul maçları devam
+  ediyor" / "{tur} · {p}. periyot oynanıyor"). Devre arasında **tur + o ana dek skor + "N. periyot başlıyor"** gösterilir.
+- **Biten maç geçmişe düşer (#49):** oynama bitince maç podyumdan düşüp **"Senin Maçların"** (katlanır) bölümüne iner;
+  podyum sıradaki hazırlığa geçer. **Pul maç etiketi (#50):** "Pul 1" → **"Pul 1 · N. maç"** (havuz-içi sıra).
+- **Klasman + eleme çatalı açılır-kapanır (#44):** ikisi de katlanabilir ayrı bölümler; düzen **eleme çatalı → pul
+  sonucu/bay bilgisi → turnuva klasmanı**. Bay netliği: bay geçtiysen + ilk eleme rakibin belli değilse
+  "önceki tur sonuçları bekleniyor" bilgisi.
+- **Ekran sadeleştirme:** başlık altına **turnuva tarihi** (saat zaten podyumda), üstteki "Kariyere dön" linki kaldırıldı
+  (altta buton zaten var), taktik gönderim geri bildirimi tek satır (çift "gönderildi" düzeltildi).
+
 ### Değişti (11.10 — canlı maç animasyonu SUNUCU-ZAMAN senkronu (NOTLAR #45/#49/#54 çekirdeği))
 - **Baştan sarma / asılı maç / replay kökten çözüldü (#45/#49):** canlı "podyum" maçının animasyonu artık
   istemcinin mount anından değil **sunucu saatinden** sürer. Açılan satır sayısı `now`'ın saf fonksiyonudur:
