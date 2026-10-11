@@ -1805,17 +1805,20 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   // gösterilir; havuz tablosu (galibiyet/averaj) sonuç adımında yazılır.
   const showPoolSheets = isFullyRevealed || liveModel;
   const showPools = isFullyRevealed || (liveModel && tourn.step >= LIVE_RESULTS_STEP);
-  // #43: aşamalı açılış — pul bitince önce KLASMAN (seeding), ~30 sn sonra ELEME ÇATALI görünür. O aralıkta
-  // oyuncu klasmanı/diğerlerini inceler. (Çatal sonuç adımında kuruluyor ama 30 sn gizli tutulur.)
+  // #43 aşamalı açılış (11.10 kullanıcı zamanlaması): pul sonuçları ~T+15 → KLASMAN T+16 (+1 dk) → ELEME ÇATALI
+  // T+17 (+2 dk). O aralıkta oyuncu klasmanı/diğerlerini inceler. (Çatal sonuç adımında kuruluyor ama gizli tutulur.)
   const cfgMsPerDay = worldClockConfig().msPerDay ?? MS_PER_GAME_DAY;
+  const scale = cfgMsPerDay / MS_PER_GAME_DAY;
   const resultsAtMs =
     liveModel && tourn.startsAt
       ? liveStepAtMs(tourn.startsAt.getTime(), LIVE_RESULTS_STEP, deFormat(tourn.categoryId.split("-")[0]).periods, cfgMsPerDay)
       : null;
+  const showSeeding =
+    isFullyRevealed || !liveModel || (resultsAtMs != null && Date.now() >= resultsAtMs + 60_000 * scale);
   const showBracket =
-    isFullyRevealed || !liveModel || (resultsAtMs != null && Date.now() >= resultsAtMs + 30_000 * (cfgMsPerDay / MS_PER_GAME_DAY));
-  // #44: pul sonrası TURNUVA KLASMANI (seeding sırası) — oyuncu kendi + diğerlerinin durumunu görsün.
-  const seeding = showPools
+    isFullyRevealed || !liveModel || (resultsAtMs != null && Date.now() >= resultsAtMs + 120_000 * scale);
+  // #44: pul sonrası TURNUVA KLASMANI (seeding sırası) — oyuncu kendi + diğerlerinin durumunu görsün (T+16'da).
+  const seeding = showSeeding
     ? [...tourn.participants]
         .filter((p) => p.seedRank != null && p.seedRank > 0)
         .sort((a, b) => (a.seedRank as number) - (b.seedRank as number))
@@ -1849,10 +1852,10 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
         step = poolShown.indexOf(podiumRaw) + 1;
       }
       const playStartMs = liveStepAtMs(tourn.startsAt.getTime(), step, dePeriods, cfgMsPerDay);
-      // Bir "parça" (havuz maçı / bir periyot) animasyon süresi: 0.7 oyun-dakikası. Adım aralığına rahat sığar
-      // (havuz 2dk, eleme periyodu 1.5dk) → kalan süre "hazırlık" (sıradaki periyot taktiği) için açık kalır.
+      // Bir "parça" (havuz maçı / bir periyot) TAM 1 oyun-dakikası oynanır (kullanıcı modeli 11.10). Kalan süre
+      // "hazırlık" (sıradaki taktik): havuzda 1 dk (adım aralığı 2), elemede 30 sn (periyot aralığı 1.5).
       // Dünya saati kısaysa (dev) gerçek süre de orantılı kısalır.
-      const animMs = 0.7 * 60_000 * (cfgMsPerDay / MS_PER_GAME_DAY);
+      const animMs = 1 * 60_000 * scale;
       live.podium = { playStartAt: new Date(playStartMs).toISOString(), animMs };
     } else {
       live.podium = null;

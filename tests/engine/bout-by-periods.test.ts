@@ -54,10 +54,10 @@ describe("simulateBoutByPeriods (M11.3a)", () => {
     expect(p1).toContain("Atak"); // P1 kaynağı OFFENSIVE (yeni etiket)
   });
 
-  it("U10 (10 tuş / 2 periyot): 1. periyot 5 tuş tavanıyla biter", () => {
+  it("U10 (10 tuş / en çok 3 periyot): 1. periyot 5 tuş tavanıyla biter, kazanan ≤10", () => {
     const r = simulateBoutByPeriods(combatant(1, "A", 66), combatant(2, "B", 66), createRng("u10"), {
       touches: 10,
-      periods: 2,
+      periods: 3,
     });
     const winScore = r.winnerId === r.aId ? r.scoreA : r.scoreB;
     expect(winScore).toBeLessThanOrEqual(10);

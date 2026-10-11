@@ -9,9 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Değişti (11.10 — eleme turları arası 10→5 dk (NOTLAR #53))
-- **Eleme turları arası süre 10 dk → 5 dk** (`LIVE_SCHEDULE.deStepMinutes`). Bir eleme maçı ~4 oyun-dakikası sürdüğü
-  için (2–3 periyot × 1 dk + 30 sn aralar) 5 dk'lık dilime rahat sığar → turnuva daha akıcı, turlar arası bekleme kısaldı.
+### Değişti (11.10 — eleme periyot modeli + turnuva zamanlaması (kullanıcı/koç onayı); NOTLAR #43/#52/#53)
+- **Eleme maçı en çok 3 periyot + baraja ulaşınca erken bitiş (motor):** `deFormat` U10 artık **10 tuş / en çok 3 periyot**
+  (önceden sabit 2). Maç tuş barajına (U10 10, büyükler 15) ulaşınca **erken biter** → çoğu maç 2 periyotta, yakın/düşük
+  tempolu maçlar 3. periyoda gider (büyük yaşlarda daha sık). Erken-bitiş mekanizması zaten vardı; U10'un üst sınırı 3'e çıktı.
+- **Periyot/pul maçı TAM 1 oyun-dakikası oynanır** (podyum animasyonu `animMs` 0.7→1.0 oyun-dk). Kalan süre hazırlık/taktik:
+  havuzda 1 dk, eleme periyot arası 30 sn → kullanıcının "1 dk oyna, 30 sn taktik" modeline oturur.
+- **Zamanlama:** pul sonuçları **T+17 → T+15** (`poolResultsMinute`); **KLASMAN T+16** (sonuç+1 dk), **ELEME ÇATALI T+17**
+  (sonuç+2 dk) — kademeli açılış (#43). Eleme turları arası **5 → 6 dk** (`deStepMinutes`: 3 periyotluk maç ~4 oyun-dk + 2 dk ara).
+  Turlar: Son 32 T+20 · Son 16 T+26 · Çeyrek T+32 · Yarı T+38 · Final T+44.
 
 ### Eklendi/Değişti (11.10 — #51 PODYUM aşama modeli + turnuva ekranı düzeni (NOTLAR #49/#50/#51/#52/#44))
 - **Podyum (#51):** canlı turnuva ekranının üstünde tek **podyum** (`LivePodium`) — sunucu-zamanına göre **OYNAMA**

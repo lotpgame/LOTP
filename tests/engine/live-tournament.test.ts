@@ -58,11 +58,11 @@ describe("canlı turnuva çizelgesi (kilitli kadans + eleme periyot alt-adımlar
 
   it("havuz T+5..T+13 (2 dk), sonuç T+17; eleme turu 3 periyot alt-adıma bölünür (1 dk + 30 sn ara)", () => {
     expect([1, 2, 3, 4, 5].map((s) => liveStepMinute(s, P))).toEqual([5, 7, 9, 11, 13]);
-    expect(liveStepMinute(LIVE_RESULTS_STEP, P)).toBe(17);
+    expect(liveStepMinute(LIVE_RESULTS_STEP, P)).toBe(15);
     expect(liveStep(6, P)).toEqual({ kind: "RESULTS" });
-    // Eleme turu 1: periyotlar 21 / 22.5 / 24 (turBaşı 20 + (p-1)×1.5 + 1). Tur 2: turBaşı 25 (deStepMinutes=5) → 26 / 27.5 / 29.
+    // Eleme turu 1: periyotlar 21 / 22.5 / 24 (turBaşı 20 + (p-1)×1.5 + 1). Tur 2: turBaşı 26 (deStepMinutes=6) → 27 / 28.5 / 30.
     expect([7, 8, 9].map((s) => liveStepMinute(s, P))).toEqual([21, 22.5, 24]);
-    expect([10, 11, 12].map((s) => liveStepMinute(s, P))).toEqual([26, 27.5, 29]);
+    expect([10, 11, 12].map((s) => liveStepMinute(s, P))).toEqual([27, 28.5, 30]);
     expect(liveStep(7, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 1 });
     expect(liveStep(9, P)).toEqual({ kind: "DE", roundNo: 1, periodNo: 3 });
     expect(liveStep(10, P)).toEqual({ kind: "DE", roundNo: 2, periodNo: 1 });

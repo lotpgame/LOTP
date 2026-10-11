@@ -36,9 +36,9 @@ export const SCHEDULE = {
  */
 export const LIVE_SCHEDULE = {
   poolRoundMinutes: [5, 7, 9, 11, 13],
-  poolResultsMinute: 17,
+  poolResultsMinute: 15, // pul sonuçları son puldan ~1 dk sonra (NOTLAR #43: klasman erken; 17→15)
   deFirstMinute: 20,
-  deStepMinutes: 5, // eleme turları arası (NOTLAR #53: 10→5; DE maçı ~4 oyun-dk sürüyor, 5 dk dilime sığar)
+  deStepMinutes: 6, // eleme turları arası (NOTLAR #53 + 11.10: 3 periyot maç ~4 oyun-dk + 2 dk ara = 6 dk)
   dePeriodMinutes: 1, // bir periyot canlı ~1 dk (NOTLAR #39 kilitli)
   dePeriodBreakMinutes: 0.5, // periyot arası 30 sn = taktik değişim penceresi (NOTLAR #39 kilitli)
 } as const;
