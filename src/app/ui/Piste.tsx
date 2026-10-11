@@ -41,18 +41,36 @@ export function PisteLine({ className = "" }: { className?: string }) {
   );
 }
 
+/** Trafik lambası rengi (kondisyon/form): düşük kırmızı, orta sarı, yüksek yeşil (kullanıcı 11.10). */
+function trafficFill(value: number): string {
+  if (value < 35) return "bg-sig-red";
+  if (value < 70) return "bg-amber-400";
+  return "bg-sig-green";
+}
+
 /**
- * 10 parçalı gösterge (kondisyon/form) — trafik lambası renkleri yok, durum yazıyla söylenir.
- * `glow`: değer yüksekken dolu parçalar hafifçe nabız gibi parlar (GORSEL §8; hareketi azalt açıkken parıltı yok).
+ * 10 parçalı gösterge (kondisyon/form). `traffic` açıkken dolu parçalar değere göre kırmızı/sarı/yeşil
+ * (kullanıcı 11.10); kapalıyken nötr (bg-ink). `glow`: değer yüksekken parçalar hafifçe nabız gibi parlar (GORSEL §8).
  */
-export function Segments({ value, glow = false, className = "" }: { value: number; glow?: boolean; className?: string }) {
+export function Segments({
+  value,
+  glow = false,
+  traffic = false,
+  className = "",
+}: {
+  value: number;
+  glow?: boolean;
+  traffic?: boolean;
+  className?: string;
+}) {
   const filled = Math.round(Math.max(0, Math.min(100, value)) / 10);
+  const fill = traffic ? trafficFill(value) : "bg-ink";
   return (
     <div className={`flex gap-[3px] ${className}`} aria-hidden="true">
       {Array.from({ length: 10 }, (_, i) => (
         <span
           key={i}
-          className={`h-2 flex-1 rounded-[2px] ${i < filled ? `bg-ink ${glow ? "fx-glow anim-glow" : ""}` : "bg-line"}`}
+          className={`h-2 flex-1 rounded-[2px] ${i < filled ? `${fill} ${glow ? "fx-glow anim-glow" : ""}` : "bg-line"}`}
         />
       ))}
     </div>

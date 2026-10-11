@@ -6,7 +6,7 @@ import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 import { Icon, type IconName } from "@/app/ui/Icon";
 import { PisteRail, Segments } from "@/app/ui/Piste";
-import { ageGroup, bandMax } from "@/app/ui/bands";
+import { bandMax } from "@/app/ui/bands";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TECHNICAL: "Teknik",
@@ -53,6 +53,7 @@ export function Stat({
   value,
   gauge,
   glow,
+  traffic,
   icon,
   state,
   word,
@@ -62,6 +63,8 @@ export function Stat({
   gauge?: number;
   /** Gösterge yüksekken (Bugün: kondisyon/form ≥ %70) dolu parçalar hafifçe parlar (GORSEL §8). */
   glow?: boolean;
+  /** Dolu parçalar değere göre kırmızı/sarı/yeşil (kondisyon/form — kullanıcı 11.10). */
+  traffic?: boolean;
   icon?: IconName;
   state?: string;
   /** Değer sayı değil kelime (örn. gün adı): dar başlık fontu — mono'da "Cumartesi" kartı taşırıyordu. */
@@ -77,7 +80,7 @@ export function Stat({
         <span className={`${word ? "display" : "num"} text-[22px] leading-none`}>{value}</span>
         {state && <span className="text-[13px] text-steel">{state}</span>}
       </div>
-      {gauge != null && <Segments value={gauge} glow={glow} className="mt-2" />}
+      {gauge != null && <Segments value={gauge} glow={glow} traffic={traffic} className="mt-2" />}
     </div>
   );
 }
@@ -132,7 +135,6 @@ export function SkillsByCategory({
   categoryId: string;
 }) {
   const max = bandMax(categoryId);
-  const group = ageGroup(categoryId);
   return (
     <div>
       <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
@@ -158,7 +160,6 @@ export function SkillsByCategory({
           );
         })}
       </div>
-      <p className="mt-4 text-[13px] text-steel">{t(locale, "skills.bandNote", { group, max })}</p>
     </div>
   );
 }

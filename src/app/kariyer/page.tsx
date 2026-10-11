@@ -143,6 +143,7 @@ export default async function BugunPage() {
           value={`%${condition.toFixed(0)}`}
           gauge={condition}
           glow={condition >= GLOW_FROM}
+          traffic
           state={conditionState(locale, condition)}
         />
         <Stat
@@ -151,6 +152,7 @@ export default async function BugunPage() {
           value={`%${c.sharpness.toFixed(0)}`}
           gauge={c.sharpness}
           glow={c.sharpness >= GLOW_FROM}
+          traffic
           state={formState(locale, c.sharpness)}
         />
       </section>

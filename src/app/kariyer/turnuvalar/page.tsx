@@ -7,7 +7,7 @@ import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments }
 import { Icon } from "@/app/ui/Icon";
 import { TacticSegment } from "@/app/ui/TacticSegment";
 import { serverWorldDay } from "@/server/world";
-import { LevelTag, NextTournament } from "../NextTournament";
+import { LevelTag, levelColor, NextTournament } from "../NextTournament";
 import { WeekStrip } from "../WeekStrip";
 import { buildWeek, todayFromHeader } from "../week";
 
@@ -60,7 +60,9 @@ export default async function TurnuvalarPage() {
         <ul className="flex flex-col gap-2.5">
           {upcoming.map((u) => (
             <li key={`${u.worldDay}:${u.level}`} className="panel relative overflow-hidden p-3">
-              {u.registered && <span className="absolute inset-y-0 left-0 w-[3px] bg-ink" aria-hidden="true" />}
+              {/* Seviyeye göre renk (kullanıcı 11.10): hafif arka plan tinti + sol şerit (kayıtlıysa kalınlaşır). */}
+              <span className={`pointer-events-none absolute inset-0 ${levelColor(u.level).bar} opacity-[0.05]`} aria-hidden="true" />
+              <span className={`absolute inset-y-0 left-0 ${u.registered ? "w-1" : "w-[3px]"} ${levelColor(u.level).bar}`} aria-hidden="true" />
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="text-[15px] font-semibold">{u.label}</div>

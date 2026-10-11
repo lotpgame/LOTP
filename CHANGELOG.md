@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (11.10 — renklendirme + sadeleştirme (playtest))
+- **Kondisyon/Form çubukları trafik lambası renginde:** düşük **kırmızı**, orta **sarı (amber)**, yüksek **yeşil**
+  (`Segments traffic`). Durum yazısı (Dinç/Yorgun…) korundu.
+- **Turnuva kartları seviyeye göre renkli:** İl→yeşil, Türkiye→kırmızı, Open→nötr, Satellite→mavi, Avrupa→mor,
+  Grand Prix→amber, Dünya Kupası→altın. Kartta hafif arka plan tinti + seviye renkli sol şerit; seviye etiketi (LevelTag) de renkli.
+- **Kaldırıldı:** yetenekler altındaki "Raylar U10 ölçeğinde dolar…" açıklaması (gereksiz).
+
 ### Eklendi/Değişti (11.10 — eleme çatalı yenileme + maç anlatımı eskrim terimleri + periyot işaretleri (playtest))
 - **Eleme çatalı yenilendi (#55):** her maç temiz bir kart — **kazanan kalın/net, kaybeden soluk**; SENİN maçların
   `--me` ile vurgulu (yolunu turlar boyunca izlersin); finalin kazananı **kupa (şampiyon)**. Bay (bye) tabloyu
