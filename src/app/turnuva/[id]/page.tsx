@@ -274,6 +274,9 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
                 instantThrough={currentLive.phase === "DE" ? instantThroughFor(currentLive.log) : 0}
                 youSide={currentLive.aIsHuman ? "left" : "right"}
                 locale={locale}
+                serverNow={tour.live!.serverNow}
+                playStartAt={tour.live!.podium?.playStartAt}
+                animMs={tour.live!.podium?.animMs}
               />
             </section>
           )}

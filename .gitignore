@@ -54,3 +54,4 @@ scratch/
 *.rar
 
 /src/generated/prisma
+prisma/dev-local.db

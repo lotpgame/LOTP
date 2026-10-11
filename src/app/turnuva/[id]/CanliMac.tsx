@@ -8,7 +8,7 @@
  * - Geçmiş (past=true): maç bitmiş — skor doğrudan görünür; "Skor detayı" ile tuş-tuş döküm açılır.
  * Taraf renkleri eskrim cihazı gibi: A = sol = kırmızı, B = sağ = yeşil (iyi/kötü anlamı yok).
  */
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 import { ScoreBug } from "@/app/ui/ScoreBug";
@@ -27,6 +27,12 @@ export interface CanliMacProps {
   instantThrough?: number; // bu indeksten öncesi anında görünür (yalnız o anki periyodu animasyonla göster)
   youSide?: "left" | "right"; // oyuncu hangi tarafta (SEN etiketi); verilmezse etiket yok
   locale?: Locale;
+  // #51: SUNUCU-ZAMAN senkronu. Üçü de verilirse animasyon mount'tan değil sunucu saatinden sürer:
+  // reveal = floor + ((now−playStart)/animMs)×kalan satır. Pure fonksiyon → tazeleme/remount baştan sardırmaz,
+  // biten maç (now ≫ playStart+animMs) anında tam açılır (replay/asılı yok), sonuç oynama bitene dek sızmaz.
+  serverNow?: string; // ISO — sunucu "şimdi"si (saat farkı düzeltmesi)
+  playStartAt?: string; // ISO — bu parçanın (maç/periyot) oynanmaya başladığı sunucu anı
+  animMs?: number; // parçanın animasyon süresi (gerçek ms; dünya saati kısaysa kısa)
 }
 
 export function CanliMac({
@@ -41,28 +47,54 @@ export function CanliMac({
   instantThrough = 0,
   youSide,
   locale = "tr",
+  serverNow,
+  playStartAt,
+  animMs,
 }: CanliMacProps) {
-  // Canlı: izlenen periyotlar anında (instantThrough), gerisi animasyonla. Canlı-değil-autoPlay = hepsi açık.
-  const [shown, setShown] = useState(past ? 0 : autoPlay ? instantThrough : log.length);
+  const live = !past;
+  const floor = autoPlay ? Math.min(instantThrough, log.length) : 0;
+  const animatingLines = Math.max(1, log.length - floor);
+
+  // #51: sunucu-zaman senkronu etkin mi? (canlı podyum maçı — playStart + animMs verildiğinde)
+  const synced = live && autoPlay && playStartAt != null && animMs != null;
   const [detail, setDetail] = useState(false);
 
-  const live = !past;
-  // Devam eden maçta önceki periyotlar ANINDA görünür (floor = instantThrough); yalnız o anki periyot animasyonla
-  // akar. `revealed` türetilir (state'i effect içinde İTMEYİZ) → yeni periyot gelince baştan sarma olmadan ilerler.
-  const floor = autoPlay ? Math.min(instantThrough, log.length) : 0;
-  const revealed = Math.max(shown, floor);
+  // — Sunucu-zaman kipi —: reveal = sunucu "şimdi"sinin saf fonksiyonu (mount'tan bağımsız). skew ile sunucuya
+  // hizalanır; `nowMs` yalnız interval'de güncellenir (render'da Date.now() ÇAĞIRMAYIZ → saf). Kaynak gerçek
+  // sunucu zamanı olduğu için remount/tazeleme baştan sardırmaz; biten maç anında tam açılır.
+  const skewRef = useRef(0);
+  useEffect(() => {
+    if (serverNow) skewRef.current = new Date(serverNow).getTime() - Date.now();
+  }, [serverNow]);
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  useEffect(() => {
+    if (!synced) return;
+    const sync = () => setNowMs(Date.now() + skewRef.current);
+    sync();
+    const id = setInterval(sync, 200);
+    return () => clearInterval(id);
+  }, [synced]);
+  const syncedRevealed = (): number => {
+    if (nowMs == null) return floor; // ilk kare: skew/interval henüz çalışmadı → sadece önceki periyotlar
+    const start = new Date(playStartAt!).getTime();
+    const progress = animMs! <= 0 ? 1 : Math.max(0, Math.min(1, (nowMs - start) / animMs!));
+    return Math.min(log.length, floor + Math.ceil(progress * animatingLines));
+  };
+
+  // — Eski (mount-tabanlı) kip —: yalnız senkron verisi YOKken (eski çağrılar için güvenli yedek).
+  const [shown, setShown] = useState(past ? 0 : autoPlay ? instantThrough : log.length);
+  const stepMs = Math.min(3800, Math.max(1800, Math.round(50000 / animatingLines)));
+  const legacyRevealed = Math.max(shown, floor);
+  useEffect(() => {
+    if (synced || !live || !autoPlay || legacyRevealed >= log.length) return;
+    const id = setTimeout(() => setShown(legacyRevealed + 1), stepMs);
+    return () => clearTimeout(id);
+  }, [synced, live, autoPlay, legacyRevealed, stepMs, log.length]);
+
+  const revealed = synced ? syncedRevealed() : legacyRevealed;
   const started = revealed > 0 || autoPlay;
   const done = revealed >= log.length && started;
   const aWon = scoreA >= scoreB;
-
-  // #42: yalnız O ANKİ periyodun satırları animasyonla akar; okunur tempoya (~50 sn) yayılır (satır başına 1.8–3.8 sn).
-  const animatingLines = Math.max(1, log.length - floor);
-  const stepMs = Math.min(3800, Math.max(1800, Math.round(50000 / animatingLines)));
-  useEffect(() => {
-    if (!live || !autoPlay || revealed >= log.length) return;
-    const id = setTimeout(() => setShown(revealed + 1), stepMs);
-    return () => clearTimeout(id);
-  }, [live, autoPlay, revealed, stepMs, log.length]);
 
   // Geçmiş maç: skor açık; "Skor detayı" tuş-tuş dökümü açar (canlı tekrar yok — NOTLAR #47).
   if (!live) {

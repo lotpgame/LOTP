@@ -44,11 +44,30 @@ npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişi
 npm run dev       # geliştirme sunucusu → http://localhost:3000
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Vitest testleri (141) — CI her PR'da lint + test + build çalıştırır
+npm test          # Vitest testleri (204) — CI her PR'da lint + test + build çalıştırır
 npm run sim       # başsız denge raporu (combat/gelişim/turnuva/sakatlık)
 npm run db:studio # veritabanını görsel incele (Prisma Studio)
 npm run db:backup # veritabanının zaman damgalı yedeğini al
 ```
+
+### Offline canlı turnuva testi (prod verisine dokunmadan)
+
+Canlı turnuva akışını (pul → eleme → podyum) yerelde, ayrı bir SQLite DB + hızlandırılmış
+dünya saatiyle iterasyonla denemek için (Vercel/Neon prod'a dokunmaz):
+
+```bash
+# 1) Şema sağlayıcısını geçici olarak sqlite yap: prisma/schema.prisma → datasource provider = "sqlite"
+# 2) Yerel DB'yi kur + client'ı sqlite'tan üret:
+DATABASE_URL="file:./prisma/dev-local.db" npx prisma db push
+DATABASE_URL="file:./prisma/dev-local.db" npx prisma generate
+# 3) Hızlı dünya saatiyle sunucuyu başlat (örn. 1 oyun günü = 36 sn; epoch = Cmt 18:00 GMT = etkinlik anı):
+DATABASE_URL="file:./prisma/dev-local.db" WORLD_MS_PER_DAY=36000000 \
+  WORLD_EPOCH_MS=$(node -e 'console.log(Date.now()-207000000)') npm run dev
+```
+
+> ⚠️ **Commit öncesi geri al:** `datasource provider` tekrar `postgresql` yapılır ve `npx prisma generate`
+> çalıştırılır (Prisma 7'de driver adapter ile şema sağlayıcısı eşleşmek zorundadır — postgres client sqlite
+> adapter ile, ya da tersi, çalışmaz). `prisma/dev-local.db` `.gitignore`'dadır; commit'e girmez.
 
 ## Proje yapısı
 

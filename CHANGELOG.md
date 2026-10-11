@@ -9,6 +9,27 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (11.10 — canlı maç animasyonu SUNUCU-ZAMAN senkronu (NOTLAR #45/#49/#54 çekirdeği))
+- **Baştan sarma / asılı maç / replay kökten çözüldü (#45/#49):** canlı "podyum" maçının animasyonu artık
+  istemcinin mount anından değil **sunucu saatinden** sürer. Açılan satır sayısı `now`'ın saf fonksiyonudur:
+  `reveal = floor + ((now − playStart) / animMs) × kalan satır`. Sayfa tazelense/otomatik-yenilense/remount olsa da
+  animasyon **doğru noktaya oturur** (sıfırlanmaz); biten maç (`now ≫ playStart + animMs`) anında tam açılır —
+  yeniden oynamaz. Canlı doğrulandı (yerel offline test).
+- **Spoiler azaldı (#54 çekirdeği):** oynarken yalnız o ana kadarki **canlı skor** gösterilir, final skor oynama
+  bitene kadar sızmaz (çapa sunucu-zamanlı olduğundan tüm izleyiciler aynı anı görür).
+- Sunucu, podyum maçının çapasını (`playStartAt` + `animMs`) `getTournament` canlı DTO'sunda verir (podyum maçı =
+  o an oynanan/son çözülen senin maçın; animasyon süresi 1 oyun-dakikası, dünya saati kısaysa orantılı kısa).
+
+### Değişti (11.10 — canlı turnuva yazım katmanı Prisma'ya taşındı; yerel offline test ortamı)
+- **Prod sağlamlaştırma + offline test:** canlı turnuvanın toplu `UPDATE ... FROM (VALUES …)` ham SQL blokları
+  (Postgres'e özel `::cast`, `v(…)` kolon adı, `NOW()`) **Prisma tipli update'lere** çevrildi. Tek kod yolu artık
+  hem Postgres (prod/Neon) hem SQLite (yerel) çalışır; her canlı adımda yalnız birkaç satır güncellendiği için
+  performans farkı ihmal edilebilir. Advisory lock (`pg_advisory_xact_lock`) yalnız Postgres'te çalışır; SQLite'ta
+  (tek bağlantı, serialize) atlanır. Davranış/sonuç aynı — 204 test yeşil.
+- **Yerel offline test ortamı:** ayrı SQLite DB (`prisma/dev-local.db`, `.gitignore`'da) + kısaltılmış dünya saati
+  ile canlı turnuva uçtan uca iterasyon yapılabilir (prod verisine dokunmadan). `datasource provider` yereli
+  çalıştırırken geçici `sqlite`, commit/prod'da `postgresql` (Prisma 7 adapter ile şema sağlayıcısı eşleşmeli).
+
 ### Kaldırıldı (06.10 — Bugün sayfası sadeleştirildi, NOTLAR #38)
 - Bugün ekranından (`/kariyer`) çıkarıldı: **"Son başarılar" şeridi**, **"Bugün · antrenman/turnuva" aktivite
   bölümü**, **"Sıradaki turnuva" kartı**. **"Önümüzdeki 7 gün" şeridi** kaldı — zaten bugünkü etkinliği +

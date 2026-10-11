@@ -1829,6 +1829,34 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
         }))
     : [];
   const live = liveModel ? await tournamentLiveDto(id, humanId, nameById, fieldSize, locale) : null;
+  // #51: podyum maçının sunucu-zaman çapası. Podyum maçı = o an oynanan (devam eden) eleme maçın →
+  // yoksa son çözülen eleme → yoksa son çözülen havuz maçın. Animasyon bu maçı üreten ADIMIN çözüm anından
+  // (playStart) başlar, animMs kadar sürer → istemci now'dan senkron akıtır (replay/asılı/spoiler biter).
+  if (live && live.status === "RUNNING" && tourn.startsAt) {
+    const dePeriods = deFormat(tourn.categoryId.split("-")[0]).periods;
+    const mine = tourn.matches.filter((m) => m.playerAId === humanId || m.playerBId === humanId);
+    const deShown = mine.filter((m) => m.phase === "DE" && (m.status === "RESOLVED" || (m.status === "PENDING" && m.log != null)));
+    const poolShown = mine.filter((m) => m.phase === "POOL" && m.status === "RESOLVED");
+    const podiumRaw = deShown[deShown.length - 1] ?? poolShown[poolShown.length - 1] ?? null;
+    if (podiumRaw) {
+      let step: number;
+      if (podiumRaw.phase === "DE") {
+        // O ana dek açılan periyot sayısı = log'daki "▸" başlık satırı adedi; maçı üreten adım o periyodun adımı.
+        const periodsShown = Math.max(1, (podiumRaw.log?.split("\n").filter((l) => l.startsWith("▸")).length) ?? 1);
+        step = LIVE_RESULTS_STEP + ((podiumRaw.roundNo ?? 1) - 1) * dePeriods + periodsShown;
+      } else {
+        // Havuzun k. turu k. adımda çözülür; insanın çözülen havuz maçları orderIndex sırasıyla tur 1..k.
+        step = poolShown.indexOf(podiumRaw) + 1;
+      }
+      const playStartMs = liveStepAtMs(tourn.startsAt.getTime(), step, dePeriods, cfgMsPerDay);
+      // Bir "parça" (havuz maçı / bir periyot) animasyon süresi: 1 oyun-dakikası (adım aralığına sığar: havuz 2dk,
+      // eleme periyodu 1.5dk → bitince görünür bir "geçiş" boşluğu kalır). Dünya saati kısaysa gerçek süre de kısalır.
+      const animMs = 60_000 * (cfgMsPerDay / MS_PER_GAME_DAY);
+      live.podium = { playStartAt: new Date(playStartMs).toISOString(), animMs };
+    } else {
+      live.podium = null;
+    }
+  }
 
   return {
     tournamentId: tourn.id,
@@ -1917,6 +1945,7 @@ async function tournamentLiveDto(
   const nm = v.you?.nextMatch;
   return {
     status: v.status,
+    podium: null, // getTournament doldurur (#51 podyum sunucu-zaman çapası)
     stepLabel: v.next ? liveStepLabel(locale, v.next.kind, v.next.roundNo, v.next.periodNo, fieldSize) : null,
     nextKind: v.next?.kind ?? null,
     nextAt: v.next?.at ?? null,
@@ -2034,6 +2063,10 @@ export interface TournamentLiveDTO {
     pendingSet: boolean;
     registeredTactic: Tactic | null;
   } | null;
+  // #51: "podyum" maçının (o an oynanan/son çözülen senin maçın) SUNUCU-ZAMAN çapası. İstemci animasyonu
+  // mount'tan değil bu çapadan sürer → tazeleme/remount baştan sardırmaz, biten maç yeniden oynamaz (replay/asılı
+  // biter), sonuç oynama bitene kadar sızmaz. reveal = now'ın saf fonksiyonu: (now−playStart)/animMs.
+  podium: { playStartAt: string; animMs: number } | null;
 }
 
 /**

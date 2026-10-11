@@ -10,7 +10,6 @@
  * bir adım bir kez çözülür (GDD 23.57, şartname Faz 4). Taktik gönderimi aynı kilidi alır → çözümle yarışmaz.
  */
 import { prisma } from "@/db";
-import { Prisma } from "@/generated/prisma/client";
 import { TACTICS, deFormat, type Combatant, type DeBoutState, type Tactic } from "@/engine/combat";
 import { clamp, type TournamentLevel } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
@@ -48,7 +47,11 @@ export function liveSeedKey(scopeKey: string): string {
   return `tour:${scopeKey}`;
 }
 
+/** Postgres advisory lock yalnız Postgres'te var. Yerel SQLite'ta (better-sqlite3 tek bağlantıyı
+ * serialize eder) kilit gereksiz ve `pg_advisory_xact_lock` sözdizimi SQLite'ta hata verir → atla. */
+const IS_SQLITE = (process.env.DATABASE_URL ?? "").startsWith("file:");
 async function lockTournament(tx: Tx, tournamentId: number): Promise<void> {
+  if (IS_SQLITE) return;
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(${LOCK_NS}::int, ${tournamentId}::int)`;
 }
 
@@ -321,65 +324,69 @@ async function writeStepOutcome(
   dePeriods: number,
 ): Promise<void> {
   const tid = t.id;
+  // NOT: Eskiden toplu `UPDATE ... FROM (VALUES ...)` ham SQL'di (Postgres'e özel: ::cast, v(...) kolon
+  // adı, NOW()). Her canlı adımda yalnız birkaç satır değişir → Prisma tipli update'lere çevrildi:
+  // tek kod yolu hem Postgres (prod) hem SQLite (yerel offline test) çalışır, performans farkı ihmal edilebilir.
   if (out.resolved.length) {
-    const values = Prisma.join(
-      out.resolved.map(
-        (r) =>
-          Prisma.sql`(${r.seed}::text, ${r.result.scoreA}::int, ${r.result.scoreB}::int, ${r.result.winnerId}::int, ${r.result.log.join("\n")}::text, ${r.result.tacticA}::text, ${r.result.tacticB}::text)`,
-      ),
-    );
-    await tx.$executeRaw`
-      UPDATE "Match" AS m
-      SET "status" = 'RESOLVED', "scoreA" = v.sa, "scoreB" = v.sb, "winnerId" = v.w, "log" = v.lg, "tacticA" = v.ta, "tacticB" = v.tb, "deState" = NULL
-      FROM (VALUES ${values}) AS v(seed, sa, sb, w, lg, ta, tb)
-      WHERE m."tournamentId" = ${tid} AND m."seed" = v.seed AND m."status" = 'PENDING'`;
+    for (const r of out.resolved) {
+      await tx.match.updateMany({
+        where: { tournamentId: tid, seed: r.seed, status: "PENDING" },
+        data: {
+          status: "RESOLVED",
+          scoreA: r.result.scoreA,
+          scoreB: r.result.scoreB,
+          winnerId: r.result.winnerId,
+          log: r.result.log.join("\n"),
+          tacticA: r.result.tacticA,
+          tacticB: r.result.tacticB,
+          deState: null,
+        },
+      });
+    }
   }
   if (out.periodUpdates.length) {
     // Eleme maçı sürüyor: birikmiş durum (deState) + o ana dek skor/log yazılır (status PENDING kalır → UI canlı akıtır).
-    const values = Prisma.join(
-      out.periodUpdates.map(
-        (u) =>
-          Prisma.sql`(${u.seed}::text, ${u.de.scoreA}::int, ${u.de.scoreB}::int, ${u.de.log.join("\n")}::text, ${JSON.stringify(u.de)}::text)`,
-      ),
-    );
-    await tx.$executeRaw`
-      UPDATE "Match" AS m
-      SET "scoreA" = v.sa, "scoreB" = v.sb, "log" = v.lg, "deState" = v.ds
-      FROM (VALUES ${values}) AS v(seed, sa, sb, lg, ds)
-      WHERE m."tournamentId" = ${tid} AND m."seed" = v.seed AND m."status" = 'PENDING'`;
+    for (const u of out.periodUpdates) {
+      await tx.match.updateMany({
+        where: { tournamentId: tid, seed: u.seed, status: "PENDING" },
+        data: { scoreA: u.de.scoreA, scoreB: u.de.scoreB, log: u.de.log.join("\n"), deState: JSON.stringify(u.de) },
+      });
+    }
   }
   if (out.players.length) {
-    const values = Prisma.join(
-      out.players.map((p) => Prisma.sql`(${p.playerId}::int, ${Math.round(p.fatigue)}::int, ${p.lastTactic}::text)`),
-    );
-    await tx.$executeRaw`
-      UPDATE "TournamentParticipant" AS p
-      SET "fatigue" = v.f, "lastTactic" = v.lt, "pendingTactic" = NULL
-      FROM (VALUES ${values}) AS v(pid, f, lt)
-      WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
+    for (const p of out.players) {
+      await tx.tournamentParticipant.updateMany({
+        where: { tournamentId: tid, playerId: p.playerId },
+        data: { fatigue: Math.round(p.fatigue), lastTactic: p.lastTactic, pendingTactic: null },
+      });
+    }
   }
   if (out.periodPlayers.length) {
     // Bir periyot oynadı ama maçı sürüyor: yorgunluk maç bitince; şimdilik yalnız bekleyen taktik tüketilir.
-    const values = Prisma.join(out.periodPlayers.map((p) => Prisma.sql`(${p.playerId}::int, ${p.lastTactic}::text)`));
-    await tx.$executeRaw`
-      UPDATE "TournamentParticipant" AS p
-      SET "lastTactic" = v.lt, "pendingTactic" = NULL
-      FROM (VALUES ${values}) AS v(pid, lt)
-      WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
+    for (const p of out.periodPlayers) {
+      await tx.tournamentParticipant.updateMany({
+        where: { tournamentId: tid, playerId: p.playerId },
+        data: { lastTactic: p.lastTactic, pendingTactic: null },
+      });
+    }
   }
   if (out.poolStats && out.ranking) {
     const rankOf = new Map(out.ranking.map((r) => [r.playerId, r.seedRank]));
-    const values = Prisma.join(
-      out.poolStats.map(
-        (s) =>
-          Prisma.sql`(${s.playerId}::int, ${s.wins}::int, ${s.losses}::int, ${s.touchesScored}::int, ${s.touchesReceived}::int, ${s.indicator}::int, ${rankOf.get(s.playerId) ?? 0}::int)`,
-      ),
-    );
-    await tx.$executeRaw`
-      UPDATE "TournamentParticipant" AS p
-      SET "wins" = v.w, "losses" = v.l, "touchesScored" = v.ts, "touchesReceived" = v.tr, "indicator" = v.ind, "seedRank" = v.sr, "seed" = v.sr
-      FROM (VALUES ${values}) AS v(pid, w, l, ts, tr, ind, sr)
-      WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
+    for (const s of out.poolStats) {
+      const sr = rankOf.get(s.playerId) ?? 0;
+      await tx.tournamentParticipant.updateMany({
+        where: { tournamentId: tid, playerId: s.playerId },
+        data: {
+          wins: s.wins,
+          losses: s.losses,
+          touchesScored: s.touchesScored,
+          touchesReceived: s.touchesReceived,
+          indicator: s.indicator,
+          seedRank: sr,
+          seed: sr,
+        },
+      });
+    }
   }
   if (out.created.length && t.startsAt) {
     const size = 2 ** Math.max(...out.created.map((m) => m.roundNo)); // tur sayısı → tablo boyutu
@@ -400,20 +407,20 @@ async function writeStepOutcome(
     });
   }
   if (out.filled.length) {
-    const values = Prisma.join(out.filled.map((f) => Prisma.sql`(${f.seed}::text, ${f.aId}::int, ${f.bId}::int)`));
-    await tx.$executeRaw`
-      UPDATE "Match" AS m
-      SET "playerAId" = v.a, "playerBId" = v.b
-      FROM (VALUES ${values}) AS v(seed, a, b)
-      WHERE m."tournamentId" = ${tid} AND m."seed" = v.seed AND m."status" = 'PENDING'`;
+    for (const f of out.filled) {
+      await tx.match.updateMany({
+        where: { tournamentId: tid, seed: f.seed, status: "PENDING" },
+        data: { playerAId: f.aId, playerBId: f.bId },
+      });
+    }
   }
   if (out.standings) {
-    const values = Prisma.join(out.standings.map((s) => Prisma.sql`(${s.playerId}::int, ${s.position}::int)`));
-    await tx.$executeRaw`
-      UPDATE "TournamentParticipant" AS p
-      SET "finalPosition" = v.pos
-      FROM (VALUES ${values}) AS v(pid, pos)
-      WHERE p."tournamentId" = ${tid} AND p."playerId" = v.pid`;
+    for (const s of out.standings) {
+      await tx.tournamentParticipant.updateMany({
+        where: { tournamentId: tid, playerId: s.playerId },
+        data: { finalPosition: s.position },
+      });
+    }
   }
 }
 
@@ -434,13 +441,12 @@ async function applyLiveEffectsTx(
   const parts = await tx.tournamentParticipant.findMany({ where: { tournamentId: t.id } });
   const posOf = new Map(standings.map((s) => [s.playerId, s.position]));
 
-  const fatigueValues = Prisma.join(
-    parts.map((p) => Prisma.sql`(${p.playerId}::int, ${clamp(p.fatigue ?? 0, 0, 100)}::float8)`),
-  );
-  await tx.$executeRaw`
-    UPDATE "Player" AS pl SET "fatigue" = v.f, "updatedAt" = NOW()
-    FROM (VALUES ${fatigueValues}) AS v(pid, f)
-    WHERE pl."id" = v.pid`;
+  for (const p of parts) {
+    await tx.player.update({
+      where: { id: p.playerId },
+      data: { fatigue: clamp(p.fatigue ?? 0, 0, 100), updatedAt: new Date() },
+    });
+  }
 
   const humanParts = parts.filter((p) => (JSON.parse(p.snapshot ?? "{}") as { human?: boolean }).human);
   const humans = await tx.player.findMany({ where: { id: { in: humanParts.map((p) => p.playerId) } } });
@@ -483,11 +489,12 @@ async function applyLiveEffectsTx(
   const rankRows = await tx.ranking.findMany({ where: { categoryId: t.categoryId, quarter: t.quarter } });
   const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
   if (ranked.length) {
-    const values = Prisma.join(ranked.map((r) => Prisma.sql`(${r.playerId}::int, ${r.position}::int)`));
-    await tx.$executeRaw`
-      UPDATE "Ranking" AS r SET "position" = v.pos, "updatedAt" = NOW()
-      FROM (VALUES ${values}) AS v(pid, pos)
-      WHERE r."playerId" = v.pid AND r."categoryId" = ${t.categoryId} AND r."quarter" = ${t.quarter}`;
+    for (const r of ranked) {
+      await tx.ranking.updateMany({
+        where: { playerId: r.playerId, categoryId: t.categoryId, quarter: t.quarter },
+        data: { position: r.position, updatedAt: new Date() },
+      });
+    }
   }
   const newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
 
