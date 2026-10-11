@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi/Düzeltildi (11.10 — turnuva şehir adları + gün etiketi düzeltmesi (playtest))
+- **Turnuvalarda şehir adı:** **İl** turnuvası artık oyuncunun ŞEHRİNİ gösterir ("U10 **Kocaeli** Şampiyonası" —
+  "İl" yerine). **Türkiye/Open/Satellite/Grand Prix** turnuvaları o güne göre **deterministik ev sahibi şehir**
+  alır ("U10 Türkiye Şampiyonası **· İstanbul**"); herkes aynı şehri görür. Sıradaki kart, yaklaşanlar listesi ve
+  sonuç/geçmiş başlıkları şehirli.
+- **Düzeltme:** `dayOfWeek` negatif-güvenli yapıldı (dev'de kısa dünya saati sınırında 7-gün şeridi "dayShort.-1"
+  gösterebiliyordu; prod'da olmazdı ama savunmacı düzeltme).
+
 ### Düzeltildi/Değişti (11.10 — renklendirme + sadeleştirme (playtest))
 - **Hata düzeltme:** turnuva seviye rengi (`levelColor`) client modülündeydi, sunucu bileşeni çağırınca Turnuvalar
   sayfası hata veriyordu → saf fonksiyon ayrı `levelColor.ts`'e taşındı (hem sunucu hem istemci kullanır).

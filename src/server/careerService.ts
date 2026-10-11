@@ -103,8 +103,33 @@ function localizeRound(locale: Locale, round: string): string {
 }
 
 /** Turnuva görünen adını dile göre kurar (kalıcı TR ada bağlı kalmaz). */
-function tournamentDisplayName(locale: Locale, ageCategory: string, level: TournamentLevel): string {
-  return `${ageCategory} ${t(locale, `tournament.${level}`)}`;
+/** Turnuva ev sahibi şehri (kullanıcı 11.10): İl/Open = oyuncunun KENDİ şehri (yerel); Türkiye+ = o güne göre
+ * DETERMİNİSTİK rastgele TR şehri (herkes aynı görür — "İstanbul'da Türkiye Şampiyonası"). Uluslararası (Avrupa/
+ * Dünya) şimdilik şehirsiz. */
+function tournamentHostCity(level: TournamentLevel, worldDay: number, playerCity: string): string | null {
+  if (level === "IL") return playerCity || null; // İl = oyuncunun kendi şehri (şehir-kapsamlı)
+  if (level === "TURKIYE" || level === "OPEN" || level === "SATELLITE" || level === "GRAND_PRIX") {
+    return createRng(`host:${level}:${worldDay}`).pick([...TR_CITIES]); // o güne göre deterministik ev sahibi
+  }
+  return null; // EUROPEAN / WORLD_CUP — şimdilik şehirsiz
+}
+
+/** scopeKey'den (İl'de "IL:TR#Şehir:…") + worldDay'den ev sahibi şehir — sonuç/geçmiş sayfaları için (oyuncunun
+ * şehrini ayrıca sorgulamadan). İl'de scopeKey'deki şehir, diğerlerinde deterministik. */
+function tournamentHostFrom(level: TournamentLevel, worldDay: number, scopeKey: string | null): string | null {
+  if (level === "IL") {
+    const geo = scopeKey?.split(":")[1] ?? "";
+    return geo.includes("#") ? geo.split("#")[1] : null;
+  }
+  return tournamentHostCity(level, worldDay, "");
+}
+
+/** Turnuva görünen adı: İl'de şehir adı "İl"in YERİNE geçer ("U10 Kocaeli Şampiyonası"); Türkiye+'da seviye adı +
+ * "· ev sahibi şehir" ("U10 Türkiye Şampiyonası · İstanbul"); şehirsizlerde yalnız seviye. */
+function tournamentDisplayName(locale: Locale, ageCategory: string, level: TournamentLevel, host: string | null = null): string {
+  if (level === "IL" && host) return `${ageCategory} ${host} ${t(locale, "tournament.cityChamp")}`;
+  const base = `${ageCategory} ${t(locale, `tournament.${level}`)}`;
+  return host ? `${base} · ${host}` : base;
 }
 import {
   COMPETITION_SHARPNESS_GAIN,
@@ -841,6 +866,7 @@ function findNextTournament(
   humanRank: number | null,
   injured: boolean,
   locale: Locale,
+  city: string,
 ): NextTournamentDTO | null {
   const cfg = worldClockConfig();
   for (let d = worldDay; d <= worldDay + 14; d++) {
@@ -850,7 +876,7 @@ function findNextTournament(
     if (!levelAllowedForCategory(act.level, id.ageCategory)) continue; // uluslararası yalnız U17+
     return {
       level: act.level,
-      label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
+      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, city)),
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       startMs: worldEventStartMs(d, cfg), // turnuva o günün 18:00 GMT'sinde başlar
       daysUntil: d - worldDay,
@@ -950,7 +976,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     canAttend,
     needsSync,
     caughtUp: !arrived,
-    nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale),
+    nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale, human.club?.city ?? ""),
   };
 }
 
@@ -963,7 +989,7 @@ export async function getNextTournament(): Promise<NextTournamentDTO | null> {
   const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale);
+  return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale, human.club?.city ?? "");
 }
 
 /** Haftalık antrenman planını kaydeder (sabit "İlerle" çubuğu bunu uygular). */
@@ -1030,7 +1056,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
     out.push({
       worldDay: d,
       level: act.level,
-      label: `${id.ageCategory} ${t(locale, `tournament.${act.level}`)}`,
+      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, human.club?.city ?? "")),
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
@@ -1692,7 +1718,12 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
     .sort((a, b) => b.tournament.date.getTime() - a.tournament.date.getTime())
     .map((e) => ({
       id: e.tournamentId,
-      name: tournamentDisplayName(locale, e.tournament.categoryId.split("-")[0], e.tournament.level as TournamentLevel),
+      name: tournamentDisplayName(
+        locale,
+        e.tournament.categoryId.split("-")[0],
+        e.tournament.level as TournamentLevel,
+        tournamentHostFrom(e.tournament.level as TournamentLevel, e.tournament.worldDay ?? 0, e.tournament.scopeKey),
+      ),
       level: t(locale, `tournament.${e.tournament.level}`),
       levelCode: e.tournament.level,
       categoryId: e.tournament.categoryId,
@@ -1873,7 +1904,12 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
 
   return {
     tournamentId: tourn.id,
-    name: tournamentDisplayName(locale, tourn.categoryId.split("-")[0], tourn.level as TournamentLevel),
+    name: tournamentDisplayName(
+      locale,
+      tourn.categoryId.split("-")[0],
+      tourn.level as TournamentLevel,
+      tournamentHostFrom(tourn.level as TournamentLevel, tourn.worldDay ?? 0, tourn.scopeKey),
+    ),
     level: t(locale, `tournament.${tourn.level}`),
     categoryId: tourn.categoryId,
     dateLabel,

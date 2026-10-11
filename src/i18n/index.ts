@@ -208,6 +208,7 @@ const TR: Dict = {
   "profile.TACTICAL": "Taktik",
   // Turnuva seviyeleri
   "tournament.IL": "İl Şampiyonası",
+  "tournament.cityChamp": "Şampiyonası",
   "tournament.OPEN": "Open Turnuva",
   "tournament.TURKIYE": "Türkiye Şampiyonası",
   "tournament.SATELLITE": "Satellite",
@@ -817,6 +818,7 @@ const EN: Dict = {
   "profile.MENTAL": "Mental",
   "profile.TACTICAL": "Tactical",
   "tournament.IL": "Provincial Champ.",
+  "tournament.cityChamp": "Championship",
   "tournament.OPEN": "Open",
   "tournament.TURKIYE": "National Champ.",
   "tournament.SATELLITE": "Satellite",
@@ -1410,6 +1412,7 @@ const DE: Dict = {
   "profile.MENTAL": "Mental",
   "profile.TACTICAL": "Taktisch",
   "tournament.IL": "Stadtmeisterschaft",
+  "tournament.cityChamp": "Meisterschaft",
   "tournament.OPEN": "Open-Turnier",
   "tournament.TURKIYE": "Türkei-Meisterschaft",
   "tournament.SATELLITE": "Satellite",

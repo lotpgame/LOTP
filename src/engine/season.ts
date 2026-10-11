@@ -34,9 +34,10 @@ export function monthOfQuarter(dayIndex: number): number {
   return Math.floor((dayIndex % DAYS_PER_QUARTER) / DAYS_PER_MONTH) + 1;
 }
 
-/** Ay içindeki gün (0 = Pazartesi … 6 = Pazar). */
+/** Ay içindeki gün (0 = Pazartesi … 6 = Pazar). Negatif-güvenli: JS'te negatif modulo negatif döner
+ * (dev'de kısa dünya saati sınırında dayIndex anlık negatif olup "dayShort.-1" verebiliyordu). */
 export function dayOfWeek(dayIndex: number): number {
-  return dayIndex % DAYS_PER_MONTH;
+  return ((dayIndex % DAYS_PER_MONTH) + DAYS_PER_MONTH) % DAYS_PER_MONTH;
 }
 
 /** Gün adı (Türkçe). */
