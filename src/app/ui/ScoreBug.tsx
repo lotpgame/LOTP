@@ -15,7 +15,6 @@ export function ScoreBug({
   scoreL,
   scoreR,
   youSide,
-  youLabel,
   flash,
   hitFx = false,
   white,
@@ -27,7 +26,6 @@ export function ScoreBug({
   scoreL: number;
   scoreR: number;
   youSide?: "left" | "right";
-  youLabel?: string;
   flash?: "left" | "right" | "both";
   hitFx?: boolean;
   white?: { side: "left" | "right"; key: number };
@@ -39,9 +37,13 @@ export function ScoreBug({
 
   const side = (name: string, where: "left" | "right") => {
     const red = where === "left";
+    const you = youSide === where;
     return (
       <div className={`min-w-0 border-t-[3px] px-3 pt-2 pb-2.5 ${red ? "border-sig-red" : "border-sig-green text-right"}`}>
-        <div className="truncate font-display text-[16px] font-bold uppercase leading-tight tracking-wide">{name}</div>
+        {/* Kendi adın "SEN" yazısı yerine SENİN RENGİNLE (--me) ayırt edilir — klasmanla tutarlı (kullanıcı 11.10). */}
+        <div className={`truncate font-display text-[16px] font-bold uppercase leading-tight tracking-wide ${you ? "text-[color:var(--me)]" : ""}`}>
+          {name}
+        </div>
         <div className={`mt-1.5 flex items-center gap-1.5 ${red ? "" : "justify-end"}`}>
           <span
             key={hit(where) ? `f-${touch}` : "idle"}
@@ -50,9 +52,6 @@ export function ScoreBug({
             }`}
             aria-hidden="true"
           />
-          {youSide === where && youLabel && (
-            <span className="rounded-[4px] border border-console-line px-1 text-[11px] font-semibold leading-4 tracking-wider">{youLabel}</span>
-          )}
           {white?.side === where && (
             <span
               key={`w-${white.key}`}

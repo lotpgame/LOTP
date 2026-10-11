@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (11.10 — antrenman renk + klasman ilk 4 + maçta "SEN" yazısı → renk (playtest))
+- **Antrenman sayfası** kondisyon/form çubukları da trafik lambası renginde (kırmızı/sarı/yeşil).
+- **Klasman:** milli takım belirteci **ilk 3 → ilk 4** (3 asil değil; ilk 4 milli takım + Avrupa maçlarına gider) → altın kenar.
+- **Maç skor bandında "SEN" yazısı kaldırıldı:** kendi adın **senin rengin (--me)** ile vurgulanır (klasmanla tutarlı,
+  "colored font" kuralı). `youLabel` prop'u tüm ScoreBug çağrılarından temizlendi.
+
 ### Eklendi/Düzeltildi (11.10 — turnuva şehir adları + gün etiketi düzeltmesi (playtest))
 - **Turnuvalarda şehir adı:** **İl** turnuvası artık oyuncunun ŞEHRİNİ gösterir ("U10 **Kocaeli** Şampiyonası" —
   "İl" yerine). **Türkiye/Open/Satellite/Grand Prix** turnuvaları o güne göre **deterministik ev sahibi şehir**

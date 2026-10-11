@@ -178,7 +178,8 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
       </div>
       <ol>
         {rows.map((r) => {
-          const edge = r.isHuman ? "bg-me" : r.position === 1 ? "bg-prio" : r.position <= 3 ? "bg-steel" : "";
+          // İlk 4 = milli takım (+ Avrupa maçlarına gidecekler) → altın kenar; kendi satırın kırmızı.
+          const edge = r.isHuman ? "bg-me" : r.position <= 4 ? "bg-prio" : "";
           return (
             <li
               key={r.playerId}

@@ -147,7 +147,6 @@ export function CanliMac({
           scoreL={s?.a ?? 0}
           scoreR={s?.b ?? 0}
           youSide={youSide}
-          youLabel={t(locale, "live.you")}
           flash={started && !done ? scoringSide(log, revealed) : undefined}
           white={started && !done ? whiteLampSide(log, revealed, aName, bName) : undefined}
           hitFx

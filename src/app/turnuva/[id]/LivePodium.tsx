@@ -173,7 +173,6 @@ export function LivePodium({
               scoreL={prepBug.sl}
               scoreR={prepBug.sr}
               youSide={prepBug.youSide}
-              youLabel={t(locale, "live.you")}
               band={{ label: `${you.nextMatch.round} · ${prepTitle}` }}
             />
           ) : (
