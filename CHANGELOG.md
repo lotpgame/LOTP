@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi/Değişti (11.10 — eleme çatalı yenileme + maç anlatımı eskrim terimleri + periyot işaretleri (playtest))
+- **Eleme çatalı yenilendi (#55):** her maç temiz bir kart — **kazanan kalın/net, kaybeden soluk**; SENİN maçların
+  `--me` ile vurgulu (yolunu turlar boyunca izlersin); finalin kazananı **kupa (şampiyon)**. Bay (bye) tabloyu
+  ikili-ağaç yapmadığı için sıkı bağlantı çizgisi yerine kart vurgusu (mobil-dostu, bay'a dayanıklı). Ayrı `Bracket` bileşeni.
+- **Maç anlatımı EskRİM TERİMLERİYLE zenginleşti:** havuz çok genişletildi (bate/çelme, dégajé, parat-riposta, feint,
+  flèche, coupé, appel, angulation, prise-de-fer, point-in-line, arrêt…). **Paratlar numaralı:** flöre/epe **4/6/7/8**
+  (quarte/sixte/septime/octave), **kılıç 5 (quinte, baş) + 3 (tierce)**. **U10'a da 2 zamanlı** eklendi (bate/dégajé/parat-riposta
+  çocuk maçlarında da çıkar; 3-4'lü uzun diziler U10'da yok). Test yeni kurala göre güncellendi.
+- **Periyot işaretleri (#52):** eleme log'unda **"N. Periyot başladı"** (başlık) + **"⏸ N. periyot bitti — X–Y"** satırı.
+
 ### Değişti (11.10 — hazırlıkta maçtaki gibi lambalı skor bandı (playtest))
 - **HAZIRLIK (podyum) artık ScoreBug gösterir** (maçtaki gibi kırmızı/yeşil lambalı bant): yeni maçta **adın (sol/kırmızı,
   SEN) 0–0 rakip (sağ/yeşil)**, bantta "{tur} · Maç başlıyor"; devre arasında o ana dek skor + "N. periyot başlıyor".

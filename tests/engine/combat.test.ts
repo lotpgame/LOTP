@@ -22,7 +22,10 @@ function combatant(id: number, name: string, current: number, fatigue = 0): Comb
 }
 
 // Çok-zamanlı (feint/parat/çelme…) aksiyonları işaret eden anahtar kelimeler.
-const MULTI_TEMPO = /feint|parat|çelme|degaje|angulation|prise|remise|kombinasyon|zinciriyle/i;
+// 2+ zamanlı (compound) aksiyon izleri — bate/dégajé/parat-riposta/feint vb.
+const MULTI_TEMPO = /feint|parat|çelme|bate|degaje|dégajé|riposta|angulation|prise|remise|coupé|appel|kombinasyon|zinciriyle/i;
+// Yalnız UZUN (3-4 zamanlı) dizilere özgü ibareler — U10/U12'de çıkmamalı.
+const LONG_COMBO = /zinciriyle|kombinasyon|uzun bir (aksiyon|hazırlık)|çift (feint|dégajé|bate|parat)|iki tempolu|feint–feint/i;
 
 function catCombatant(id: number, name: string, cat: AgeCategory, weapon: Combatant["weapon"] = "EPEE"): Combatant {
   return { id, name, weapon, skills: flatSkills(60), fatigue: 0, ageCategory: cat };
@@ -76,13 +79,15 @@ describe("Combat Engine", () => {
     expect(strongWins).toBeGreaterThan(n * 0.9);
   });
 
-  it("U10 sadece tek zamanlı atak anlatır (çift/çok zamanlı yok)", () => {
-    // GDD 18.9 + kullanıcı kuralı: U10'da çift zamanlı atak yok.
+  it("U10'da basit bate/dégajé/parat-riposta çıkar ama UZUN (3-4 zamanlı) diziler çıkmaz (11.10 kullanıcı kuralı)", () => {
+    let anyCompound = false;
     for (let i = 0; i < 20; i++) {
       const r = simulateMatch(catCombatant(1, "A", "U10"), catCombatant(2, "B", "U10"), createRng(`u10-${i}`), MATCH_FORMATS.DE);
       const touchLines = r.log.filter((l) => /\d+–\d+/.test(l));
-      expect(touchLines.some((l) => MULTI_TEMPO.test(l))).toBe(false);
+      expect(touchLines.some((l) => LONG_COMBO.test(l))).toBe(false); // 3-4 zamanlı uzun dizi yok
+      if (touchLines.some((l) => MULTI_TEMPO.test(l))) anyCompound = true;
     }
+    expect(anyCompound).toBe(true); // ama 2 zamanlı (bate/dégajé/parat-riposta) görülür
   });
 
   it("Senior maçlarında çok zamanlı ataklar görülür", () => {

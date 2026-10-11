@@ -3,6 +3,7 @@ import { leaveTournamentAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getTournament, type TournamentResultDTO } from "@/server/careerService";
+import { Bracket } from "./Bracket";
 import { CanliMac } from "./CanliMac";
 import { LiveAutoRefresh } from "./LiveAutoRefresh";
 import { LivePodium, LiveStatusBadge, type PodiumMatch } from "./LivePodium";
@@ -178,86 +179,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
     ) : null;
 
   const bracket = (
-    <details open className="panel group">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
-        <Icon name="trophy" size={18} className="text-steel" />
-        <span className="flex-1 font-display text-[16px] font-semibold">{t(locale, "canli.bracket")}</span>
-        <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="snap-x snap-proximity overflow-x-auto px-4 pb-4">
-        <div className="flex min-w-max gap-3">
-          {deRounds.map((round) => (
-            <div key={round} className="flex min-w-[150px] shrink-0 snap-start flex-col justify-around gap-3">
-              <h3 className="text-center kicker">{round}</h3>
-              {tour.matches
-                .filter((m) => m.phase === "DE" && m.round === round)
-                .map((m, i) => {
-                  if (m.isPending) {
-                    if (m.aName && m.bName) {
-                      const mineNext = m.aIsHuman || m.bIsHuman;
-                      return (
-                        <div
-                          key={i}
-                          className={`rounded-md border border-dashed p-2.5 text-[13px] text-steel ${
-                            mineNext ? "border-l-2 border-l-me border-line" : "border-line"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="truncate">{m.aName}</span>
-                            <Icon name="lock" size={13} className="shrink-0" />
-                          </div>
-                          <div className="mt-0.5 truncate">{m.bName}</div>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={i} className="flex items-center gap-1.5 rounded-md border border-line p-2.5 text-[13px] text-steel">
-                        <Icon name="lock" size={14} className="shrink-0" />
-                        {t(locale, "idp.pending")}
-                      </div>
-                    );
-                  }
-                  // SPOILER önlemi: podyumda ŞU AN oynanan (çözülmüş ama animasyonu bitmemiş) maçın skoru çatalda da gizli → "oynanıyor".
-                  if (podiumPlaying && m === currentLive) {
-                    const mineNow = m.aIsHuman || m.bIsHuman;
-                    return (
-                      <div
-                        key={i}
-                        className={`rounded-md border border-dashed p-2.5 text-[13px] text-steel ${mineNow ? "border-l-2 border-l-me border-line" : "border-line"}`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate">{m.aName}</span>
-                          <span className="lamp lamp-red anim-live h-2 w-2 shrink-0" aria-hidden="true" />
-                        </div>
-                        <div className="mt-0.5 truncate">{m.bName}</div>
-                      </div>
-                    );
-                  }
-                  const aWon = m.scoreA! >= m.scoreB!;
-                  const mine = m.aIsHuman || m.bIsHuman;
-                  return (
-                    <div
-                      key={i}
-                      className={`rounded-md border p-2.5 text-[13px] ${
-                        mine ? "border-line border-l-2 border-l-me bg-arena-1" : "border-line"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`truncate ${aWon ? "font-semibold" : "text-steel"}`}>{m.aName}</span>
-                        <span className="num">{m.scoreA}</span>
-                      </div>
-                      <div className="mt-0.5 flex items-center justify-between gap-2">
-                        <span className={`truncate ${!aWon ? "font-semibold" : "text-steel"}`}>{m.bName}</span>
-                        <span className="num">{m.scoreB}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ))}
-        </div>
-      </div>
-    </details>
+    <Bracket matches={tour.matches} deRounds={deRounds} locale={locale} currentLive={currentLive} podiumPlaying={podiumPlaying} />
   );
 
   const poolSheets =

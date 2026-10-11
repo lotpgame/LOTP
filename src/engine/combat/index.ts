@@ -117,42 +117,187 @@ type Tempo = 1 | 2 | 3 | 4;
 const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, string[]>>> = {
   tr: {
     FOIL: {
-      1: ["basit hücumla göğse dokundu", "doğrudan atakla açığı buldu", "hızlı bir flèche ile öne atıldı", "temiz bir uzanışla tuşu aldı"],
-      2: ["çelme–hücum (beat-atak) ile açığı buldu", "parat–riposta ile sayıyı aldı", "feint sonrası hattı değiştirip (degaje) vurdu", "hazırlık–hücum ikilisiyle dokundu"],
-      3: ["feint–feint–hücumla savunmayı çözdü", "parat–riposta–remise zinciriyle tuşu aldı", "çift degaje sonrası hücumu bağladı"],
-      4: ["feint–degaje–feint–hücum kombinasyonuyla açığı buldu", "uzun bir aksiyon dizisinin sonunda tuşu kopardı"],
+      1: [
+        "basit bir hücumla göğse dokundu",
+        "doğrudan atakla açığı buldu",
+        "hızlı bir flèche ile öne atılıp vurdu",
+        "temiz bir uzanışla göğsü buldu",
+        "mesafeyi kapatıp basit hücumla sayıyı aldı",
+        "fente (hamle) içinde uzanışla dokundu",
+        "tek tempolu atakla hattı açıp sayı buldu",
+      ],
+      2: [
+        "bate (çelme) sonrası hücumla açığı buldu",
+        "parad dört (quarte) ile durdurup riposta yaptı",
+        "parad altı (sixte) sonrası riposta ile sayıyı aldı",
+        "feint sonrası dégajé ile hattı değiştirip güzel bir hamleyle bitirdi",
+        "hazırlık–hücum ikilisiyle göğse dokundu",
+        "appel sonrası flèche ile patlayıp sayı buldu",
+        "coupé (çaprazlama) ile açığı bulup dokundu",
+        "bate–dégajé ile savunmayı aşıp vurdu",
+        "parad yedi (septime) ile savunup riposta ile vurdu",
+      ],
+      3: [
+        "feint–feint–hücumla savunmayı çözdü",
+        "parat–riposta–remise zinciriyle sayıyı aldı",
+        "çift dégajé sonrası hücumu bağlayıp vurdu",
+        "bate–feint–dégajé ile açığı büyütüp dokundu",
+      ],
+      4: [
+        "feint–dégajé–feint–hücum kombinasyonuyla açığı buldu",
+        "uzun bir aksiyon dizisinin sonunda tuşu kopardı",
+        "çift parat–riposta sonrası remise ile bitirdi",
+      ],
     },
     EPEE: {
-      1: ["öne çıkan bileğe ani vuruş yaptı", "el üstüne kısa dokunuşla sayı aldı", "basit bir uzanışla açığı buldu", "karşı atakla dize/ayağa dokundu"],
-      2: ["çelme sonrası bileği buldu (beat-atak)", "feint sonrası açı vererek (angulation) dokundu", "hazırlık–hücum ile gövdeye tuş buldu", "point-in-line tehdidiyle hattı değiştirip vurdu"],
-      3: ["çift feint sonrası bileği yakaladı", "prise-de-fer sonrası açıya dokundu", "iki tempo hazırlıkla açığı büyütüp vurdu"],
-      4: ["uzun bir kombinasyonun sonunda açığı buldu", "feint–feint–açı–hücumla tuşu kopardı"],
+      1: [
+        "öne çıkan bileğe ani bir vuruş yerleştirdi",
+        "el üstüne kısa ve temiz bir dokunuşla sayıyı aldı",
+        "basit bir uzanışla (extension) açığı buldu",
+        "karşı atakla (kontra) bileği yakaladı",
+        "point-in-line tutup rakibin hamlesine sayı buldu",
+        "mesafeyi iyi ayarlayıp bileğe tek dokunuş yaptı",
+        "ön kola hızlı bir arrêt (stop-hit) ile değdi",
+        "soğukkanlı bir uzanışla ön kolu buldu",
+        "bacağa/dize alçalan bir dokunuşla sayı aldı",
+      ],
+      2: [
+        "bate (çelme) sonrası bileğe uzanışla tuş aldı",
+        "bate–dégajé ile hattı değiştirip güzel bir hamleyle bitirdi",
+        "feint sonrası açı vererek (angulation) el üstüne dokundu",
+        "hazırlık–hücum ikilisiyle gövdeye sayı buldu",
+        "point-in-line tehdidini gösterip hattı değiştirerek vurdu",
+        "fente içinde dégajé ile açığı buldu",
+        "prise-de-fer ile bileği kontrol edip dokundu",
+        "parad altı (sixte) ile durdurup bileğe riposta yaptı",
+        "parad sekiz (octave) sonrası riposta ile el üstüne dokundu",
+      ],
+      3: [
+        "çift feint sonrası bileği yakaladı",
+        "prise-de-fer (lige) sonrası açıya temiz bir dokunuş yaptı",
+        "iki tempolu hazırlıkla açığı büyütüp vurdu",
+        "bate–dégajé–hücum zinciriyle sayıyı kopardı",
+      ],
+      4: [
+        "uzun bir hazırlık dizisinin sonunda açığı buldu",
+        "feint–dégajé–açı–hücum kombinasyonuyla tuşu kopardı",
+        "çift bate sonrası açı verip bileği buldu",
+      ],
     },
     SABRE: {
-      1: ["baş kesmeyle (tête) sayıyı aldı", "hızlı bir hücumla öne çıktı", "flèche ile patlayıp dokundu", "reaksiyon hızıyla ilk dokunan oldu"],
-      2: ["çelme–baş kesme (beat-atak) ile vurdu", "parat–riposta ile sayıyı aldı", "yanağa dönüp (change) kesişi tamamladı", "feint sonrası flank kesişiyle dokundu"],
-      3: ["çift feint sonrası baş kesmeyi bağladı", "parat–riposta–karşı kesme zinciriyle tuşu aldı", "iki tempolu hazırlıkla açığı bulup kesti"],
-      4: ["uzun bir aksiyon dizisiyle savunmayı çözüp kesti", "feint–feint–flank–baş kesme kombinasyonuyla vurdu"],
+      1: [
+        "baş kesmeyle (tête) sayıyı aldı",
+        "hızlı bir hücumla öne çıkıp kesti",
+        "flèche ile patlayıp baş kesişi yaptı",
+        "reaksiyon hızıyla ilk dokunan oldu",
+        "yanağa (joue) temiz bir kesişle sayı buldu",
+        "mesafeyi kapatıp kola kesiş yaptı",
+      ],
+      2: [
+        "bate–baş kesme (beat-atak) ile vurdu",
+        "parad beş (quinte) ile başı koruyup riposta kesişi yaptı",
+        "parad üç (tierce) sonrası riposta ile yanağa kesti",
+        "yanağa dönüp (change) kesişi tamamladı",
+        "feint sonrası flank (yan) kesişiyle dokundu",
+        "appel–flèche ile patlayıp başı kesti",
+        "bate sonrası dönüşle güzel bir kesiş yaptı",
+      ],
+      3: [
+        "çift feint sonrası baş kesmeyi bağladı",
+        "parat–riposta–karşı kesme zinciriyle sayıyı aldı",
+        "iki tempolu hazırlıkla açığı bulup kesti",
+      ],
+      4: [
+        "uzun bir aksiyon dizisiyle savunmayı çözüp kesti",
+        "feint–feint–flank–baş kesme kombinasyonuyla vurdu",
+      ],
     },
   },
   en: {
     FOIL: {
-      1: ["scored with a simple attack to the chest", "found the opening with a direct attack", "sprang in with a quick flèche", "landed a clean extension"],
-      2: ["found the opening with a beat-attack", "took the point with a parry–riposte", "disengaged after a feint and hit", "scored on a preparation–attack combo"],
-      3: ["broke the defense with feint–feint–attack", "scored with a parry–riposte–remise chain", "bound the attack after a double disengage"],
-      4: ["found the opening with a feint–disengage–feint–attack combo", "tore off the touch after a long sequence"],
+      1: [
+        "scored with a simple attack to the chest",
+        "found the opening with a direct attack",
+        "sprang in with a quick flèche",
+        "landed a clean extension to the chest",
+        "closed distance and scored with a simple attack",
+        "hit inside a lunge with a clean extension",
+      ],
+      2: [
+        "found the opening with a beat-attack",
+        "took the point with a parry–riposte",
+        "disengaged after a feint and finished nicely",
+        "scored on a preparation–attack combo",
+        "exploded in with an appel–flèche",
+        "found the line with a coupé (cutover)",
+        "beat–disengaged past the defense and hit",
+      ],
+      3: [
+        "broke the defense with feint–feint–attack",
+        "scored with a parry–riposte–remise chain",
+        "bound the attack after a double disengage",
+      ],
+      4: [
+        "found the opening with a feint–disengage–feint–attack combo",
+        "tore off the touch after a long sequence",
+      ],
     },
     EPEE: {
-      1: ["snapped a hit to the advancing wrist", "scored with a short touch to the hand", "found the opening with a simple extension", "counter-attacked to the knee/foot"],
-      2: ["found the wrist after a beat-attack", "gave angulation after a feint and hit", "scored to the body with a preparation–attack", "threatened point-in-line, changed line and hit"],
-      3: ["caught the wrist after a double feint", "touched the opening after a prise-de-fer", "widened the gap with a two-tempo preparation and hit"],
-      4: ["found the opening at the end of a long combination", "tore off the touch with feint–feint–angle–attack"],
+      1: [
+        "snapped a hit to the advancing wrist",
+        "scored with a short, clean touch to the hand",
+        "found the opening with a simple extension",
+        "counter-attacked to catch the wrist",
+        "held point-in-line and scored on the attack",
+        "placed a single touch to the wrist on good distance",
+        "landed an arrêt (stop-hit) to the forearm",
+        "dropped a touch to the knee/leg",
+      ],
+      2: [
+        "found the wrist with an extension after a beat",
+        "beat–disengaged, changed line and finished nicely",
+        "gave angulation after a feint and hit the hand",
+        "scored to the body with a preparation–attack",
+        "threatened point-in-line, changed line and hit",
+        "disengaged inside the lunge to find the opening",
+        "controlled the blade with a prise-de-fer and hit",
+      ],
+      3: [
+        "caught the wrist after a double feint",
+        "touched the opening after a prise-de-fer",
+        "widened the gap with a two-tempo preparation and hit",
+        "tore off the point with a beat–disengage–attack chain",
+      ],
+      4: [
+        "found the opening at the end of a long preparation",
+        "tore off the touch with feint–disengage–angle–attack",
+      ],
     },
     SABRE: {
-      1: ["scored with a head cut (tête)", "surged ahead with a quick attack", "burst in with a flèche and hit", "was first to land on pure reaction"],
-      2: ["hit with a beat–head cut", "took the point with a parry–riposte", "changed to the cheek and finished the cut", "cut to the flank after a feint"],
-      3: ["bound the head cut after a double feint", "scored with a parry–riposte–counter-cut chain", "found the opening with a two-tempo prep and cut"],
-      4: ["broke the defense and cut after a long sequence", "hit with a feint–feint–flank–head cut combo"],
+      1: [
+        "scored with a head cut (tête)",
+        "surged ahead with a quick attack and cut",
+        "burst in with a flèche to the head",
+        "was first to land on pure reaction",
+        "cut cleanly to the cheek (joue)",
+        "closed distance and cut to the arm",
+      ],
+      2: [
+        "hit with a beat–head cut",
+        "took the point with a parry–riposte",
+        "changed to the cheek and finished the cut",
+        "cut to the flank after a feint",
+        "exploded with an appel–flèche to the head",
+      ],
+      3: [
+        "bound the head cut after a double feint",
+        "scored with a parry–riposte–counter-cut chain",
+        "found the opening with a two-tempo prep and cut",
+      ],
+      4: [
+        "broke the defense and cut after a long sequence",
+        "hit with a feint–feint–flank–head cut combo",
+      ],
     },
   },
 };
@@ -162,8 +307,8 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
  * U10 sadece tek zamanlı; U12 %35 çift; üst kategorilerde 3–4 zamanlı da çıkar.
  */
 const TEMPO_MIX: Record<AgeCategory, Partial<Record<Tempo, number>>> = {
-  U10: { 1: 1 },
-  U12: { 1: 0.65, 2: 0.35 },
+  U10: { 1: 0.55, 2: 0.45 }, // U10'da da basit bate/dégajé/parat-riposta çıksın (11.10) — ama 3-4'lü uzun diziler yok
+  U12: { 1: 0.6, 2: 0.4 },
   U14: { 1: 0.5, 2: 0.38, 3: 0.12 },
   U17: { 1: 0.35, 2: 0.4, 3: 0.2, 4: 0.05 },
   U21: { 1: 0.28, 2: 0.42, 3: 0.22, 4: 0.08 },
@@ -688,8 +833,8 @@ export function advanceDeBoutPeriod(
   if (periodNo === 1 && pr.log.length > 0) log.push(pr.log[0]); // "Maç gücü …" satırı
   log.push(
     locale === "en"
-      ? `▸ Period ${periodNo} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`
-      : `▸ ${periodNo}. Periyot — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+      ? `▸ Period ${periodNo} started — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`
+      : `▸ ${periodNo}. Periyot başladı — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
   );
   log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
 
@@ -716,6 +861,15 @@ export function advanceDeBoutPeriod(
       winnerId = lb.winnerId;
     }
     decided = true;
+  }
+
+  // #52: periyot BİTTİ işareti — maç kapanmadıysa ve daha periyot varsa (başladı = yukarıdaki "▸ … Periyot" başlığı).
+  if (!decided && periodNo < periods) {
+    log.push(
+      locale === "en"
+        ? `⏸ End of period ${periodNo} — ${scoreA}-${scoreB}`
+        : `⏸ ${periodNo}. periyot bitti — ${scoreA}–${scoreB}`,
+    );
   }
 
   return { scoreA, scoreB, clockSec: pr.clockSec, periodsPlayed: periodNo, log, decided, winnerId };
