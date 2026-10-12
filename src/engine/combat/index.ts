@@ -321,7 +321,9 @@ const TEMPO_MIX: Record<AgeCategory, Partial<Record<Tempo, number>>> = {
  */
 const TOUCH_SECONDS: Record<Weapon, number> = { SABRE: 9, FOIL: 12, EPEE: 16 };
 const CATEGORY_TIME_FACTOR: Record<AgeCategory, number> = {
-  U10: 0.8,
+  // U10 (10 tuş / max 3 periyot): tuş temposu, DE maçlarının ~%28'i 3. periyoda gidecek şekilde ayarlı (11.10 ölçüm);
+  // çoğu maç 2 periyotta biter, yakın/önemli maçlar 3'e sarkar. Pul zaman-kutulu olmadığından (hep 5 tuş) etkilenmez.
+  U10: 1.45,
   U12: 0.95,
   U14: 1.05,
   U17: 1.12,

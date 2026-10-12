@@ -16,14 +16,14 @@ function Marks({ over }: { over: string }) {
   );
 }
 
-export function PisteRail({ value, max, className = "" }: { value: number; max: number; className?: string }) {
+export function PisteRail({ value, max, fill, className = "" }: { value: number; max: number; fill?: string; className?: string }) {
   const x = Math.max(0, Math.min(1, value / max)) * 140;
   return (
     <svg viewBox="0 0 140 6" preserveAspectRatio="none" className={`block h-1.5 w-full text-ink ${className}`} aria-hidden="true">
       <rect width="140" height="6" fill="var(--line)" />
       <rect width="20" height="6" fill="var(--prio)" fillOpacity=".18" />
       <rect x="120" width="20" height="6" fill="var(--prio)" fillOpacity=".18" />
-      <rect width={x} height="6" fill="currentColor" />
+      <rect width={x} height="6" fill={fill ?? "currentColor"} />
       <Marks over="var(--arena-0)" />
       {x > 0 && <rect x={Math.max(0, x - 1.5)} width="1.5" height="6" fill="var(--sig-red)" />}
     </svg>

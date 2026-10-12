@@ -198,10 +198,10 @@ export default async function BugunPage() {
             <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
           </summary>
           <div className="space-y-3 px-4 pb-4">
-            <StatBar label={t(locale, "profil.morale")} value={c.psychology.morale} />
-            <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} />
-            <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} />
-            <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} />
+            <StatBar label={t(locale, "profil.morale")} value={c.psychology.morale} tone="good" />
+            <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} tone="good" />
+            <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} tone="good" />
+            <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} tone="bad" />
             {c.traits.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {c.traits.map((tr) => (

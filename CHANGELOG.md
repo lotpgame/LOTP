@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (12.10 — psikoloji renk + U10 periyot dengesi (playtest))
+- **Psikoloji çubukları renklendi:** moral/motivasyon/özgüven **yüksek=yeşil** (trafik); **stres TERS** (yüksek=kırmızı).
+  (Başarı rozetleri zaten altın/gümüş/bronz renkliydi.)
+- **U10 3. periyot dengesi:** ölçümde U10 eleme maçları **%100 oranında 2 periyotta bitiyordu** (p3 hiç yok). Tuş
+  temposu ayarlandı (`CATEGORY_TIME_FACTOR` U10 0.8→1.45) → artık **~%28'i 3. periyoda** gidiyor; çoğu 2 periyot,
+  hepsi hâlâ 10 tuşa ulaşıyor. Pul zaman-kutulu olmadığından (hep 5 tuş) etkilenmez.
+
 ### Değişti (11.10 — antrenman renk + klasman ilk 4 + maçta "SEN" yazısı → renk (playtest))
 - **Antrenman sayfası** kondisyon/form çubukları da trafik lambası renginde (kırmızı/sarı/yeşil).
 - **Klasman:** milli takım belirteci **ilk 3 → ilk 4** (3 asil değil; ilk 4 milli takım + Avrupa maçlarına gider) → altın kenar.

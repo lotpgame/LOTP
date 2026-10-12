@@ -93,15 +93,24 @@ export function formState(locale: Locale, v: number): string {
   return t(locale, v >= 70 ? "state.sharp" : v >= 40 ? "state.average" : "state.rusty");
 }
 
-/** Yüzde değer + pist rayı (psikoloji). Stres de nötr ray — renk kötü/iyi demez. */
-export function StatBar({ label, value }: { label: string; value: number }) {
+/** Trafik rengi (psikoloji): `bad` ise yüksek değer KÖTÜ (stres → ters). Düşük kırmızı, orta sarı, yüksek yeşil. */
+function psychFill(value: number, bad: boolean): string {
+  const good = bad ? 100 - value : value;
+  if (good < 35) return "var(--sig-red)";
+  if (good < 70) return "#f59e0b"; // amber-500
+  return "var(--sig-green)";
+}
+
+/** Yüzde değer + pist rayı (psikoloji). `tone`: "good" = yüksek iyi (moral/motivasyon/özgüven); "bad" = yüksek
+ * kötü (stres → ters renk); verilmezse nötr (kullanıcı 11.10 renklendirme). */
+export function StatBar({ label, value, tone }: { label: string; value: number; tone?: "good" | "bad" }) {
   return (
     <div>
       <div className="flex items-baseline justify-between text-[14px]">
         <span>{label}</span>
         <span className="num text-[15px]">%{value.toFixed(0)}</span>
       </div>
-      <PisteRail value={value} max={100} className="mt-1.5" />
+      <PisteRail value={value} max={100} fill={tone ? psychFill(value, tone === "bad") : undefined} className="mt-1.5" />
     </div>
   );
 }
