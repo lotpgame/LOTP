@@ -62,13 +62,12 @@ export const PERIOD_SECONDS = 180;
 export const DE_PERIODS = 3;
 
 /**
- * Yaş kategorisine göre eleme maç formatı (FIE/USA Fencing gençler):
- * U10 → 10 tuş / EN ÇOK 3 periyot (1. periyot 5 tuşta biter); U12 ve üstü → 15 tuş / en çok 3 periyot.
- * `periods` = ÜST SINIR: maç tuş barajına (10/15) ulaşınca ERKEN biter (çoğu maç 2 periyotta); yakın/düşük tempolu
- * maçlar 3. periyoda gider (büyük yaşlarda daha sık — kullanıcı/koç kararı 11.10, NOTLAR). Havuz = 5 tuş / tek periyot.
+ * Yaş kategorisine göre eleme maç formatı (USA Fencing gençler SYC — doğrulandı 12.10):
+ * U10 (Y10) → 10 tuş / 2 periyot (1. periyot 3 dk veya 5 tuşta biter, sonra 10'a); U12 (Y12) ve üstü → 15 tuş / 3 periyot.
+ * `periods` = üst sınır: maç tuş barajına (10/15) ulaşınca erken biter. Havuz = 5 tuş / tek periyot.
  */
 export function deFormat(ageCategory?: string): { touches: number; periods: number } {
-  return ageCategory === "U10" ? { touches: 10, periods: 3 } : { touches: 15, periods: 3 };
+  return ageCategory === "U10" ? { touches: 10, periods: 2 } : { touches: 15, periods: 3 };
 }
 
 export interface MatchAnalysis {
@@ -321,9 +320,7 @@ const TEMPO_MIX: Record<AgeCategory, Partial<Record<Tempo, number>>> = {
  */
 const TOUCH_SECONDS: Record<Weapon, number> = { SABRE: 9, FOIL: 12, EPEE: 16 };
 const CATEGORY_TIME_FACTOR: Record<AgeCategory, number> = {
-  // U10 (10 tuş / max 3 periyot): tuş temposu, DE maçlarının ~%28'i 3. periyoda gidecek şekilde ayarlı (11.10 ölçüm);
-  // çoğu maç 2 periyotta biter, yakın/önemli maçlar 3'e sarkar. Pul zaman-kutulu olmadığından (hep 5 tuş) etkilenmez.
-  U10: 1.45,
+  U10: 0.8,
   U12: 0.95,
   U14: 1.05,
   U17: 1.12,

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (12.10 — U10 KURAL DÜZELTMESİ: 2 periyot (geri alındı))
+- **U10 eleme yeniden 2 PERİYOT** (10 tuş; 1. periyot 3 dk veya 5 tuşta biter, sonra 10'a) — USA Fencing gençler
+  (SYC) kuralıyla doğrulandı. Dünkü "U10 max 3 periyot + tempo ayarı" değişikliği **kurala aykırıydı, geri alındı**
+  (`deFormat` U10 3→2, `CATEGORY_TIME_FACTOR` U10 1.45→0.8). U12+ 15 tuş / 3 periyot zaten doğruydu — dokunulmadı.
+  (Eskrim terimli anlatım + periyot "başladı/bitti" işaretleri + zamanlama değişiklikleri KALDI — bağımsız.)
+
 ### Değişti (12.10 — psikoloji renk + U10 periyot dengesi (playtest))
 - **Psikoloji çubukları renklendi:** moral/motivasyon/özgüven **yüksek=yeşil** (trafik); **stres TERS** (yüksek=kırmızı).
   (Başarı rozetleri zaten altın/gümüş/bronz renkliydi.)

@@ -146,8 +146,8 @@ describe("Combat Engine", () => {
     expect(epeeP3).toBeGreaterThan(sabreP3); // epe daha çok 3. periyoda gider
   });
 
-  it("deFormat: U10 eleme 10 tuş/en çok 3 periyot, U12+ 15 tuş/en çok 3 periyot (baraja ulaşınca erken biter)", () => {
-    expect(deFormat("U10")).toEqual({ touches: 10, periods: 3 });
+  it("deFormat: U10 eleme 10 tuş/2 periyot, U12+ 15 tuş/3 periyot (USA Fencing gençler SYC)", () => {
+    expect(deFormat("U10")).toEqual({ touches: 10, periods: 2 });
     expect(deFormat("U12")).toEqual({ touches: 15, periods: 3 });
     expect(deFormat("SENIOR")).toEqual({ touches: 15, periods: 3 });
     expect(deFormat(undefined)).toEqual({ touches: 15, periods: 3 });

@@ -36,7 +36,8 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 > - **✅ #55 eleme çatalı yenilendi:** temiz kartlar, kazanan/senin yolun vurgulu, şampiyon kupa (`Bracket.tsx`); bay'a dayanıklı.
 > - **✅ #52 periyot işaretleri:** eleme log'unda "N. Periyot başladı" + "⏸ N. periyot bitti — X–Y".
 > - **✅ Maç anlatımı eskrim terimleriyle zenginleşti** (bate/dégajé/parat-riposta/feint/flèche/coupé/angulation/prise-de-fer; parad 4/6/7/8 + kılıç quinte/tierce); U10'a 2 zamanlı eklendi.
-> **AÇIK (sırada):** **denge:** U10'da 3. periyota gidiş sıklığı (tuş temposu barajı erken doldurursa p3 nadir olur — izlenecek). Playtest listesi büyük ölçüde tamam.
+> - **✅ U10 KURAL (12.10):** U10 eleme **2 periyot** (USA Fencing SYC ile doğrulandı). "U10 max 3 periyot" denemesi kurala aykırıydı → geri alındı. U12+ 3 periyot doğru.
+> **AÇIK (sırada):** Playtest listesi büyük ölçüde tamam.
 
 | # | Tarih | Kategori | Not | Nasıl uygulanır / durum |
 |---|-------|----------|-----|-------------------------|
