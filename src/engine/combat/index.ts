@@ -353,6 +353,73 @@ function touchSeconds(weapon: Weapon, cat: AgeCategory, narr: SeededRng): number
   return TOUCH_SECONDS[weapon] * CATEGORY_TIME_FACTOR[cat] * (0.75 + narr.next() * 0.5);
 }
 
+/**
+ * Sayı GETİRMEYEN hakem olayları (kullanıcı 12.10): "flash geldi ama geçersiz", vücut teması (corps-à-corps),
+ * çift lamba-öncelik yok, ayak çaprazı, kart… Silaha göre (flöre/kılıç öncelikli; epede corps-à-corps serbest ama
+ * durdurur; kılıçta corps-à-corps/ayak çaprazı yasak). Tempo/iptal turlarında ARA ARA yazılır → maç daha canlı.
+ */
+const REF_EVENTS_BY_WEAPON: Record<"tr" | "en", Record<Weapon, string[]>> = {
+  tr: {
+    FOIL: [
+      "Çift lamba yandı — hakem önceliği netleştiremedi, sayı yok.",
+      "Corps-à-corps (vücut teması) — hakem ayırdı, sayı yok.",
+      "Hücum hakkı belirsiz — hakem 'dur' deyip yeniden başlattı.",
+      "Flash geldi ama hakem tuşu geçersiz saydı — sayı yok.",
+      "Hazırlıkta temas oldu — hakem durdurdu, sayı yok.",
+      "Sarı kart — kural ihlali (uyarı).",
+    ],
+    EPEE: [
+      "Corps-à-corps (vücut teması) — hakem durdurdu, sayı yok.",
+      "Flash geldi ama hakem tuşu geçersiz saydı — sayı yok.",
+      "Uç piste değdi — geçersiz, sayı yok.",
+      "İkisi de uzandı ama lamba yanmadı — sayı yok.",
+      "Mesafe bozuldu — hakem 'dur' dedi, sayı yok.",
+      "Sarı kart — kural ihlali (uyarı).",
+    ],
+    SABRE: [
+      "Çift lamba — hakem önceliği veremedi, sayı yok.",
+      "Corps-à-corps — kılıçta yasak, hakem durdurdu.",
+      "Ayak çaprazı (geçiş) — kural ihlali, hakem durdurdu.",
+      "Flash geldi ama hakem geçersiz saydı — sayı yok.",
+      "Hücum hakkı tartışmalı — hakem yeniden başlattı.",
+      "Sarı kart — kural ihlali (uyarı).",
+    ],
+  },
+  en: {
+    FOIL: [
+      "Both lights — the referee couldn't award priority, no touch.",
+      "Corps-à-corps (body contact) — the referee separated them, no touch.",
+      "Right-of-way unclear — the referee called halt and restarted.",
+      "A light came on but the referee annulled the touch — no point.",
+      "Contact during preparation — the referee called halt, no touch.",
+      "Yellow card — rule violation (warning).",
+    ],
+    EPEE: [
+      "Corps-à-corps (body contact) — the referee called halt, no touch.",
+      "A light came on but the referee annulled the touch — no point.",
+      "The point hit the strip — invalid, no touch.",
+      "Both extended but no light — no touch.",
+      "Distance broke down — the referee called halt, no touch.",
+      "Yellow card — rule violation (warning).",
+    ],
+    SABRE: [
+      "Both lights — the referee couldn't award priority, no touch.",
+      "Corps-à-corps — forbidden in sabre, the referee called halt.",
+      "Crossing the feet (passing) — rule violation, the referee called halt.",
+      "A light came on but the referee annulled it — no point.",
+      "Right-of-way disputed — the referee restarted.",
+      "Yellow card — rule violation (warning).",
+    ],
+  },
+};
+
+const REF_EVENT_PROB = 0.6; // sayısız (tempo/iptal) turda bu olasılıkla bir hakem olayı yazılır
+/** Tempo/iptal turunda ara ara bir hakem olayı satırı (yoksa null → tur sessiz geçer). */
+function refEventLine(weapon: Weapon, narr: SeededRng, locale: Locale): string | null {
+  if (!narr.bool(REF_EVENT_PROB)) return null;
+  return narr.pick(REF_EVENTS_BY_WEAPON[narrLocale(locale)][weapon]);
+}
+
 interface IntentSide {
   tactic: Tactic;
   skills: IntentSkills;
@@ -555,6 +622,7 @@ export function simulateMatch(
 
   // Öncelik motoru (#5): her tur niyet seç + silaha göre çöz. İptal/tempo turları olabildiği için
   // daha fazla tur payı bırakılır. Epede çift tuş; flöre/kılıçta eşzamanlı hücum iptal.
+  const refRng = createRng(`${rng.seed}:ref`);
   const maxExchanges = targetTouches * 8;
   for (let i = 0; i < maxExchanges && scoreA < targetTouches && scoreB < targetTouches; i++) {
     let { a: aScored, b: bScored } = runExchange(m, momentum, rng);
@@ -563,7 +631,11 @@ export function simulateMatch(
       if (rng.bool(clamp(m.baseP + momentum, 0.05, 0.95))) bScored = false;
       else aScored = false;
     }
-    if (!aScored && !bScored) continue; // iptal / tempo → tur boşa (maçta süre yok)
+    if (!aScored && !bScored) {
+      const ev = refEventLine(m.weapon, refRng, locale); // iptal/tempo → ara ara hakem olayı (sayı yok), yoksa sessiz
+      if (ev) log.push(ev);
+      continue;
+    }
     // Flöre: hedef-dışı (beyaz lamba). Tek taraf tuş bulduysa küçük olasılıkla geçersiz → sayı yok, hamle durur.
     if (m.weapon === "FOIL" && aScored !== bScored && rng.bool(FOIL_OFF_TARGET_PROB)) {
       log.push(whiteLampLine(aScored ? a : b, locale));
@@ -655,6 +727,7 @@ export function simulatePeriod(
   let lastScorer: 0 | 1 | 2 = 0;
   let run = 0;
   let momentum = 0;
+  const refRng = createRng(`${rng.seed}:ref`);
   const cap = opts.periodCap ?? opts.target; // periyot tuş tavanı (yoksa maç hedefi)
 
   while (
@@ -670,7 +743,11 @@ export function simulatePeriod(
       if (rng.bool(clamp(m.baseP + momentum, 0.05, 0.95))) bScored = false;
       else aScored = false;
     }
-    if (!aScored && !bScored) continue; // tuşsuz tur — sadece süre akar
+    if (!aScored && !bScored) {
+      const ev = refEventLine(m.weapon, refRng, locale); // tuşsuz tur → ara ara hakem olayı (süre yine aktı)
+      if (ev) log.push(ev);
+      continue;
+    }
     // Flöre: hedef-dışı (beyaz lamba). Sayı yok, hamle durur; süre yine akmış olur (yukarıda clock işledi).
     if (m.weapon === "FOIL" && aScored !== bScored && rng.bool(FOIL_OFF_TARGET_PROB)) {
       log.push(whiteLampLine(aScored ? a : b, locale));

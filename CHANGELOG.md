@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (12.10 — maç içi HAKEM olayları (sayı getirmeyen; playtest))
+- **Maç akışına hakem olayları** eklendi (tempo/iptal turlarında, sayı getirmez): **"flash geldi ama hakem geçersiz
+  saydı"**, **vücut teması (corps-à-corps)**, **çift lamba — öncelik yok**, **ayak çaprazı** (kılıç), **sarı kart**,
+  "uç piste değdi" vb. Silaha göre (epede corps-à-corps serbest ama durdurur; kılıçta corps-à-corps/çapraz yasak).
+  Sıklık gerçekçi: **epe ~1/maç, flöre/kılıç ~3/maç** (öncelik silahlarında hakem durması daha sık). Ayrı RNG →
+  maç sonucu/skoru ETKİLENMEZ (yalnız anlatım zenginleşir). Hem havuz hem eleme maçlarında.
+
 ### Düzeltildi (12.10 — U10 KURAL DÜZELTMESİ: 2 periyot (geri alındı))
 - **U10 eleme yeniden 2 PERİYOT** (10 tuş; 1. periyot 3 dk veya 5 tuşta biter, sonra 10'a) — USA Fencing gençler
   (SYC) kuralıyla doğrulandı. Dünkü "U10 max 3 periyot + tempo ayarı" değişikliği **kurala aykırıydı, geri alındı**
