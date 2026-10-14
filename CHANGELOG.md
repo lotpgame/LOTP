@@ -9,13 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Değişti (14.10 — maç anlatımı Türkçeleştirildi (playtest))
-- **Türkçe maç anlatımındaki parantez-içi yabancı terimler kaldırıldı.** "parad altı (sixte)" → "parad altı",
-  "baş kesme (tête)" → "baş kesme", "açı vererek (angulation)" → "açı vererek" vb. Parantezde Türkçe karşılık
-  verilmiş yabancı terimler Türkçeye çevrildi: **bate→çelme, coupé→çaprazlama, corps-à-corps→vücut teması,
-  flèche→atılış, dégajé→hat değiştirme, appel→ayak vuruşu, prise-de-fer→bağlama, remise→tekrar vuruş,
-  stop-hit→durdurucu vuruş, flash→lamba yandı**. Sadece **TR** havuzu değişti (EN dokunulmadı; Fransızca/Almanca
-  dil desteği geldiğinde yabancı terimler o dillerde yaşayacak). `feint` ve `riposta` yerleşik terim olarak kaldı.
+### Değişti (14.10 — maç anlatımı Türkçeleştirildi; terimler resmi sözlükten (playtest))
+- **Türkçe maç anlatımındaki parantez-içi yabancı terimler kaldırıldı** ("parad altı (sixte)" → "parad altı",
+  "baş kesme (tête)" → "baş kesme", "açı vererek (angulation)" → "açı vererek", corps-à-corps → "vücut teması",
+  flash → "lamba yandı" vb.).
+- **Eskrim terimleri Türkiye Eskrim Federasyonu resmi sözlüğünden alındı** (eskrim.org.tr, Fransızca–Türkçe):
+  **bate** (battement), **kupe** (coupé), **fleş** (flèche), **degaje** (dégagé), **apel** (appel),
+  **priz de fer** (prise-de-fer), **römiz** (remise), **kontr atak** (stop-hit). `feint` ve `riposta` (oyun
+  sahibi kararıyla) yerleşik terim olarak korundu. Sadece **TR** havuzu değişti; EN dokunulmadı (Fransızca/Almanca
+  dil desteği geldiğinde yabancı terimler o dillerde yaşayacak).
 
 ### Eklendi (12.10 — maç içi HAKEM olayları (sayı getirmeyen; playtest))
 - **Maç akışına hakem olayları** eklendi (tempo/iptal turlarında, sayı getirmez): **"flash geldi ama hakem geçersiz
