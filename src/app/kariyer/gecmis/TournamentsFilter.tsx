@@ -24,7 +24,8 @@ function placementEdge(pos: number): string {
 }
 
 export function TournamentsFilter({ tournaments, locale }: { tournaments: HistoryTournament[]; locale: Locale }) {
-  const dateLoc = locale === "en" ? "en-GB" : locale === "de" ? "de-DE" : locale === "fr" ? "fr-FR" : "tr-TR";
+  const dateLoc =
+    locale === "en" ? "en-GB" : locale === "de" ? "de-DE" : locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "tr-TR";
   const quarters = useMemo(
     () => [...new Set(tournaments.map((t) => t.quarter))].sort((a, b) => b - a),
     [tournaments],

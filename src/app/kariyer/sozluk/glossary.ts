@@ -310,6 +310,75 @@ const ES: GlossarySection[] = [
   },
 ];
 
+const IT: GlossarySection[] = [
+  {
+    title: "Termini di scherma",
+    terms: [
+      { term: "Fioretto", definition: "Arma leggera — bersaglio valido solo il tronco; il punteggio si basa sulla priorità." },
+      { term: "Spada", definition: "L'arma più pesante — tutto il corpo è bersaglio valido; nessuna priorità, stoccate doppie possibili." },
+      { term: "Sciabola", definition: "Arma di taglio e di punta — bersaglio sopra la cintura più braccia e testa; secondo la priorità, l'arma più rapida." },
+      { term: "Bersaglio", definition: "La parte del corpo dove una stoccata deve arrivare per contare; dipende dall'arma." },
+      {
+        term: "Priorità",
+        definition:
+          "Nel fioretto e nella sciabola, la regola che decide a chi va la stoccata quando entrambi attaccano insieme — vince chi ha attaccato per primo o ha il diritto di parare/contrare.",
+      },
+      { term: "Stoccata", definition: "Portare un colpo valido all'avversario; l'unità di punteggio." },
+      { term: "Girone (poule)", definition: "La prima fase del torneo — un piccolo gruppo dove ognuno affronta tutti, di solito a 5 stoccate." },
+      { term: "Eliminazione diretta", definition: "La fase a eliminazione dopo i gironi — una sconfitta e sei fuori." },
+      { term: "Bye (esente)", definition: "Passare un turno di eliminazione senza incontro, per una testa di serie alta o un numero dispari di tiratori." },
+      { term: "Indice", definition: "Stoccate date meno subite — spareggia nella classifica di girone." },
+      { term: "Testa di serie", definition: "La posizione all'ingresso nel tabellone, secondo la classifica — le teste di serie alte affrontano le basse." },
+      {
+        term: "Stoccata d'oro",
+        definition: "Se il tempo regolamentare finisce in parità, si sorteggia la priorità e si gioca un supplementare — la prima stoccata vince.",
+      },
+      { term: "Parata", definition: "Bloccare o deviare l'attacco dell'avversario con la lama." },
+      { term: "Risposta", definition: "Il contrattacco che segue subito una parata (riposte)." },
+      { term: "Contrattacco", definition: "Attaccare dentro l'attacco dell'avversario, al momento giusto per disturbarne la preparazione." },
+      { term: "Affondo", definition: "L'attacco base: allungarsi in avanti spingendo sulla gamba posteriore (lunge)." },
+      { term: "Frecciata", definition: "Un attacco a sorpresa lanciato di corsa da fuori misura (flèche)." },
+      { term: "Finta", definition: "Un falso attacco che inizia in una linea e cambia prima di concludere." },
+      { term: "Battuta", definition: "Un colpo breve e secco sulla lama avversaria per spostarla (battement)." },
+      { term: "Cavazione", definition: "Un'azione circolare della lama che aggira la parata avversaria (dégagé)." },
+      { term: "Coupé", definition: "Un attacco o inganno passando sopra la punta avversaria." },
+      { term: "Appello", definition: "Un battito deciso del piede anteriore per provocare una reazione dell'avversario (appel)." },
+      { term: "Presa di ferro", definition: "Prendere la lama avversaria e forzarla in una nuova linea — un legamento (prise de fer)." },
+      { term: "Rimessa", definition: "Rinnovare subito un attacco parato o mancato, senza ritirare il braccio (remise)." },
+      { term: "Punta in linea", definition: "Una minaccia a braccio teso con la punta rivolta all'avversario; mantiene la priorità." },
+      { term: "Corpo a corpo", definition: "Contatto corpo a corpo tra tiratori; vietato nel fioretto e nella sciabola, l'arbitro ferma l'assalto (corps-à-corps)." },
+      { term: "Nazionale", definition: "Lo status ottenuto concludendo nel top 4 della classifica nazionale." },
+      {
+        term: "Lampada bianca",
+        definition:
+          "Nel fioretto e nella sciabola, la lampada che segnala una stoccata fuori bersaglio, che non conta. Nella spada non esiste — tutto il corpo è valido, ogni stoccata conta.",
+      },
+    ],
+  },
+  {
+    title: "Termini di gioco",
+    terms: [
+      { term: "Stagione", definition: "L'unità di progresso della carriera — il tiratore invecchia e si sviluppa ogni stagione." },
+      { term: "Condizione", definition: "La freschezza fisica attuale del tiratore — cala con l'allenamento/gli incontri, si recupera col riposo." },
+      { term: "Forma", definition: "Quanto il tiratore è pronto per gareggiare — sale con l'allenamento e gli incontri regolari." },
+      { term: "Fatica", definition: "Il contrario della condizione — una fatica alta aumenta il rischio di infortunio." },
+      { term: "Quarter Ranking", definition: "La classifica del trimestre in corso (anno di gioco) — si azzera alla fine di ciascuno." },
+      { term: "Numero di tessera", definition: "L'identificativo unico e permanente del tiratore (sulla tessera)." },
+      { term: "Denar", definition: "La valuta del gioco — per l'attrezzatura e azioni come ricominciare una carriera." },
+    ],
+  },
+];
+
 export function glossaryFor(locale: Locale): GlossarySection[] {
-  return locale === "en" ? EN : locale === "de" ? DE : locale === "fr" ? FR : locale === "es" ? ES : TR;
+  return locale === "en"
+    ? EN
+    : locale === "de"
+      ? DE
+      : locale === "fr"
+        ? FR
+        : locale === "es"
+          ? ES
+          : locale === "it"
+            ? IT
+            : TR;
 }

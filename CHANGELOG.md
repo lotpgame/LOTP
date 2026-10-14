@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — İtalyanca dil desteği TAM (UI + maç anlatımı + sözlük))
+- **İtalyanca (`it`) 6. dil olarak eklendi ve tam.** `Locale`/`LOCALES`/`LOCALE_LABEL`'a `it` eklendi; 590
+  anahtarlık İtalyanca UI sözlüğü (TR ile birebir parite, `DICT.it = IT`); combat havuzları + satır-içi maç
+  satırları + careerService İtalyanca; sözlük İtalyanca bölümü; tarih yereli `it-IT`. Eskrim terimleri İtalyanca
+  (fioretto/spada/sciabola, parata, risposta, cavazione, battuta, affondo, frecciata, presa di ferro, rimessa…).
+- Durum: **6 dil (TR/EN/DE/FR/ES/IT) UI + maç anlatımı + sözlük → hepsi TAM.**
+
 ### Eklendi (14.10 — İspanyolca + Almanca maç anlatımı; İspanyolca sözlük)
 - **İspanyolca ve Almanca maç anlatımı tamamlandı.** combat havuzlarına (`ACTION_LINES`, `TOUCH_LINES_BY_TEMPO`,
   `REF_EVENTS_BY_WEAPON`) `de` ve `es` eklendi; `narrLocale` 5 dili döndürüyor; `pickLoc` map biçimine geçti ve
