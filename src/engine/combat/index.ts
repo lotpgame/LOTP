@@ -138,6 +138,11 @@ const ACTION_LINES: Partial<Record<Locale, Record<Weapon, string[]>>> = {
     EPEE: ["esperou com paciência a abertura", "respondeu com um tocado no punho", "manteve a distância e contra-atacou"],
     SABRE: ["lançou um ataque explosivo", "tentou um golpe rápido na máscara", "disparou à frente por reação"],
   },
+  zh: {
+    FOIL: ["拉近距离发起进攻", "提高了节奏", "尝试了一记快速飞刺"],
+    EPEE: ["耐心等待空当", "以刺腕还击", "保持距离并反攻"],
+    SABRE: ["发起一记爆发式进攻", "尝试了一记快速劈头", "凭反应冲了上去"],
+  },
 };
 
 /**
@@ -920,6 +925,104 @@ const TOUCH_LINES_BY_TEMPO: Partial<Record<Locale, Record<Weapon, Record<Tempo, 
       ],
     },
   },
+  zh: {
+    FOIL: {
+      1: [
+        "以简单进攻刺中躯干",
+        "以直接进攻找到空当",
+        "一记快速飞刺扑了上去",
+        "以干净的伸臂刺中躯干",
+        "拉近距离以简单进攻得分",
+        "在弓步中以伸臂刺中",
+        "以单一节奏进攻打开剑路并得分",
+      ],
+      2: [
+        "击打后找到空当",
+        "以四号防守挡下并还击",
+        "六号防守后以还击得分",
+        "佯攻后转移，漂亮收尾",
+        "以准备–进攻连招刺中躯干",
+        "顿足–飞刺爆发得分",
+        "以上绕找到空当刺中",
+        "以击打–转移突破防守刺中",
+        "七号防守挡下后还击刺中",
+      ],
+      3: [
+        "以佯攻–佯攻–进攻破防",
+        "以防守–还击–再刺连招得分",
+        "双重转移后连上进攻刺中",
+        "以击打–佯攻–转移扩大空当刺中",
+      ],
+      4: [
+        "以佯攻–转移–佯攻–进攻组合找到空当",
+        "在长回合末尾抢下一剑",
+        "双重防守–还击后以再刺收尾",
+      ],
+    },
+    EPEE: {
+      1: [
+        "对前压的手腕刺出一记快剑",
+        "以短促干净的刺击刺中手部",
+        "以简单伸臂找到空当",
+        "反攻抓住手腕",
+        "保持直刺线并在对手进攻时得分",
+        "调好距离对手腕刺出一剑",
+        "以快速阻击刺中前臂",
+        "以从容的伸臂找到前臂",
+        "以下沉的刺击得分于腿/膝",
+      ],
+      2: [
+        "击打后以伸臂刺中手腕得分",
+        "以击打–转移换线，漂亮收尾",
+        "佯攻后给出角度刺中手部",
+        "以准备–进攻连招刺中躯干",
+        "亮出直刺线威胁后换线刺中",
+        "在弓步中以转移找到空当",
+        "以压剑控制对方剑刺中",
+        "六号防守挡下后还击刺中手腕",
+        "八号防守后以还击刺中手背",
+      ],
+      3: [
+        "双重佯攻后抓住手腕",
+        "压剑后干净地刺中空当",
+        "以两拍准备扩大空当刺中",
+        "以击打–转移–进攻连招抢下一剑",
+      ],
+      4: [
+        "在长准备末尾找到空当",
+        "以佯攻–转移–角度–进攻抢下一剑",
+        "双重击打后以角度刺中手腕",
+      ],
+    },
+    SABRE: {
+      1: [
+        "以劈头得分",
+        "以快速进攻抢先并劈中",
+        "以飞刺扑向头部",
+        "凭纯反应率先击中",
+        "干净地劈中脸颊",
+        "拉近距离劈中手臂",
+      ],
+      2: [
+        "以击打–劈头得分",
+        "五号防守护头后以还击劈中",
+        "三号防守后以还击劈中脸颊",
+        "转向脸颊完成劈击",
+        "佯攻后劈中侧腹",
+        "顿足–飞刺爆发劈向头部",
+        "击打与转身后漂亮地劈中",
+      ],
+      3: [
+        "双重佯攻后连上劈头",
+        "以防守–还击–反劈连招得分",
+        "以两拍准备找到空当劈中",
+      ],
+      4: [
+        "在长回合末尾破防劈中",
+        "以佯攻–佯攻–侧–劈头组合得分",
+      ],
+    },
+  },
 };
 
 /**
@@ -1188,6 +1291,32 @@ const REF_EVENTS_BY_WEAPON: Partial<Record<Locale, Record<Weapon, string[]>>> = 
       "Cartão amarelo — infração, advertência.",
     ],
   },
+  zh: {
+    FOIL: [
+      "双灯 — 裁判无法判定优先权，无效。",
+      "贴身 — 裁判分开，无效。",
+      "优先权不明 — 裁判喊「停」并重新开始。",
+      "灯亮了但裁判判无效 — 无得分。",
+      "准备中接触 — 裁判喊「停」，无效。",
+      "黄牌 — 犯规，警告。",
+    ],
+    EPEE: [
+      "贴身 — 裁判喊「停」，无效。",
+      "灯亮了但裁判判无效 — 无得分。",
+      "剑尖触及剑道 — 无效。",
+      "两人都伸臂但无灯 — 无效。",
+      "距离崩了 — 裁判喊「停」，无效。",
+      "黄牌 — 犯规，警告。",
+    ],
+    SABRE: [
+      "双灯 — 裁判无法给出优先权，无效。",
+      "贴身 — 佩剑禁止，裁判喊「停」。",
+      "交叉步 — 犯规，裁判喊「停」。",
+      "灯亮了但裁判判无效 — 无得分。",
+      "优先权有争议 — 裁判重新开始。",
+      "黄牌 — 犯规，警告。",
+    ],
+  },
 };
 
 const REF_EVENT_PROB = 0.6; // sayısız (tempo/iptal) turda bu olasılıkla bir hakem olayı yazılır
@@ -1317,6 +1446,7 @@ function strengthLine(a: Combatant, b: Combatant, m: Matchup, locale: Locale): s
     it: `Forza dell'incontro — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (probabilità di vittoria di ${a.name}: ${pct} %).`,
     ru: `Сила боя — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (шанс победы ${a.name}: ${pct} %).`,
     pt: `Força do combate — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (chance de vitória de ${a.name}: ${pct} %).`,
+    zh: `比赛实力 — ${a.name}：${m.esA.total} · ${b.name}：${m.esB.total}（${a.name} 获胜概率 ${pct}%）。`,
   });
 }
 
@@ -1342,6 +1472,7 @@ function touchLine(
       it: ` — ${run} di fila!`,
       ru: ` — ${run} подряд!`,
       pt: ` — ${run} seguidos!`,
+      zh: ` — 连续 ${run} 剑！`,
     });
   else if (scoreA === scoreB)
     line += pickLoc(locale, {
@@ -1353,6 +1484,7 @@ function touchLine(
       it: " — parità.",
       ru: " — равно.",
       pt: " — empate.",
+      zh: " — 平局。",
     });
   else if (scoreA === target - 1 || scoreB === target - 1)
     line += pickLoc(locale, {
@@ -1364,6 +1496,7 @@ function touchLine(
       it: " — match point!",
       ru: " — матч-пойнт!",
       pt: " — match point!",
+      zh: " — 赛点！",
     });
   return line;
 }
@@ -1379,6 +1512,7 @@ function doubleTouchLine(a: Combatant, b: Combatant, scoreA: number, scoreB: num
     it: `Stoccata doppia! Entrambi toccano insieme. ${scoreA}–${scoreB}`,
     ru: `Обоюдный укол! Оба попали одновременно. ${scoreA}–${scoreB}`,
     pt: `Tocado duplo! Ambos tocam juntos. ${scoreA}–${scoreB}`,
+    zh: `双击中！两人同时刺中。${scoreA}–${scoreB}`,
   });
 }
 
@@ -1399,6 +1533,7 @@ function whiteLampLine(scorer: Combatant, locale: Locale): string {
     it: `⚪ Lampada bianca — ${scorer.name} ha toccato fuori bersaglio. Nessuna stoccata.`,
     ru: `⚪ Белая лампа — ${scorer.name} попал мимо цели. Укола нет.`,
     pt: `⚪ Lâmpada branca — ${scorer.name} tocou fora do alvo. Sem tocado.`,
+    zh: `⚪ 白灯 — ${scorer.name} 刺在有效区外。无得分。`,
   });
 }
 
@@ -1438,7 +1573,7 @@ export function simulateMatch(
   const tacticA = a.tactic ?? "BALANCED";
   const tacticB = b.tactic ?? "BALANCED";
   if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
-    const prefix = pickLoc(locale, { tr: "Taktik", en: "Tactic", fr: "Tactique", de: "Taktik", es: "Táctica", it: "Tattica", ru: "Тактика", pt: "Tática" });
+    const prefix = pickLoc(locale, { tr: "Taktik", en: "Tactic", fr: "Tactique", de: "Taktik", es: "Táctica", it: "Tattica", ru: "Тактика", pt: "Tática", zh: "战术" });
     log.push(`${prefix} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}.`);
   }
 
@@ -1504,6 +1639,7 @@ export function simulateMatch(
       it: `🏁 ${winner.name} ${act} e ha vinto l'incontro ${wScore}-${lScore}.`,
       ru: `🏁 ${winner.name} ${act} и выиграл бой ${wScore}-${lScore}.`,
       pt: `🏁 ${winner.name} ${act} e venceu o combate ${wScore}-${lScore}.`,
+      zh: `🏁 ${winner.name}${act}，以 ${wScore}-${lScore} 赢得比赛。`,
     }),
   );
 
@@ -1650,6 +1786,7 @@ export function simulateLaBelle(
       it: `Punteggio ${opts.startA}-${opts.startB} in parità → sorteggio della priorità: ${prioName}.`,
       ru: `Счёт ${opts.startA}-${opts.startB} равный → жребий приоритета: ${prioName}.`,
       pt: `Placar ${opts.startA}-${opts.startB} empatado → sorteio de prioridade: ${prioName}.`,
+      zh: `比分 ${opts.startA}-${opts.startB} 平 → 抽签决定优先权：${prioName}。`,
     }),
   ];
 
@@ -1670,6 +1807,7 @@ export function simulateLaBelle(
         it: `Il minuto d'oro è passato senza stoccata — vince ${prioName}, che aveva la priorità.`,
         ru: `Золотая минута прошла без укола — побеждает ${prioName}, у кого был приоритет.`,
         pt: `O minuto de ouro passou sem tocado — vence ${prioName}, que tinha a prioridade.`,
+        zh: `决胜一分钟无得分 — 拥有优先权的 ${prioName} 获胜。`,
       }),
     );
   } else {
@@ -1688,6 +1826,7 @@ export function simulateLaBelle(
         it: `🏅 Stoccata d'oro! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
         ru: `🏅 Золотой укол! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
         pt: `🏅 Tocado de ouro! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+        zh: `🏅 决胜一剑！${w.name}${phrase} — ${scoreA}–${scoreB}。`,
       }),
     );
   }
@@ -1773,6 +1912,7 @@ export function advanceDeBoutPeriod(
       it: `▸ Periodo ${periodNo} iniziato — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
       ru: `▸ Период ${periodNo} начался — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
       pt: `▸ Período ${periodNo} começou — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+      zh: `▸ 第 ${periodNo} 局开始 — ${a.name}：${t(locale, `tactic.${tacticA}`)}，${b.name}：${t(locale, `tactic.${tacticB}`)}`,
     }),
   );
   log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
@@ -1797,6 +1937,7 @@ export function advanceDeBoutPeriod(
           it: `⏱ Tempo scaduto — ${wname} ha chiuso in vantaggio ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
           ru: `⏱ Время вышло — ${wname} завершил впереди ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
           pt: `⏱ Tempo esgotado — ${wname} terminou à frente ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
+          zh: `⏱ 时间到 — ${wname} 以 ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} 领先结束。`,
         }),
       );
     } else {
@@ -1821,6 +1962,7 @@ export function advanceDeBoutPeriod(
         it: `⏸ Fine del periodo ${periodNo} — ${scoreA}–${scoreB}`,
         ru: `⏸ Конец периода ${periodNo} — ${scoreA}–${scoreB}`,
         pt: `⏸ Fim do período ${periodNo} — ${scoreA}–${scoreB}`,
+        zh: `⏸ 第 ${periodNo} 局结束 — ${scoreA}–${scoreB}`,
       }),
     );
   }
@@ -1841,6 +1983,7 @@ export function deBoutFinishLine(a: Combatant, b: Combatant, state: DeBoutState,
     it: `🏁 ${wname} ha vinto l'incontro ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
     ru: `🏁 ${wname} выиграл бой ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
     pt: `🏁 ${wname} venceu o combate ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
+    zh: `🏁 ${wname} 以 ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA} 赢得比赛。`,
   });
 }
 

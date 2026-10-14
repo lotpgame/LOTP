@@ -487,6 +487,63 @@ const PT: GlossarySection[] = [
   },
 ];
 
+const ZH: GlossarySection[] = [
+  {
+    title: "击剑术语",
+    terms: [
+      { term: "花剑", definition: "轻剑 — 有效部位仅躯干；按优先权计分。" },
+      { term: "重剑", definition: "最重的剑 — 全身为有效部位；无优先权，可双击中。" },
+      { term: "佩剑", definition: "劈刺两用剑 — 有效部位为腰部以上加手臂和头部；按优先权，最快的剑种。" },
+      { term: "有效部位", definition: "击中须落在才能计分的身体部位；因剑种而异。" },
+      {
+        term: "优先权",
+        definition: "在花剑和佩剑中，双方同时进攻时判定得分归属的规则 — 先进攻或拥有防守/反击权的一方获得。",
+      },
+      { term: "击中", definition: "对对手完成一次有效击打；计分单位。" },
+      { term: "小组赛", definition: "赛事第一阶段 — 小组内每人对每人，通常打到 5 剑。" },
+      { term: "直接淘汰赛", definition: "小组赛后的淘汰阶段 — 一负即出局。" },
+      { term: "轮空", definition: "因种子高或人数为奇数而无需比赛直接晋级一轮。" },
+      { term: "指数", definition: "得剑减失剑 — 小组排名打破平局。" },
+      { term: "种子", definition: "按排名进入对阵表时的位次 — 高种子对阵低种子。" },
+      {
+        term: "决胜一剑",
+        definition: "常规时间打平则抽签定优先权并加时 — 先击中者胜。",
+      },
+      { term: "防守", definition: "用剑挡开或拨开对手的进攻。" },
+      { term: "还击", definition: "防守后紧接的反击。" },
+      { term: "反攻", definition: "在对手进攻中进攻，把握时机破坏其准备。" },
+      { term: "弓步", definition: "基本进攻：蹬后腿向前伸展（lunge）。" },
+      { term: "飞刺", definition: "从距离外助跑发起的突袭（flèche）。" },
+      { term: "佯攻", definition: "从一条线开始、在收招前改变方向的假进攻。" },
+      { term: "击打", definition: "短促有力地敲击对手的剑，将其拨开（battement）。" },
+      { term: "转移", definition: "绕过对手防守的圆形剑动作（dégagé）。" },
+      { term: "上绕", definition: "从对手剑尖上方越过的进攻或假动作（coupé）。" },
+      { term: "顿足", definition: "前脚有力跺地以诱使对手反应（appel）。" },
+      { term: "压剑", definition: "取得对手的剑并迫使其进入新的一条线（prise de fer）。" },
+      { term: "再刺", definition: "不收手立即续刺被防住或未中的进攻（remise）。" },
+      { term: "直刺线", definition: "手臂伸直、剑尖指向对手的威胁；保有优先权。" },
+      { term: "贴身", definition: "击剑手之间身体相接；花剑和佩剑中禁止，裁判叫停（corps-à-corps）。" },
+      { term: "国家队", definition: "进入全国排名前 4 所获得的身份。" },
+      {
+        term: "白灯",
+        definition: "在花剑和佩剑中，显示击中有效区外、不计分的灯。重剑没有 — 全身有效，每剑都算。",
+      },
+    ],
+  },
+  {
+    title: "游戏术语",
+    terms: [
+      { term: "赛季", definition: "生涯进度单位 — 每个赛季击剑手变老并成长。" },
+      { term: "状态", definition: "击剑手当前的身体新鲜度 — 随训练/比赛下降，随休息恢复。" },
+      { term: "竞技状态", definition: "击剑手的比赛准备度 — 随规律训练和比赛提升。" },
+      { term: "疲劳", definition: "状态的反面 — 高疲劳增加受伤风险。" },
+      { term: "Quarter Ranking", definition: "当前季度（游戏年）的排名 — 每季度末清零。" },
+      { term: "注册号", definition: "击剑手永久唯一的身份编号（显示在身份卡上）。" },
+      { term: "第纳尔", definition: "游戏货币 — 用于装备及重新开始生涯等操作。" },
+    ],
+  },
+];
+
 export function glossaryFor(locale: Locale): GlossarySection[] {
   return locale === "en"
     ? EN
@@ -502,5 +559,7 @@ export function glossaryFor(locale: Locale): GlossarySection[] {
               ? RU
               : locale === "pt"
                 ? PT
-                : TR;
+                : locale === "zh"
+                  ? ZH
+                  : TR;
 }

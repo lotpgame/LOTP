@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — Çince (zh) dil desteği TAM — 9. dil)
+- **Çince (`zh`, 简体) eklendi ve tam:** 617 anahtarlık ZH arayüz (TR paritesi, `DICT.zh`); maç anlatımı
+  (havuzlar+satır-içi+careerService); sözlük ZH; ekipman (22 ürün); tarih `zh-CN`. Eskrim terimleri Çince
+  (花剑/重剑/佩剑, 防守, 还击, 击打, 弓步, 飞刺, 转移…).
+- **Oyun artık 9 dilde TAM:** TR/EN/DE/FR/ES/IT/RU/PT/ZH — arayüz + maç anlatımı + sözlük + ekipman, hepsi
+  birbirine paritede (0 eksik).
+
 ### Eklendi (14.10 — Portekizce (pt) dil desteği TAM — 8. dil)
 - **Portekizce (`pt`) eklendi ve tam:** 617 anahtarlık PT arayüz (TR paritesi, `DICT.pt`); maç anlatımı
   (havuzlar+satır-içi+careerService); sözlük PT; ekipman (22 ürün); tarih `pt-BR`. Eskrim terimleri Portekizce
