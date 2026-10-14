@@ -23,7 +23,7 @@ function combatant(id: number, name: string, current: number, fatigue = 0): Comb
 
 // Çok-zamanlı (feint/parat/çelme…) aksiyonları işaret eden anahtar kelimeler.
 // 2+ zamanlı (compound) aksiyon izleri — bate/dégajé/parat-riposta/feint vb.
-const MULTI_TEMPO = /feint|parat|çelme|bate|degaje|dégajé|riposta|angulation|prise|remise|coupé|appel|kombinasyon|zinciriyle/i;
+const MULTI_TEMPO = /feint|parat|bate|degaje|ripost|römiz|priz de fer|kupe|apel|kombinasyon|zinciriyle/i;
 // Yalnız UZUN (3-4 zamanlı) dizilere özgü ibareler — U10/U12'de çıkmamalı.
 const LONG_COMBO = /zinciriyle|kombinasyon|uzun bir (aksiyon|hazırlık)|çift (feint|dégajé|bate|parat)|iki tempolu|feint–feint/i;
 

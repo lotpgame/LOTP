@@ -15,9 +15,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   flash → "lamba yandı" vb.).
 - **Eskrim terimleri Türkiye Eskrim Federasyonu resmi sözlüğünden alındı** (eskrim.org.tr, Fransızca–Türkçe):
   **bate** (battement), **kupe** (coupé), **fleş** (flèche), **degaje** (dégagé), **apel** (appel),
-  **priz de fer** (prise-de-fer), **römiz** (remise), **kontr atak** (stop-hit). `feint` ve `riposta` (oyun
-  sahibi kararıyla) yerleşik terim olarak korundu. Sadece **TR** havuzu değişti; EN dokunulmadı (Fransızca/Almanca
-  dil desteği geldiğinde yabancı terimler o dillerde yaşayacak).
+  **priz de fer** (prise-de-fer), **römiz** (remise), **kontr atak** (stop-hit). Ayrıca **parad→parat** ve
+  **riposta→ripost** sözlük yazımına uyduruldu. `feint` (oyun sahibi kararıyla) yerleşik terim olarak korundu.
+  Sadece **TR** havuzu değişti; EN dokunulmadı (Fransızca/Almanca dil desteği geldiğinde yabancı terimler o
+  dillerde yaşayacak).
+
+### Eklendi (14.10 — oyun içi sözlüğe eskrim terimleri)
+- **Sözlük sayfasına** (`/kariyer/sozluk`) maç anlatımında geçen eskrim terimleri eklendi: Hamle, Fleş, Feint,
+  Bate, Degaje, Kupe, Apel, Priz de fer, Römiz, Uzatılmış Kol, Vücut Teması (her biri Fransızca/İngilizce aslıyla).
+  TR "Riposte" başlığı "Ripost" olarak düzeltildi. (TR bölümü; EN/DE sonra.)
 
 ### Eklendi (12.10 — maç içi HAKEM olayları (sayı getirmeyen; playtest))
 - **Maç akışına hakem olayları** eklendi (tempo/iptal turlarında, sayı getirmez): **"flash geldi ama hakem geçersiz

@@ -109,7 +109,7 @@ const ACTION_LINES: Record<"tr" | "en", Record<Weapon, string[]>> = {
 
 /**
  * Tuş-başı anlatım — "kaç zamanlı" (tempo) aksiyona göre katmanlı (GDD 18.9–18.26), dile göre.
- * 1 = tek zamanlı basit hücum; 2 = çift zamanlı (feint/beat/parat-riposta); 3–4 = karmaşık diziler.
+ * 1 = tek zamanlı basit hücum; 2 = çift zamanlı (feint/beat/parat-ripost); 3–4 = karmaşık diziler.
  */
 type Tempo = 1 | 2 | 3 | 4;
 
@@ -127,25 +127,25 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
       ],
       2: [
         "bate sonrası hücumla açığı buldu",
-        "parad dört ile durdurup riposta yaptı",
-        "parad altı sonrası riposta ile sayıyı aldı",
+        "parat dört ile durdurup ripost yaptı",
+        "parat altı sonrası ripost ile sayıyı aldı",
         "feint sonrası degaje ile güzel bir hamleyle bitirdi",
         "hazırlık–hücum ikilisiyle göğse dokundu",
         "apel sonrası fleşle patlayıp sayı buldu",
         "kupe ile açığı bulup dokundu",
         "bate–degaje ile savunmayı aşıp vurdu",
-        "parad yedi ile savunup riposta ile vurdu",
+        "parat yedi ile savunup ripost ile vurdu",
       ],
       3: [
         "feint–feint–hücumla savunmayı çözdü",
-        "parad–riposta–römiz zinciriyle sayıyı aldı",
+        "parat–ripost–römiz zinciriyle sayıyı aldı",
         "çift degaje sonrası hücumu bağlayıp vurdu",
         "bate–feint–degaje ile açığı büyütüp dokundu",
       ],
       4: [
         "feint–degaje–feint–hücum kombinasyonuyla açığı buldu",
         "uzun bir aksiyon dizisinin sonunda tuşu kopardı",
-        "çift parad–riposta sonrası römizle bitirdi",
+        "çift parat–ripost sonrası römizle bitirdi",
       ],
     },
     EPEE: {
@@ -168,8 +168,8 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
         "uzatılmış kol tehdidini gösterip degaje ile vurdu",
         "hamle içinde degaje ile açığı buldu",
         "priz de fer ile bileği kontrol edip dokundu",
-        "parad altı ile durdurup bileğe riposta yaptı",
-        "parad sekiz sonrası riposta ile el üstüne dokundu",
+        "parat altı ile durdurup bileğe ripost yaptı",
+        "parat sekiz sonrası ripost ile el üstüne dokundu",
       ],
       3: [
         "çift feint sonrası bileği yakaladı",
@@ -194,8 +194,8 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
       ],
       2: [
         "bate–baş kesmeyle vurdu",
-        "parad beş ile başı koruyup riposta kesişi yaptı",
-        "parad üç sonrası riposta ile yanağa kesti",
+        "parat beş ile başı koruyup ripost kesişi yaptı",
+        "parat üç sonrası ripost ile yanağa kesti",
         "yanağa dönüp kesişi tamamladı",
         "feint sonrası yan kesişiyle dokundu",
         "apel–fleşle patlayıp başı kesti",
@@ -203,7 +203,7 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
       ],
       3: [
         "çift feint sonrası baş kesmeyi bağladı",
-        "parad–riposta–karşı kesme zinciriyle sayıyı aldı",
+        "parat–ripost–karşı kesme zinciriyle sayıyı aldı",
         "iki tempolu hazırlıkla açığı bulup kesti",
       ],
       4: [
@@ -306,7 +306,7 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
  * U10 sadece tek zamanlı; U12 %35 çift; üst kategorilerde 3–4 zamanlı da çıkar.
  */
 const TEMPO_MIX: Record<AgeCategory, Partial<Record<Tempo, number>>> = {
-  U10: { 1: 0.55, 2: 0.45 }, // U10'da da basit bate/dégajé/parat-riposta çıksın (11.10) — ama 3-4'lü uzun diziler yok
+  U10: { 1: 0.55, 2: 0.45 }, // U10'da da basit bate/dégajé/parat-ripost çıksın (11.10) — ama 3-4'lü uzun diziler yok
   U12: { 1: 0.6, 2: 0.4 },
   U14: { 1: 0.5, 2: 0.38, 3: 0.12 },
   U17: { 1: 0.35, 2: 0.4, 3: 0.2, 4: 0.05 },
