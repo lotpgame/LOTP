@@ -129,7 +129,7 @@ export default async function Home() {
               <span className="mb-1.5 block text-[14px] font-semibold">{t(locale, "create.country")}</span>
               {/* V1 yalnız Türkiye — seçim yok, bilgi çipi */}
               <span className="flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-arena-1 px-3 text-[15px]">
-                <Flag code="TR" /> Türkiye
+                <Flag code="TR" /> {t(locale, "country.TR")}
               </span>
             </div>
             <Field label={t(locale, "create.city")}>

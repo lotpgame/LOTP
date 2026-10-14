@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (14.10 — kenar yüzeyler de 6 dilde: hata sayfası + ülke/kıta adları)
+- **Hata sayfası (`error.tsx`) 6 dile çevrildi** — artık çökme ekranı dil çerezine göre (TR/EN/DE/FR/ES/IT);
+  `error.*` anahtarları eklendi (dil istemcide çerezden okunur).
+- **Ülke ve kıta adları çevrildi** (`country.*`, `continent.*` — 17 ülke + 4 kıta × 6 dil). Klasman filtresi
+  artık "Italy/Italie/Italia…" gösteriyor (önce ham Türkçe "İtalya"ydı); kayıt ekranındaki ülke de `t()`'den.
+- Not: Şehir adları ve AI oyuncu/antrenör adları Türkçe (proper noun — tasarım; uluslararası isim havuzu V2).
+
 ### Düzeltildi (14.10 — 6 dilde arayüz TAM: hiçbir dilde Türkçe'ye düşen metin kalmadı)
 - **EN'de eksik 21, DE'de eksik 12 anahtar** (olay anı/podium satırları + EN'de settings/gecmis/klasman/turnuvalar)
   çevrilip eklendi → 6 dilin hepsi TR ile birebir parite (0 eksik, 0 tekrar). Olay anları (podium) artık 6 dilde.

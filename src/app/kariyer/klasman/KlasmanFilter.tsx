@@ -116,7 +116,7 @@ export function KlasmanFilter({
         >
           {CONTINENTS.map((c) => (
             <option key={c.code} value={c.code}>
-              {c.name}
+              {t(locale, `continent.${c.code}`)}
             </option>
           ))}
         </select>
@@ -132,7 +132,7 @@ export function KlasmanFilter({
         >
           {COUNTRIES.map((c) => (
             <option key={c.code} value={c.code}>
-              {c.name}
+              {t(locale, `country.${c.code}`)}
             </option>
           ))}
         </select>

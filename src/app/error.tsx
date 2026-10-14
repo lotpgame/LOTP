@@ -8,11 +8,21 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { submitFeedbackAction } from "@/app/actions";
 import { Icon } from "@/app/ui/Icon";
+import { t, LOCALE_COOKIE, LOCALES, type Locale } from "@/i18n";
+
+/** Dil çerezinden okunur (error boundary istemcide render edilir); yoksa TR. */
+function cookieLocale(): Locale {
+  if (typeof document === "undefined") return "tr";
+  const m = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]+)`));
+  const l = m?.[1] as Locale | undefined;
+  return l && (LOCALES as readonly string[]).includes(l) ? l : "tr";
+}
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const pathname = usePathname();
   const [sent, setSent] = useState(false);
   const [pending, start] = useTransition();
+  const locale = cookieLocale();
 
   // Konsola da yaz (geliştirici incelemesi için).
   useEffect(() => {
@@ -35,23 +45,20 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-arena-1">
         <Icon name="info" size={26} />
       </span>
-      <h1 className="display mt-3 text-[24px]">Bir şeyler ters gitti</h1>
-      <p className="mt-2 text-[15px] text-steel">
-        Bu bir hata — senin hatan değil. Test haftasındayız, bunlar olur. İstersen tek tıkla bize bildir,
-        biz de düzeltelim.
-      </p>
+      <h1 className="display mt-3 text-[24px]">{t(locale, "error.title")}</h1>
+      <p className="mt-2 text-[15px] text-steel">{t(locale, "error.body")}</p>
       <div className="mt-5 flex gap-2">
         <button type="button" onClick={() => reset()} className="btn-ink press">
-          Tekrar dene
+          {t(locale, "error.retry")}
         </button>
         {sent ? (
           <span role="status" className="flex min-h-11 items-center gap-1.5 px-3 text-[15px]">
             <Icon name="check" size={18} />
-            Bildirildi, teşekkürler
+            {t(locale, "error.reported")}
           </span>
         ) : (
           <button type="button" onClick={report} disabled={pending} className="btn-ghost press disabled:opacity-50">
-            {pending ? "Gönderiliyor…" : "Hatayı bildir"}
+            {pending ? t(locale, "error.sending") : t(locale, "error.report")}
           </button>
         )}
       </div>
