@@ -92,11 +92,13 @@ export interface MatchResult {
 
 /** Maç sonu özet satırı için silaha göre kısa aksiyon kalıpları (dile göre). */
 // Maç anlatım bankaları yalnız TR/EN; diğer diller (de/es/fr) çeviri gelene kadar TR anlatımıyla oynar.
-const narrLocale = (l: Locale): "tr" | "en" => (l === "en" ? "en" : "tr");
+const narrLocale = (l: Locale): "tr" | "en" | "fr" => (l === "en" ? "en" : l === "fr" ? "fr" : "tr");
+/** Satır-içi anlatım için dil seçici: FR/EN yoksa TR'ye düşer (de/es → tr). */
+const pickLoc = (l: Locale, tr: string, en: string, fr: string): string => (l === "en" ? en : l === "fr" ? fr : tr);
 
-const ACTION_LINES: Record<"tr" | "en", Record<Weapon, string[]>> = {
+const ACTION_LINES: Record<"tr" | "en" | "fr", Record<Weapon, string[]>> = {
   tr: {
-    FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir flèche denedi"],
+    FOIL: ["mesafeyi kapatıp atağa geçti", "tempoyu yükseltti", "hızlı bir fleş denedi"],
     EPEE: ["sabırla açığı kolladı", "bilek vuruşuyla karşılık verdi", "mesafeyi koruyup karşı atak yaptı"],
     SABRE: ["patlayıcı bir hücum başlattı", "hızlı bir baş kesme denedi", "reaksiyonla öne atıldı"],
   },
@@ -104,6 +106,11 @@ const ACTION_LINES: Record<"tr" | "en", Record<Weapon, string[]>> = {
     FOIL: ["closed distance and attacked", "picked up the tempo", "tried a quick flèche"],
     EPEE: ["patiently waited for an opening", "answered with a wrist hit", "kept distance and counter-attacked"],
     SABRE: ["launched an explosive attack", "tried a quick head cut", "sprang forward on reaction"],
+  },
+  fr: {
+    FOIL: ["a fermé la distance et attaqué", "a accéléré le tempo", "a tenté une flèche rapide"],
+    EPEE: ["a patiemment guetté l'ouverture", "a répliqué d'une touche au poignet", "a gardé la distance et contre-attaqué"],
+    SABRE: ["a lancé une attaque explosive", "a tenté un coup rapide à la tête", "a bondi en avant sur réaction"],
   },
 };
 
@@ -113,7 +120,7 @@ const ACTION_LINES: Record<"tr" | "en", Record<Weapon, string[]>> = {
  */
 type Tempo = 1 | 2 | 3 | 4;
 
-const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, string[]>>> = {
+const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en" | "fr", Record<Weapon, Record<Tempo, string[]>>> = {
   tr: {
     FOIL: {
       1: [
@@ -299,6 +306,104 @@ const TOUCH_LINES_BY_TEMPO: Record<"tr" | "en", Record<Weapon, Record<Tempo, str
       ],
     },
   },
+  fr: {
+    FOIL: {
+      1: [
+        "a touché au corps d'une attaque simple",
+        "a trouvé l'ouverture d'une attaque directe",
+        "a jailli d'une flèche rapide",
+        "a touché proprement d'une allonge au corps",
+        "a fermé la distance et marqué d'une attaque simple",
+        "a touché d'une allonge dans la fente",
+        "a ouvert la ligne d'une attaque à un temps et marqué",
+      ],
+      2: [
+        "a trouvé l'ouverture après un battement",
+        "a arrêté en parade de quarte puis riposté",
+        "a pris la touche d'une riposte après parade de sixte",
+        "a feinté puis dégagé pour finir joliment",
+        "a touché au corps sur un enchaînement préparation–attaque",
+        "a explosé en appel–flèche pour marquer",
+        "a trouvé l'ouverture d'un coupé",
+        "a franchi la défense en battement–dégagement et touché",
+        "a paré en septime puis riposté pour toucher",
+      ],
+      3: [
+        "a brisé la défense d'un feinte–feinte–attaque",
+        "a marqué sur un enchaînement parade–riposte–remise",
+        "a lié l'attaque après un double dégagement et touché",
+        "a élargi l'ouverture d'un battement–feinte–dégagement et touché",
+      ],
+      4: [
+        "a trouvé l'ouverture d'un combiné feinte–dégagement–feinte–attaque",
+        "a arraché la touche au bout d'une longue séquence",
+        "a conclu d'une remise après double parade–riposte",
+      ],
+    },
+    EPEE: {
+      1: [
+        "a placé une touche vive au poignet qui avançait",
+        "a pris la touche d'un toucher court et net à la main",
+        "a trouvé l'ouverture d'une simple allonge",
+        "a saisi le poignet en contre-attaque",
+        "a attendu pointe en ligne et marqué sur l'attaque adverse",
+        "a bien réglé la distance et placé une touche au poignet",
+        "a touché l'avant-bras d'un coup d'arrêt rapide",
+        "a trouvé l'avant-bras d'une allonge posée",
+        "a marqué d'un toucher plongeant à la jambe/au genou",
+      ],
+      2: [
+        "a pris la touche au poignet d'une allonge après battement",
+        "a changé de ligne en battement–dégagement pour finir joliment",
+        "a donné de l'angle après une feinte et touché la main",
+        "a marqué au corps sur un enchaînement préparation–attaque",
+        "a menacé pointe en ligne puis changé de ligne pour toucher",
+        "a trouvé l'ouverture d'un dégagement dans la fente",
+        "a contrôlé le fer en prise de fer et touché",
+        "a arrêté en parade de sixte puis riposté au poignet",
+        "a touché le dessus de la main d'une riposte après parade d'octave",
+      ],
+      3: [
+        "a saisi le poignet après une double feinte",
+        "a touché proprement l'ouverture après une prise de fer",
+        "a élargi l'ouverture d'une préparation à deux temps et touché",
+        "a arraché la touche sur un enchaînement battement–dégagement–attaque",
+      ],
+      4: [
+        "a trouvé l'ouverture au bout d'une longue préparation",
+        "a arraché la touche sur un feinte–dégagement–angle–attaque",
+        "a touché le poignet d'un double battement puis de l'angle",
+      ],
+    },
+    SABRE: {
+      1: [
+        "a marqué d'un coup à la tête",
+        "a pris les devants d'une attaque rapide et taillé",
+        "a jailli d'une flèche à la tête",
+        "a touché le premier sur pure réaction",
+        "a taillé proprement à la joue",
+        "a fermé la distance et taillé au bras",
+      ],
+      2: [
+        "a touché d'un battement–coup à la tête",
+        "a paré en quinte puis riposté d'une taille",
+        "a taillé à la joue d'une riposte après parade de tierce",
+        "a changé vers la joue pour finir la taille",
+        "a taillé au flanc après une feinte",
+        "a explosé en appel–flèche à la tête",
+        "a taillé joliment après un battement et une volte",
+      ],
+      3: [
+        "a lié le coup à la tête après une double feinte",
+        "a marqué sur un enchaînement parade–riposte–contre-taille",
+        "a trouvé l'ouverture d'une préparation à deux temps et taillé",
+      ],
+      4: [
+        "a brisé la défense et taillé au bout d'une longue séquence",
+        "a touché d'un combiné feinte–feinte–flanc–coup à la tête",
+      ],
+    },
+  },
 };
 
 /**
@@ -358,7 +463,7 @@ function touchSeconds(weapon: Weapon, cat: AgeCategory, narr: SeededRng): number
  * çift lamba-öncelik yok, ayak çaprazı, kart… Silaha göre (flöre/kılıç öncelikli; epede corps-à-corps serbest ama
  * durdurur; kılıçta corps-à-corps/ayak çaprazı yasak). Tempo/iptal turlarında ARA ARA yazılır → maç daha canlı.
  */
-const REF_EVENTS_BY_WEAPON: Record<"tr" | "en", Record<Weapon, string[]>> = {
+const REF_EVENTS_BY_WEAPON: Record<"tr" | "en" | "fr", Record<Weapon, string[]>> = {
   tr: {
     FOIL: [
       "Çift lamba yandı — hakem önceliği netleştiremedi, sayı yok.",
@@ -409,6 +514,32 @@ const REF_EVENTS_BY_WEAPON: Record<"tr" | "en", Record<Weapon, string[]>> = {
       "A light came on but the referee annulled it — no point.",
       "Right-of-way disputed — the referee restarted.",
       "Yellow card — rule violation (warning).",
+    ],
+  },
+  fr: {
+    FOIL: [
+      "Deux lampes — l'arbitre n'a pu attribuer la priorité, pas de touche.",
+      "Corps à corps — l'arbitre a séparé, pas de touche.",
+      "Priorité incertaine — l'arbitre a dit « halte » et remis en garde.",
+      "Une lampe s'est allumée mais l'arbitre a annulé la touche — rien.",
+      "Contact pendant la préparation — l'arbitre a dit « halte », pas de touche.",
+      "Carton jaune — infraction, avertissement.",
+    ],
+    EPEE: [
+      "Corps à corps — l'arbitre a dit « halte », pas de touche.",
+      "Une lampe s'est allumée mais l'arbitre a annulé la touche — rien.",
+      "La pointe a touché la piste — invalide, pas de touche.",
+      "Les deux ont allongé mais aucune lampe — pas de touche.",
+      "La distance s'est rompue — l'arbitre a dit « halte », pas de touche.",
+      "Carton jaune — infraction, avertissement.",
+    ],
+    SABRE: [
+      "Deux lampes — l'arbitre n'a pu donner la priorité, pas de touche.",
+      "Corps à corps — interdit au sabre, l'arbitre a dit « halte ».",
+      "Croisement des jambes — infraction, l'arbitre a dit « halte ».",
+      "Une lampe s'est allumée mais l'arbitre a annulé — rien.",
+      "Priorité contestée — l'arbitre a remis en garde.",
+      "Carton jaune — infraction, avertissement.",
     ],
   },
 };
@@ -531,9 +662,12 @@ function buildMatchup(a: Combatant, b: Combatant): Matchup {
 
 function strengthLine(a: Combatant, b: Combatant, m: Matchup, locale: Locale): string {
   const pct = Math.round(m.baseP * 100);
-  return locale === "en"
-    ? `Match strength — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} win chance ${pct}%).`
-    : `Maç gücü — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} kazanma ihtimali %${pct}).`;
+  return pickLoc(
+    locale,
+    `Maç gücü — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} kazanma ihtimali %${pct}).`,
+    `Match strength — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (${a.name} win chance ${pct}%).`,
+    `Force du match — ${a.name} : ${m.esA.total} · ${b.name} : ${m.esB.total} (chance de victoire de ${a.name} : ${pct} %).`,
+  );
 }
 
 /** Bir tuşun sonuç satırını (skor + durum notu) yazar. */
@@ -548,17 +682,21 @@ function touchLine(
   locale: Locale,
 ): string {
   let line = `${scorer.name} ${touchPhrase(scorer, cat, narr, locale)}. ${scoreA}–${scoreB}`;
-  if (run >= 3) line += locale === "en" ? ` — streak of ${run}!` : ` — üst üste ${run}!`;
-  else if (scoreA === scoreB) line += locale === "en" ? " — even." : " — eşitlik.";
-  else if (scoreA === target - 1 || scoreB === target - 1) line += locale === "en" ? " — match point!" : " — maç sayısı!";
+  if (run >= 3) line += pickLoc(locale, ` — üst üste ${run}!`, ` — streak of ${run}!`, ` — ${run} d'affilée !`);
+  else if (scoreA === scoreB) line += pickLoc(locale, " — eşitlik.", " — even.", " — égalité.");
+  else if (scoreA === target - 1 || scoreB === target - 1)
+    line += pickLoc(locale, " — maç sayısı!", " — match point!", " — balle de match !");
   return line;
 }
 
 /** Epe çift-tuş anlatımı (ikisi de aynı anda değdi). */
 function doubleTouchLine(a: Combatant, b: Combatant, scoreA: number, scoreB: number, locale: Locale): string {
-  return locale === "en"
-    ? `Double touch! Both land together. ${scoreA}–${scoreB}`
-    : `Çift tuş! İkisi de aynı anda değdi. ${scoreA}–${scoreB}`;
+  return pickLoc(
+    locale,
+    `Çift tuş! İkisi de aynı anda değdi. ${scoreA}–${scoreB}`,
+    `Double touch! Both land together. ${scoreA}–${scoreB}`,
+    `Coup double ! Les deux touchent en même temps. ${scoreA}–${scoreB}`,
+  );
 }
 
 /**
@@ -569,9 +707,12 @@ const FOIL_OFF_TARGET_PROB = 0.1;
 
 /** Beyaz lamba anlatımı (flöre hedef-dışı; sayı yok). UI bu satırdan beyaz lambayı yakar. */
 function whiteLampLine(scorer: Combatant, locale: Locale): string {
-  return locale === "en"
-    ? `⚪ White light — ${scorer.name} hit off-target. No touch.`
-    : `⚪ Beyaz lamba — ${scorer.name} hedef dışına dokundu. Sayı yok.`;
+  return pickLoc(
+    locale,
+    `⚪ Beyaz lamba — ${scorer.name} hedef dışına dokundu. Sayı yok.`,
+    `⚪ White light — ${scorer.name} hit off-target. No touch.`,
+    `⚪ Lampe blanche — ${scorer.name} a touché hors cible. Pas de touche.`,
+  );
 }
 
 interface ExchangeOutcome {
@@ -610,7 +751,7 @@ export function simulateMatch(
   const tacticA = a.tactic ?? "BALANCED";
   const tacticB = b.tactic ?? "BALANCED";
   if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
-    const prefix = locale === "en" ? "Tactic" : "Taktik";
+    const prefix = pickLoc(locale, "Taktik", "Tactic", "Tactique");
     log.push(`${prefix} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}.`);
   }
 
@@ -667,9 +808,12 @@ export function simulateMatch(
   const [wScore, lScore] = winnerIsA ? [scoreA, scoreB] : [scoreB, scoreA];
   const act = narr.pick(ACTION_LINES[narrLocale(locale)][winner.weapon]);
   log.push(
-    locale === "en"
-      ? `🏁 ${winner.name} ${act} and won the match ${wScore}-${lScore}.`
-      : `🏁 ${winner.name} ${act} ve maçı ${wScore}-${lScore} kazandı.`,
+    pickLoc(
+      locale,
+      `🏁 ${winner.name} ${act} ve maçı ${wScore}-${lScore} kazandı.`,
+      `🏁 ${winner.name} ${act} and won the match ${wScore}-${lScore}.`,
+      `🏁 ${winner.name} ${act} et a gagné le match ${wScore}-${lScore}.`,
+    ),
   );
 
   return {
@@ -806,9 +950,12 @@ export function simulateLaBelle(
   const priorityA = rng.bool(0.5);
   const prioName = (priorityA ? a : b).name;
   const log: string[] = [
-    locale === "en"
-      ? `Score ${opts.startA}-${opts.startB} tied → priority draw: ${prioName}.`
-      : `Skor ${opts.startA}-${opts.startB} berabere → öncelik kurası: ${prioName}.`,
+    pickLoc(
+      locale,
+      `Skor ${opts.startA}-${opts.startB} berabere → öncelik kurası: ${prioName}.`,
+      `Score ${opts.startA}-${opts.startB} tied → priority draw: ${prioName}.`,
+      `Score ${opts.startA}-${opts.startB} à égalité → tirage de la priorité : ${prioName}.`,
+    ),
   ];
 
   let scoreA = opts.startA;
@@ -819,9 +966,12 @@ export function simulateLaBelle(
     // Altın dakika tuşsuz geçti → öncelik sahibi kazanır.
     winnerIsA = priorityA;
     log.push(
-      locale === "en"
-        ? `The golden minute passed with no touch — priority holder ${prioName} wins.`
-        : `Altın dakika tuşsuz geçti — öncelik ${prioName}'de, ${prioName} kazandı.`,
+      pickLoc(
+        locale,
+        `Altın dakika tuşsuz geçti — öncelik ${prioName}'de, ${prioName} kazandı.`,
+        `The golden minute passed with no touch — priority holder ${prioName} wins.`,
+        `La minute en or s'est écoulée sans touche — ${prioName}, détenteur de la priorité, l'emporte.`,
+      ),
     );
   } else {
     winnerIsA = rng.bool(clamp(m.baseP, 0.05, 0.95));
@@ -830,9 +980,12 @@ export function simulateLaBelle(
     const w = winnerIsA ? a : b;
     const phrase = touchPhrase(w, a.ageCategory ?? "SENIOR", narr, locale);
     log.push(
-      locale === "en"
-        ? `🏅 Golden touch! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`
-        : `🏅 Altın tuş! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+      pickLoc(
+        locale,
+        `🏅 Altın tuş! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+        `🏅 Golden touch! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+        `🏅 Touche en or ! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+      ),
     );
   }
 
@@ -908,9 +1061,12 @@ export function advanceDeBoutPeriod(
   });
   if (periodNo === 1 && pr.log.length > 0) log.push(pr.log[0]); // "Maç gücü …" satırı
   log.push(
-    locale === "en"
-      ? `▸ Period ${periodNo} started — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`
-      : `▸ ${periodNo}. Periyot başladı — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+    pickLoc(
+      locale,
+      `▸ ${periodNo}. Periyot başladı — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+      `▸ Period ${periodNo} started — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+      `▸ Période ${periodNo} commencée — ${a.name} : ${t(locale, `tactic.${tacticA}`)}, ${b.name} : ${t(locale, `tactic.${tacticB}`)}`,
+    ),
   );
   log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
 
@@ -925,9 +1081,12 @@ export function advanceDeBoutPeriod(
       winnerId = scoreA > scoreB ? a.id : b.id;
       const wname = winnerId === a.id ? a.name : b.name;
       log.push(
-        locale === "en"
-          ? `⏱ Time up — ${wname} finished ahead ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`
-          : `⏱ Süre doldu — ${wname} ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} önde bitirdi.`,
+        pickLoc(
+          locale,
+          `⏱ Süre doldu — ${wname} ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)} önde bitirdi.`,
+          `⏱ Time up — ${wname} finished ahead ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
+          `⏱ Temps écoulé — ${wname} a terminé en tête ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
+        ),
       );
     } else {
       const lb = simulateLaBelle(a, b, createRng(`${matchSeed}:belle`), { startA: scoreA, startB: scoreB, locale });
@@ -942,9 +1101,12 @@ export function advanceDeBoutPeriod(
   // #52: periyot BİTTİ işareti — maç kapanmadıysa ve daha periyot varsa (başladı = yukarıdaki "▸ … Periyot" başlığı).
   if (!decided && periodNo < periods) {
     log.push(
-      locale === "en"
-        ? `⏸ End of period ${periodNo} — ${scoreA}-${scoreB}`
-        : `⏸ ${periodNo}. periyot bitti — ${scoreA}–${scoreB}`,
+      pickLoc(
+        locale,
+        `⏸ ${periodNo}. periyot bitti — ${scoreA}–${scoreB}`,
+        `⏸ End of period ${periodNo} — ${scoreA}-${scoreB}`,
+        `⏸ Fin de la période ${periodNo} — ${scoreA}–${scoreB}`,
+      ),
     );
   }
 
@@ -955,9 +1117,12 @@ export function advanceDeBoutPeriod(
 export function deBoutFinishLine(a: Combatant, b: Combatant, state: DeBoutState, locale: Locale = "tr"): string {
   const winIsA = state.winnerId === a.id;
   const wname = winIsA ? a.name : b.name;
-  return locale === "en"
-    ? `🏁 ${wname} won the match ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`
-    : `🏁 ${wname} maçı ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA} kazandı.`;
+  return pickLoc(
+    locale,
+    `🏁 ${wname} maçı ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA} kazandı.`,
+    `🏁 ${wname} won the match ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
+    `🏁 ${wname} a gagné le match ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
+  );
 }
 
 /**

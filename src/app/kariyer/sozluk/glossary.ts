@@ -192,6 +192,65 @@ const DE: GlossarySection[] = [
   },
 ];
 
+const FR: GlossarySection[] = [
+  {
+    title: "Termes d'escrime",
+    terms: [
+      { term: "Fleuret", definition: "Arme légère — seule la cible du tronc est valable ; le score se fonde sur la priorité." },
+      { term: "Épée", definition: "L'arme la plus lourde — tout le corps est valable ; pas de priorité, coups doubles possibles." },
+      { term: "Sabre", definition: "Arme de taille et d'estoc — cible au-dessus de la taille plus les bras et la tête ; selon la priorité, l'arme la plus rapide." },
+      { term: "Cible", definition: "La partie du corps où une touche doit arriver pour compter ; dépend de l'arme." },
+      {
+        term: "Priorité",
+        definition:
+          "Au fleuret et au sabre, la règle qui décide à qui va la touche quand les deux attaquent en même temps — celui qui a attaqué le premier, ou qui a le droit de parer/contrer, l'emporte.",
+      },
+      { term: "Touche", definition: "Porter un coup valable sur l'adversaire ; l'unité de score." },
+      { term: "Poule", definition: "La première phase du tournoi — un petit groupe où chacun affronte chacun, en général en 5 touches." },
+      { term: "Élimination directe", definition: "La phase à élimination après les poules — une défaite et tu es éliminé." },
+      { term: "Exempt (bye)", definition: "Passer un tour d'élimination sans match, grâce à une tête de série haute ou à un nombre impair de tireurs." },
+      { term: "Indice", definition: "Touches données moins touches reçues — départage les égalités au classement de poule." },
+      { term: "Tête de série", definition: "Le rang à l'entrée du tableau, selon le classement — les têtes de série hautes affrontent les basses." },
+      {
+        term: "Touche en or",
+        definition: "Si le temps réglementaire s'achève à égalité, la priorité est tirée au sort et on tire une prolongation — la première touche gagne.",
+      },
+      { term: "Parade", definition: "Bloquer ou dévier l'attaque de l'adversaire avec sa lame." },
+      { term: "Riposte", definition: "La contre-attaque qui suit immédiatement une parade." },
+      { term: "Contre-attaque", definition: "Attaquer dans l'attaque de l'adversaire, au bon moment pour perturber sa préparation." },
+      { term: "Fente", definition: "L'attaque de base : s'allonger en avant en poussant sur la jambe arrière (lunge)." },
+      { term: "Flèche", definition: "Une attaque surprise lancée en courant depuis hors distance." },
+      { term: "Feinte", definition: "Une fausse attaque qui commence dans une ligne et change avant de finir." },
+      { term: "Battement", definition: "Un choc bref et sec sur la lame adverse pour l'écarter." },
+      { term: "Dégagement", definition: "Une action circulaire de la lame qui contourne la parade adverse." },
+      { term: "Coupé", definition: "Une attaque ou une tromperie en passant par-dessus la pointe adverse." },
+      { term: "Appel", definition: "Un appui ferme du pied avant pour provoquer une réaction de l'adversaire." },
+      { term: "Prise de fer", definition: "Prendre la lame adverse et la forcer dans une nouvelle ligne — une liaison." },
+      { term: "Remise", definition: "Renouveler aussitôt une attaque parée ou manquée, sans retirer le bras." },
+      { term: "Pointe en ligne", definition: "Une menace bras tendu, pointe dirigée vers l'adversaire ; elle détient la priorité." },
+      { term: "Corps à corps", definition: "Contact corps à corps entre tireurs ; interdit au fleuret et au sabre, l'arbitre arrête l'assaut." },
+      { term: "Équipe nationale", definition: "Le statut obtenu en terminant dans le top 4 du classement national." },
+      {
+        term: "Lampe blanche",
+        definition:
+          "Au fleuret et au sabre, la lampe indiquant une touche hors de la cible, qui ne compte pas. À l'épée, cela n'existe pas — tout le corps est valable, chaque touche compte.",
+      },
+    ],
+  },
+  {
+    title: "Termes du jeu",
+    terms: [
+      { term: "Saison", definition: "L'unité de progression de carrière — le tireur vieillit et se développe chaque saison." },
+      { term: "Condition", definition: "La fraîcheur physique actuelle du tireur — baisse avec l'entraînement/les matchs, remonte avec le repos." },
+      { term: "Forme", definition: "À quel point le tireur est prêt pour la compétition — monte avec l'entraînement et les matchs réguliers." },
+      { term: "Fatigue", definition: "L'inverse de la condition — une fatigue élevée augmente le risque de blessure." },
+      { term: "Quarter Ranking", definition: "Le classement du trimestre en cours (année de jeu) — remis à zéro à la fin de chacun." },
+      { term: "Numéro de licence", definition: "L'identifiant unique et permanent du tireur (affiché sur la carte d'identité)." },
+      { term: "Denar", definition: "La monnaie du jeu — pour l'équipement et des actions comme recommencer une carrière." },
+    ],
+  },
+];
+
 export function glossaryFor(locale: Locale): GlossarySection[] {
-  return locale === "en" ? EN : locale === "de" ? DE : TR;
+  return locale === "en" ? EN : locale === "de" ? DE : locale === "fr" ? FR : TR;
 }

@@ -9,6 +9,17 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — Fransızca dil desteği TAM (UI + maç anlatımı + sözlük))
+- **Fransızca (`fr`) artık tam çevrili.** Arayüzün 590 metni Fransızca'ya çevrildi (`src/i18n` → `FR` sözlüğü,
+  anahtar paritesi TR ile birebir), `DICT.fr` TR fallback'inden gerçek FR'ye geçti.
+- **Maç anlatımı Fransızca:** combat anlatım havuzları (`ACTION_LINES`, `TOUCH_LINES_BY_TEMPO`,
+  `REF_EVENTS_BY_WEAPON`) + tüm satır-içi maç/periyot/altın-tuş satırları FR'ye açıldı (`narrLocale` + `pickLoc`
+  yardımcısı); eskrim terimleri Fransızca aslıyla (fente, flèche, battement, dégagement, coupé, appel, prise de
+  fer, remise, riposte, contre-attaque…). Canlı insan maçı (careerService) periyot satırları da FR.
+- **Sözlük sayfasına Fransızca bölüm** eklendi. Tarih yerelleri FR'de `fr-FR`.
+- Durum: **TR/EN/DE/FR tam**; **ES hâlâ TR'ye düşüyor** (sıradaki iş). DE'nin maç anlatımı hâlâ TR'ye düşüyor
+  (ayrı iş). Not: dünya-saati tarih etiketlerinin bir kısmı hâlâ TR biçiminde (GMT kuralı, ayrı konu).
+
 ### Değişti (14.10 — maç anlatımı Türkçeleştirildi; terimler resmi sözlükten (playtest))
 - **Türkçe maç anlatımındaki parantez-içi yabancı terimler kaldırıldı** ("parad altı (sixte)" → "parad altı",
   "baş kesme (tête)" → "baş kesme", "açı vererek (angulation)" → "açı vererek", corps-à-corps → "vücut teması",
