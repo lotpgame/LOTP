@@ -23,7 +23,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 ### Eklendi (14.10 — oyun içi sözlüğe eskrim terimleri)
 - **Sözlük sayfasına** (`/kariyer/sozluk`) maç anlatımında geçen eskrim terimleri eklendi: Hamle, Fleş, Feint,
   Bate, Degaje, Kupe, Apel, Priz de fer, Römiz, Uzatılmış Kol, Vücut Teması (her biri Fransızca/İngilizce aslıyla).
-  TR "Riposte" başlığı "Ripost" olarak düzeltildi. (TR bölümü; EN/DE sonra.)
+  TR "Riposte" başlığı "Ripost" olarak düzeltildi. **İngilizce ve Almanca sözlüğe de** aynı terimler eklendi
+  (Lunge/Ausfall, Flèche, Feint/Finte, Beat/Battuta, Disengage/Degagement, Cut-over/Coupé, Appel/Appell,
+  Prise de fer, Remise, Point in line, Corps-à-corps). (es/fr hâlâ TR'ye düşüyor — henüz ayrı çeviri yok.)
 
 ### Eklendi (12.10 — maç içi HAKEM olayları (sayı getirmeyen; playtest))
 - **Maç akışına hakem olayları** eklendi (tempo/iptal turlarında, sayı getirmez): **"flash geldi ama hakem geçersiz
