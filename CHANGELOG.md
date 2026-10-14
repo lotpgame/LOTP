@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — Rusça (ru) dil desteği TAM — 7. dil)
+- **Rusça (`ru`) eklendi ve tam:** `Locale`/`LOCALES`/`LABEL` + 617 anahtarlık RU arayüz (TR ile birebir parite,
+  `DICT.ru`); maç anlatım havuzları + satır-içi satırlar + careerService Rusça; sözlük RU bölümü; ekipman adları
+  (22 ürün); tarih yereli `ru-RU`. Eskrim terimleri Rusça (рапира/шпага/сабля, защита, ответ, батман, выпад, флеш…).
+- Altyapı: anlatım havuzları + `pickLoc` esnek hale getirildi (`Partial<Record<Locale,...>>` + TR fallback) →
+  yeni dil artık "sadece ekleme", her çağrı yerini elle gezmek gerekmiyor.
+
 ### Düzeltildi (14.10 — kenar yüzeyler de 6 dilde: hata sayfası + ülke/kıta adları)
 - **Hata sayfası (`error.tsx`) 6 dile çevrildi** — artık çökme ekranı dil çerezine göre (TR/EN/DE/FR/ES/IT);
   `error.*` anahtarları eklendi (dil istemcide çerezden okunur).
