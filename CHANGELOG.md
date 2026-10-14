@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (14.10 — 6 dilde arayüz TAM: hiçbir dilde Türkçe'ye düşen metin kalmadı)
+- **EN'de eksik 21, DE'de eksik 12 anahtar** (olay anı/podium satırları + EN'de settings/gecmis/klasman/turnuvalar)
+  çevrilip eklendi → 6 dilin hepsi TR ile birebir parite (0 eksik, 0 tekrar). Olay anları (podium) artık 6 dilde.
+- **Ekipman (mağaza) adları 6 dile çevrildi.** Katalogda tek Türkçe ad/açıklama vardı (diğer diller Türkçe'ye
+  düşüyordu, silaha-özel ürünlerde İngilizce bile); `equipment.ts`'e yerel ad/açıklama tablosu (`ITEM_I18N`) +
+  `itemName`/`itemDesc` eklendi, mağaza sayfası ona bağlandı. 22 ürün × 5 dil (TR katalog fallback).
+
 ### Eklendi (14.10 — İtalyanca dil desteği TAM (UI + maç anlatımı + sözlük))
 - **İtalyanca (`it`) 6. dil olarak eklendi ve tam.** `Locale`/`LOCALES`/`LOCALE_LABEL`'a `it` eklendi; 590
   anahtarlık İtalyanca UI sözlüğü (TR ile birebir parite, `DICT.it = IT`); combat havuzları + satır-içi maç

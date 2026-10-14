@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { buyEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
-import { itemsForWeapon, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
-import { t, type Locale } from "@/i18n";
+import { itemsForWeapon, itemName, itemDesc, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
@@ -37,12 +37,6 @@ const GROUPS: { key: string; slots: EquipmentSlot[] }[] = [
   { key: "accessory", slots: ["BAG"] },
 ];
 
-/** Çeviri varsa onu, yoksa motor verisindeki Türkçe adı kullan. */
-function tr(locale: Locale, key: string, fallback: string, vars?: Record<string, string>): string {
-  const v = t(locale, key, vars);
-  return v === key ? fallback : v;
-}
-
 export default async function EkipmanPage() {
   const c = await getCareer();
   if (!c) redirect("/");
@@ -51,7 +45,6 @@ export default async function EkipmanPage() {
   // Silaha göre katalog: oyuncu yalnız kendi silahının + ortak ürünlerini görür (epe → yelek/maske kordonu yok).
   const catalog = itemsForWeapon(c.weapon as Weapon);
   const ownedCount = catalog.filter((i) => owned.has(i.id)).length;
-  const weaponName = t(locale, `weapon.${c.weapon}`);
 
   const card = (item: GladiusItem) => {
     const isOwned = owned.has(item.id);
@@ -64,10 +57,8 @@ export default async function EkipmanPage() {
             <Icon name={icon} size={30} />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-semibold leading-snug">
-              {tr(locale, `gladius.${item.id}.name`, item.name, { weapon: weaponName })}
-            </div>
-            <div className="text-[13px] text-steel">{tr(locale, `gladius.${item.id}.desc`, item.desc)}</div>
+            <div className="text-[15px] font-semibold leading-snug">{itemName(item, locale)}</div>
+            <div className="text-[13px] text-steel">{itemDesc(item, locale)}</div>
           </div>
         </div>
 
