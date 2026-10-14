@@ -2828,7 +2828,11 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
         ? `▸ Period ${periodNo} — you: ${t(locale, `tactic.${tactic}`)}, opp: ${t(locale, `tactic.${oppTactic}`)}`
         : locale === "fr"
           ? `▸ Période ${periodNo} — toi : ${t(locale, `tactic.${tactic}`)}, adv. : ${t(locale, `tactic.${oppTactic}`)}`
-          : `▸ ${periodNo}. Periyot — sen: ${t(locale, `tactic.${tactic}`)}, rakip: ${t(locale, `tactic.${oppTactic}`)}`;
+          : locale === "de"
+            ? `▸ Periode ${periodNo} — du: ${t(locale, `tactic.${tactic}`)}, Gegner: ${t(locale, `tactic.${oppTactic}`)}`
+            : locale === "es"
+              ? `▸ Periodo ${periodNo} — tú: ${t(locale, `tactic.${tactic}`)}, rival: ${t(locale, `tactic.${oppTactic}`)}`
+              : `▸ ${periodNo}. Periyot — sen: ${t(locale, `tactic.${tactic}`)}, rakip: ${t(locale, `tactic.${oppTactic}`)}`;
     prog.log.push(periodHead);
     prog.log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
     prog.scoreHuman = pr.scoreA;
@@ -2847,7 +2851,11 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
             ? `⏱ Time up — ${nameOf(ls, winnerId)} finished ahead ${prog.scoreHuman}-${prog.scoreOpp}.`
             : locale === "fr"
               ? `⏱ Temps écoulé — ${nameOf(ls, winnerId)} a terminé en tête ${prog.scoreHuman}-${prog.scoreOpp}.`
-              : `⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`,
+              : locale === "de"
+                ? `⏱ Zeit abgelaufen — ${nameOf(ls, winnerId)} beendete in Führung ${prog.scoreHuman}-${prog.scoreOpp}.`
+                : locale === "es"
+                  ? `⏱ Tiempo agotado — ${nameOf(ls, winnerId)} terminó por delante ${prog.scoreHuman}-${prog.scoreOpp}.`
+                  : `⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`,
         );
       } else {
         const lb = simulateLaBelle(a, b, createRng(`${base}:belle`), { startA: pr.scoreA, startB: pr.scoreB, locale });
@@ -2875,7 +2883,11 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
         ? `🏁 ${nameOf(ls, winnerId!)} won the match ${prog.scoreHuman}-${prog.scoreOpp}.`
         : locale === "fr"
           ? `🏁 ${nameOf(ls, winnerId!)} a gagné le match ${prog.scoreHuman}-${prog.scoreOpp}.`
-          : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
+          : locale === "de"
+            ? `🏁 ${nameOf(ls, winnerId!)} gewann das Gefecht ${prog.scoreHuman}-${prog.scoreOpp}.`
+            : locale === "es"
+              ? `🏁 ${nameOf(ls, winnerId!)} ganó el combate ${prog.scoreHuman}-${prog.scoreOpp}.`
+              : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
     );
     const gain = Math.max(2, Math.round(fmt.touches * 0.45));
     // Dayanıklılık'a göre azaltılmış maç yorgunluğu (canlı eleme maçı).

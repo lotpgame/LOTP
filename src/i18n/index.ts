@@ -1,5 +1,5 @@
 /**
- * Basit i18n katmanı (UI: TR/EN/DE/FR/ES tam. Maç anlatımı: TR/EN/FR tam, DE/ES TR'ye düşüyor). Dil tercihi bir cookie'de tutulur →
+ * Basit i18n katmanı (UI + maç anlatımı + sözlük: TR/EN/DE/FR/ES tam). Dil tercihi bir cookie'de tutulur →
  * sunucu bileşenleri istekte doğru dilde render eder. `t(locale, key)` saf fonksiyondur (sözlük
  * bundle'da) → hem sunucu hem istemci bileşenlerinde kullanılabilir.
  *

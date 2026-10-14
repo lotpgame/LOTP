@@ -9,10 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — İspanyolca + Almanca maç anlatımı; İspanyolca sözlük)
+- **İspanyolca ve Almanca maç anlatımı tamamlandı.** combat havuzlarına (`ACTION_LINES`, `TOUCH_LINES_BY_TEMPO`,
+  `REF_EVENTS_BY_WEAPON`) `de` ve `es` eklendi; `narrLocale` 5 dili döndürüyor; `pickLoc` map biçimine geçti ve
+  tüm satır-içi maç/periyot/altın-tuş satırları 5 dilde. careerService canlı maç satırları da DE/ES.
+- **İspanyolca sözlük bölümü** eklendi (`glossaryFor` es).
+- Durum: **UI + maç anlatımı + sözlük → TR/EN/DE/FR/ES hepsi TAM.**
+
 ### Eklendi (14.10 — İspanyolca arayüz (UI) çevirisi)
-- **İspanyolca (`es`) arayüzü tam çevrildi** (590 anahtar, TR ile birebir parite; `DICT.es = ES`). TR/EN/DE/FR/ES
-  arayüz artık tam. **Not:** İspanyolca ve Almanca **maç anlatımı** hâlâ TR'ye düşüyor (sıradaki iş); İspanyolca
-  sözlük bölümü de henüz eklenmedi.
+- **İspanyolca (`es`) arayüzü tam çevrildi** (590 anahtar, TR ile birebir parite; `DICT.es = ES`).
 
 ### Eklendi (14.10 — Fransızca dil desteği TAM (UI + maç anlatımı + sözlük))
 - **Fransızca (`fr`) artık tam çevrili.** Arayüzün 590 metni Fransızca'ya çevrildi (`src/i18n` → `FR` sözlüğü,
