@@ -131,6 +131,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Chaqueta + Pantalón", desc: "Uniforme protector blanco (arriba + abajo)" },
     it: { name: "Gladius Giacca + Pantaloni", desc: "Tenuta protettiva bianca (sopra + sotto)" },
     ru: { name: "Gladius Куртка + Брюки", desc: "Белая защитная форма (верх + низ)" },
+    pt: { name: "Gladius Jaqueta + Calça", desc: "Uniforme protetor branco (cima + baixo)" },
   },
   "gl-shoes": {
     en: { name: "Gladius Shoes", desc: "Footwork / balance" },
@@ -139,6 +140,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Zapatillas", desc: "Juego de piernas / equilibrio" },
     it: { name: "Gladius Scarpe", desc: "Gioco di gambe / equilibrio" },
     ru: { name: "Gladius Обувь", desc: "Работа ног / баланс" },
+    pt: { name: "Gladius Tênis", desc: "Trabalho de pés / equilíbrio" },
   },
   "gl-chest": {
     en: { name: "Gladius Chest Protector", desc: "Impact protector (chest)" },
@@ -147,6 +149,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Protector de pecho", desc: "Protección de impactos (pecho)" },
     it: { name: "Gladius Paracostole", desc: "Protezione dagli urti (petto)" },
     ru: { name: "Gladius Защита груди", desc: "Защита от ударов (грудь)" },
+    pt: { name: "Gladius Protetor de peito", desc: "Proteção contra impactos (peito)" },
   },
   "gl-plastron": {
     en: { name: "Gladius Plastron", desc: "Worn under the jacket (underarm protector)" },
@@ -155,6 +158,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Plastrón", desc: "Se lleva bajo la chaqueta (protector de axila)" },
     it: { name: "Gladius Plastron", desc: "Indossato sotto la giacca (protezione ascellare)" },
     ru: { name: "Gladius Пластрон", desc: "Под куртку (защита подмышки)" },
+    pt: { name: "Gladius Plastron", desc: "Usado sob a jaqueta (proteção da axila)" },
   },
   "gl-socks": {
     en: { name: "Gladius Socks", desc: "Long fencing socks" },
@@ -163,6 +167,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Calcetines", desc: "Calcetines largos de esgrima" },
     it: { name: "Gladius Calze", desc: "Calze da scherma lunghe" },
     ru: { name: "Gladius Гетры", desc: "Длинные фехтовальные гетры" },
+    pt: { name: "Gladius Meias", desc: "Meias longas de esgrima" },
   },
   "gl-bag": {
     en: { name: "Gladius Bag", desc: "Branded carry bag" },
@@ -171,6 +176,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Bolsa", desc: "Bolsa de transporte de marca" },
     it: { name: "Gladius Borsa", desc: "Borsa di trasporto brandizzata" },
     ru: { name: "Gladius Сумка", desc: "Фирменная сумка для оружия" },
+    pt: { name: "Gladius Bolsa", desc: "Bolsa de transporte da marca" },
   },
   "gl-lame-foil": {
     en: { name: "Gladius Electric Vest", desc: "Required for foil — conductive vest covering the torso" },
@@ -179,6 +185,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Chaquetilla eléctrica", desc: "Necesaria en florete — chaquetilla conductora que cubre el tronco" },
     it: { name: "Gladius Giubbetto elettrico", desc: "Necessario nel fioretto — giubbetto conduttivo che copre il tronco" },
     ru: { name: "Gladius Электрокуртка", desc: "Нужна для рапиры — токопроводящая куртка на торс" },
+    pt: { name: "Gladius Colete elétrico", desc: "Necessário no florete — colete condutor cobrindo o tronco" },
   },
   "gl-weapon-foil": {
     en: { name: "Gladius Foil", desc: "Electric foil weapon" },
@@ -187,6 +194,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Florete", desc: "Arma de florete eléctrica" },
     it: { name: "Gladius Fioretto", desc: "Arma di fioretto elettrica" },
     ru: { name: "Gladius Рапира", desc: "Электрическая рапира" },
+    pt: { name: "Gladius Florete", desc: "Florete elétrico" },
   },
   "gl-mask-foil": {
     en: { name: "Gladius Foil Mask", desc: "Conductive under the chin" },
@@ -195,6 +203,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Careta de florete", desc: "Conductora bajo el mentón" },
     it: { name: "Gladius Maschera da fioretto", desc: "Conduttiva sotto il mento" },
     ru: { name: "Gladius Маска для рапиры", desc: "Токопроводящая под подбородком" },
+    pt: { name: "Gladius Máscara de florete", desc: "Condutora sob o queixo" },
   },
   "gl-glove-foil": {
     en: { name: "Gladius Glove", desc: "Protective glove" },
@@ -203,6 +212,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Guante", desc: "Guante protector" },
     it: { name: "Gladius Guanto", desc: "Guanto protettivo" },
     ru: { name: "Gladius Перчатка", desc: "Защитная перчатка" },
+    pt: { name: "Gladius Luva", desc: "Luva de proteção" },
   },
   "gl-cord-foil": {
     en: { name: "Gladius Body Cord", desc: "Foil socket" },
@@ -211,6 +221,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Cable corporal", desc: "Conector de florete" },
     it: { name: "Gladius Cavo di corpo", desc: "Spinotto fioretto" },
     ru: { name: "Gladius Телопровод", desc: "Разъём для рапиры" },
+    pt: { name: "Gladius Cabo de corpo", desc: "Tomada de florete" },
   },
   "gl-maskcord-foil": {
     en: { name: "Gladius Mask Cord", desc: "Connects the mask to the vest" },
@@ -219,6 +230,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Cable de careta", desc: "Conecta la careta con la chaquetilla" },
     it: { name: "Gladius Cavo maschera", desc: "Collega la maschera al giubbetto" },
     ru: { name: "Gladius Шнур маски", desc: "Соединяет маску с курткой" },
+    pt: { name: "Gladius Cabo de máscara", desc: "Liga a máscara ao colete" },
   },
   "gl-weapon-epee": {
     en: { name: "Gladius Épée", desc: "Electric épée weapon" },
@@ -227,6 +239,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Espada", desc: "Arma de espada eléctrica" },
     it: { name: "Gladius Spada", desc: "Arma di spada elettrica" },
     ru: { name: "Gladius Шпага", desc: "Электрическая шпага" },
+    pt: { name: "Gladius Espada", desc: "Espada elétrica" },
   },
   "gl-mask-epee": {
     en: { name: "Gladius Épée Mask", desc: "Insulated, white" },
@@ -235,6 +248,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Careta de espada", desc: "Aislada, blanca" },
     it: { name: "Gladius Maschera da spada", desc: "Isolata, bianca" },
     ru: { name: "Gladius Маска для шпаги", desc: "Изолированная, белая" },
+    pt: { name: "Gladius Máscara de espada", desc: "Isolada, branca" },
   },
   "gl-glove-epee": {
     en: { name: "Gladius Glove", desc: "Protective glove" },
@@ -243,6 +257,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Guante", desc: "Guante protector" },
     it: { name: "Gladius Guanto", desc: "Guanto protettivo" },
     ru: { name: "Gladius Перчатка", desc: "Защитная перчатка" },
+    pt: { name: "Gladius Luva", desc: "Luva de proteção" },
   },
   "gl-cord-epee": {
     en: { name: "Gladius Body Cord", desc: "3-prong épée cord" },
@@ -251,6 +266,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Cable corporal", desc: "Cable de espada de 3 clavijas" },
     it: { name: "Gladius Cavo di corpo", desc: "Cavo spada a 3 spinotti" },
     ru: { name: "Gladius Телопровод", desc: "3-контактный шнур для шпаги" },
+    pt: { name: "Gladius Cabo de corpo", desc: "Cabo de espada de 3 pinos" },
   },
   "gl-lame-sabre": {
     en: { name: "Gladius Electric Vest", desc: "Required for sabre — conductive vest covering torso + arms" },
@@ -259,6 +275,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Chaquetilla eléctrica", desc: "Necesaria en sable — chaquetilla conductora que cubre el tronco + los brazos" },
     it: { name: "Gladius Giubbetto elettrico", desc: "Necessario nella sciabola — giubbetto conduttivo che copre tronco + braccia" },
     ru: { name: "Gladius Электрокуртка", desc: "Нужна для сабли — токопроводящая куртка на торс + руки" },
+    pt: { name: "Gladius Colete elétrico", desc: "Necessário no sabre — colete condutor cobrindo tronco + braços" },
   },
   "gl-weapon-sabre": {
     en: { name: "Gladius Sabre", desc: "Electric sabre weapon" },
@@ -267,6 +284,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Sable", desc: "Arma de sable eléctrica" },
     it: { name: "Gladius Sciabola", desc: "Arma di sciabola elettrica" },
     ru: { name: "Gladius Сабля", desc: "Электрическая сабля" },
+    pt: { name: "Gladius Sabre", desc: "Sabre elétrico" },
   },
   "gl-mask-sabre": {
     en: { name: "Gladius Sabre Mask", desc: "Conductive inside and out" },
@@ -275,6 +293,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Careta de sable", desc: "Conductora por dentro y por fuera" },
     it: { name: "Gladius Maschera da sciabola", desc: "Conduttiva dentro e fuori" },
     ru: { name: "Gladius Маска для сабли", desc: "Токопроводящая внутри и снаружи" },
+    pt: { name: "Gladius Máscara de sabre", desc: "Condutora por dentro e por fora" },
   },
   "gl-glove-sabre": {
     en: { name: "Gladius Glove", desc: "Conductive cuff" },
@@ -283,6 +302,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Guante", desc: "Manguito conductor" },
     it: { name: "Gladius Guanto", desc: "Manichetta conduttiva" },
     ru: { name: "Gladius Перчатка", desc: "Токопроводящая манжета" },
+    pt: { name: "Gladius Luva", desc: "Punho condutor" },
   },
   "gl-cord-sabre": {
     en: { name: "Gladius Body Cord", desc: "2-prong sabre cord" },
@@ -291,6 +311,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Cable corporal", desc: "Cable de sable de 2 clavijas" },
     it: { name: "Gladius Cavo di corpo", desc: "Cavo sciabola a 2 spinotti" },
     ru: { name: "Gladius Телопровод", desc: "2-контактный шнур для сабли" },
+    pt: { name: "Gladius Cabo de corpo", desc: "Cabo de sabre de 2 pinos" },
   },
   "gl-maskcord-sabre": {
     en: { name: "Gladius Mask Cord", desc: "Connects the mask to the vest" },
@@ -299,6 +320,7 @@ const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
     es: { name: "Gladius Cable de careta", desc: "Conecta la careta con la chaquetilla" },
     it: { name: "Gladius Cavo maschera", desc: "Collega la maschera al giubbetto" },
     ru: { name: "Gladius Шнур маски", desc: "Соединяет маску с курткой" },
+    pt: { name: "Gladius Cabo de máscara", desc: "Liga a máscara ao colete" },
   },
 };
 

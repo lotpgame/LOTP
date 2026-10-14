@@ -2836,7 +2836,9 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
                 ? `▸ Periodo ${periodNo} — tu: ${t(locale, `tactic.${tactic}`)}, avversario: ${t(locale, `tactic.${oppTactic}`)}`
                 : locale === "ru"
                   ? `▸ Период ${periodNo} — вы: ${t(locale, `tactic.${tactic}`)}, соперник: ${t(locale, `tactic.${oppTactic}`)}`
-                  : `▸ ${periodNo}. Periyot — sen: ${t(locale, `tactic.${tactic}`)}, rakip: ${t(locale, `tactic.${oppTactic}`)}`;
+                  : locale === "pt"
+                    ? `▸ Período ${periodNo} — você: ${t(locale, `tactic.${tactic}`)}, adversário: ${t(locale, `tactic.${oppTactic}`)}`
+                    : `▸ ${periodNo}. Periyot — sen: ${t(locale, `tactic.${tactic}`)}, rakip: ${t(locale, `tactic.${oppTactic}`)}`;
     prog.log.push(periodHead);
     prog.log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
     prog.scoreHuman = pr.scoreA;
@@ -2863,7 +2865,9 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
                     ? `⏱ Tempo scaduto — ${nameOf(ls, winnerId)} ha chiuso in vantaggio ${prog.scoreHuman}-${prog.scoreOpp}.`
                     : locale === "ru"
                       ? `⏱ Время вышло — ${nameOf(ls, winnerId)} завершил впереди ${prog.scoreHuman}-${prog.scoreOpp}.`
-                      : `⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`,
+                      : locale === "pt"
+                        ? `⏱ Tempo esgotado — ${nameOf(ls, winnerId)} terminou à frente ${prog.scoreHuman}-${prog.scoreOpp}.`
+                        : `⏱ Süre doldu — ${nameOf(ls, winnerId)} ${prog.scoreHuman}-${prog.scoreOpp} önde bitirdi.`,
         );
       } else {
         const lb = simulateLaBelle(a, b, createRng(`${base}:belle`), { startA: pr.scoreA, startB: pr.scoreB, locale });
@@ -2899,7 +2903,9 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
                 ? `🏁 ${nameOf(ls, winnerId!)} ha vinto l'incontro ${prog.scoreHuman}-${prog.scoreOpp}.`
                 : locale === "ru"
                   ? `🏁 ${nameOf(ls, winnerId!)} выиграл бой ${prog.scoreHuman}-${prog.scoreOpp}.`
-                  : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
+                  : locale === "pt"
+                    ? `🏁 ${nameOf(ls, winnerId!)} venceu o combate ${prog.scoreHuman}-${prog.scoreOpp}.`
+                    : `🏁 ${nameOf(ls, winnerId!)} maçı ${prog.scoreHuman}-${prog.scoreOpp} kazandı.`,
     );
     const gain = Math.max(2, Math.round(fmt.touches * 0.45));
     // Dayanıklılık'a göre azaltılmış maç yorgunluğu (canlı eleme maçı).
@@ -3570,7 +3576,7 @@ async function autoResolveTournament(
         newRank: rank?.position ?? null,
         // Turnuvanın GERÇEK tarihi (GMT), Q·H değil (NOTLAR #22: gösterim = gerçek takvim tarihi).
         dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString(
-          locale === "en" ? "en-GB" : locale === "de" ? "de-DE" : locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : locale === "ru" ? "ru-RU" : "tr-TR",
+          locale === "en" ? "en-GB" : locale === "de" ? "de-DE" : locale === "fr" ? "fr-FR" : locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : locale === "ru" ? "ru-RU" : locale === "pt" ? "pt-BR" : "tr-TR",
           { timeZone: "UTC", day: "numeric", month: "long", year: "numeric" },
         ),
       });

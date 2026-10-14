@@ -428,6 +428,65 @@ const RU: GlossarySection[] = [
   },
 ];
 
+const PT: GlossarySection[] = [
+  {
+    title: "Termos de esgrima",
+    terms: [
+      { term: "Florete", definition: "Arma leve — alvo válido só o tronco; a pontuação segue a prioridade." },
+      { term: "Espada", definition: "A arma mais pesada — o corpo todo é alvo válido; sem prioridade, tocados duplos possíveis." },
+      { term: "Sabre", definition: "Arma de corte e estocada — alvo acima da cintura mais braços e cabeça; pela prioridade, a arma mais rápida." },
+      { term: "Alvo", definition: "A parte do corpo onde um tocado precisa chegar para valer; depende da arma." },
+      {
+        term: "Prioridade",
+        definition:
+          "No florete e no sabre, a regra que decide a quem vai o tocado quando os dois atacam ao mesmo tempo — vence quem atacou primeiro ou tem direito à defesa/contra-ataque.",
+      },
+      { term: "Tocado", definition: "Acertar um golpe válido no adversário; a unidade de pontuação." },
+      { term: "Poule", definition: "A primeira fase do torneio — um grupo pequeno onde cada um enfrenta todos, em geral até 5 tocados." },
+      { term: "Eliminatória direta", definition: "A fase de eliminação após as poules — uma derrota e você está fora." },
+      { term: "Bye (isento)", definition: "Passar uma rodada de eliminação sem combate, por uma cabeça de chave alta ou número ímpar de atiradores." },
+      { term: "Índice", definition: "Tocados dados menos recebidos — desempata na classificação da poule." },
+      { term: "Cabeça de chave", definition: "A posição ao entrar na chave, pelo ranking — cabeças altas enfrentam as baixas." },
+      {
+        term: "Tocado de ouro",
+        definition: "Se o tempo regulamentar termina empatado, sorteia-se a prioridade e joga-se uma prorrogação — o primeiro tocado vence.",
+      },
+      { term: "Parada", definition: "Bloquear ou desviar o ataque do adversário com a lâmina." },
+      { term: "Resposta", definition: "O contra-ataque logo após uma parada (riposte)." },
+      { term: "Contra-ataque", definition: "Atacar dentro do ataque do adversário, no tempo certo para atrapalhar a preparação dele." },
+      { term: "Afundo", definition: "O ataque básico: estender-se à frente impulsionando com a perna de trás (lunge)." },
+      { term: "Flecha", definition: "Um ataque-surpresa lançado em corrida de fora da distância (flèche)." },
+      { term: "Finta", definition: "Um ataque falso que começa numa linha e muda antes de terminar." },
+      { term: "Batida", definition: "Um golpe curto e seco na lâmina do adversário para afastá-la (battement)." },
+      { term: "Desengajamento", definition: "Um movimento circular da lâmina que contorna a parada do adversário (dégagé)." },
+      { term: "Coupé", definition: "Um ataque ou engano passando por cima da ponta do adversário." },
+      { term: "Apelo", definition: "Uma batida firme do pé da frente para provocar uma reação do adversário (appel)." },
+      { term: "Tomada de ferro", definition: "Pegar a lâmina do adversário e forçá-la a uma nova linha (prise de fer)." },
+      { term: "Remise", definition: "Renovar na hora um ataque defendido ou errado, sem recuar o braço (remise)." },
+      { term: "Ponta em linha", definition: "Uma ameaça com o braço estendido e a ponta apontada ao adversário; mantém a prioridade." },
+      { term: "Corpo a corpo", definition: "Contato corpo a corpo entre atiradores; proibido no florete e no sabre, o árbitro para o combate (corps-à-corps)." },
+      { term: "Seleção", definition: "O status conquistado ao terminar no top 4 do ranking nacional." },
+      {
+        term: "Lâmpada branca",
+        definition:
+          "No florete e no sabre, a lâmpada que mostra um tocado fora do alvo, que não conta. Na espada não existe — o corpo todo é válido, cada tocado conta.",
+      },
+    ],
+  },
+  {
+    title: "Termos do jogo",
+    terms: [
+      { term: "Temporada", definition: "A unidade de progresso da carreira — o atirador envelhece e se desenvolve a cada temporada." },
+      { term: "Condição", definition: "O frescor físico atual do atirador — cai com treinos/combates, recupera com descanso." },
+      { term: "Forma", definition: "O quanto o atirador está pronto para competir — sobe com treinos e combates regulares." },
+      { term: "Fadiga", definition: "O oposto da condição — fadiga alta aumenta o risco de lesão." },
+      { term: "Quarter Ranking", definition: "O ranking do trimestre atual (ano de jogo) — zerado no fim de cada um." },
+      { term: "Número de licença", definition: "O identificador único e permanente do atirador (no cartão)." },
+      { term: "Denar", definition: "A moeda do jogo — para equipamento e ações como recomeçar uma carreira." },
+    ],
+  },
+];
+
 export function glossaryFor(locale: Locale): GlossarySection[] {
   return locale === "en"
     ? EN
@@ -441,5 +500,7 @@ export function glossaryFor(locale: Locale): GlossarySection[] {
             ? IT
             : locale === "ru"
               ? RU
-              : TR;
+              : locale === "pt"
+                ? PT
+                : TR;
 }

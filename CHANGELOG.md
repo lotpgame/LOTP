@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (14.10 — Portekizce (pt) dil desteği TAM — 8. dil)
+- **Portekizce (`pt`) eklendi ve tam:** 617 anahtarlık PT arayüz (TR paritesi, `DICT.pt`); maç anlatımı
+  (havuzlar+satır-içi+careerService); sözlük PT; ekipman (22 ürün); tarih `pt-BR`. Eskrim terimleri Portekizce
+  (florete/espada/sabre, parada, resposta, batida, afundo, flecha, desengajamento…).
+
 ### Eklendi (14.10 — Rusça (ru) dil desteği TAM — 7. dil)
 - **Rusça (`ru`) eklendi ve tam:** `Locale`/`LOCALES`/`LABEL` + 617 anahtarlık RU arayüz (TR ile birebir parite,
   `DICT.ru`); maç anlatım havuzları + satır-içi satırlar + careerService Rusça; sözlük RU bölümü; ekipman adları

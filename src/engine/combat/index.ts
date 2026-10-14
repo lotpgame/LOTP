@@ -133,6 +133,11 @@ const ACTION_LINES: Partial<Record<Locale, Record<Weapon, string[]>>> = {
     EPEE: ["терпеливо ждал открытия", "ответил уколом в кисть", "держал дистанцию и контратаковал"],
     SABRE: ["провёл взрывную атаку", "попробовал быстрый удар по маске", "рванул вперёд на реакции"],
   },
+  pt: {
+    FOIL: ["fechou a distância e atacou", "aumentou o ritmo", "tentou uma flecha rápida"],
+    EPEE: ["esperou com paciência a abertura", "respondeu com um tocado no punho", "manteve a distância e contra-atacou"],
+    SABRE: ["lançou um ataque explosivo", "tentou um golpe rápido na máscara", "disparou à frente por reação"],
+  },
 };
 
 /**
@@ -817,6 +822,104 @@ const TOUCH_LINES_BY_TEMPO: Partial<Record<Locale, Record<Weapon, Record<Tempo, 
       ],
     },
   },
+  pt: {
+    FOIL: {
+      1: [
+        "tocou no tronco com um ataque simples",
+        "achou a abertura com um ataque direto",
+        "disparou numa flecha rápida",
+        "tocou limpo no tronco com uma extensão",
+        "fechou a distância e marcou com um ataque simples",
+        "tocou com uma extensão no afundo",
+        "abriu a linha com um ataque de um tempo e marcou",
+      ],
+      2: [
+        "achou a abertura após uma batida",
+        "parou na quarta e deu a resposta",
+        "levou o tocado com uma resposta após parada de sexta",
+        "fintou e desengajou para fechar com elegância",
+        "marcou no tronco numa sequência preparação–ataque",
+        "explodiu num apelo–flecha e marcou",
+        "achou a abertura com um coupé",
+        "passou a defesa com batida–desengajamento e tocou",
+        "parou na sétima e deu a resposta para tocar",
+      ],
+      3: [
+        "quebrou a defesa com finta–finta–ataque",
+        "marcou numa sequência parada–resposta–remise",
+        "ligou o ataque após um duplo desengajamento e tocou",
+        "ampliou a abertura com batida–finta–desengajamento e tocou",
+      ],
+      4: [
+        "achou a abertura numa combinação finta–desengajamento–finta–ataque",
+        "arrancou o tocado no fim de uma longa sequência",
+        "fechou com um remise após dupla parada–resposta",
+      ],
+    },
+    EPEE: {
+      1: [
+        "cravou um tocado rápido no punho que avançava",
+        "levou o tocado com um toque curto e limpo na mão",
+        "achou a abertura com uma extensão simples",
+        "pegou o punho em contra-ataque",
+        "esperou com a ponta em linha e marcou no ataque do adversário",
+        "ajustou bem a distância e cravou um tocado no punho",
+        "tocou o antebraço com um golpe de parada rápido",
+        "achou o antebraço com uma extensão tranquila",
+        "marcou com um toque descendente na perna/joelho",
+      ],
+      2: [
+        "levou o tocado no punho com uma extensão após batida",
+        "mudou de linha com batida–desengajamento e fechou com elegância",
+        "deu ângulo após uma finta e tocou a mão",
+        "marcou no tronco numa sequência preparação–ataque",
+        "ameaçou com a ponta em linha, mudou de linha e tocou",
+        "achou a abertura com um desengajamento no afundo",
+        "controlou o ferro com uma tomada de ferro e tocou",
+        "parou na sexta e deu a resposta no punho",
+        "tocou o dorso da mão com uma resposta após parada de oitava",
+      ],
+      3: [
+        "pegou o punho após uma dupla finta",
+        "tocou limpo a abertura após uma tomada de ferro",
+        "ampliou a abertura com uma preparação de dois tempos e tocou",
+        "arrancou o tocado numa sequência batida–desengajamento–ataque",
+      ],
+      4: [
+        "achou a abertura no fim de uma longa preparação",
+        "arrancou o tocado com finta–desengajamento–ângulo–ataque",
+        "tocou o punho com dupla batida e depois ângulo",
+      ],
+    },
+    SABRE: {
+      1: [
+        "marcou com um golpe na máscara",
+        "tomou a frente com um ataque rápido e cortou",
+        "disparou numa flecha na cabeça",
+        "foi o primeiro a tocar por pura reação",
+        "cortou limpo na bochecha",
+        "fechou a distância e cortou no braço",
+      ],
+      2: [
+        "tocou com uma batida–golpe na máscara",
+        "parou na quinta e deu a resposta com um corte",
+        "cortou na bochecha com uma resposta após parada de terça",
+        "mudou para a bochecha e completou o corte",
+        "cortou no flanco após uma finta",
+        "explodiu num apelo–flecha na cabeça",
+        "cortou com elegância após uma batida e um giro",
+      ],
+      3: [
+        "ligou o golpe na máscara após uma dupla finta",
+        "marcou numa sequência parada–resposta–contragolpe",
+        "achou a abertura com uma preparação de dois tempos e cortou",
+      ],
+      4: [
+        "quebrou a defesa e cortou no fim de uma longa sequência",
+        "tocou numa combinação finta–finta–flanco–golpe na máscara",
+      ],
+    },
+  },
 };
 
 /**
@@ -1059,6 +1162,32 @@ const REF_EVENTS_BY_WEAPON: Partial<Record<Locale, Record<Weapon, string[]>>> = 
       "Жёлтая карточка — нарушение, предупреждение.",
     ],
   },
+  pt: {
+    FOIL: [
+      "Duas luzes — o árbitro não pôde dar prioridade, sem tocado.",
+      "Corpo a corpo — o árbitro separou, sem tocado.",
+      "Prioridade incerta — o árbitro disse «alto» e reiniciou.",
+      "Uma luz acendeu mas o árbitro anulou o tocado — nada.",
+      "Contato na preparação — o árbitro disse «alto», sem tocado.",
+      "Cartão amarelo — infração, advertência.",
+    ],
+    EPEE: [
+      "Corpo a corpo — o árbitro disse «alto», sem tocado.",
+      "Uma luz acendeu mas o árbitro anulou o tocado — nada.",
+      "A ponta tocou a pista — inválido, sem tocado.",
+      "Os dois estenderam mas nenhuma luz — sem tocado.",
+      "A distância se rompeu — o árbitro disse «alto», sem tocado.",
+      "Cartão amarelo — infração, advertência.",
+    ],
+    SABRE: [
+      "Duas luzes — o árbitro não pôde dar prioridade, sem tocado.",
+      "Corpo a corpo — proibido no sabre, o árbitro disse «alto».",
+      "Cruzamento de pernas — infração, o árbitro disse «alto».",
+      "Uma luz acendeu mas o árbitro a anulou — nada.",
+      "Prioridade contestada — o árbitro reiniciou.",
+      "Cartão amarelo — infração, advertência.",
+    ],
+  },
 };
 
 const REF_EVENT_PROB = 0.6; // sayısız (tempo/iptal) turda bu olasılıkla bir hakem olayı yazılır
@@ -1187,6 +1316,7 @@ function strengthLine(a: Combatant, b: Combatant, m: Matchup, locale: Locale): s
     es: `Fuerza del combate — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (probabilidad de victoria de ${a.name}: ${pct} %).`,
     it: `Forza dell'incontro — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (probabilità di vittoria di ${a.name}: ${pct} %).`,
     ru: `Сила боя — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (шанс победы ${a.name}: ${pct} %).`,
+    pt: `Força do combate — ${a.name}: ${m.esA.total} · ${b.name}: ${m.esB.total} (chance de vitória de ${a.name}: ${pct} %).`,
   });
 }
 
@@ -1211,6 +1341,7 @@ function touchLine(
       es: ` — ${run} seguidos!`,
       it: ` — ${run} di fila!`,
       ru: ` — ${run} подряд!`,
+      pt: ` — ${run} seguidos!`,
     });
   else if (scoreA === scoreB)
     line += pickLoc(locale, {
@@ -1221,6 +1352,7 @@ function touchLine(
       es: " — empate.",
       it: " — parità.",
       ru: " — равно.",
+      pt: " — empate.",
     });
   else if (scoreA === target - 1 || scoreB === target - 1)
     line += pickLoc(locale, {
@@ -1231,6 +1363,7 @@ function touchLine(
       es: " — ¡punto de combate!",
       it: " — match point!",
       ru: " — матч-пойнт!",
+      pt: " — match point!",
     });
   return line;
 }
@@ -1245,6 +1378,7 @@ function doubleTouchLine(a: Combatant, b: Combatant, scoreA: number, scoreB: num
     es: `¡Tocado doble! Ambos tocan a la vez. ${scoreA}–${scoreB}`,
     it: `Stoccata doppia! Entrambi toccano insieme. ${scoreA}–${scoreB}`,
     ru: `Обоюдный укол! Оба попали одновременно. ${scoreA}–${scoreB}`,
+    pt: `Tocado duplo! Ambos tocam juntos. ${scoreA}–${scoreB}`,
   });
 }
 
@@ -1264,6 +1398,7 @@ function whiteLampLine(scorer: Combatant, locale: Locale): string {
     es: `⚪ Luz blanca — ${scorer.name} tocó fuera del blanco. Sin tocado.`,
     it: `⚪ Lampada bianca — ${scorer.name} ha toccato fuori bersaglio. Nessuna stoccata.`,
     ru: `⚪ Белая лампа — ${scorer.name} попал мимо цели. Укола нет.`,
+    pt: `⚪ Lâmpada branca — ${scorer.name} tocou fora do alvo. Sem tocado.`,
   });
 }
 
@@ -1303,7 +1438,7 @@ export function simulateMatch(
   const tacticA = a.tactic ?? "BALANCED";
   const tacticB = b.tactic ?? "BALANCED";
   if (tacticA !== "BALANCED" || tacticB !== "BALANCED") {
-    const prefix = pickLoc(locale, { tr: "Taktik", en: "Tactic", fr: "Tactique", de: "Taktik", es: "Táctica", it: "Tattica", ru: "Тактика" });
+    const prefix = pickLoc(locale, { tr: "Taktik", en: "Tactic", fr: "Tactique", de: "Taktik", es: "Táctica", it: "Tattica", ru: "Тактика", pt: "Tática" });
     log.push(`${prefix} — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}.`);
   }
 
@@ -1368,6 +1503,7 @@ export function simulateMatch(
       es: `🏁 ${winner.name} ${act} y ganó el combate ${wScore}-${lScore}.`,
       it: `🏁 ${winner.name} ${act} e ha vinto l'incontro ${wScore}-${lScore}.`,
       ru: `🏁 ${winner.name} ${act} и выиграл бой ${wScore}-${lScore}.`,
+      pt: `🏁 ${winner.name} ${act} e venceu o combate ${wScore}-${lScore}.`,
     }),
   );
 
@@ -1513,6 +1649,7 @@ export function simulateLaBelle(
       es: `Marcador ${opts.startA}-${opts.startB} empatado → sorteo de prioridad: ${prioName}.`,
       it: `Punteggio ${opts.startA}-${opts.startB} in parità → sorteggio della priorità: ${prioName}.`,
       ru: `Счёт ${opts.startA}-${opts.startB} равный → жребий приоритета: ${prioName}.`,
+      pt: `Placar ${opts.startA}-${opts.startB} empatado → sorteio de prioridade: ${prioName}.`,
     }),
   ];
 
@@ -1532,6 +1669,7 @@ export function simulateLaBelle(
         es: `El minuto de oro pasó sin tocado — gana ${prioName}, que tenía la prioridad.`,
         it: `Il minuto d'oro è passato senza stoccata — vince ${prioName}, che aveva la priorità.`,
         ru: `Золотая минута прошла без укола — побеждает ${prioName}, у кого был приоритет.`,
+        pt: `O minuto de ouro passou sem tocado — vence ${prioName}, que tinha a prioridade.`,
       }),
     );
   } else {
@@ -1549,6 +1687,7 @@ export function simulateLaBelle(
         es: `🏅 ¡Tocado de oro! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
         it: `🏅 Stoccata d'oro! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
         ru: `🏅 Золотой укол! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
+        pt: `🏅 Tocado de ouro! ${w.name} ${phrase} — ${scoreA}–${scoreB}.`,
       }),
     );
   }
@@ -1633,6 +1772,7 @@ export function advanceDeBoutPeriod(
       es: `▸ Periodo ${periodNo} iniciado — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
       it: `▸ Periodo ${periodNo} iniziato — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
       ru: `▸ Период ${periodNo} начался — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
+      pt: `▸ Período ${periodNo} começou — ${a.name}: ${t(locale, `tactic.${tacticA}`)}, ${b.name}: ${t(locale, `tactic.${tacticB}`)}`,
     }),
   );
   log.push(...pr.log.slice(periodNo === 1 ? 1 : 0));
@@ -1656,6 +1796,7 @@ export function advanceDeBoutPeriod(
           es: `⏱ Tiempo agotado — ${wname} terminó por delante ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
           it: `⏱ Tempo scaduto — ${wname} ha chiuso in vantaggio ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
           ru: `⏱ Время вышло — ${wname} завершил впереди ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
+          pt: `⏱ Tempo esgotado — ${wname} terminou à frente ${Math.max(scoreA, scoreB)}-${Math.min(scoreA, scoreB)}.`,
         }),
       );
     } else {
@@ -1679,6 +1820,7 @@ export function advanceDeBoutPeriod(
         es: `⏸ Fin del periodo ${periodNo} — ${scoreA}–${scoreB}`,
         it: `⏸ Fine del periodo ${periodNo} — ${scoreA}–${scoreB}`,
         ru: `⏸ Конец периода ${periodNo} — ${scoreA}–${scoreB}`,
+        pt: `⏸ Fim do período ${periodNo} — ${scoreA}–${scoreB}`,
       }),
     );
   }
@@ -1698,6 +1840,7 @@ export function deBoutFinishLine(a: Combatant, b: Combatant, state: DeBoutState,
     es: `🏁 ${wname} ganó el combate ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
     it: `🏁 ${wname} ha vinto l'incontro ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
     ru: `🏁 ${wname} выиграл бой ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
+    pt: `🏁 ${wname} venceu o combate ${winIsA ? state.scoreA : state.scoreB}-${winIsA ? state.scoreB : state.scoreA}.`,
   });
 }
 
