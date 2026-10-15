@@ -5,6 +5,7 @@ import {
   deriveIdentity,
   generateAiOpponents,
 } from "@/engine/player";
+import { firstNamesFor, lastNamesFor } from "@/engine/player/names";
 
 const GAME_DATE = new Date("2026-01-01");
 
@@ -89,6 +90,25 @@ describe("Player Engine", () => {
     });
     for (const s of specs) {
       expect(deriveIdentity(s, GAME_DATE).age).toBe(8); // hepsi 8 yaşında
+    }
+  });
+
+  it("AI ismi her zaman kendi ülkesinin havuzundan (Türk ismi İspanya'da çıkmaz)", () => {
+    const opts = { count: 40, gender: "MALE" as const, weapon: "EPEE" as const, ageCategory: "SENIOR" as const, gameDate: GAME_DATE, age: 22 };
+    // Tek ülke: hepsi o ülkeden + isim o havuzda.
+    const es = generateAiOpponents(createRng("es"), { ...opts, countries: ["ES"] });
+    const esFirst = new Set(firstNamesFor("MALE", "ES"));
+    const esLast = new Set(lastNamesFor("ES"));
+    for (const s of es) {
+      expect(s.countryCode).toBe("ES");
+      expect(esFirst.has(s.firstName)).toBe(true);
+      expect(esLast.has(s.lastName)).toBe(true);
+    }
+    // Karışık havuz: her AI'ın adı KENDİ countryCode'unun havuzunda olmalı (çapraz sızıntı yok).
+    const mix = generateAiOpponents(createRng("mix"), { ...opts, countries: ["TR", "ES", "IT", "RU"] });
+    for (const s of mix) {
+      expect(firstNamesFor("MALE", s.countryCode)).toContain(s.firstName);
+      expect(lastNamesFor(s.countryCode)).toContain(s.lastName);
     }
   });
 });

@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { continentOfCountry, parsePhone } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry, parsePhone } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -181,8 +181,48 @@ const GAME_START = new Date("2026-01-01T00:00:00.000Z");
 // Herkes START_AGE yaşında başlar → sabit doğum tarihi (GAME_START yılından START_AGE yıl önce).
 const START_BIRTHDATE = new Date(Date.UTC(GAME_START.getUTCFullYear() - START_AGE, 0, 1));
 const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı)
-const AI_COUNT = 23; // kategoriyi dolduran AI havuzu → insanla birlikte 24 kişilik alan
+const AI_COUNT = 23; // ev ülkesi AI havuzu (yerel turnuvaları doldurur) → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
+/**
+ * Uluslararası turnuvalar + dünya/kıta klasmanları için YABANCI AI havuzu (eskrim gücüne göre ağırlıklı).
+ * Yerel turnuvalar (İl/Türkiye/Open) ev ülkesinden seçilir; uluslararası sahalar bu havuzdan karışık gelir.
+ */
+const FOREIGN_AI_POOL: readonly string[] = [
+  "IT", "IT", "IT", "FR", "FR", "FR", "RU", "RU", "RU", "HU", "HU", "DE", "DE", "PL", "PL",
+  "UA", "ES", "ES", "GB", "GB", "US", "US", "JP", "KR", "KR", "CN", "CN", "AU", "EG", "BR", "TN",
+];
+const FOREIGN_AI_COUNT = 32; // uluslararası sahayı (24) rahat dolduracak çok-uluslu havuz
+
+/**
+ * Turnuva sahasını dolduracak AI'ları seçer. YEREL (İl/Türkiye/Open) → yalnız ev ülkesinden
+ * (Türk oyuncuya Türk rakip; İspanyol'a İspanyol). ULUSLARARASI → tüm havuzdan çok-uluslu karışık
+ * (scope anahtarıyla deterministik karıştırma → kapsam-içi herkes AYNI sahayı görür). Her AI'ın
+ * adı kendi ülkesinin havuzundan geldiği için isim↔uyruk hep tutarlıdır.
+ */
+async function selectFieldAi(
+  level: TournamentLevel,
+  homeCode: string,
+  mixSeed: string,
+  gender: string,
+  weapon: string,
+  take: number,
+) {
+  if (take <= 0) return [];
+  if (INTERNATIONAL_LEVELS.includes(level)) {
+    const all = await prisma.player.findMany({
+      where: { isAI: true, gender, weapon },
+      include: { skills: true },
+      orderBy: { id: "asc" },
+    });
+    return createRng(mixSeed).shuffle(all).slice(0, take);
+  }
+  return prisma.player.findMany({
+    where: { isAI: true, gender, weapon, nationality: { code: homeCode } },
+    include: { skills: true },
+    orderBy: { id: "asc" }, // sırasız take() riskli — kapsam-içi herkes aynı kümeyi seçsin
+    take,
+  });
+}
 
 /** Uluslararası turnuva seviyeleri (yalnız U17+; FIE: kıdemli devreler + Kadet/Junior şampiyonaları). */
 const INTERNATIONAL_LEVELS: readonly TournamentLevel[] = ["SATELLITE", "EUROPEAN", "GRAND_PRIX", "WORLD_CUP"];
@@ -488,6 +528,23 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     age: identity.age, // oyuncuyla aynı yaş → kategoriyi birlikte atlar (saha hep dolu)
   });
 
+  // Çok-ülkeli dünya: yabancı AI havuzu (uluslararası turnuvalar + dünya/kıta klasmanları için).
+  const foreignSpecs = generateAiOpponents(createRng(`${seed}:worldfx`), {
+    count: FOREIGN_AI_COUNT,
+    gender: data.gender,
+    weapon: data.weapon,
+    ageCategory: identity.ageCategory,
+    gameDate: GAME_START,
+    age: identity.age,
+    countries: FOREIGN_AI_POOL,
+  });
+  // Yabancı ülkeleri DB'de garanti et (kod → id), ev ülkesi dâhil.
+  const countryIdByCode = new Map<string, number>([["TR", countryId]]);
+  for (const code of [...new Set(foreignSpecs.map((s) => s.countryCode))]) {
+    const c = COUNTRIES.find((x) => x.code === code);
+    countryIdByCode.set(code, await ensureCountry(code, c?.name ?? code));
+  }
+
   // Trait + kulüp/koç (GDD 10, 12, 13) + fiziksel genetik (GDD 2.7) — deterministik.
   const traitPlan = generateTraitPlan(createRng(`${seed}:traits`));
   const humanGenetics = generateGenetics(createRng(`${seed}:phys:human`), data.gender);
@@ -589,6 +646,41 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
           where: { id: ai.id },
           data: { code: formatPlayerCode(ai.id) },
         });
+      }
+
+      // Yabancı AI'lar: kendi ülkelerinin bir şehrinde kulübe bağlı (uluslararası + dünya klasmanı için).
+      const foreignClubByCity = new Map<string, number>();
+      for (let j = 0; j < foreignSpecs.length; j++) {
+        const spec = foreignSpecs[j];
+        const cc = COUNTRIES.find((x) => x.code === spec.countryCode);
+        const city = cc && cc.cities.length > 0 ? clubRng.pick([...cc.cities]) : spec.countryCode;
+        const cityKey = `${spec.countryCode}#${city}`;
+        let fClubId = foreignClubByCity.get(cityKey);
+        if (fClubId == null) {
+          fClubId = (await tx.club.create({ data: makeClubData(city) })).id;
+          foreignClubByCity.set(cityKey, fClubId);
+        }
+        const fGenetics = generateGenetics(createRng(`${seed}:phys:fx:${j}`), spec.gender);
+        const fAi = await tx.player.create({
+          data: {
+            code: "P-TEMP",
+            firstName: spec.firstName,
+            lastName: spec.lastName,
+            gender: spec.gender,
+            birthDate: spec.birthDate,
+            weapon: spec.weapon,
+            profile: spec.profile,
+            nationalityId: countryIdByCode.get(spec.countryCode) ?? countryId,
+            isAI: true,
+            careerStartDate: GAME_START,
+            clubId: fClubId,
+            traits: encodeTraitPlan(generateTraitPlan(createRng(`${seed}:fxtraits:${j}`))),
+            aiDevMonth: aiStartMonth,
+            ...geneticsData(fGenetics),
+            skills: { create: skillCreateData(spec.skills) },
+          },
+        });
+        await tx.player.update({ where: { id: fAi.id }, data: { code: formatPlayerCode(fAi.id) } });
       }
     }
 
@@ -2627,12 +2719,7 @@ export async function startLiveTournament(
   );
 
   const aiNeeded = Math.max(0, FIELD_TARGET - 1 - coHumans.length);
-  const aiPlayers = await prisma.player.findMany({
-    where: { isAI: true, gender: human.gender, weapon: human.weapon },
-    include: { skills: true },
-    orderBy: { id: "asc" }, // M11.3b-2 düzeltmesi: kapsam-içi herkes AYNI AI kümesini seçsin (sırasız take() riskli)
-    take: aiNeeded,
-  });
+  const aiPlayers = await selectFieldAi(level, country?.code ?? "TR", scopeKey, human.gender, human.weapon, aiNeeded);
 
   const snapshot = (
     p: {
@@ -3506,14 +3593,7 @@ async function ensureLiveTournament(
   ].slice(0, MAX_FIELD);
 
   const aiNeeded = Math.max(0, FIELD_TARGET - humans.length);
-  const aiPlayers = aiNeeded
-    ? await prisma.player.findMany({
-        where: { isAI: true, gender: human.gender, weapon: human.weapon },
-        include: { skills: true },
-        orderBy: { id: "asc" },
-        take: aiNeeded,
-      })
-    : [];
+  const aiPlayers = await selectFieldAi(level, country?.code ?? "TR", scopeKey, human.gender, human.weapon, aiNeeded);
   if (humans.length + aiPlayers.length < 2) return null;
 
   const ageCategory = base.ageCategory as AgeCategory;

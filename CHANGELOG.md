@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.10 — çok-ülkeli dünya: AI uyrukları + yerel/uluslararası saha kuralı)
+- **Yabancı AI havuzu** eklendi (`FOREIGN_AI_POOL`, eskrim gücüne göre ağırlıklı; 32 AI). Dünya tohumlanırken
+  ev ülkesi (TR) AI'larına ek olarak yabancı AI'lar kendi ülkelerinin şehrinde kulüple oluşturulur; isim+uyruk
+  kendi ülkesinden (**Türk isimli AI asla İspanyol bayrağıyla çıkmaz** — test: `player.test.ts`).
+- **Saha seçimi seviyeye göre** (`selectFieldAi`): **yerel** (İl/Türkiye/Open) → yalnız ev ülkesinden rakip;
+  **uluslararası** (Satellite/Avrupa/GP/Dünya) → tüm havuzdan çok-uluslu karışık (scope anahtarıyla deterministik).
+  Böylece Madrid'li bir çocuk Almanya'daki yerel turnuvada çıkmaz; ancak uluslararası sahada karşılaşır.
+- ⚠️ **Yalnız sıfır dünyada etkili** (`if (!aiExists)`): mevcut prod/local'de AI zaten TR tohumlandığı için
+  geriye dönük değişmez — temiz başlangıçta (lansman) devreye girer. Canlı veriye zararsız.
+
 ### Eklendi (15.10 — ülke genişletme + bot isim havuzu altyapısı)
 - **Şehirler yerel/özgün yazıma çevrildi** (geo.ts): München, Warszawa, Beijing, Kyiv, Moscow… (18 ülke, 5'er
   şehir; Latin-dışı → yaygın romanizasyon). Ülke/kıta adları zaten 9 dilde mevcuttu.
