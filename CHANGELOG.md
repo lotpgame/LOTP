@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.10 — ülke genişletme + bot isim havuzu altyapısı)
+- **Şehirler yerel/özgün yazıma çevrildi** (geo.ts): München, Warszawa, Beijing, Kyiv, Moscow… (18 ülke, 5'er
+  şehir; Latin-dışı → yaygın romanizasyon). Ülke/kıta adları zaten 9 dilde mevcuttu.
+- **Ülke-bazlı bot isim havuzları** (`names.ts`): 18 ülke × (~20 erkek + ~20 kadın ad + ~20 soyad) ≈ 1080 isim.
+  `firstNamesFor(gender, countryCode)` / `lastNamesFor(countryCode)` — bilinmeyen ülke → TR fallback.
+  `generateAiOpponents` artık `countries` havuzu alıyor; her AI'da `countryCode`. **Varsayılan TR → mevcut
+  davranış korunur** (dünya hâlâ TR; çok-ülkeli tohumlama ayrı adım).
+
 ### Eklendi (14.10 — Çince (zh) dil desteği TAM — 9. dil)
 - **Çince (`zh`, 简体) eklendi ve tam:** 617 anahtarlık ZH arayüz (TR paritesi, `DICT.zh`); maç anlatımı
   (havuzlar+satır-içi+careerService); sözlük ZH; ekipman (22 ürün); tarih `zh-CN`. Eskrim terimleri Çince

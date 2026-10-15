@@ -18,7 +18,7 @@ import {
 import { PROFILES } from "../domain";
 import { generateStartingSkills, type PlayerSkills } from "../skill";
 import type { SeededRng } from "../probability";
-import { LAST_NAMES, firstNamesFor } from "./names";
+import { firstNamesFor, lastNamesFor } from "./names";
 
 /** Oyuncu oluşturma girdisi — sunucu tarafında doğrulanır (GDD 7.27, güvenlik: Zod). */
 // Herkes SABİT yaşta başlar (kariyeri sıfırdan inşa etme). Test 1 = 8 (U10). Test 2'de değiştirilir.
@@ -64,6 +64,7 @@ const CATEGORY_AGE_RANGE: Record<AgeCategory, [number, number]> = {
 export interface AiPlayerSpec {
   firstName: string;
   lastName: string;
+  countryCode: string; // AI'nın ülkesi (ISO kodu); isim+kulüp bu ülkeden
   gender: Gender;
   weapon: Weapon;
   profile: PlayerProfile;
@@ -87,10 +88,18 @@ function randomBirthDate(rng: SeededRng, ageCategory: AgeCategory, gameDate: Dat
  */
 export function generateAiOpponents(
   rng: SeededRng,
-  opts: { count: number; gender: Gender; weapon: Weapon; ageCategory: AgeCategory; gameDate: Date; age?: number },
+  opts: {
+    count: number;
+    gender: Gender;
+    weapon: Weapon;
+    ageCategory: AgeCategory;
+    gameDate: Date;
+    age?: number;
+    countries?: readonly string[]; // AI'ların çekileceği ülke havuzu (her AI birinden); yoksa TR
+  },
 ): AiPlayerSpec[] {
   const { count, gender, weapon, ageCategory, gameDate } = opts;
-  const firsts = firstNamesFor(gender);
+  const countries = opts.countries && opts.countries.length > 0 ? opts.countries : ["TR"];
   const specs: AiPlayerSpec[] = [];
   for (let i = 0; i < count; i++) {
     // `age` verilirse tüm AI aynı yaşta (oyuncunun nesli) → yaş kategorisini birlikte atlar, saha
@@ -101,9 +110,11 @@ export function generateAiOpponents(
         : randomBirthDate(rng, ageCategory, gameDate);
     const age = computeAge(birthDate, gameDate);
     const profile = rng.pick(PROFILES);
+    const countryCode = rng.pick(countries);
     specs.push({
-      firstName: rng.pick(firsts),
-      lastName: rng.pick(LAST_NAMES),
+      firstName: rng.pick(firstNamesFor(gender, countryCode)),
+      lastName: rng.pick(lastNamesFor(countryCode)),
+      countryCode,
       gender,
       weapon,
       profile,
