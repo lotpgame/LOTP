@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (18.10 — Google giriş hatası artık sessiz değil, 9 dilde)
+- **Google girişi başarısız olursa** (`?auth=error`) veya **yapılandırılmamışsa** (`?auth=unconfigured`) ana sayfa
+  artık **kullanıcının dilinde** kısa bir uyarı gösteriyor (önceden sessizce ana sayfaya dönüyordu). `auth.error` +
+  `auth.unconfigured` anahtarları 9 dilde; uyarı Google butonunun üstünde amber bant olarak çıkar.
+- İnceleme notu: Google OAuth akışı (state/CSRF çerezi, token→e-posta, mevcut kariyeri bağlama) sağlam; tek
+  eksik bu sessiz-hata geri bildirimiydi — kapatıldı. Kayıt **botlara takılmıyor** (doğrulandı: `createCareer`
+  her zaman insan oyuncuyu oluşturur, bot-sayısı kapısı yok) → "17. gerçek oyuncu" senaryosu zaten güvenli.
+
 ### Eklendi (18.10 — yumuşak hata mesajları 9 dilde)
 - **Nadir "yumuşak" hatalar artık kullanıcının dilinde** gösteriliyor (generic hata sayfası yerine). Yeni
   `GameError(code, msg)` sınıfı (`careerService.ts`): kayıt/katılım/ekipman gibi aksiyonlarda atılan 12

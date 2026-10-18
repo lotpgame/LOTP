@@ -27,11 +27,18 @@ const STEPS: { icon: IconName; key: string }[] = [
  * Masaüstünde (lg) iki sütun: solda vitrin + 3 adım sabit durur, sağda form kayar.
  * Vitrindeki isimler ve skor örnektir (gerçek sporcu değil); veri okumaz, yazmaz.
  */
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ auth?: string }>;
+}) {
   const user = await currentUser();
   const signedIn = !!user?.email; // Google ile giriş yapılmış mı
   if (signedIn && (await hasCareer())) redirect("/kariyer");
   const locale = await getLocale();
+  // Google dönüşünde hata/çözülmemiş yapılandırma → sessiz kalmasın, kullanıcının dilinde uyar.
+  const { auth } = await searchParams;
+  const authMsg = auth === "error" ? "auth.error" : auth === "unconfigured" ? "auth.unconfigured" : null;
 
   return (
     <main className="lg:grid lg:grid-cols-2">
@@ -86,7 +93,14 @@ export default async function Home() {
 
         {/* ——— Giriş yoksa Google ile devam; girişliyse sporcu oluşturma ——— */}
         {!signedIn ? (
-          <GoogleSignIn locale={locale} />
+          <div className="space-y-3">
+            {authMsg && (
+              <p role="alert" className="panel border-l-4 border-l-amber-500 bg-amber-50 p-3 text-[14px] text-ink dark:bg-amber-950/30">
+                {t(locale, authMsg)}
+              </p>
+            )}
+            <GoogleSignIn locale={locale} />
+          </div>
         ) : (
           <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
           <h2 className="display text-[28px]">{t(locale, "landing.formTitle")}</h2>
