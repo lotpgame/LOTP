@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (18.10 — IP'den ülke ön-seçimi (akıllı varsayılan)) — YEREL, HENÜZ PUSH YOK
+- **Oluşturma formu ülkeyi IP'den ön-seçer:** Vercel'in ücretsiz `x-vercel-ip-country` header'ı (dış servis
+  YOK, IP saklanmaz/loglanmaz). Ziyaretçinin ülkesi 18 ülkeden biriyse form ona + o ülkenin şehirlerine
+  ön-ayarlanır; değilse/yerelde → TR. **Zorlama değil** — oyuncu listeden değiştirebilir (VPN/çifte vatandaş).
+  (Eski V2 "IP ile ülke" — Vercel yerel geo sağladığı için kolayca V1'e alındı.)
+
 ### Değişti (18.10 — 18 ülke: kulüpler + ulusal turnuva ülkeye göre) — YEREL, HENÜZ PUSH YOK
 - **Kulüpler artık ülkenin kendi dilinde + kendi şehrinde:** "Berlin Fechtclub", "London Fencing Club",
   "Madrid Club de Esgrima", "Moscow Фехтовальный клуб"… (`clubNameFor`, geo.ts, 18 ülke eki). **Koç adları da**

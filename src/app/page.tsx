@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createCareerAction } from "@/app/actions";
 import { LangSelect } from "@/app/LangSelect";
@@ -40,6 +41,10 @@ export default async function Home({
   // Google dönüşünde hata/çözülmemiş yapılandırma → sessiz kalmasın, kullanıcının dilinde uyar.
   const { auth } = await searchParams;
   const authMsg = auth === "error" ? "auth.error" : auth === "unconfigured" ? "auth.unconfigured" : null;
+  // IP'den ülke (Vercel `x-vercel-ip-country` — ücretsiz, dış servis yok). Desteklediğimiz 18 ülkeden
+  // biriyse formu ona ön-seçeriz (akıllı varsayılan; oyuncu değiştirebilir). Yoksa/yerelde → TR.
+  const ipCountry = (await headers()).get("x-vercel-ip-country")?.toUpperCase() ?? "";
+  const defaultCountry = COUNTRIES.some((c) => c.code === ipCountry) ? ipCountry : "TR";
   // Ülke seçenekleri: çevrilmiş ad + bayrak + o ülkenin alfabetik şehirleri; liste ada göre alfabetik.
   const countryOptions = COUNTRIES.map((c) => ({
     code: c.code,
@@ -155,7 +160,7 @@ export default async function Home({
             countries={countryOptions}
             countryLabel={t(locale, "create.country")}
             cityLabel={t(locale, "create.city")}
-            defaultCountry="TR"
+            defaultCountry={defaultCountry}
             inputCls={inputCls}
           />
           <p className="-mt-4 text-[13px] text-steel">{t(locale, "create.cityHint")}</p>
