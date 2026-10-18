@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -29,7 +29,6 @@ import {
   makeCategoryId,
   roundSkill,
   TOURNAMENT_LABEL_TR,
-  TR_CITIES,
   type AgeCategory,
   type Gender,
   type SkillCategory,
@@ -52,6 +51,7 @@ import {
 import { applyTraining, TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import { parseSkillQuarterBase, rollSkillQuarterBase } from "@/engine/skill/quarterBase";
 import { START_AGE, createPlayerSchema, deriveIdentity, generateAiOpponents } from "@/engine/player";
+import { firstNamesFor, lastNamesFor } from "@/engine/player/names";
 import {
   MATCH_FORMATS,
   PERIOD_SECONDS,
@@ -106,28 +106,60 @@ function localizeRound(locale: Locale, round: string): string {
 /** Turnuva ev sahibi şehri (kullanıcı 11.10): İl/Open = oyuncunun KENDİ şehri (yerel); Türkiye+ = o güne göre
  * DETERMİNİSTİK rastgele TR şehri (herkes aynı görür — "İstanbul'da Türkiye Şampiyonası"). Uluslararası (Avrupa/
  * Dünya) şimdilik şehirsiz. */
-function tournamentHostCity(level: TournamentLevel, worldDay: number, playerCity: string): string | null {
+/** scopeKey'deki coğrafi kapsamdan ülke kodunu çıkarır (İl "TR#Şehir" → "TR"; Türkiye/Open "TR"; uluslararası "WORLD"). */
+function countryCodeFromScopeKey(scopeKey: string | null): string | null {
+  const geo = scopeKey?.split(":")[1] ?? "";
+  if (!geo || geo === "WORLD") return null;
+  return geo.split("#")[0] || null;
+}
+
+function tournamentHostCity(
+  level: TournamentLevel,
+  worldDay: number,
+  playerCity: string,
+  countryCode: string | null,
+): string | null {
   if (level === "IL") return playerCity || null; // İl = oyuncunun kendi şehri (şehir-kapsamlı)
-  if (level === "TURKIYE" || level === "OPEN" || level === "SATELLITE" || level === "GRAND_PRIX") {
-    return createRng(`host:${level}:${worldDay}`).pick([...TR_CITIES]); // o güne göre deterministik ev sahibi
+  if (level === "TURKIYE" || level === "OPEN") {
+    // Ulusal/Open = oyuncunun kendi ÜLKESİNİN şehirlerinden (ev sahibi), o güne göre deterministik.
+    const cities = countryCode ? citiesForCountry(countryCode) : [];
+    const pool = cities.length > 0 ? [...cities] : [playerCity || countryCode || "?"];
+    return createRng(`host:${level}:${countryCode ?? "?"}:${worldDay}`).pick(pool);
+  }
+  if (level === "SATELLITE" || level === "GRAND_PRIX") {
+    // Uluslararası = dünya şehri (tüm ülkelerden), deterministik.
+    const all = COUNTRIES.flatMap((c) => [...c.cities]);
+    return createRng(`host:${level}:${worldDay}`).pick(all);
   }
   return null; // EUROPEAN / WORLD_CUP — şimdilik şehirsiz
 }
 
 /** scopeKey'den (İl'de "IL:TR#Şehir:…") + worldDay'den ev sahibi şehir — sonuç/geçmiş sayfaları için (oyuncunun
- * şehrini ayrıca sorgulamadan). İl'de scopeKey'deki şehir, diğerlerinde deterministik. */
+ * şehrini ayrıca sorgulamadan). İl'de scopeKey'deki şehir, diğerlerinde ülke/deterministik. */
 function tournamentHostFrom(level: TournamentLevel, worldDay: number, scopeKey: string | null): string | null {
   if (level === "IL") {
     const geo = scopeKey?.split(":")[1] ?? "";
     return geo.includes("#") ? geo.split("#")[1] : null;
   }
-  return tournamentHostCity(level, worldDay, "");
+  return tournamentHostCity(level, worldDay, "", countryCodeFromScopeKey(scopeKey));
 }
 
-/** Turnuva görünen adı: İl'de şehir adı "İl"in YERİNE geçer ("U10 Kocaeli Şampiyonası"); Türkiye+'da seviye adı +
- * "· ev sahibi şehir" ("U10 Türkiye Şampiyonası · İstanbul"); şehirsizlerde yalnız seviye. */
-function tournamentDisplayName(locale: Locale, ageCategory: string, level: TournamentLevel, host: string | null = null): string {
+/** Turnuva görünen adı: İl'de şehir adı "İl"in YERİNE geçer ("U10 Kocaeli Şampiyonası"); ULUSAL'da oyuncunun
+ * ÜLKE adı ("U10 Almanya Şampiyonası · Berlin"); Open/uluslararasında seviye adı; hepsinde varsa "· ev sahibi". */
+function tournamentDisplayName(
+  locale: Locale,
+  ageCategory: string,
+  level: TournamentLevel,
+  host: string | null = null,
+  countryCode: string | null = null,
+): string {
   if (level === "IL" && host) return `${ageCategory} ${host} ${t(locale, "tournament.cityChamp")}`;
+  if (level === "TURKIYE") {
+    // Ulusal şampiyona = oyuncunun kendi ülkesi (adı izleyicinin dilinde). cityChamp = "Şampiyonası"/"Championship"/…
+    const cname = t(locale, `country.${countryCode ?? "TR"}`);
+    const base = `${ageCategory} ${cname} ${t(locale, "tournament.cityChamp")}`;
+    return host ? `${base} · ${host}` : base;
+  }
   const base = `${ageCategory} ${t(locale, `tournament.${level}`)}`;
   return host ? `${base} · ${host}` : base;
 }
@@ -533,17 +565,17 @@ export async function completeGoogleSignIn(email: string): Promise<void> {
 
 // ---------- kulüp + bölge bot nüfusu (18 ülke launch modeli) ----------
 
-const COACH_NAMES = ["Ahmet", "Kemal", "Selim", "Hasan", "Murat", "Emre", "Cem", "Okan", "Tuna", "Barış"];
-const COACH_SURNAMES = ["Yıldız", "Demir", "Şahin", "Aydın", "Kaya", "Çelik", "Arslan", "Doğan", "Koç", "Yılmaz"];
 const CLUB_SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"];
 
-/** Bir kulübün verisi (2 antrenör, 4 türü 2+2 kapsar — GDD 13). rng deterministik. */
-function makeClubData(city: string, rng: ReturnType<typeof createRng>) {
+/** Bir kulübün verisi (2 antrenör, 4 türü 2+2 kapsar — GDD 13). Ad + koç adları ülkenin kendi dilinde. rng deterministik. */
+function makeClubData(city: string, rng: ReturnType<typeof createRng>, countryCode: string) {
   const specs = rng.shuffle(CLUB_SPECIALTIES);
   const skill = rng.int(45, 85);
-  const coachFullName = () => `${rng.pick(COACH_NAMES)} ${rng.pick(COACH_SURNAMES)}`;
+  // Koç adları da kulübün ülkesinden (Berlin Fechtclub → Alman koç). Cinsiyet rastgele.
+  const coachFullName = () =>
+    `${rng.pick([...firstNamesFor(rng.pick(["MALE", "FEMALE"]), countryCode)])} ${rng.pick([...lastNamesFor(countryCode)])}`;
   return {
-    name: `${city} Eskrim Kulübü`,
+    name: clubNameFor(city, countryCode),
     city,
     facility: rng.int(45, 85),
     coachName: coachFullName(),
@@ -595,7 +627,7 @@ async function ensureBucketBots(
   const cc = countryByCode(countryCode);
   const countryId = await ensureCountry(countryCode, cc?.name ?? countryCode);
   const existingClub = await prisma.club.findFirst({ where: { city } });
-  const clubId = existingClub ? existingClub.id : (await prisma.club.create({ data: makeClubData(city, rng) })).id;
+  const clubId = existingClub ? existingClub.id : (await prisma.club.create({ data: makeClubData(city, rng, countryCode) })).id;
   const specs = generateAiOpponents(rng, { count: need, gender, weapon, ageCategory, gameDate: GAME_START, age, countries: [countryCode] });
   const aiStartMonth = Math.floor(serverEventDay() / DAYS_PER_MONTH);
   for (let i = 0; i < specs.length; i++) {
@@ -678,7 +710,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
 
     // Oyuncunun kulübü: şehrinde kulüp varsa ona bağlan (ortak), yoksa oluştur.
     const cityClub = await tx.club.findFirst({ where: { city: data.city } });
-    const humanClubId = cityClub ? cityClub.id : (await tx.club.create({ data: makeClubData(data.city, clubRng) })).id;
+    const humanClubId = cityClub ? cityClub.id : (await tx.club.create({ data: makeClubData(data.city, clubRng, data.country) })).id;
 
     const human = await tx.player.create({
       data: {
@@ -720,7 +752,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         const cityKey = `${spec.countryCode}#${city}`;
         let fClubId = foreignClubByCity.get(cityKey);
         if (fClubId == null) {
-          fClubId = (await tx.club.create({ data: makeClubData(city, clubRng) })).id;
+          fClubId = (await tx.club.create({ data: makeClubData(city, clubRng, spec.countryCode) })).id;
           foreignClubByCity.set(cityKey, fClubId);
         }
         const fGenetics = generateGenetics(createRng(`${seed}:phys:fx:${j}`), spec.gender);
@@ -767,7 +799,7 @@ async function loadState() {
   if (!gs) return null;
   const human = await prisma.player.findUnique({
     where: { id: gs.humanPlayerId },
-    include: { skills: true, club: true },
+    include: { skills: true, club: true, nationality: true }, // nationality.code: ulusal turnuva adı/ev sahibi ülke için
   });
   if (!human) return null;
   return { gs, human };
@@ -1026,6 +1058,7 @@ function findNextTournament(
   injured: boolean,
   locale: Locale,
   city: string,
+  countryCode: string,
 ): NextTournamentDTO | null {
   const cfg = worldClockConfig();
   for (let d = worldDay; d <= worldDay + 14; d++) {
@@ -1035,7 +1068,7 @@ function findNextTournament(
     if (!levelAllowedForCategory(act.level, id.ageCategory)) continue; // uluslararası yalnız U17+
     return {
       level: act.level,
-      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, city)),
+      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, city, countryCode), countryCode),
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       startMs: worldEventStartMs(d, cfg), // turnuva o günün 18:00 GMT'sinde başlar
       daysUntil: d - worldDay,
@@ -1135,7 +1168,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     canAttend,
     needsSync,
     caughtUp: !arrived,
-    nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale, human.club?.city ?? ""),
+    nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale, human.club?.city ?? "", human.nationality?.code ?? "TR"),
   };
 }
 
@@ -1148,7 +1181,7 @@ export async function getNextTournament(): Promise<NextTournamentDTO | null> {
   const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale, human.club?.city ?? "");
+  return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale, human.club?.city ?? "", human.nationality?.code ?? "TR");
 }
 
 /** Haftalık antrenman planını kaydeder (sabit "İlerle" çubuğu bunu uygular). */
@@ -1215,7 +1248,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
     out.push({
       worldDay: d,
       level: act.level,
-      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, human.club?.city ?? "")),
+      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, human.club?.city ?? "", human.nationality?.code ?? "TR"), human.nationality?.code ?? "TR"),
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
@@ -1882,6 +1915,7 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
         e.tournament.categoryId.split("-")[0],
         e.tournament.level as TournamentLevel,
         tournamentHostFrom(e.tournament.level as TournamentLevel, e.tournament.worldDay ?? 0, e.tournament.scopeKey),
+        countryCodeFromScopeKey(e.tournament.scopeKey),
       ),
       level: t(locale, `tournament.${e.tournament.level}`),
       levelCode: e.tournament.level,
@@ -2068,6 +2102,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
       tourn.categoryId.split("-")[0],
       tourn.level as TournamentLevel,
       tournamentHostFrom(tourn.level as TournamentLevel, tourn.worldDay ?? 0, tourn.scopeKey),
+      countryCodeFromScopeKey(tourn.scopeKey),
     ),
     level: t(locale, `tournament.${tourn.level}`),
     categoryId: tourn.categoryId,
@@ -3363,7 +3398,13 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
   }
 
   const dto: LiveTournamentDTO = {
-    name: tournamentDisplayName(locale, ls.ageCategory, ls.level),
+    name: tournamentDisplayName(
+      locale,
+      ls.ageCategory,
+      ls.level,
+      tournamentHostFrom(ls.level, Number(ls.scopeKey?.split(":").pop() ?? 0) || 0, ls.scopeKey ?? null),
+      countryCodeFromScopeKey(ls.scopeKey ?? null),
+    ),
     categoryId: ls.categoryId,
     phase: ls.phase,
     stage: ls.stage ?? (ls.phase === "DONE" ? "DONE" : ls.phase === "DE" ? "DE" : "POOL"),

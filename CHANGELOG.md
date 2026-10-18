@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (18.10 — 18 ülke: kulüpler + ulusal turnuva ülkeye göre) — YEREL, HENÜZ PUSH YOK
+- **Kulüpler artık ülkenin kendi dilinde + kendi şehrinde:** "Berlin Fechtclub", "London Fencing Club",
+  "Madrid Club de Esgrima", "Moscow Фехтовальный клуб"… (`clubNameFor`, geo.ts, 18 ülke eki). **Koç adları da**
+  kulübün ülkesinden (Berlin kulübü → Alman koç; `firstNamesFor/lastNamesFor` ülke havuzu).
+- **Ulusal şampiyona oyuncunun kendi ülkesi:** "U10 **Almanya** Şampiyonası · Berlin" (önceden herkese
+  "Türkiye Şampiyonası · <TR şehri>"). Ev sahibi şehir artık oyuncunun **ülkesinin** şehirlerinden; ulusal
+  turnuva adında **ülke adı** (izleyicinin dilinde). Open da ülke şehrinden; uluslararası (Satellite/GP) dünya
+  şehrinden. `tournamentHostCity`/`tournamentHostFrom`/`tournamentDisplayName` ülke-duyarlı; ülke kodu
+  `loadState` human include'u + scopeKey'den gelir. tsc + 205 test + prod build yeşil.
+
 ### Eklendi (18.10 — 18 ülke launch: ülke seçimi + bölgesel bot nüfusu) — YEREL, HENÜZ PUSH YOK
 - **Parça 1 — Ülke+şehir seçimi:** oluşturma formuna ülke (18, bayraklı) + o ülkenin şehirleri
   (`CountryCitySelect`; ülke değişince şehir güncellenir). Telefon kalktığı için bölge buradan belirlenir

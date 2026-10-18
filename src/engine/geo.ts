@@ -78,6 +78,36 @@ export function countryByCode(code: string): Country | undefined {
   return COUNTRIES.find((c) => c.code === code.toUpperCase());
 }
 
+/**
+ * Kulüp adı eki — HER ÜLKENİN KENDİ DİLİNDE (kulübün ülkesine göre, izleyicinin diline göre değil).
+ * Böylece "Berlin Fechtclub", "London Fencing Club", "İstanbul Eskrim Kulübü". Bilinmeyen → TR.
+ */
+const CLUB_SUFFIX: Record<string, string> = {
+  TR: "Eskrim Kulübü",
+  DE: "Fechtclub",
+  GB: "Fencing Club",
+  US: "Fencing Club",
+  AU: "Fencing Club",
+  FR: "Club d'Escrime",
+  TN: "Club d'Escrime",
+  IT: "Club di Scherma",
+  ES: "Club de Esgrima",
+  BR: "Clube de Esgrima",
+  HU: "Vívóklub",
+  PL: "Klub Szermierczy",
+  RU: "Фехтовальный клуб",
+  UA: "Фехтувальний клуб",
+  JP: "フェンシングクラブ",
+  KR: "펜싱 클럽",
+  CN: "击剑俱乐部",
+  EG: "نادي المبارزة",
+};
+
+/** Bir şehir+ülke için kulüp adı (ülkenin kendi dilinde eki ile). */
+export function clubNameFor(city: string, countryCode: string): string {
+  return `${city} ${CLUB_SUFFIX[countryCode.toUpperCase()] ?? CLUB_SUFFIX.TR}`;
+}
+
 /** Bir ülkenin kıtası (kod). Bilinmeyen ülke → undefined. */
 export function continentOfCountry(code: string): ContinentCode | undefined {
   return countryByCode(code)?.continent;
