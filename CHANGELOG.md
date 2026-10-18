@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (18.10 — ✅ Google ile giriş CANLIDA)
+- **Google girişi prod'da çalışıyor** (https://lotp-one.vercel.app): giriş → sporcu oluştur → oyun, uçtan uca
+  doğrulandı. Vercel'e `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env eklendi; Google tarafında redirect URI
+  (localhost + prod) + test kullanıcısı hazır. (Uygulama hâlâ "Testing" modunda → herkese açmak için "Publish".)
+- Yol boyunca çözülenler: ilk `invalid_client` = Vercel'deki secret değeri birebir değildi (düzeltildi);
+  geçici `?why=` / `?cerr=` teşhisleriyle nedenler saptanıp giderildi, `?cerr=` ham-hata teşhisi geri alındı.
+- ⚠️ Güvenlik: Client secret geliştirme sırasında sohbette geçti → **lansman öncesi rotate edilecek**
+  (Google "+ Add secret" → yeni değer → `.env` + Vercel güncelle → eskisini sil).
+
 ### Değişti (18.10 — Google callback dayanıklılığı: 500 yerine nazik hata + retry)
 - **Callback artık asla 500 vermiyor:** token değişimi veya giriş adımı hata atarsa yakalanıp `?auth=error`
   ile nazik uyarıya dönülüyor (`app/api/auth/google/callback/route.ts` try/catch).
@@ -35,14 +44,13 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   kapatılabilir **`ErrorBanner`** çıkıyor. `err.*` anahtarları **9 dilde** (TR/EN/DE/FR/ES/IT/RU/PT/ZH × 11 kod).
 - Bilinmeyen/çevirisiz kod → banner çizilmez (generic akış korunur). Güvenli: prod'a bağımsız, Google auth'tan ayrı.
 
-### Değişti (18.10 — Google ile giriş (telefon girişi kaldırıldı)) — PUSH BEKLEMEDE
+### Değişti (18.10 — Google ile giriş (telefon girişi kaldırıldı)) — ✅ CANLIDA
 - **Telefon girişi tamamen kaldırıldı** (`signInWithPhone`, `GirisForm`, `/giris` formu). Giriş artık **Google
   ile**: hafif OAuth (`/api/auth/google` + `/callback`, next-auth YOK) → e-postadan User eşleşir, mevcut çerez
   sistemine köprü (`completeGoogleSignIn`). Mevcut anonim kariyer varsa Google'a bağlanır (korunur).
 - **Ana sayfa kapısı:** Google yoksa → "Google ile devam et"; girişli + kariyer yoksa → sporcu oluştur;
   kariyer varsa → oyna. `auth.*` metinleri 9 dilde. `/giris` → ana sayfaya yönlendirir.
-- ⚠️ **Prod'a push EDİLMEDİ:** Vercel'e `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env eklenmeden push
-  edilirse prod girişi kırılır. Sıra: local test → Vercel env → push.
+- ✅ **Prod'a alındı (18.10):** Vercel env eklendi, deploy edildi, uçtan uca test geçti (yukarıdaki "CANLIDA" notu).
 
 ### Eklendi (15.10 — çok-ülkeli dünya: AI uyrukları + yerel/uluslararası saha kuralı)
 - **Yabancı AI havuzu** eklendi (`FOREIGN_AI_POOL`, eskrim gücüne göre ağırlıklı; 32 AI). Dünya tohumlanırken

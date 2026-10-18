@@ -39,22 +39,15 @@ import type { TacticSubmitResult } from "@/server/liveTournament";
 
 export async function createCareerAction(formData: FormData): Promise<void> {
   if (await hasCareer()) redirect("/kariyer");
-  try {
-    await createCareer({
-      firstName: String(formData.get("firstName") ?? ""),
-      lastName: String(formData.get("lastName") ?? ""),
-      gender: String(formData.get("gender") ?? ""),
-      weapon: String(formData.get("weapon") ?? ""),
-      profile: String(formData.get("profile") ?? ""),
-      birthDate: String(formData.get("birthDate") ?? ""),
-      city: String(formData.get("city") ?? ""),
-    });
-  } catch (e) {
-    // GEÇİCİ TEŞHİS: prod'da sporcu oluşturma hatasının gerçek mesajını URL'ye taşı.
-    console.error("[createCareer] hata:", e);
-    const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-    redirect(`/?cerr=${encodeURIComponent(msg.slice(0, 300))}`);
-  }
+  await createCareer({
+    firstName: String(formData.get("firstName") ?? ""),
+    lastName: String(formData.get("lastName") ?? ""),
+    gender: String(formData.get("gender") ?? ""),
+    weapon: String(formData.get("weapon") ?? ""),
+    profile: String(formData.get("profile") ?? ""),
+    birthDate: String(formData.get("birthDate") ?? ""),
+    city: String(formData.get("city") ?? ""),
+  });
   redirect("/kariyer");
 }
 
