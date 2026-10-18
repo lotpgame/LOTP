@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { COUNTRIES, continentOfCountry, parsePhone } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -473,35 +473,40 @@ async function currentGameState() {
 
 const USER_COOKIE_OPTS = { path: "/", maxAge: 60 * 60 * 24 * 365 * 5, httpOnly: true, sameSite: "lax" as const };
 
+/** Oturumu kapatır (çerezi siler). Hesap/veri silinmez; tekrar Google ile girilebilir. */
+export async function signOut(): Promise<void> {
+  (await cookies()).set(USER_COOKIE, "", { path: "/", maxAge: 0 });
+}
+
+/** Mevcut kullanıcı (id + email) — email doluysa Google ile giriş yapılmış demektir. Yoksa null. */
+export async function currentUser(): Promise<{ id: number; email: string | null } | null> {
+  const token = (await cookies()).get(USER_COOKIE)?.value;
+  if (!token) return null;
+  return (await prisma.user.findUnique({ where: { token }, select: { id: true, email: true } })) ?? null;
+}
+
 /**
- * Telefonla giriş (M9.2). NOT: OTP/SMS doğrulaması yok — bu geliştirme adımı; gerçek SMS yayına
- * alırken eklenir (bkz. ROADMAP M9.3). Telefon = kimlik: kayıtlıysa o hesaba giriş; boştaysa mevcut
- * (anonim) kariyeri o telefona bağlar; hiç kullanıcı yoksa yeni hesap açar. Ülke telefon kodundan.
+ * Google ile girişi tamamlar (callback route'tan çağrılır). E-posta = kimlik:
+ * kayıtlıysa o hesaba giriş; yoksa mevcut anonim kullanıcıya bağla (kariyer korunur); o da yoksa yeni hesap.
  */
-export async function signInWithPhone(rawPhone: string): Promise<{ ok: boolean; reason?: "format" | "unsupported"; linked?: boolean }> {
-  const r = parsePhone(rawPhone);
-  if (!r.ok) return { ok: false, reason: r.reason };
+export async function completeGoogleSignIn(email: string): Promise<void> {
   const jar = await cookies();
-  const existing = await prisma.user.findUnique({ where: { phone: r.phone }, select: { id: true, token: true } });
-  if (existing) {
-    jar.set(USER_COOKIE, existing.token, USER_COOKIE_OPTS); // bu telefonun hesabına giriş
-    return { ok: true, linked: false };
+  const byEmail = await prisma.user.findUnique({ where: { email }, select: { token: true } });
+  if (byEmail) {
+    jar.set(USER_COOKIE, byEmail.token, USER_COOKIE_OPTS); // bu e-postanın hesabına giriş
+    return;
   }
-  const curUid = await currentUserId();
-  if (curUid != null) {
-    // Boştaki telefonu mevcut (anonim) kullanıcıya bağla → kariyer korunur, başka cihazdan girilebilir.
-    await prisma.user.update({ where: { id: curUid }, data: { phone: r.phone, phoneVerifiedAt: new Date() } });
-    return { ok: true, linked: true };
+  const curToken = jar.get(USER_COOKIE)?.value;
+  if (curToken) {
+    const cur = await prisma.user.findUnique({ where: { token: curToken }, select: { id: true, email: true } });
+    if (cur && !cur.email) {
+      await prisma.user.update({ where: { id: cur.id }, data: { email } }); // mevcut anonim kariyeri Google'a bağla
+      return;
+    }
   }
   const token = globalThis.crypto.randomUUID();
   jar.set(USER_COOKIE, token, USER_COOKIE_OPTS);
-  await prisma.user.create({ data: { token, phone: r.phone, phoneVerifiedAt: new Date() } });
-  return { ok: true, linked: false };
-}
-
-/** Oturumu kapatır (çerezi siler). Hesap/veri silinmez; tekrar telefonla girilebilir. */
-export async function signOut(): Promise<void> {
-  (await cookies()).set(USER_COOKIE, "", { path: "/", maxAge: 0 });
+  await prisma.user.create({ data: { token, email } });
 }
 
 /**

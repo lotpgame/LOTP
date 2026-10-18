@@ -29,7 +29,6 @@ import {
   registerTournament,
   resetCareer,
   setTrainingPlan,
-  signInWithPhone,
   signOut,
   submitTournamentTactic,
   unregisterTournament,
@@ -153,15 +152,6 @@ export async function getNationalTeamAction(categoryId: string) {
 export async function resetCareerAction(): Promise<void> {
   await resetCareer();
   redirect("/");
-}
-
-/** Telefonla giriş (M9.2). Sonucu döndürür → istemci hatayı gösterir / başarıda yönlendirir. */
-export async function signInWithPhoneAction(
-  phone: string,
-): Promise<{ ok: boolean; reason?: "format" | "unsupported"; linked?: boolean }> {
-  const res = await signInWithPhone(phone);
-  if (res.ok) revalidatePath("/", "layout");
-  return res;
 }
 
 /** Oturumu kapatır. */

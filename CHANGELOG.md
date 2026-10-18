@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (18.10 — Google ile giriş (telefon girişi kaldırıldı)) — PUSH BEKLEMEDE
+- **Telefon girişi tamamen kaldırıldı** (`signInWithPhone`, `GirisForm`, `/giris` formu). Giriş artık **Google
+  ile**: hafif OAuth (`/api/auth/google` + `/callback`, next-auth YOK) → e-postadan User eşleşir, mevcut çerez
+  sistemine köprü (`completeGoogleSignIn`). Mevcut anonim kariyer varsa Google'a bağlanır (korunur).
+- **Ana sayfa kapısı:** Google yoksa → "Google ile devam et"; girişli + kariyer yoksa → sporcu oluştur;
+  kariyer varsa → oyna. `auth.*` metinleri 9 dilde. `/giris` → ana sayfaya yönlendirir.
+- ⚠️ **Prod'a push EDİLMEDİ:** Vercel'e `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env eklenmeden push
+  edilirse prod girişi kırılır. Sıra: local test → Vercel env → push.
+
 ### Eklendi (15.10 — çok-ülkeli dünya: AI uyrukları + yerel/uluslararası saha kuralı)
 - **Yabancı AI havuzu** eklendi (`FOREIGN_AI_POOL`, eskrim gücüne göre ağırlıklı; 32 AI). Dünya tohumlanırken
   ev ülkesi (TR) AI'larına ek olarak yabancı AI'lar kendi ülkelerinin şehrinde kulüple oluşturulur; isim+uyruk

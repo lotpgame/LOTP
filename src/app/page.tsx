@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createCareerAction } from "@/app/actions";
 import { LangSelect } from "@/app/LangSelect";
 import { GENDERS, PROFILES, TR_CITIES, WEAPONS } from "@/engine/domain";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { hasCareer } from "@/server/careerService";
+import { currentUser, hasCareer } from "@/server/careerService";
+import { GoogleSignIn } from "@/app/GoogleSignIn";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { ScoreBug } from "@/app/ui/ScoreBug";
@@ -28,7 +28,9 @@ const STEPS: { icon: IconName; key: string }[] = [
  * Vitrindeki isimler ve skor örnektir (gerçek sporcu değil); veri okumaz, yazmaz.
  */
 export default async function Home() {
-  if (await hasCareer()) redirect("/kariyer");
+  const user = await currentUser();
+  const signedIn = !!user?.email; // Google ile giriş yapılmış mı
+  if (signedIn && (await hasCareer())) redirect("/kariyer");
   const locale = await getLocale();
 
   return (
@@ -82,8 +84,11 @@ export default async function Home() {
 
         <PisteLine className="my-6 lg:hidden" />
 
-        {/* ——— Sporcu oluşturma ——— */}
-        <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
+        {/* ——— Giriş yoksa Google ile devam; girişliyse sporcu oluşturma ——— */}
+        {!signedIn ? (
+          <GoogleSignIn locale={locale} />
+        ) : (
+          <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
           <h2 className="display text-[28px]">{t(locale, "landing.formTitle")}</h2>
 
           <div className="grid grid-cols-2 gap-3">
@@ -162,13 +167,8 @@ export default async function Home() {
           <button type="submit" className="btn-ink press h-12 w-full text-[16px]">
             {t(locale, "create.start")}
           </button>
-
-          <p className="text-center text-[14px]">
-            <Link href="/giris" className="inline-flex min-h-11 items-center text-steel underline underline-offset-2">
-              {t(locale, "giris.haveAccount")}
-            </Link>
-          </p>
-        </form>
+          </form>
+        )}
       </div>
     </main>
   );

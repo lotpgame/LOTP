@@ -670,6 +670,9 @@ const TR: Dict = {
   "continent.AS": "Asya-Okyanusya",
   "continent.AM": "Amerika",
   "continent.AF": "Afrika",
+  "auth.signInTitle": "Oyuna Giriş",
+  "auth.signInLead": "Devam etmek için Google ile giriş yap. Şifre yok, tek tık.",
+  "auth.continueGoogle": "Google ile devam et",
 };
 
 const EN: Dict = {
@@ -1309,6 +1312,9 @@ const EN: Dict = {
   "continent.AS": "Asia-Oceania",
   "continent.AM": "Americas",
   "continent.AF": "Africa",
+  "auth.signInTitle": "Sign in",
+  "auth.signInLead": "Sign in with Google to continue. No password, one tap.",
+  "auth.continueGoogle": "Continue with Google",
 };
 
 const DE: Dict = {
@@ -1948,6 +1954,9 @@ const DE: Dict = {
   "continent.AS": "Asien-Ozeanien",
   "continent.AM": "Amerika",
   "continent.AF": "Afrika",
+  "auth.signInTitle": "Anmelden",
+  "auth.signInLead": "Melde dich mit Google an, um fortzufahren. Kein Passwort, ein Tippen.",
+  "auth.continueGoogle": "Mit Google fortfahren",
 };
 
 // es/fr henüz çevrilmedi → şimdilik TR'ye düşer (çeviriler sonra eklenecek, kullanıcı isteği).
@@ -2595,6 +2604,9 @@ const FR: Dict = {
   "continent.AS": "Asie-Océanie",
   "continent.AM": "Amériques",
   "continent.AF": "Afrique",
+  "auth.signInTitle": "Connexion",
+  "auth.signInLead": "Connecte-toi avec Google pour continuer. Sans mot de passe, en un tap.",
+  "auth.continueGoogle": "Continuer avec Google",
 };
 
 const ES: Dict = {
@@ -3241,6 +3253,9 @@ const ES: Dict = {
   "continent.AS": "Asia-Oceanía",
   "continent.AM": "América",
   "continent.AF": "África",
+  "auth.signInTitle": "Iniciar sesión",
+  "auth.signInLead": "Inicia sesión con Google para continuar. Sin contraseña, un toque.",
+  "auth.continueGoogle": "Continuar con Google",
 };
 
 const IT: Dict = {
@@ -3887,6 +3902,9 @@ const IT: Dict = {
   "continent.AS": "Asia-Oceania",
   "continent.AM": "Americhe",
   "continent.AF": "Africa",
+  "auth.signInTitle": "Accedi",
+  "auth.signInLead": "Accedi con Google per continuare. Senza password, un tocco.",
+  "auth.continueGoogle": "Continua con Google",
 };
 
 const RU: Dict = {
@@ -4533,6 +4551,9 @@ const RU: Dict = {
   "continent.AS": "Азия-Океания",
   "continent.AM": "Америка",
   "continent.AF": "Африка",
+  "auth.signInTitle": "Вход",
+  "auth.signInLead": "Войдите через Google, чтобы продолжить. Без пароля, в одно касание.",
+  "auth.continueGoogle": "Продолжить с Google",
 };
 
 const PT: Dict = {
@@ -5179,6 +5200,9 @@ const PT: Dict = {
   "continent.AS": "Ásia-Oceania",
   "continent.AM": "América",
   "continent.AF": "África",
+  "auth.signInTitle": "Entrar",
+  "auth.signInLead": "Entre com o Google para continuar. Sem senha, um toque.",
+  "auth.continueGoogle": "Continuar com o Google",
 };
 
 const ZH: Dict = {
@@ -5825,6 +5849,9 @@ const ZH: Dict = {
   "continent.AS": "亚洲-大洋洲",
   "continent.AM": "美洲",
   "continent.AF": "非洲",
+  "auth.signInTitle": "登录",
+  "auth.signInLead": "用 Google 登录以继续。无需密码，一键登录。",
+  "auth.continueGoogle": "使用 Google 继续",
 };
 
 const DICT: Record<Locale, Dict> = { tr: TR, en: EN, de: DE, es: ES, fr: FR, it: IT, ru: RU, pt: PT, zh: ZH };
