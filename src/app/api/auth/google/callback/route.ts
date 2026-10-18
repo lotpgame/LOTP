@@ -14,8 +14,14 @@ export async function GET(req: NextRequest) {
   if (!code || !state || !saved || state !== saved) {
     return NextResponse.redirect(new URL("/?auth=error", origin));
   }
-  const email = await exchangeCodeForEmail(code, origin);
-  if (!email) return NextResponse.redirect(new URL("/?auth=error", origin));
-  await completeGoogleSignIn(email);
-  return NextResponse.redirect(new URL("/", origin));
+  try {
+    const email = await exchangeCodeForEmail(code, origin);
+    if (!email) return NextResponse.redirect(new URL("/?auth=error", origin));
+    await completeGoogleSignIn(email);
+    return NextResponse.redirect(new URL("/", origin));
+  } catch (e) {
+    // Hiçbir durumda 500 verme — kullanıcıya nazik "tekrar dene" uyarısına dön.
+    console.error("[googleAuth] callback hatası:", e);
+    return NextResponse.redirect(new URL("/?auth=error", origin));
+  }
 }

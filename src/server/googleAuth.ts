@@ -32,20 +32,41 @@ export function googleAuthUrl(origin: string, state: string): string {
   return `${AUTH_ENDPOINT}?${p.toString()}`;
 }
 
+/**
+ * Google token endpoint'ine POST — aralıklı ağ/TLS hatalarına karşı birkaç deneme yapar.
+ * (Bazı yerel ağlarda HTTPS'i inceleyen güvenlik yazılımı TLS el sıkışmasını rastgele keser;
+ * prod'da gerekmez ama zararsız ve dayanıklılık katar.) Yanıt alınamazsa null.
+ */
+async function postToken(body: URLSearchParams): Promise<Response | null> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await fetch(TOKEN_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+    } catch (e) {
+      lastErr = e; // ağ/TLS hatası — kısa bekle, tekrar dene
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
+    }
+  }
+  console.error("[googleAuth] token isteği başarısız (ağ/TLS):", lastErr);
+  return null;
+}
+
 /** Yetki kodunu token'a çevirir; id_token'dan doğrulanmış e-postayı döndürür (yoksa null). */
 export async function exchangeCodeForEmail(code: string, origin: string): Promise<string | null> {
-  const res = await fetch(TOKEN_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
+  const res = await postToken(
+    new URLSearchParams({
       code,
       client_id: googleClientId(),
       client_secret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       redirect_uri: callbackUrl(origin),
       grant_type: "authorization_code",
     }),
-  });
-  if (!res.ok) return null;
+  );
+  if (!res || !res.ok) return null;
   const data = (await res.json()) as { id_token?: string };
   if (!data.id_token) return null;
   // id_token = JWT (header.payload.signature). Payload'ı çöz (Google'dan geldiği için imza güvenilir).

@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (18.10 — Google callback dayanıklılığı: 500 yerine nazik hata + retry)
+- **Callback artık asla 500 vermiyor:** token değişimi veya giriş adımı hata atarsa yakalanıp `?auth=error`
+  ile nazik uyarıya dönülüyor (`app/api/auth/google/callback/route.ts` try/catch).
+- **Token isteği 3 kez deneniyor** (`postToken`, kısa backoff) — aralıklı ağ/TLS hatalarına karşı dayanıklı.
+  (Bazı yerel ağlarda güvenlik yazılımı Node'un HTTPS'ini keser; prod'da gerekmez, zararsız ek sağlamlık.)
+- Not: Tam giriş testi **Vercel'de** yapılır — yerel makinenin Google'a TLS bağlantısı güvenlik yazılımınca
+  aktif kesildiği için yerelde token değişimi tamamlanamıyor (kod/secret doğru, ortam sorunu).
+
 ### Eklendi (18.10 — Google giriş hatası artık sessiz değil, 9 dilde)
 - **Google girişi başarısız olursa** (`?auth=error`) veya **yapılandırılmamışsa** (`?auth=unconfigured`) ana sayfa
   artık **kullanıcının dilinde** kısa bir uyarı gösteriyor (önceden sessizce ana sayfaya dönüyordu). `auth.error` +
