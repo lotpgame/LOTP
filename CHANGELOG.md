@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (18.10 — sporcu oluşturma: şehir listesi alfabetik)
+- Oluşturma formundaki **şehir açılır menüsü alfabetik** sıralanıyor (Türkçe sıralama: İ/ı/ş/ç/ğ/ö/ü doğru).
+  Yalnız **gösterim** sıralanır; `TR_CITIES` kaynak dizisinin sırası (turnuva ev sahibi şehrinin deterministik
+  seçimi) değişmez.
+
 ### Eklendi (18.10 — ✅ Google ile giriş CANLIDA)
 - **Google girişi prod'da çalışıyor** (https://lotp-one.vercel.app): giriş → sporcu oluştur → oyun, uçtan uca
   doğrulandı. Vercel'e `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` env eklendi; Google tarafında redirect URI

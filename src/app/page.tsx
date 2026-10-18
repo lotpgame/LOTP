@@ -153,11 +153,15 @@ export default async function Home({
             </div>
             <Field label={t(locale, "create.city")}>
               <select name="city" required defaultValue="İstanbul" className={inputCls}>
-                {TR_CITIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
+                {/* Gösterimde alfabetik (TR sıralama: İ/ı/ş/ç/ğ/ö/ü doğru); kaynak dizi sırası
+                    oyun mantığında (ev sahibi şehir seçimi) kullanıldığı için orada değiştirilmez. */}
+                {[...TR_CITIES]
+                  .sort((a, b) => a.localeCompare(b, "tr"))
+                  .map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
               </select>
             </Field>
           </div>
