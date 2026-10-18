@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createCareerAction } from "@/app/actions";
 import { LangSelect } from "@/app/LangSelect";
-import { GENDERS, PROFILES, TR_CITIES, WEAPONS } from "@/engine/domain";
+import { GENDERS, PROFILES, WEAPONS } from "@/engine/domain";
+import { COUNTRIES, countryFlag } from "@/engine/geo";
+import { CountryCitySelect } from "@/app/CountryCitySelect";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { currentUser, hasCareer } from "@/server/careerService";
@@ -10,7 +12,6 @@ import { GoogleSignIn } from "@/app/GoogleSignIn";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { ScoreBug } from "@/app/ui/ScoreBug";
-import { Flag } from "@/app/kariyer/Flag";
 
 // Veritabanı durumuna bağlı: her istekte taze render (statik önbelleğe alınmamalı).
 export const dynamic = "force-dynamic";
@@ -39,6 +40,13 @@ export default async function Home({
   // Google dönüşünde hata/çözülmemiş yapılandırma → sessiz kalmasın, kullanıcının dilinde uyar.
   const { auth } = await searchParams;
   const authMsg = auth === "error" ? "auth.error" : auth === "unconfigured" ? "auth.unconfigured" : null;
+  // Ülke seçenekleri: çevrilmiş ad + bayrak + o ülkenin alfabetik şehirleri; liste ada göre alfabetik.
+  const countryOptions = COUNTRIES.map((c) => ({
+    code: c.code,
+    name: t(locale, `country.${c.code}`),
+    flag: countryFlag(c.code),
+    cities: [...c.cities].sort((a, b) => a.localeCompare(b, locale)),
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 
   return (
     <main className="lg:grid lg:grid-cols-2">
@@ -143,28 +151,13 @@ export default async function Home({
             </div>
           </fieldset>
 
-          <div className="grid grid-cols-[auto_1fr] items-end gap-3">
-            <div>
-              <span className="mb-1.5 block text-[14px] font-semibold">{t(locale, "create.country")}</span>
-              {/* V1 yalnız Türkiye — seçim yok, bilgi çipi */}
-              <span className="flex min-h-11 items-center gap-1.5 rounded-md border border-line bg-arena-1 px-3 text-[15px]">
-                <Flag code="TR" /> {t(locale, "country.TR")}
-              </span>
-            </div>
-            <Field label={t(locale, "create.city")}>
-              <select name="city" required defaultValue="İstanbul" className={inputCls}>
-                {/* Gösterimde alfabetik (TR sıralama: İ/ı/ş/ç/ğ/ö/ü doğru); kaynak dizi sırası
-                    oyun mantığında (ev sahibi şehir seçimi) kullanıldığı için orada değiştirilmez. */}
-                {[...TR_CITIES]
-                  .sort((a, b) => a.localeCompare(b, "tr"))
-                  .map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-              </select>
-            </Field>
-          </div>
+          <CountryCitySelect
+            countries={countryOptions}
+            countryLabel={t(locale, "create.country")}
+            cityLabel={t(locale, "create.city")}
+            defaultCountry="TR"
+            inputCls={inputCls}
+          />
           <p className="-mt-4 text-[13px] text-steel">{t(locale, "create.cityHint")}</p>
 
           <fieldset>

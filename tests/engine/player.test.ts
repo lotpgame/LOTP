@@ -17,6 +17,7 @@ describe("Player Engine", () => {
       gender: "MALE",
       weapon: "EPEE",
       profile: "BALANCED",
+      country: "TR",
       city: "İstanbul",
     });
     expect(res.success).toBe(true);

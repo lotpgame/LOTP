@@ -30,6 +30,9 @@ export const createPlayerSchema = z.object({
   gender: z.enum(["MALE", "FEMALE"]),
   weapon: z.enum(["FOIL", "EPEE", "SABRE"]),
   profile: z.enum(["BALANCED", "TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"]),
+  // Oyuncunun ülkesi (ISO-benzeri 2 harf) — telefon kalktığı için bölge buradan belirlenir (IP otomatiği V2).
+  // Geçerli ülke + şehrin o ülkeye ait olması sunucuda (createCareer) ayrıca doğrulanır.
+  country: z.string().trim().regex(/^[A-Z]{2}$/, "Ülke zorunlu"),
   city: z.string().trim().min(1, "Şehir zorunlu").max(30), // kulübün bulunduğu şehir (GDD 13)
 });
 

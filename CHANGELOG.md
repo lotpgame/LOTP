@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (18.10 — 18 ülke launch · Parça 1/3: ülke+şehir seçimi) — YEREL, HENÜZ PUSH YOK
+- **Sporcu oluştururken ülke seçimi** (18 ülke, bayraklı) + seçilen ülkenin şehirleri (`CountryCitySelect`
+  client component; ülke değişince şehir listesi güncellenir). Telefon kalktığı için bölge artık böyle
+  belirlenir (IP otomatiği V2). `createPlayerSchema`'ya `country` eklendi; `createCareer` seçilen ülkeyi
+  kullanıyor (ev AI + kulüp şehirleri o ülkeden); sunucu ülke+şehir doğrulaması.
+- ⚠️ **Tek başına PUSH EDİLMEZ:** Parça 2 (İl=şehir / şampiyona=ülke saha kapsamı) + Parça 3 (bot nüfusu:
+  her bölge 16'ya tamamlanır, gerçek oyuncu katıldıkça 1 bot emekli; gerçek oyuncuya limit yok) bitmeden
+  canlıya gitmez — yoksa yeni ülke seçen oyuncu boş sahaya düşer. (Devam ediyor.)
+
 ### Değişti (18.10 — sporcu oluşturma: şehir listesi alfabetik)
 - Oluşturma formundaki **şehir açılır menüsü alfabetik** sıralanıyor (Türkçe sıralama: İ/ı/ş/ç/ğ/ö/ü doğru).
   Yalnız **gösterim** sıralanır; `TR_CITIES` kaynak dizisinin sırası (turnuva ev sahibi şehrinin deterministik

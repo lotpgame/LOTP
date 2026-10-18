@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { COUNTRIES, continentOfCountry } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -530,9 +530,13 @@ export async function completeGoogleSignIn(email: string): Promise<void> {
  */
 export async function createCareer(input: unknown): Promise<{ humanPlayerId: number }> {
   const data = createPlayerSchema.parse(input); // geçersizse fırlatır
+  // Ülke + şehir doğrulaması (sunucu): ülke desteklenmeli, şehir o ülkenin listesinden olmalı.
+  const homeCountry = countryByCode(data.country);
+  if (!homeCountry) throw new GameError("bad_country", "Desteklenmeyen ülke.");
+  if (!citiesForCountry(data.country).includes(data.city)) throw new GameError("bad_city", "Şehir bu ülkeye ait değil.");
   const identity = deriveIdentity({ gender: data.gender, weapon: data.weapon, birthDate: START_BIRTHDATE }, GAME_START);
   const seed = globalThis.crypto.randomUUID();
-  const countryId = await ensureCountry("TR", "Türkiye");
+  const countryId = await ensureCountry(homeCountry.code, homeCountry.name);
 
   const humanSkills = generateStartingSkills(createRng(`${seed}:human`), {
     age: identity.age,
@@ -546,6 +550,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     ageCategory: identity.ageCategory,
     gameDate: GAME_START,
     age: identity.age, // oyuncuyla aynı yaş → kategoriyi birlikte atlar (saha hep dolu)
+    countries: [data.country], // ev ülkesi AI'ları oyuncunun ülkesinden (isim+uyruk tutarlı)
   });
 
   // Çok-ülkeli dünya: yabancı AI havuzu (uluslararası turnuvalar + dünya/kıta klasmanları için).
@@ -590,7 +595,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
     };
   };
   // AI kulüplerinin dağıtılacağı diğer şehirler (ilk kariyer havuzu üretilirken).
-  const otherCities = clubRng.shuffle(TR_CITIES.filter((c) => c !== data.city)).slice(0, 5);
+  const otherCities = clubRng.shuffle(citiesForCountry(data.country).filter((c) => c !== data.city)).slice(0, 5);
 
   const userId = await ensureUserId(); // çerez + kullanıcı (yoksa oluştur, çerezi set eder)
   const worldDay = serverWorldDay(); // M10: kariyer "şu anki" dünya gününde başlar (yaş çıpası)
