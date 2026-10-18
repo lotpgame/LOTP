@@ -15,13 +15,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/?auth=error", origin));
   }
   try {
-    const email = await exchangeCodeForEmail(code, origin);
-    if (!email) return NextResponse.redirect(new URL("/?auth=error", origin));
-    await completeGoogleSignIn(email);
+    const r = await exchangeCodeForEmail(code, origin);
+    if (!r.ok) return NextResponse.redirect(new URL(`/?auth=error&why=${encodeURIComponent(r.reason)}`, origin));
+    await completeGoogleSignIn(r.email);
     return NextResponse.redirect(new URL("/", origin));
   } catch (e) {
     // Hiçbir durumda 500 verme — kullanıcıya nazik "tekrar dene" uyarısına dön.
     console.error("[googleAuth] callback hatası:", e);
-    return NextResponse.redirect(new URL("/?auth=error", origin));
+    return NextResponse.redirect(new URL("/?auth=error&why=exception", origin));
   }
 }

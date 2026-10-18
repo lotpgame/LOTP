@@ -55,8 +55,11 @@ async function postToken(body: URLSearchParams): Promise<Response | null> {
   return null;
 }
 
-/** Yetki kodunu token'a çevirir; id_token'dan doğrulanmış e-postayı döndürür (yoksa null). */
-export async function exchangeCodeForEmail(code: string, origin: string): Promise<string | null> {
+/** Token değişimi sonucu: başarı → e-posta; hata → kısa `reason` (teşhis; gizli değer içermez). */
+export type ExchangeResult = { ok: true; email: string } | { ok: false; reason: string };
+
+/** Yetki kodunu token'a çevirir; id_token'dan doğrulanmış e-postayı döndürür. Hata → neden kodu. */
+export async function exchangeCodeForEmail(code: string, origin: string): Promise<ExchangeResult> {
   const res = await postToken(
     new URLSearchParams({
       code,
@@ -66,18 +69,31 @@ export async function exchangeCodeForEmail(code: string, origin: string): Promis
       grant_type: "authorization_code",
     }),
   );
-  if (!res || !res.ok) return null;
+  if (!res) return { ok: false, reason: "network" };
+  if (!res.ok) {
+    // Google'ın hata kodu (invalid_client / redirect_uri_mismatch / invalid_grant …) — gizli değil, teşhis için.
+    let reason = `http_${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: string; error_description?: string };
+      if (body?.error) reason = body.error;
+      console.error("[googleAuth] token reddi:", res.status, body?.error, body?.error_description);
+    } catch {
+      /* gövde okunamadı */
+    }
+    return { ok: false, reason };
+  }
   const data = (await res.json()) as { id_token?: string };
-  if (!data.id_token) return null;
+  if (!data.id_token) return { ok: false, reason: "no_id_token" };
   // id_token = JWT (header.payload.signature). Payload'ı çöz (Google'dan geldiği için imza güvenilir).
   const payloadPart = data.id_token.split(".")[1];
-  if (!payloadPart) return null;
+  if (!payloadPart) return { ok: false, reason: "bad_id_token" };
   try {
     const json = Buffer.from(payloadPart.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
     const payload = JSON.parse(json) as { email?: string; email_verified?: boolean };
-    if (!payload.email || payload.email_verified === false) return null;
-    return payload.email.toLowerCase();
+    if (!payload.email) return { ok: false, reason: "no_email" };
+    if (payload.email_verified === false) return { ok: false, reason: "email_unverified" };
+    return { ok: true, email: payload.email.toLowerCase() };
   } catch {
-    return null;
+    return { ok: false, reason: "decode" };
   }
 }
