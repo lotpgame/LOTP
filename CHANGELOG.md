@@ -9,14 +9,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Eklendi (18.10 — 18 ülke launch · Parça 1/3: ülke+şehir seçimi) — YEREL, HENÜZ PUSH YOK
-- **Sporcu oluştururken ülke seçimi** (18 ülke, bayraklı) + seçilen ülkenin şehirleri (`CountryCitySelect`
-  client component; ülke değişince şehir listesi güncellenir). Telefon kalktığı için bölge artık böyle
-  belirlenir (IP otomatiği V2). `createPlayerSchema`'ya `country` eklendi; `createCareer` seçilen ülkeyi
-  kullanıyor (ev AI + kulüp şehirleri o ülkeden); sunucu ülke+şehir doğrulaması.
-- ⚠️ **Tek başına PUSH EDİLMEZ:** Parça 2 (İl=şehir / şampiyona=ülke saha kapsamı) + Parça 3 (bot nüfusu:
-  her bölge 16'ya tamamlanır, gerçek oyuncu katıldıkça 1 bot emekli; gerçek oyuncuya limit yok) bitmeden
-  canlıya gitmez — yoksa yeni ülke seçen oyuncu boş sahaya düşer. (Devam ediyor.)
+### Eklendi (18.10 — 18 ülke launch: ülke seçimi + bölgesel bot nüfusu) — YEREL, HENÜZ PUSH YOK
+- **Parça 1 — Ülke+şehir seçimi:** oluşturma formuna ülke (18, bayraklı) + o ülkenin şehirleri
+  (`CountryCitySelect`; ülke değişince şehir güncellenir). Telefon kalktığı için bölge buradan belirlenir
+  (IP otomatiği V2). `createPlayerSchema.country`; `createCareer` seçilen ülkeyi kullanır; sunucu doğrulaması.
+- **Parça 2 — Saha kapsamı:** İl = oyuncunun **şehri** (bölge), Türkiye/Open = **ülke** geneli, uluslararası =
+  çok-uluslu karışık. `selectFieldAi` İl'de şehre göre filtreler; **RETIRED botlar sahaya girmez**.
+- **Parça 3 — Bölgesel bot nüfusu (`ensureBucketBots`):** her (ülke+şehir+cinsiyet+silah) bölgesi
+  **16 kişiye** bot ile tamamlanır (bot = 16 − gerçek oyuncu). Gerçek oyuncu katıldıkça en yeni bot **emekli**
+  (RETIRED; veri korunur). **Gerçek oyuncuya limit yok** — 16 insan olunca bot 0'lanır, 17. oyuncu sorunsuz kaydolur.
+  Eski "tek kohort, ilk oyuncuya göre tohumla" modeli kaldırıldı; yabancı AI havuzu (uluslararası) korundu.
+- **Doğrulama:** taze sqlite DB'de uçtan uca script — 11/11 geçti (16'ya dolum, idempotent, İl=şehir,
+  Türkiye=ülke, emekli hariç, delete-on-join, 17. oyuncu engellenmez). tsc + 205 test + prod build yeşil.
+- ⚠️ **PUSH BEKLEMEDE:** canlı test dünyasında İl kapsamını değiştirir → kullanıcı onayıyla push edilecek
+  (ideali: lansmanda taze dünya).
 
 ### Değişti (18.10 — sporcu oluşturma: şehir listesi alfabetik)
 - Oluşturma formundaki **şehir açılır menüsü alfabetik** sıralanıyor (Türkçe sıralama: İ/ı/ş/ç/ğ/ö/ü doğru).
