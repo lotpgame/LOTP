@@ -8,6 +8,7 @@ import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
 import { BrandPanel } from "./BrandPanel";
+import { ErrorBanner } from "../ErrorBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -37,10 +38,15 @@ const GROUPS: { key: string; slots: EquipmentSlot[] }[] = [
   { key: "accessory", slots: ["BAG"] },
 ];
 
-export default async function EkipmanPage() {
+export default async function EkipmanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string }>;
+}) {
   const c = await getCareer();
   if (!c) redirect("/");
   const locale = await getLocale();
+  const { err } = await searchParams;
   const owned = new Set(c.ownedEquipment);
   // Silaha göre katalog: oyuncu yalnız kendi silahının + ortak ürünlerini görür (epe → yelek/maske kordonu yok).
   const catalog = itemsForWeapon(c.weapon as Weapon);
@@ -93,6 +99,10 @@ export default async function EkipmanPage() {
         <span className="flex items-center gap-1.5 rounded-md border border-line bg-arena-1 px-3 py-1.5 text-[15px]">
           <DenarMark size={16} /> <span className="num">{c.balance.toFixed(0)}</span>
         </span>
+      </div>
+
+      <div className="mt-4">
+        <ErrorBanner code={err} locale={locale} dismissHref="/kariyer/ekipman" />
       </div>
 
       {/* Marka paneli — açılır/kapanır (bkz. BrandPanel.tsx). Şimdilik tek marka: GLADIUS.

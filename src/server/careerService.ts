@@ -183,6 +183,21 @@ const START_BIRTHDATE = new Date(Date.UTC(GAME_START.getUTCFullYear() - START_AG
 const AI_DAILY_RECOVERY = 4; // AI günlük yorgunluk toparlanması (gün-bazlı)
 const AI_COUNT = 23; // ev ülkesi AI havuzu (yerel turnuvaları doldurur) → insanla birlikte 24 kişilik alan
 const POOL_SIZE = 6;
+
+/**
+ * Kullanıcıya gösterilebilir "soft" hata (ör. kayıt kapandı, sakatsın). `code` i18n anahtarıdır
+ * (err.<code>) → action yakalar, kullanıcıya o dildeki mesajı gösterir (generic çökme sayfası yerine).
+ * Türkçe `message` yalnız geliştirici/log içindir.
+ */
+export class GameError extends Error {
+  constructor(
+    public readonly code: string,
+    message?: string,
+  ) {
+    super(message ?? code);
+    this.name = "GameError";
+  }
+}
 /**
  * Uluslararası turnuvalar + dünya/kıta klasmanları için YABANCI AI havuzu (eskrim gücüne göre ağırlıklı).
  * Yerel turnuvalar (İl/Türkiye/Open) ev ülkesinden seçilir; uluslararası sahalar bu havuzdan karışık gelir.
@@ -1183,24 +1198,24 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
   const today = serverWorldDay();
-  if (worldDay < today) throw new Error("Bu turnuvanın günü geçti.");
+  if (worldDay < today) throw new GameError("day_passed", "Bu turnuvanın günü geçti.");
   if (worldDay === today) {
     // 06.10 kuralı: YENİ kayıt turnuva gününün 00:00'ında kapanır; mevcut kayıtlı oyuncu taktiğini turnuva
     // başlayana (18:00 GMT) kadar değiştirebilir. Sonrasında taktik tur aralarında turnuva ekranından verilir.
     const reg = await prisma.registration.findUnique({
       where: { playerId_worldDay_level: { playerId: gs.humanPlayerId, worldDay, level } },
     });
-    if (!reg) throw new Error("Bu turnuvaya kayıt kapandı (turnuva günü). Bir gün öncesine kadar kaydolabilirsin.");
+    if (!reg) throw new GameError("reg_closed", "Bu turnuvaya kayıt kapandı (turnuva günü). Bir gün öncesine kadar kaydolabilirsin.");
     if (Date.now() >= serverEventStartMs(worldDay)) {
-      throw new Error("Turnuva başladı — taktiğini artık tur aralarında turnuva ekranından verebilirsin.");
+      throw new GameError("already_started", "Turnuva başladı — taktiğini artık tur aralarında turnuva ekranından verebilirsin.");
     }
     await prisma.registration.update({ where: { id: reg.id }, data: { tactic } });
     return;
   }
   const act = activityForDay(worldDay);
-  if (act.kind !== "TOURNAMENT" || act.level !== level) throw new Error("O gün bu turnuva yok.");
+  if (act.kind !== "TOURNAMENT" || act.level !== level) throw new GameError("no_tournament", "O gün bu turnuva yok.");
   const id = currentIdentity(human, careerQuarter(worldDay, gs.careerStartDay));
-  if (!levelAllowedForCategory(level, id.ageCategory)) throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
+  if (!levelAllowedForCategory(level, id.ageCategory)) throw new GameError("u17_only", "Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
   const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
@@ -1659,13 +1674,13 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
   if (gs.liveTournament) return { live: true }; // eski (B öncesi) canlı oturum — bitene kadar aynen çalışır
-  if (human.injuryDaysRemaining > 0) throw new Error("Sakatsın — turnuvaya giremezsin (GDD 8.19).");
+  if (human.injuryDaysRemaining > 0) throw new GameError("injured", "Sakatsın — turnuvaya giremezsin (GDD 8.19).");
   const act = activityForDay(gs.dayIndex);
-  if (act.kind !== "TOURNAMENT") throw new Error("Bugün turnuva yok.");
-  if (gs.dayIndex > serverEventDay()) throw new Error("Turnuva saati henüz gelmedi — bugün 18:00 GMT'de başlar.");
+  if (act.kind !== "TOURNAMENT") throw new GameError("no_tournament", "Bugün turnuva yok.");
+  if (gs.dayIndex > serverEventDay()) throw new GameError("not_time", "Turnuva saati henüz gelmedi — bugün 18:00 GMT'de başlar.");
   const attendId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   if (!levelAllowedForCategory(act.level, attendId.ageCategory)) {
-    throw new Error("Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
+    throw new GameError("u17_only", "Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
   }
   const ranking = await buildRankingView(attendId.categoryId, quarterOf(gs.dayIndex), human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
@@ -1673,7 +1688,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
     throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
   }
   const id = await ensureLiveTournament(gs, human, act.level, { attendee: true });
-  if (id == null) throw new Error("Turnuva için yeterli rakip yok."); // günü SESSİZCE harcama — görünür hata
+  if (id == null) throw new GameError("no_opponents", "Turnuva için yeterli rakip yok."); // günü SESSİZCE harcama — görünür hata
   await tickLiveTournament(id, { locale: await getLocale() });
   const t = await prisma.tournament.findUnique({ where: { id }, select: { status: true } });
   if (t?.status === "FINISHED") await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
@@ -1718,7 +1733,7 @@ export async function upgradeEquipment(): Promise<void> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { human } = state;
-  if (human.equipmentLevel >= MAX_EQUIPMENT_LEVEL) throw new Error("Ekipman zaten en üst seviyede.");
+  if (human.equipmentLevel >= MAX_EQUIPMENT_LEVEL) throw new GameError("equip_maxed", "Ekipman zaten en üst seviyede.");
   const cost = equipmentUpgradeCost(human.equipmentLevel);
   if (human.balance < cost) throw new Error("Yeterli paran yok.");
   await prisma.player.update({
@@ -1733,7 +1748,7 @@ export async function buyEquipment(itemId: string): Promise<void> {
   if (!state) throw new Error("Aktif kariyer yok.");
   const { human } = state;
   const item = itemById(itemId);
-  if (!item) throw new Error("Ürün bulunamadı.");
+  if (!item) throw new GameError("item_not_found", "Ürün bulunamadı.");
   const owned = parseOwned(human.ownedEquipment);
   if (owned.includes(item.id)) return; // zaten sahipsin
   if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
@@ -2789,7 +2804,7 @@ export async function startLiveTournament(
     ...coHumans.map((p) => snapshot(p, { isHuman: false, tactic: coTactic.get(p.id) ?? "BALANCED" })),
     ...aiPlayers.map((p) => snapshot(p, { isHuman: false })),
   ];
-  if (combatants.length < 2) throw new Error("Turnuva için yeterli rakip yok.");
+  if (combatants.length < 2) throw new GameError("no_opponents", "Turnuva için yeterli rakip yok.");
 
   // M11.3b-2 düzeltmesi: tohum artık çözen oyuncunun KENDİ gs.seed'i değil, PAYLAŞILAN scopeKey'den
   // türetiliyor — aksi halde aynı ortak turnuvayı aynı anda canlı oynayan iki gerçek oyuncu, birbirinden
@@ -3050,7 +3065,7 @@ export async function playLiveMatch(tactic: Tactic): Promise<void> {
     return;
   }
 
-  throw new Error("Şu an oynanacak maç yok.");
+  throw new GameError("no_match", "Şu an oynanacak maç yok.");
 }
 
 /** Pul sıralamasına göre eleme tablosunu (deSlots) kurar ve ilk turu açar. Kaydetmez. */

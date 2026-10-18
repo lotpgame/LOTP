@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (18.10 — yumuşak hata mesajları 9 dilde)
+- **Nadir "yumuşak" hatalar artık kullanıcının dilinde** gösteriliyor (generic hata sayfası yerine). Yeni
+  `GameError(code, msg)` sınıfı (`careerService.ts`): kayıt/katılım/ekipman gibi aksiyonlarda atılan 12
+  beklenen durum (gün geçti, kayıt kapandı, sakat, turnuva saati gelmedi, rakip yok, ekipman max, ürün yok…)
+  koda bağlandı.
+- **Aksiyonlar** (`registerTournamentAction`, `attendTournamentAction`, `upgrade/buyEquipmentAction`) bu hatayı
+  yakalayıp ilgili sayfaya `?err=<kod>` ile yönlendiriyor; sayfa (`turnuvalar`/`kariyer`/`ekipman`) üstünde
+  kapatılabilir **`ErrorBanner`** çıkıyor. `err.*` anahtarları **9 dilde** (TR/EN/DE/FR/ES/IT/RU/PT/ZH × 11 kod).
+- Bilinmeyen/çevirisiz kod → banner çizilmez (generic akış korunur). Güvenli: prod'a bağımsız, Google auth'tan ayrı.
+
 ### Değişti (18.10 — Google ile giriş (telefon girişi kaldırıldı)) — PUSH BEKLEMEDE
 - **Telefon girişi tamamen kaldırıldı** (`signInWithPhone`, `GirisForm`, `/giris` formu). Giriş artık **Google
   ile**: hafif OAuth (`/api/auth/google` + `/callback`, next-auth YOK) → e-postadan User eşleşir, mevcut çerez

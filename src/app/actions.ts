@@ -16,6 +16,7 @@ import {
   advanceLiveStage,
   attendTournament,
   buyEquipment,
+  GameError,
   clearReport,
   clearAwayReport,
   submitFeedback,
@@ -70,7 +71,13 @@ export async function skipDayAction(): Promise<void> {
 
 /** Bugünkü turnuvaya katılır → turnuva ekranına geçer (B: /turnuva/[id], eski oturumlar /turnuva/canli). */
 export async function attendTournamentAction(): Promise<void> {
-  const result = await attendTournament();
+  let result;
+  try {
+    result = await attendTournament();
+  } catch (e) {
+    if (e instanceof GameError) redirect(`/kariyer?err=${e.code}`);
+    throw e;
+  }
   if (result.tournamentId != null) redirect(`/turnuva/${result.tournamentId}`);
   if (result.live) redirect("/turnuva/canli");
   revalidatePath("/kariyer", "layout");
@@ -86,13 +93,23 @@ export async function setTrainingPlanAction(formData: FormData): Promise<void> {
 }
 
 export async function upgradeEquipmentAction(): Promise<void> {
-  await upgradeEquipment();
+  try {
+    await upgradeEquipment();
+  } catch (e) {
+    if (e instanceof GameError) redirect(`/kariyer/ekipman?err=${e.code}`);
+    throw e;
+  }
   revalidatePath("/kariyer/ekipman");
 }
 
 /** Gladius mağazasından ürün satın alır (Denar ile). */
 export async function buyEquipmentAction(formData: FormData): Promise<void> {
-  await buyEquipment(String(formData.get("itemId") ?? ""));
+  try {
+    await buyEquipment(String(formData.get("itemId") ?? ""));
+  } catch (e) {
+    if (e instanceof GameError) redirect(`/kariyer/ekipman?err=${e.code}`);
+    throw e;
+  }
   revalidatePath("/kariyer/ekipman");
 }
 
@@ -166,7 +183,12 @@ export async function registerTournamentAction(formData: FormData): Promise<void
   const level = String(formData.get("level") ?? "") as TournamentLevel;
   const tactic = String(formData.get("tactic") ?? "BALANCED") as Tactic;
   if (!TACTICS.includes(tactic)) throw new Error("Geçersiz taktik");
-  await registerTournament(worldDay, level, tactic);
+  try {
+    await registerTournament(worldDay, level, tactic);
+  } catch (e) {
+    if (e instanceof GameError) redirect(`/kariyer/turnuvalar?err=${e.code}`);
+    throw e;
+  }
   revalidatePath("/kariyer/turnuvalar");
 }
 

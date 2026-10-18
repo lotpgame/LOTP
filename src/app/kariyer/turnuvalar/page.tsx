@@ -11,13 +11,19 @@ import { LevelTag, NextTournament } from "../NextTournament";
 import { levelColor } from "../levelColor";
 import { WeekStrip } from "../WeekStrip";
 import { buildWeek, todayFromHeader } from "../week";
+import { ErrorBanner } from "../ErrorBanner";
 
 export const dynamic = "force-dynamic";
 
-export default async function TurnuvalarPage() {
+export default async function TurnuvalarPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string }>;
+}) {
   const c = await getCareer();
   if (!c) redirect("/");
   const locale = await getLocale();
+  const { err } = await searchParams;
   const upcoming = await getUpcomingTournaments();
   const next = await getNextTournament();
   const header = await getCareerHeader();
@@ -30,6 +36,7 @@ export default async function TurnuvalarPage() {
   return (
     <main className="flex flex-col gap-4">
       <h1 className="display text-[28px]">{t(locale, "turnuvalar.title")}</h1>
+      <ErrorBanner code={err} locale={locale} dismissHref="/kariyer/turnuvalar" />
 
       {/* #5a: turnuva CANLI — giriş buradan. Kırmızı buton değil: mürekkep buton + yanıp sönen lamba. */}
       {liveNow && (

@@ -14,6 +14,7 @@ import { SkillRadar } from "./SkillRadar";
 import { WeekStrip } from "./WeekStrip";
 import { buildWeek, todayFromHeader } from "./week";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
+import { ErrorBanner } from "./ErrorBanner";
 
 const GLOW_FROM = 70; // form/kondisyon ışıltısı eşiği (GORSEL §8: "ör. ≥%70")
 
@@ -25,12 +26,17 @@ const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
  * "Bugün" ekranı (eski Profil): dönen oyuncunun ilk göreceği şey — bugün ne var, sıradaki turnuva,
  * sen yokken ne oldu; sonra değerler. Fizik/psikoloji tıklayınca açılır. Yalnız mevcut veriler kullanılır.
  */
-export default async function BugunPage() {
+export default async function BugunPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string }>;
+}) {
   const c = await getCareer();
   if (!c) redirect("/");
   const [h, upcoming] = await Promise.all([getCareerHeader(), getUpcomingTournaments()]);
   if (!h) redirect("/");
   const locale = await getLocale();
+  const { err } = await searchParams;
 
   const condition = 100 - c.fatigue;
 
@@ -40,6 +46,7 @@ export default async function BugunPage() {
 
   return (
     <main className="flex flex-col gap-4">
+      <ErrorBanner code={err} locale={locale} dismissHref="/kariyer" />
       {/* 0 · KİMLİK KARTI */}
       <KimlikKarti
         name={c.name}
