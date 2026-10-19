@@ -9,13 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Eklendi (18.10 — IP'den ülke ön-seçimi (akıllı varsayılan)) — YEREL, HENÜZ PUSH YOK
+### Eklendi (18.10 — IP'den ülke ön-seçimi (akıllı varsayılan)) — ✅ CANLIDA (19.10)
 - **Oluşturma formu ülkeyi IP'den ön-seçer:** Vercel'in ücretsiz `x-vercel-ip-country` header'ı (dış servis
   YOK, IP saklanmaz/loglanmaz). Ziyaretçinin ülkesi 18 ülkeden biriyse form ona + o ülkenin şehirlerine
   ön-ayarlanır; değilse/yerelde → TR. **Zorlama değil** — oyuncu listeden değiştirebilir (VPN/çifte vatandaş).
   (Eski V2 "IP ile ülke" — Vercel yerel geo sağladığı için kolayca V1'e alındı.)
 
-### Değişti (18.10 — 18 ülke: kulüpler + ulusal turnuva ülkeye göre) — YEREL, HENÜZ PUSH YOK
+### Değişti (18.10 — 18 ülke: kulüpler + ulusal turnuva ülkeye göre) — ✅ CANLIDA (19.10)
 - **Kulüpler artık ülkenin kendi dilinde + kendi şehrinde:** "Berlin Fechtclub", "London Fencing Club",
   "Madrid Club de Esgrima", "Moscow Фехтовальный клуб"… (`clubNameFor`, geo.ts, 18 ülke eki). **Koç adları da**
   kulübün ülkesinden (Berlin kulübü → Alman koç; `firstNamesFor/lastNamesFor` ülke havuzu).
@@ -25,7 +25,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   şehrinden. `tournamentHostCity`/`tournamentHostFrom`/`tournamentDisplayName` ülke-duyarlı; ülke kodu
   `loadState` human include'u + scopeKey'den gelir. tsc + 205 test + prod build yeşil.
 
-### Eklendi (18.10 — 18 ülke launch: ülke seçimi + bölgesel bot nüfusu) — YEREL, HENÜZ PUSH YOK
+### Eklendi (18.10 — 18 ülke launch: ülke seçimi + bölgesel bot nüfusu) — ✅ CANLIDA (19.10)
 - **Parça 1 — Ülke+şehir seçimi:** oluşturma formuna ülke (18, bayraklı) + o ülkenin şehirleri
   (`CountryCitySelect`; ülke değişince şehir güncellenir). Telefon kalktığı için bölge buradan belirlenir
   (IP otomatiği V2). `createPlayerSchema.country`; `createCareer` seçilen ülkeyi kullanır; sunucu doğrulaması.
