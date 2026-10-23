@@ -75,12 +75,13 @@ export interface CareerNavProps {
   ageCategory: string;
   age: number;
   city: string;
+  countryCode: string; // oyuncunun ülkesi (bayrak)
   nationalTeam: boolean;
   /** Gün çubuğu (tarih · bugünkü etkinlik · sıradaki turnuva · Turnuvaya Git/Geç) — sunucuda render edilir. */
   ticker: ReactNode;
 }
 
-export function CareerNav({ name, locale, weapon, ageCategory, age, city, nationalTeam, ticker }: CareerNavProps) {
+export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, ticker }: CareerNavProps) {
   const pathname = usePathname();
   const current = activeHref(pathname);
   const moreActive = MORE.some((i) => i.href === current);
@@ -103,7 +104,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
         <>
           <span aria-hidden="true">·</span>
           <span className="inline-flex items-center gap-1">
-            <Flag code="TR" /> {city}
+            <Flag code={countryCode} /> {city}
           </span>
         </>
       )}
@@ -112,7 +113,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, nation
 
   const nationalBadge = nationalTeam && (
     <span className="inline-flex items-center gap-1 rounded-md border border-prio/50 px-1.5 py-0.5 text-[12px] font-semibold text-prio">
-      <Flag code="TR" /> {t(locale, "common.nationalTeam")}
+      <Flag code={countryCode} /> {t(locale, "common.nationalTeam")}
     </span>
   );
 

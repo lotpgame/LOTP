@@ -94,6 +94,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           ageCategory={h.ageCategory}
           age={h.age}
           city={h.city}
+          countryCode={h.countryCode}
           nationalTeam={h.nationalTeam}
           ticker={ticker}
         />

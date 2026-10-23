@@ -43,10 +43,12 @@ function Chip({
 export function MilliTakimFilter({
   initialCategoryId,
   initialMembers,
+  countryCode,
   locale,
 }: {
   initialCategoryId: string;
   initialMembers: NationalTeamMemberDTO[];
+  countryCode: string;
   locale: Locale;
 }) {
   const [age0, gCode, wCode] = initialCategoryId.split("-");
@@ -62,7 +64,7 @@ export function MilliTakimFilter({
     });
   };
 
-  const catLabel = `${t(locale, "country.TR")} ${t(locale, `gender.${gender}`)} ${t(locale, `weapon.${weapon}`)} ${age}`;
+  const catLabel = `${t(locale, `country.${countryCode}`)} ${t(locale, `gender.${gender}`)} ${t(locale, `weapon.${weapon}`)} ${age}`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -113,7 +115,7 @@ export function MilliTakimFilter({
       </div>
 
       <div className="kicker flex items-center gap-1.5">
-        <Flag code="TR" /> {catLabel}
+        <Flag code={countryCode} /> {catLabel}
       </div>
 
       {pending ? (

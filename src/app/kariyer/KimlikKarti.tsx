@@ -17,13 +17,14 @@ export interface KimlikKartiProps {
   age: number;
   city: string;
   club: string | null;
+  countryCode: string; // oyuncunun ülkesi (bayrak)
   rating: number;
   nationalTeam: boolean;
   seasonNo: number;
   locale: Locale;
 }
 
-export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, rating, nationalTeam, seasonNo, locale }: KimlikKartiProps) {
+export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, countryCode, rating, nationalTeam, seasonNo, locale }: KimlikKartiProps) {
   return (
     <section className="panel overflow-hidden border-t-2 border-t-ink p-4">
       <div className="flex items-center gap-3">
@@ -49,7 +50,7 @@ export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, 
           </div>
           {(club || city) && (
             <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[14px] leading-tight text-steel">
-              <Flag code="TR" />
+              <Flag code={countryCode} />
               <span className="min-w-0">{club ?? city}</span>
             </div>
           )}
@@ -65,7 +66,7 @@ export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, 
           href="/kariyer/milli"
           className="press mt-2 inline-flex items-center gap-1 rounded-md border border-prio/50 px-1.5 py-0.5 text-[12px] font-semibold text-prio active:bg-prio/10"
         >
-          <Flag code="TR" /> {t(locale, "common.nationalTeam")}
+          <Flag code={countryCode} /> {t(locale, "common.nationalTeam")}
           <Icon name="chevron-right" size={13} />
         </Link>
       )}

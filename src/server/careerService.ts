@@ -448,6 +448,7 @@ export interface CareerDTO {
   dayName: string; // Pazartesi..Pazar
   dateLabel: string; // GERÇEK takvim tarihi, TR
   seasonNo: number; // kariyer sezonu
+  countryCode: string; // oyuncunun ülkesi (doğduğu/oluşturduğu ülke) — bayrak için
   nationalTeam: boolean; // kategori sıralaması ilk 4 (GDD 17.32)
   overall: number;
   experience: number; // birikmiş tecrübe (XP) — #28
@@ -920,6 +921,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       weekday: "long",
     }),
     seasonNo: careerQuarter(gs.dayIndex, gs.careerStartDay),
+    countryCode: human.nationality?.code ?? "TR",
     nationalTeam,
     overall: roundSkill(overall(skills)),
     experience: human.experience,
@@ -1012,6 +1014,7 @@ export interface CareerHeaderDTO {
   categoryId: string;
   ageCategory: string; // "U21" (rozet)
   city: string; // kulübün şehri (rozet)
+  countryCode: string; // oyuncunun ülkesi (bayrak rozeti)
   nationalTeam: boolean; // kategori sıralaması ilk 4 → milli takım rozeti
   liveTournamentActive: boolean;
   year: number; // oyun-içi takvim yılı (ör. 2026)
@@ -1146,6 +1149,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     categoryId: cur.categoryId,
     ageCategory: cur.ageCategory,
     city: human.club?.city ?? "",
+    countryCode: human.nationality?.code ?? "TR",
     nationalTeam,
     liveTournamentActive: gs.liveTournament != null,
     year: gs.currentDate.getFullYear(),

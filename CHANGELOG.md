@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (19.10 — bayrak oyuncunun kendi ülkesi (sabit TR değil))
+- Kimlik kartı, üst şerit (CareerNav) ve milli takım sayfasında bayrak **sabit 🇹🇷** idi → artık oyuncunun
+  **gerçek ülkesi** (oluşturduğu/doğduğu ülke). Alman → 🇩🇪, İngiliz → 🇬🇧. Milli takım etiketi de ülkeye göre
+  ("İngiltere Erkek Flöre U10"). `getCareer`/`getCareerHeader` DTO'suna `countryCode` eklendi (human.nationality'den).
+
 ### Düzeltildi (19.10 — KRİTİK: sporcu oluşturma kırıktı (country iletilmiyordu))
 - `createCareerAction` formdaki **`country` alanını `createCareer`'a geçmiyordu** → 18-ülke push'undan beri
   `createPlayerSchema` (zorunlu `country`) Zod'da patlıyor, **her ülkede** (TR dahil) sporcu oluşturma "bir

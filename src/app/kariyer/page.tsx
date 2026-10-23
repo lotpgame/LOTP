@@ -56,6 +56,7 @@ export default async function BugunPage({
         age={c.age}
         city={h.city}
         club={c.club?.name ?? null}
+        countryCode={c.countryCode}
         rating={c.overall}
         nationalTeam={c.nationalTeam}
         seasonNo={c.seasonNo}
