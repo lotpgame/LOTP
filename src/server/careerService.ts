@@ -843,7 +843,9 @@ export async function getCareer(): Promise<CareerDTO | null> {
 
   const ranking = await buildRankingView(categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
+  // Milli takım = oyuncunun kendi ÜLKESİNİN o kategorideki ilk 4'ü (uluslararası uygunluk ayrı: global humanRank).
+  const countryRank = (await buildRankingView(categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" })).find((r) => r.isHuman)?.position ?? null;
+  const nationalTeam = countryRank != null && countryRank <= NATIONAL_TEAM_SIZE;
   const injured = human.injuryDaysRemaining > 0;
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
 
@@ -1110,7 +1112,9 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   // Kimlik başlığı rozetleri + turnuva uygunluğu için güncel kategori sıralaması (hep hesaplanır).
   const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
+  // Milli takım rozeti = oyuncunun kendi ÜLKESİNİN ilk 4'ü (uluslararası uygunluk ayrı: global humanRank).
+  const countryRank = (await buildRankingView(cur.categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" })).find((r) => r.isHuman)?.position ?? null;
+  const nationalTeam = countryRank != null && countryRank <= NATIONAL_TEAM_SIZE;
 
   let today: TodayDTO;
   if (act.kind === "TRAINING") {
@@ -1383,8 +1387,10 @@ export async function getNationalTeam(categoryId: string): Promise<NationalTeamM
   const state = await loadState();
   if (!state) return [];
   const { gs, human } = state;
+  // Milli takım = oyuncunun KENDİ ÜLKESİNİN o kategorideki ilk 4'ü (çok-ülke: Alman'ın milli takımı Almanlar).
+  const myCountry = human.nationality?.code ?? "TR";
   const rows = await prisma.ranking.findMany({
-    where: { categoryId, quarter: quarterOf(gs.dayIndex) },
+    where: { categoryId, quarter: quarterOf(gs.dayIndex), player: { nationality: { code: myCountry } } },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
     take: NATIONAL_TEAM_SIZE,
   });

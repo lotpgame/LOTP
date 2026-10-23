@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (19.10 — milli takım oyuncunun kendi ülkesi)
+- **Milli takım kadrosu** (`getNationalTeam`) ve **rozeti** (`nationalTeam`) artık oyuncunun **kendi ülkesinin**
+  o kategorideki ilk 4'ü (önceden GLOBAL ilk 4 → Alman'ın milli takımında Türkler çıkabiliyordu). Ülke-içi rank
+  (`buildRankingView` country scope) ile. Not: uluslararası turnuva **uygunluğu** şimdilik global rank'te kaldı
+  (çok-ülke davet modeli ayrı tasarım kararı).
+
 ### Düzeltildi (19.10 — bayrak oyuncunun kendi ülkesi (sabit TR değil))
 - Kimlik kartı, üst şerit (CareerNav) ve milli takım sayfasında bayrak **sabit 🇹🇷** idi → artık oyuncunun
   **gerçek ülkesi** (oluşturduğu/doğduğu ülke). Alman → 🇩🇪, İngiliz → 🇬🇧. Milli takım etiketi de ülkeye göre
