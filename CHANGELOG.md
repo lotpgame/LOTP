@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (19.10 — KRİTİK: sporcu oluşturma kırıktı (country iletilmiyordu))
+- `createCareerAction` formdaki **`country` alanını `createCareer`'a geçmiyordu** → 18-ülke push'undan beri
+  `createPlayerSchema` (zorunlu `country`) Zod'da patlıyor, **her ülkede** (TR dahil) sporcu oluşturma "bir
+  şeyler ters gitti" veriyordu. Tek satır düzeltme: `country: formData.get("country")`. Hotfix push.
+
 ### Eklendi (18.10 — IP'den ülke ön-seçimi (akıllı varsayılan)) — ✅ CANLIDA (19.10)
 - **Oluşturma formu ülkeyi IP'den ön-seçer:** Vercel'in ücretsiz `x-vercel-ip-country` header'ı (dış servis
   YOK, IP saklanmaz/loglanmaz). Ziyaretçinin ülkesi 18 ülkeden biriyse form ona + o ülkenin şehirlerine

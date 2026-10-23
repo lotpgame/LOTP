@@ -46,6 +46,7 @@ export async function createCareerAction(formData: FormData): Promise<void> {
     weapon: String(formData.get("weapon") ?? ""),
     profile: String(formData.get("profile") ?? ""),
     birthDate: String(formData.get("birthDate") ?? ""),
+    country: String(formData.get("country") ?? ""), // 18-ülke: formdaki ülke seçimini ilet (yoksa Zod patlar)
     city: String(formData.get("city") ?? ""),
   });
   redirect("/kariyer");
