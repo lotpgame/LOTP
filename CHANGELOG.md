@@ -29,6 +29,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (`buildRankingView` country scope) ile. Not: uluslararası turnuva **uygunluğu** şimdilik global rank'te kaldı
   (çok-ülke davet modeli ayrı tasarım kararı).
 
+### Eklendi (19.10 — UI dili bağlanılan ülkeden otomatik (IP))
+- **Dil, bağlanılan ülkeye göre otomatik:** cookie yoksa Vercel `x-vercel-ip-country` → o ülkenin dili
+  (Alman→Almanca, Çinli→Çince, Fransız→Fransızca…). Dili desteklenmeyen ülke → İngilizce; IP yok/yerel → Türkçe.
+  Kullanıcı elle dil seçerse (LangSelect) o cookie **önceliklidir** (otomatik ezilmez). `localeForCountry` eşlemesi
+  (18 ülke → 9 dil). Böylece oyuncu nereden bağlandıysa UI o dilde + ülkesi ön-seçili + o ülke bayrağı/turnuva/klasmanı.
+
 ### Düzeltildi (19.10 — bayrak oyuncunun kendi ülkesi (sabit TR değil))
 - Kimlik kartı, üst şerit (CareerNav) ve milli takım sayfasında bayrak **sabit 🇹🇷** idi → artık oyuncunun
   **gerçek ülkesi** (oluşturduğu/doğduğu ülke). Alman → 🇩🇪, İngiliz → 🇬🇧. Milli takım etiketi de ülkeye göre

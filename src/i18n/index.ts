@@ -12,6 +12,20 @@
 export type Locale = "tr" | "en" | "de" | "es" | "fr" | "it" | "ru" | "pt" | "zh";
 export const LOCALES: Locale[] = ["tr", "en", "de", "es", "fr", "it", "ru", "pt", "zh"];
 export const LOCALE_COOKIE = "engarde_locale";
+
+/**
+ * Ülke → UI dili (18 ülke). Oyuncu hangi ülkeden bağlandıysa (IP) UI o ülkenin dilinde açılır.
+ * Kendi dili desteklenmeyen ülkeler → İngilizce (uluslararası); Tunus → Fransızca (yaygın).
+ */
+const LANG_BY_COUNTRY: Record<string, Locale> = {
+  TR: "tr", FR: "fr", IT: "it", DE: "de", RU: "ru", ES: "es", BR: "pt", CN: "zh", TN: "fr",
+  GB: "en", US: "en", AU: "en", HU: "en", PL: "en", UA: "en", JP: "en", KR: "en", EG: "en",
+};
+/** Ülke kodundan UI dili; bilinen ülke → dili, bilinmeyen/boş → null (çağıran karar verir). */
+export function localeForCountry(code: string | null | undefined): Locale | null {
+  if (!code) return null;
+  return LANG_BY_COUNTRY[code.toUpperCase()] ?? null;
+}
 export const LOCALE_LABEL: Record<Locale, string> = {
   tr: "Türkçe",
   en: "English",
