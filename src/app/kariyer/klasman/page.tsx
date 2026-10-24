@@ -13,8 +13,8 @@ export default async function KlasmanPage() {
 
   const myRank = c.ranking.find((r) => r.isHuman)?.position ?? null;
   const ageCat = c.categoryId.split("-")[0];
-  const catName = `${t(locale, "country.TR")} ${t(locale, `gender.${c.gender}`)} ${t(locale, `weapon.${c.weapon}`)} ${ageCat}`;
-  const intl = myRank != null && myRank <= 16;
+  const catName = `${t(locale, `country.${c.countryCode}`)} ${t(locale, `gender.${c.gender}`)} ${t(locale, `weapon.${c.weapon}`)} ${ageCat}`;
+  const intl = myRank != null && myRank <= 4; // uluslararası uygunluk = ülkenin ilk 4'ü (milli takımla aynı)
 
   return (
     <main className="flex flex-col gap-4">
@@ -46,7 +46,7 @@ export default async function KlasmanPage() {
 
       <section>
         <h2 className="kicker mb-2">{t(locale, "klasman.rankings")}</h2>
-        <KlasmanFilter initialCategoryId={c.categoryId} initialRows={c.ranking} locale={locale} />
+        <KlasmanFilter initialCategoryId={c.categoryId} initialRows={c.ranking} countryCode={c.countryCode} locale={locale} />
       </section>
     </main>
   );

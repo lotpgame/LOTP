@@ -14,7 +14,7 @@ import {
   type Gender,
   type Weapon,
 } from "@/engine/domain";
-import { CONTINENTS, COUNTRIES } from "@/engine/geo";
+import { CONTINENTS, COUNTRIES, continentOfCountry } from "@/engine/geo";
 import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 import { RankingTower } from "../parts";
@@ -53,19 +53,22 @@ function Chip({
 export function KlasmanFilter({
   initialCategoryId,
   initialRows,
+  countryCode,
   locale,
 }: {
   initialCategoryId: string;
   initialRows: RankingRowDTO[];
+  countryCode: string;
   locale: Locale;
 }) {
   const [age0, gCode, wCode] = initialCategoryId.split("-");
   const [age, setAge] = useState(age0);
   const [gender, setGender] = useState<Gender>(GENDER_FROM_CODE[gCode] ?? "MALE");
   const [weapon, setWeapon] = useState<Weapon>(WEAPON_FROM_CODE[wCode] ?? "FOIL");
-  const [level, setLevel] = useState<ScopeLevel>("world");
-  const [continent, setContinent] = useState<string>(CONTINENTS[0].code);
-  const [country, setCountry] = useState<string>(COUNTRIES[0].code);
+  // Başlangıç: oyuncunun KENDİ ülke klasmanı (initialRows = ülke/DOMESTIC); ülke+kıta varsayılanı da oyuncunun.
+  const [level, setLevel] = useState<ScopeLevel>("country");
+  const [continent, setContinent] = useState<string>(continentOfCountry(countryCode) ?? CONTINENTS[0].code);
+  const [country, setCountry] = useState<string>(countryCode);
   const [rows, setRows] = useState<RankingRowDTO[]>(initialRows);
   const [pending, startTransition] = useTransition();
 
