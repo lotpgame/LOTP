@@ -14,17 +14,20 @@ import type { TournamentLevel } from "../domain";
  * elenen puan almaz).
  */
 export const POINT_TABLES: Record<TournamentLevel, Record<number, number>> = {
-  // OPEN klasman puanı VERMEZ (yalnız tecrübe) — kullanıcı kararı #28. Klasman = şampiyonalar.
+  // OPEN klasman puanı VERMEZ (yalnız tecrübe) — kullanıcı kararı #28.
   OPEN: {},
+  // YURT-İÇİ (DOMESTIC) klasman: yalnız İl + Ulusal şampiyona → ülke klasmanı / milli takım (ülke ilk 4).
   IL: { 1: 5, 2: 3.5, 3: 2.5, 5: 1.5, 9: 1.0, 17: 0.5 },
   TURKIYE: { 1: 12, 2: 9, 3: 7, 5: 5, 9: 3, 17: 2, 33: 1 },
+  // DÜNYA (WORLD) klasmanı: uluslararası turnuvalar → dünya/kıta klasmanı (ülke klasmanını ETKİLEMEZ).
+  // Bu puanlar WORLD scope'lu ranking satırlarına yazılır (bkz. rankingScopeForLevel + finalizeTournament).
   SATELLITE: { 1: 16, 2: 13, 3: 10, 5: 7, 9: 5, 17: 3, 33: 2 },
   GRAND_PRIX: { 1: 24, 2: 20, 3: 16, 5: 12, 9: 8, 17: 5, 33: 3 },
   EUROPEAN: { 1: 32, 2: 27, 3: 22, 5: 16, 9: 10 },
   WORLD_CUP: { 1: 40, 2: 34, 3: 28, 5: 20, 9: 14 },
 };
 
-/** Bir dereceye (position) karşılık gelen KLASMAN puanı. Open → 0 (tecrübe verir). Tanımsız derece → 0. */
+/** Bir dereceye (position) karşılık gelen klasman puanı. Open → 0. Tanımsız derece → 0. */
 export function rankingPointsForPosition(
   position: number,
   level: TournamentLevel = "IL",
@@ -32,9 +35,16 @@ export function rankingPointsForPosition(
   return POINT_TABLES[level][position] ?? 0;
 }
 
-/** Bu seviye klasman (Quarter Ranking) puanı veriyor mu? Open vermez; şampiyonalar verir (#28). */
+/** Klasman TÜRÜ: uluslararası → DÜNYA (WORLD) klasmanı; İl/Ulusal → YURT-İÇİ (DOMESTIC); Open → yok. */
+export type RankingTrack = "DOMESTIC" | "WORLD";
+const WORLD_LEVELS: readonly TournamentLevel[] = ["SATELLITE", "EUROPEAN", "GRAND_PRIX", "WORLD_CUP"];
+export function rankingTrackForLevel(level: TournamentLevel): RankingTrack {
+  return WORLD_LEVELS.includes(level) ? "WORLD" : "DOMESTIC";
+}
+
+/** Bu seviye (herhangi bir) klasman puanı veriyor mu? Open vermez; diğerleri verir (yurt-içi ya da dünya). */
 export function levelGivesRankingPoints(level: TournamentLevel): boolean {
-  return level !== "OPEN";
+  return Object.keys(POINT_TABLES[level]).length > 0;
 }
 
 // ——— Tecrübe (XP) — #28: her turnuva tecrübe verir (Open en çok grind); antrenman ~1/10 ———

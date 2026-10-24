@@ -9,6 +9,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (19.10 — İKİ klasman (yurt-içi + dünya) + Kıta Şampiyonası + uluslararası uygunluk ülke ilk 4)
+- **İki ayrı klasman** (Ranking tablosuna `scope` eklendi — migration `ranking_scope`):
+  - **DOMESTIC (ülke klasmanı):** yalnız **İl + Ulusal** şampiyona puanları → milli takım (ülke ilk 4) +
+    uluslararası uygunluk buradan. Uluslararası sonuçlar ülke klasmanını **ETKİLEMEZ** (kullanıcı kuralı).
+  - **WORLD (dünya klasmanı):** uluslararası turnuva puanları (Satellite/Kıta/GP/Dünya Kupası). Klasman
+    sayfası: **Ülke**=DOMESTIC, **Dünya**=WORLD, **Kıta**=WORLD kıtaya filtreli.
+- **Uluslararası uygunluk = oyuncunun ÜLKESİNİN ilk 4'ü** (milli takım). 4 turnuvanın tamamı TOP16 değil **TOP4**
+  (`season.ts`); kontrol **yurt-içi (DOMESTIC)** rank'e bakar (`buildRankingView` country scope her yerde).
+- **Kıta Şampiyonası:** eski tek "Avrupa" seviyesi artık **oyuncunun KITASI** (Avrupa/Asya-Okyanusya/Amerika/
+  Afrika) — kıta-kapsamlı saha (`geoScopeForLevel`/`selectFieldAi` kıta), adı izleyicinin dilinde
+  ("U17 Asya-Okyanusya Şampiyonası"). Satellite/GP/Dünya Kupası tüm dünya (karışık).
+- Puan yazımı DOĞRU klasmana yönlenir (`rankingTrackForLevel` — finalize + canlı turnuva). tsc + 205 test +
+  saf/DB doğrulama script'leri yeşil. ⚠️ **Prod'a migration + kod BİRLİKTE gider** (unique key değişti).
+
 ### Düzeltildi (19.10 — milli takım oyuncunun kendi ülkesi)
 - **Milli takım kadrosu** (`getNationalTeam`) ve **rozeti** (`nationalTeam`) artık oyuncunun **kendi ülkesinin**
   o kategorideki ilk 4'ü (önceden GLOBAL ilk 4 → Alman'ın milli takımında Türkler çıkabiliyordu). Ülke-içi rank

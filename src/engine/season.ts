@@ -59,10 +59,12 @@ export type DayActivity =
   | { kind: "TOURNAMENT"; level: TournamentLevel; qualification: Qualification };
 
 /** Uluslararası organizasyonun düzenlendiği ay (Pazar günü), yılda bir kez. */
+// Tüm uluslararası turnuvalar oyuncunun ÜLKESİNİN ilk 4'üne açık (milli takım) — kullanıcı kuralı.
+// (Uygunluk kontrolü ÜLKE-İÇİ ranka bakar; bkz. careerService qualifies çağrıları.)
 const INTERNATIONAL_BY_MONTH: Record<number, ScheduledEvent> = {
-  4: { level: "SATELLITE", qualification: "TOP16" },
+  4: { level: "SATELLITE", qualification: "TOP4" },
   6: { level: "EUROPEAN", qualification: "TOP4" },
-  8: { level: "GRAND_PRIX", qualification: "TOP16" },
+  8: { level: "GRAND_PRIX", qualification: "TOP4" },
   10: { level: "WORLD_CUP", qualification: "TOP4" },
 };
 

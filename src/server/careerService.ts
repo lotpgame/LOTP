@@ -77,6 +77,9 @@ import {
   experienceForTournament,
   rankEntries,
   rankingPointsForPosition,
+  levelGivesRankingPoints,
+  rankingTrackForLevel,
+  type RankingTrack,
 } from "@/engine/ranking";
 import {
   DAYS_PER_MONTH,
@@ -157,6 +160,14 @@ function tournamentDisplayName(
   if (level === "TURKIYE") {
     // Ulusal şampiyona = oyuncunun kendi ülkesi (adı izleyicinin dilinde). cityChamp = "Şampiyonası"/"Championship"/…
     const cname = t(locale, `country.${countryCode ?? "TR"}`);
+    const base = `${ageCategory} ${cname} ${t(locale, "tournament.cityChamp")}`;
+    return host ? `${base} · ${host}` : base;
+  }
+  if (level === "EUROPEAN") {
+    // Kıta Şampiyonası = oyuncunun kıtası ("U17 Avrupa/Asya-Okyanusya/Amerika/Afrika Şampiyonası").
+    // countryCode ülke ise kıtasını bul; scopeKey'den gelen kıta kodu (EU/AS/AM/AF) ise doğrudan kullan.
+    const cont = CONTINENT_CODES.includes(countryCode ?? "") ? countryCode : continentOfCountry(countryCode ?? "TR");
+    const cname = cont ? t(locale, `continent.${cont}`) : t(locale, "tournament.EUROPEAN");
     const base = `${ageCategory} ${cname} ${t(locale, "tournament.cityChamp")}`;
     return host ? `${base} · ${host}` : base;
   }
@@ -257,6 +268,18 @@ async function selectFieldAi(
 ) {
   if (take <= 0) return [];
   const active = { isAI: true, status: { not: "RETIRED" }, gender, weapon } as const;
+  // Kıta Şampiyonası (EUROPEAN) = oyuncunun KITASINDAKİ ülkelerden karışık (Avrupa'lı → Avrupa ülkeleri).
+  if (level === "EUROPEAN") {
+    const cont = continentOfCountry(homeCode);
+    const codes = COUNTRIES.filter((c) => c.continent === cont).map((c) => c.code);
+    const all = await prisma.player.findMany({
+      where: { ...active, nationality: { code: { in: codes } } },
+      include: { skills: true },
+      orderBy: { id: "asc" },
+    });
+    return createRng(mixSeed).shuffle(all).slice(0, take);
+  }
+  // Satellite / Grand Prix / Dünya Kupası = TÜM DÜNYA (çok-uluslu karışık).
   if (INTERNATIONAL_LEVELS.includes(level)) {
     const all = await prisma.player.findMany({
       where: { ...active },
@@ -841,11 +864,10 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const categoryId = cur.categoryId;
   const age = cur.age;
 
-  const ranking = await buildRankingView(categoryId, quarter, human.id);
+  // Yurt-içi (ülke) klasman sırası — milli takım + uluslararası uygunluk buradan (uluslararası puan karışmaz).
+  const ranking = await buildRankingView(categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  // Milli takım = oyuncunun kendi ÜLKESİNİN o kategorideki ilk 4'ü (uluslararası uygunluk ayrı: global humanRank).
-  const countryRank = (await buildRankingView(categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" })).find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = countryRank != null && countryRank <= NATIONAL_TEAM_SIZE;
+  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
   const injured = human.injuryDaysRemaining > 0;
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
 
@@ -1109,12 +1131,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const act = activityForDay(gs.dayIndex);
   const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
 
-  // Kimlik başlığı rozetleri + turnuva uygunluğu için güncel kategori sıralaması (hep hesaplanır).
-  const ranking = await buildRankingView(cur.categoryId, quarter, human.id);
+  // Yurt-içi (ülke) klasman sırası — milli takım rozeti + turnuva uygunluğu buradan (uluslararası puan karışmaz).
+  const ranking = await buildRankingView(cur.categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
-  // Milli takım rozeti = oyuncunun kendi ÜLKESİNİN ilk 4'ü (uluslararası uygunluk ayrı: global humanRank).
-  const countryRank = (await buildRankingView(cur.categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" })).find((r) => r.isHuman)?.position ?? null;
-  const nationalTeam = countryRank != null && countryRank <= NATIONAL_TEAM_SIZE;
+  const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
 
   let today: TodayDTO;
   if (act.kind === "TRAINING") {
@@ -1187,7 +1207,7 @@ export async function getNextTournament(): Promise<NextTournamentDTO | null> {
   const { gs, human } = state;
   const locale = await getLocale();
   const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
-  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
+  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   return findNextTournament(serverWorldDay(), gs.careerStartDay, human, humanRank, human.injuryDaysRemaining > 0, locale, human.club?.city ?? "", human.nationality?.code ?? "TR");
 }
@@ -1234,7 +1254,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
 
   // Uygunluk için mevcut kategori sıralaması (uluslararası kapıları).
   const curId = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
-  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id);
+  const ranking = await buildRankingView(curId.categoryId, quarterOf(gs.dayIndex), human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
 
   const regs = await prisma.registration.findMany({
@@ -1304,7 +1324,7 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   if (act.kind !== "TOURNAMENT" || act.level !== level) throw new GameError("no_tournament", "O gün bu turnuva yok.");
   const id = currentIdentity(human, careerQuarter(worldDay, gs.careerStartDay));
   if (!levelAllowedForCategory(level, id.ageCategory)) throw new GameError("u17_only", "Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
-  const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id);
+  const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
   await prisma.registration.upsert({
@@ -1328,8 +1348,10 @@ interface RankingScope {
 }
 
 async function buildRankingView(categoryId: string, quarter: number, humanId: number, scope: RankingScope = {}) {
+  // Klasman TÜRÜ: Ülke kapsamı → DOMESTIC (İl+Ulusal); Dünya/Kıta → WORLD (uluslararası). (Kullanıcı modeli.)
+  const track: RankingTrack = scope.country && !scope.continent ? "DOMESTIC" : "WORLD";
   const rows = await prisma.ranking.findMany({
-    where: { categoryId, quarter },
+    where: { categoryId, quarter, scope: track },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
   });
   const players = await prisma.player.findMany({
@@ -1387,10 +1409,11 @@ export async function getNationalTeam(categoryId: string): Promise<NationalTeamM
   const state = await loadState();
   if (!state) return [];
   const { gs, human } = state;
-  // Milli takım = oyuncunun KENDİ ÜLKESİNİN o kategorideki ilk 4'ü (çok-ülke: Alman'ın milli takımı Almanlar).
+  // Milli takım = oyuncunun KENDİ ÜLKESİNİN o kategorideki YURT-İÇİ (DOMESTIC) klasman ilk 4'ü
+  // (uluslararası puanlar KARIŞMAZ → milli takım saf yurt-içi performans; Alman'ın milli takımı Almanlar).
   const myCountry = human.nationality?.code ?? "TR";
   const rows = await prisma.ranking.findMany({
-    where: { categoryId, quarter: quarterOf(gs.dayIndex), player: { nationality: { code: myCountry } } },
+    where: { categoryId, quarter: quarterOf(gs.dayIndex), scope: "DOMESTIC", player: { nationality: { code: myCountry } } },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
     take: NATIONAL_TEAM_SIZE,
   });
@@ -1503,7 +1526,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const startQuarter = quarterOf(gs.dayIndex);
   const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const age = cur.age;
-  const ranking = await buildRankingView(cur.categoryId, startQuarter, human.id);
+  const ranking = await buildRankingView(cur.categoryId, startQuarter, human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   // Etkinliği (19:00) gerçekleşmiş EN SON güne kadar işle: gün 00:00'da döner ama o günün turnuvası/
   // antrenmanı 19:00'da olur → 19:00'dan önce o gün işlenmez (kullanıcı bekler, sıradaki turnuva sayaçta).
@@ -1772,7 +1795,7 @@ export async function attendTournament(): Promise<AdvanceResult> {
   if (!levelAllowedForCategory(act.level, attendId.ageCategory)) {
     throw new GameError("u17_only", "Uluslararası turnuvalar yalnız U17 ve üstü içindir.");
   }
-  const ranking = await buildRankingView(attendId.categoryId, quarterOf(gs.dayIndex), human.id);
+  const ranking = await buildRankingView(attendId.categoryId, quarterOf(gs.dayIndex), human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) {
     throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
@@ -3261,7 +3284,7 @@ async function finalizeLive(
       select: { finalPosition: true },
     });
     const rank = await prisma.ranking.findUnique({
-      where: { playerId_categoryId_quarter: { playerId: human.id, categoryId: base.categoryId, quarter: quarterOf(gs.dayIndex) } },
+      where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter: quarterOf(gs.dayIndex), scope: rankingTrackForLevel(ls.level) } },
       select: { position: true },
     });
     ls.finalTournamentId = existing.id;
@@ -3549,7 +3572,7 @@ export async function getLiveTournament(): Promise<LiveTournamentDTO | null> {
     dto.finalTournamentId = ls.finalTournamentId;
     dto.earnedPoints = ls.earnedPoints;
     dto.earnedXp = ls.earnedXp;
-    dto.givesRankingPoints = ls.level !== "OPEN";
+    dto.givesRankingPoints = levelGivesRankingPoints(ls.level);
     dto.newRank = ls.newRank;
   }
   return dto;
@@ -3572,10 +3595,15 @@ const FIELD_TARGET = 24;
  * Ortak turnuva örneğinin coğrafi kapsamı (M11.3b): İl = ülke+şehir; Türkiye/Open = ülke;
  * uluslararası = tüm dünya. Aynı kapsamdaki oyuncular aynı turnuvada oynar.
  */
+/** Kıta kodları (geoScope'ta ülke kodlarıyla karışmasın diye ayırt edilir). */
+const CONTINENT_CODES: readonly string[] = ["EU", "AS", "AM", "AF"];
+
 function geoScopeForLevel(level: TournamentLevel, countryCode: string, city: string): string {
   if (level === "IL") return `${countryCode}#${city}`;
   if (level === "TURKIYE" || level === "OPEN") return countryCode;
-  return "WORLD"; // SATELLITE / EUROPEAN / GRAND_PRIX / WORLD_CUP
+  // Kıta Şampiyonası (EUROPEAN) = oyuncunun KITASI (Avrupa/Asya/Amerika/Afrika) — kıta-kapsamlı saha.
+  if (level === "EUROPEAN") return continentOfCountry(countryCode) ?? "EU";
+  return "WORLD"; // SATELLITE / GRAND_PRIX / WORLD_CUP — tüm dünya
 }
 
 /** Ortak turnuva örneğinin benzersiz anahtarı (dedup). Aynı anahtar = aynı turnuva. */
@@ -3766,7 +3794,7 @@ async function autoResolveTournament(
     });
     if (t?.status === "FINISHED" && part) {
       const rank = await prisma.ranking.findUnique({
-        where: { playerId_categoryId_quarter: { playerId: human.id, categoryId: base.categoryId, quarter } },
+        where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter, scope: rankingTrackForLevel(level) } },
         select: { position: true },
       });
       const fieldSize = await prisma.tournamentParticipant.count({ where: { tournamentId: id } });
@@ -3893,21 +3921,24 @@ async function finalizeTournament(
       });
     }
 
-    // Ranking puanı (seviyeye göre) ekle ve pozisyonları yeniden hesapla (GDD 19.29) — bir kez, tüm dereceler.
+    // Ranking puanı → DOĞRU KLASMANA: İl/Ulusal → DOMESTIC (ülke klasmanı); uluslararası → WORLD (dünya klasmanı).
+    // Uluslararası sonuçlar DOMESTIC'i etkilemez (kullanıcı kuralı) — ayrı scope satırına yazılır.
+    const track = rankingTrackForLevel(level);
     for (const s of outcome.standings) {
       const pts = rankingPointsForPosition(s.position, level);
       if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
       await tx.ranking.upsert({
-        where: { playerId_categoryId_quarter: { playerId: s.playerId, categoryId, quarter } },
-        create: { playerId: s.playerId, categoryId, quarter, points: pts },
+        where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId, quarter, scope: track } },
+        create: { playerId: s.playerId, categoryId, quarter, scope: track, points: pts },
         update: { points: { increment: pts } },
       });
     }
-    const rankRows = await tx.ranking.findMany({ where: { categoryId, quarter } });
+    // Pozisyonları YALNIZ bu track içinde yeniden hesapla (DOMESTIC/WORLD ayrı sıralanır).
+    const rankRows = await tx.ranking.findMany({ where: { categoryId, quarter, scope: track } });
     const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
     for (const r of ranked) {
       await tx.ranking.update({
-        where: { playerId_categoryId_quarter: { playerId: r.playerId, categoryId, quarter } },
+        where: { playerId_categoryId_quarter_scope: { playerId: r.playerId, categoryId, quarter, scope: track } },
         data: { position: r.position },
       });
     }

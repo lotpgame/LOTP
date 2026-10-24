@@ -350,13 +350,16 @@ model Ranking {
   categoryId String
   quarter    Int    @default(1) // Quarter Ranking: her quarter ayrı; quarter sonu "sıfırlanır" (GDD 17.90)
 
+  // İki klasman: DOMESTIC (İl+Ulusal → ülke klasmanı/milli takım) | WORLD (uluslararası → dünya/kıta klasmanı).
+  // Uluslararası sonuçlar ülke klasmanını ETKİLEMEZ (kullanıcı kuralı) → ayrı scope satırı.
+  scope    String @default("DOMESTIC")
   points   Float @default(0)
   position Int? // sıralamada yer (güncellemede hesaplanır)
 
   updatedAt DateTime @updatedAt
 
-  @@unique([playerId, categoryId, quarter])
-  @@index([categoryId, quarter])
+  @@unique([playerId, categoryId, quarter, scope])
+  @@index([categoryId, quarter, scope])
 }
 
 /// Geri bildirim / hata bildirimi (test haferi). Oyuncular "bildir" ile yazar; sahibi okur.

@@ -28,7 +28,7 @@ import {
 import { prizeFor } from "@/engine/economy";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
 import { COMPETITION_SHARPNESS_GAIN, applySharpness, rollInjury } from "@/engine/conditioning";
-import { experienceForTournament, rankEntries, rankingPointsForPosition } from "@/engine/ranking";
+import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingTrackForLevel } from "@/engine/ranking";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import { MS_PER_GAME_DAY } from "@/engine/worldclock";
 import type { Locale } from "@/i18n";
@@ -477,21 +477,24 @@ async function applyLiveEffectsTx(
     });
   }
 
+  // Ranking puanı → DOĞRU KLASMANA: İl/Ulusal → DOMESTIC; uluslararası → WORLD (dünya/kıta). Ayrı scope satırı.
+  const track = rankingTrackForLevel(level);
   for (const s of standings) {
     const pts = rankingPointsForPosition(s.position, level);
     if (pts <= 0) continue; // puansız derece klasmanı şişirmesin
     await tx.ranking.upsert({
-      where: { playerId_categoryId_quarter: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter } },
-      create: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, points: pts },
+      where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track } },
+      create: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track, points: pts },
       update: { points: { increment: pts } },
     });
   }
-  const rankRows = await tx.ranking.findMany({ where: { categoryId: t.categoryId, quarter: t.quarter } });
+  // Pozisyonları YALNIZ bu track içinde yeniden hesapla (DOMESTIC/WORLD ayrı sıralanır).
+  const rankRows = await tx.ranking.findMany({ where: { categoryId: t.categoryId, quarter: t.quarter, scope: track } });
   const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
   if (ranked.length) {
     for (const r of ranked) {
       await tx.ranking.updateMany({
-        where: { playerId: r.playerId, categoryId: t.categoryId, quarter: t.quarter },
+        where: { playerId: r.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track },
         data: { position: r.position, updatedAt: new Date() },
       });
     }
