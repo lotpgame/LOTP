@@ -59,7 +59,7 @@ export const COUNTRIES: readonly Country[] = [
   { code: "RU", name: "Rusya", continent: "EU", dialCode: "+7", cities: ["Moscow", "Saint Petersburg", "Kazan", "Novosibirsk", "Sochi"] },
   { code: "PL", name: "Polonya", continent: "EU", dialCode: "+48", cities: ["Warszawa", "Kraków", "Łódź", "Wrocław", "Gdańsk"] },
   { code: "ES", name: "İspanya", continent: "EU", dialCode: "+34", cities: ["Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza"] },
-  { code: "GB", name: "İngiltere", continent: "EU", dialCode: "+44", cities: ["London", "Manchester", "Birmingham", "Leeds", "Liverpool"] },
+  { code: "GB", name: "İngiltere", continent: "EU", dialCode: "+44", cities: ["London", "Manchester", "Birmingham", "Leeds", "Liverpool", "Cardiff", "Glasgow", "Edinburgh", "Belfast"] },
   { code: "UA", name: "Ukrayna", continent: "EU", dialCode: "+380", cities: ["Kyiv", "Kharkiv", "Lviv", "Odesa", "Dnipro"] },
   // Amerika (AM)
   { code: "US", name: "ABD", continent: "AM", dialCode: "+1", cities: ["New York", "Los Angeles", "Chicago", "Houston", "Boston"] },

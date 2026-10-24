@@ -106,9 +106,8 @@ function localizeRound(locale: Locale, round: string): string {
 }
 
 /** Turnuva görünen adını dile göre kurar (kalıcı TR ada bağlı kalmaz). */
-/** Turnuva ev sahibi şehri (kullanıcı 11.10): İl/Open = oyuncunun KENDİ şehri (yerel); Türkiye+ = o güne göre
- * DETERMİNİSTİK rastgele TR şehri (herkes aynı görür — "İstanbul'da Türkiye Şampiyonası"). Uluslararası (Avrupa/
- * Dünya) şimdilik şehirsiz. */
+/** Turnuva ev sahibi şehri: İl = oyuncunun KENDİ şehri; Ulusal/Open = oyuncunun ÜLKESİNİN bir şehri (o güne göre
+ * deterministik, herkes aynı görür); Satellite/GP = dünya şehri; Kıta/Dünya Kupası = şimdilik şehirsiz. */
 /** scopeKey'deki coğrafi kapsamdan ülke kodunu çıkarır (İl "TR#Şehir" → "TR"; Türkiye/Open "TR"; uluslararası "WORLD"). */
 function countryCodeFromScopeKey(scopeKey: string | null): string | null {
   const geo = scopeKey?.split(":")[1] ?? "";
