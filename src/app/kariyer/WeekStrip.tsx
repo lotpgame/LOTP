@@ -44,7 +44,7 @@ export function WeekStrip({ days, locale }: { days: WeekDay[]; locale: Locale })
                   d.today ? "border-ink bg-arena-0" : ""
                 }`}
               >
-                <span className={`text-[12px] leading-none ${d.today ? "font-bold text-ink" : "font-medium text-steel"}`}>
+                <span className={`text-[12px] leading-none ${d.today ? "font-bold text-ink" : "font-semibold text-ink/80"}`}>
                   {t(locale, `dayShort.${d.dow}`)}
                 </span>
                 {d.kind === "TOURNAMENT" ? (
@@ -52,7 +52,7 @@ export function WeekStrip({ days, locale }: { days: WeekDay[]; locale: Locale })
                     {t(locale, `levelShort.${d.level}`)}
                   </span>
                 ) : (
-                  <Icon name={TRAINING_ICON[d.training ?? "REST"] ?? "rest"} size={18} className="text-steel" />
+                  <Icon name={TRAINING_ICON[d.training ?? "REST"] ?? "rest"} size={18} className="text-ink/80" />
                 )}
                 <span className="flex h-3.5 items-center" aria-hidden="true">
                   {st === "week.registered" && <Icon name="check" size={14} className="text-ink" />}

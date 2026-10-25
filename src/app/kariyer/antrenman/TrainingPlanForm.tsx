@@ -64,7 +64,7 @@ export function TrainingPlanForm({ initial, locale }: { initial: string[]; local
                   </span>
                 )}
               </legend>
-              <div className="grid grid-cols-5 rounded-md border border-line p-0.5">
+              <div className="grid grid-cols-5 rounded-md border border-line bg-black/35 p-0.5 backdrop-blur-sm">
                 {TRAINING_TYPES.map((tt) => (
                   <label key={tt} className="cursor-pointer">
                     <input
@@ -75,7 +75,7 @@ export function TrainingPlanForm({ initial, locale }: { initial: string[]; local
                       onChange={() => pick(i, tt)}
                       className="peer sr-only"
                     />
-                    <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[5px] px-0.5 text-center text-[12px] leading-tight text-steel transition-colors peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-arena-0 peer-focus-visible:ring-2 peer-focus-visible:ring-ink">
+                    <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[5px] px-0.5 text-center text-[12px] leading-tight text-ink/75 transition-colors peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-arena-0 peer-focus-visible:ring-2 peer-focus-visible:ring-ink">
                       <Icon name={TYPE_ICON[tt]} size={18} />
                       {t(locale, `plan.short.${tt}`)}
                     </span>

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (25.10 — gün seçici/şerit netliği (kullanıcı))
+- **Antrenman gün seçici** (Teknik/Fiziksel/Mental/Taktik/Dinlenme): 5'li segment artık camsı koyu şerit
+  üstünde (`bg-black/35` + blur) ve etiketler daha parlak (`text-ink/75`) → fotoğraf üstünde net.
+- **"Önümüzdeki 7 gün" şeridi** (Bugün + Turnuvalar, `WeekStrip`): gün kısaltmaları ve seans ikonu artık
+  parlak (`text-ink/80`), gri yerine → faded görünüm giderildi. Bugün hücresi en belirgin (kalın + çerçeve).
+
 ### Değişti (25.10 — arena sayfalarında yazı netliği (kullanıcı: "yazılar sönük"))
 - Fotoğraf/camsı zemin üstünde yazı daha net: `[data-arena]` için **hafif gölge** (`text-shadow`),
   bir tık daha kalın (ağırlık 530) ve **ikincil (gri) metin biraz daha parlak** (`--steel`→`#b4bcc6`).
