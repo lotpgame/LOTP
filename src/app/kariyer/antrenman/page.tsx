@@ -48,10 +48,16 @@ export default async function AntrenmanPage() {
 
   return (
     <main className="flex flex-col gap-5">
-      {/* ——— HERO: "Antrenman Salonu" konsolu — enerjik, gençlere göre ——— */}
-      <section data-scope="console" className="mesh relative overflow-hidden rounded-xl p-5">
-        {/* Dev ikon filigranı */}
-        <Icon name="train" size={150} className="pointer-events-none absolute -right-6 -top-6 text-console-ink opacity-[0.06]" />
+      {/* ——— HERO: gerçek eskrim salonu görseli (AI üretimi, özgün) + okunabilirlik degradesi ——— */}
+      <section data-scope="console" className="relative overflow-hidden rounded-xl p-5">
+        {/* Arka plan görseli */}
+        <img
+          src="/img/salle-antrenman.webp"
+          alt=""
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+        />
+        {/* Koyu degrade: görsel parlak (beyaz duvar) → yazı/barlar net okunsun diye üstüne katman */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/45" />
         <div className="relative">
           <span className="kicker text-console-steel">{t(locale, "antrenman.title")}</span>
           <div className="mt-1.5 flex items-center gap-2 text-console-ink">
