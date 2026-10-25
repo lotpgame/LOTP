@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
+- **Enerjik "antrenman salonu" hero'su:** koyu konsol bandı + büyük **Kondisyon/Form enerji barları** +
+  gün + soluk antrenman ikonu. Sayfa "antrenman durumun" panosu gibi açılıyor.
+- **Antrenman türleri renk-kodlu:** 🔵 Teknik · 🔴 Fiziksel · 🟢 Taktik · 🟣 Mental · ⚪ Dinlenme (renkli ikon rozeti).
+- **Açılır-kapanır bölümler** (`CollapsibleSection` + `InfoNote`): Haftalık Plan açık; "Ne geliştirir" + "Yeteneklerin"
+  kapalı (dokun → aç). Mobil + genç kitle: taranabilir akordeon, az metin duvarı. Native `<details>`, JS yok.
+
 ### Eklendi (19.10 — İKİ klasman (yurt-içi + dünya) + Kıta Şampiyonası + uluslararası uygunluk ülke ilk 4)
 - **İki ayrı klasman** (Ranking tablosuna `scope` eklendi — migration `ranking_scope`):
   - **DOMESTIC (ülke klasmanı):** yalnız **İl + Ulusal** şampiyona puanları → milli takım (ülke ilk 4) +
