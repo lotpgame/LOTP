@@ -6,8 +6,9 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import "./globals.css";
 import { InstagramWarning } from "./InstagramWarning";
+import { RotateGate } from "./RotateGate";
 import { ThemeApplier } from "./ThemeApplier";
-import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY, VIEW_MODE_KEY } from "./themeKeys";
+import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY } from "./themeKeys";
 import { isInstagramBrowser } from "./ui/inAppBrowser";
 
 // latin-ext: Türkçe karakterler (ş ğ ı İ) aynı fonttan gelsin.
@@ -41,19 +42,16 @@ export const metadata: Metadata = {
 // kabul edilir; ThemeApplier aynı işi mount sonrası yedek olarak tekrarlar.
 const THEME_BOOT = `try{var h=/^#[0-9a-fA-F]{3,8}$/,d=document.documentElement.style,b=localStorage.getItem(${JSON.stringify(THEME_BG_KEY)}),f=localStorage.getItem(${JSON.stringify(THEME_FG_KEY)}),m=localStorage.getItem(${JSON.stringify(THEME_ME_KEY)});if(b&&h.test(b))d.setProperty("--background",b);if(f&&h.test(f))d.setProperty("--foreground",f);if(m&&h.test(m))d.setProperty("--me",m)}catch(e){}`;
 
-// Görünüm modunu (yatay/dikey) ilk boyamadan ÖNCE <html>'e yazar (yanıp sönme olmasın).
-const VIEW_BOOT = `try{var v=localStorage.getItem(${JSON.stringify(VIEW_MODE_KEY)});document.documentElement.setAttribute("data-view",v==="landscape"?"landscape":"portrait")}catch(e){}`;
-
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
   const isInstagram = isInstagramBrowser((await headers()).get("user-agent"));
   return (
     <html
       lang={locale}
-      // Varsayılan görünüm sunucuda da yazılsın → klasik kullanıcıda sunucu/istemci birebir eşleşir.
-      // Yatay seçen kullanıcıda boot script bunu değiştirir; o farkı suppressHydrationWarning örter
-      // (next-themes deseni; boot ayrıca <html> style'ına tema yazar). Sığ kapsam: yalnız <html>.
-      data-view="portrait"
+      // Oyun YALNIZ yatay oynanır (app kararı): görünüm her zaman landscape, seçenek yok.
+      // Cihaz dik tutulunca RotateGate "telefonu yan çevir" der. suppressHydrationWarning: theme-boot
+      // yine <html> style'ına kişisel tema renklerini yazar (sığ kapsam: yalnız <html>).
+      data-view="landscape"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} h-full antialiased`}
     >
@@ -61,11 +59,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-boot" strategy="beforeInteractive">
           {THEME_BOOT}
         </Script>
-        <Script id="view-boot" strategy="beforeInteractive">
-          {VIEW_BOOT}
-        </Script>
         <ThemeApplier />
         <InstagramWarning show={isInstagram} locale={locale} />
+        <RotateGate locale={locale} />
         <div className="flex-1">{children}</div>
         <footer className="border-t border-line py-3 text-center text-[13px] text-steel">
           {t(locale, "footer.tagline")}

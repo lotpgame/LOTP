@@ -130,6 +130,16 @@ select option {
   color-scheme: dark;
 }
 
+/* RotateGate: "telefonu yan çevir" ikonu — dikeyden yataya nazik eğilme (döngü). */
+@keyframes rotateHint {
+  0%, 28% { transform: rotate(0deg); }
+  52%, 78% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  svg[style*="rotateHint"] { animation: none !important; }
+}
+
 /* Native <dialog>: alt sayfa (bottom sheet) + arka plan karartma */
 dialog.sheet {
   margin: auto auto 0;

@@ -6,7 +6,6 @@ import { getLocale } from "@/i18n/server";
 import { CAREER_RESET_COST, getCareer } from "@/server/careerService";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
 import { ThemeSettings } from "../ThemeSettings";
-import { ViewSettings } from "../ViewSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -29,16 +28,10 @@ export default async function AyarlarPage() {
         </div>
       </section>
 
-      {/* Görünüm — oyun düzeni (klasik/yatay) + kişiye özel arka fon + yazı rengi */}
+      {/* Görünüm — kişiye özel arka fon + yazı rengi (oyun düzeni YATAY sabittir; seçenek yok) */}
       <section className="mt-8">
         <h2 className="display text-[22px]">{t(locale, "settings.appearance")}</h2>
         <div className="mt-3">
-          <span className="kicker">{t(locale, "settings.view")}</span>
-          <div className="mt-1.5">
-            <ViewSettings locale={locale} />
-          </div>
-        </div>
-        <div className="mt-5 border-t border-line pt-5">
           <ThemeSettings locale={locale} />
         </div>
       </section>

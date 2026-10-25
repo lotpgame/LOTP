@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (25.10 — oyun artık YALNIZ yatay (app kararı))
+- **Oyun sadece yatay (landscape) oynanır** — seçenek kaldırıldı. `data-view` her zaman `landscape`
+  (`src/app/layout.tsx`); eski "Oyun düzeni" (klasik/yatay) tercihi Ayarlar'dan çıkarıldı (`ViewSettings`
+  artık kullanılmıyor). Neden: app yatay-öncelikli kullanılacak, yatay menü (üstte 4 sekme + GMT saat,
+  altta 5 sayfa) esas düzen.
+- **`RotateGate`** (`src/app/RotateGate.tsx`): cihaz dik tutulunca tüm ekranı kaplayan "Telefonunu yan
+  çevir" uyarısı — GERÇEK cihaz yönüne göre (CSS `portrait:` media, `data-view`'dan bağımsız).
+  Masaüstünde (lg) çıkmaz. 9 dilde (`rotate.title`/`rotate.desc`). Nazik eğilen telefon ikonu
+  (`@keyframes rotateHint`, reduced-motion'da durur).
+
 ### Değişti (25.10 — görsel: TÜM sayfalara temalı tam-sayfa arka plan (Champ Manager tarzı))
 - **Her sayfaya kendi temalı fotoğrafı** (AI üretimi, özgün) sabit tam-sayfa arka plan olarak eklendi:
   Bugün, Antrenman, Turnuvalar, Klasman (+Milli), Ekipman, Kulüp, Sözlük, Geçmiş, Ayarlar, Geri bildirim.
