@@ -2,6 +2,7 @@ import { t } from "@/i18n";
 import { ArenaPage } from "@/app/ArenaPage";
 import { getLocale } from "@/i18n/server";
 import { glossaryFor } from "./glossary";
+import { CollapsibleSection } from "../CollapsibleSection";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +14,9 @@ export default async function SozlukPage() {
   return (
     <ArenaPage bg="/img/bg-sozluk.webp">
       <h1 className="display text-[28px]">{t(locale, "nav.sozluk")}</h1>
-      <div className="mt-3 flex flex-col gap-5">
+      <div className="mt-3 flex flex-col gap-3">
         {sections.map((section) => (
-          <section key={section.title}>
-            <h2 className="kicker mb-2">{section.title}</h2>
+          <CollapsibleSection key={section.title} title={section.title}>
             <dl className="panel divide-y divide-line overflow-hidden">
               {section.terms.map((entry) => (
                 <div key={entry.term} className="px-4 py-3">
@@ -25,7 +25,7 @@ export default async function SozlukPage() {
                 </div>
               ))}
             </dl>
-          </section>
+          </CollapsibleSection>
         ))}
       </div>
     </ArenaPage>

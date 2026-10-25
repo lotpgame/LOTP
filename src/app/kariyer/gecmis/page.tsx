@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/app/ui/Icon";
 import { ACH_ICON, METAL_BRONZE, METAL_GOLD, METAL_SILVER, PRIO_RING } from "@/app/ui/achievementBadge";
 import { buildShowcase, buildTimeline, nextGoal, type Badge, type BadgeKey } from "@/app/ui/showcase";
 import { Stat } from "../parts";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { TournamentsFilter } from "./TournamentsFilter";
 
 export const dynamic = "force-dynamic";
@@ -80,18 +81,17 @@ export default async function GecmisPage() {
       <h1 className="display text-[28px]">{t(locale, "gecmis.title")}</h1>
 
       {/* Kupa vitrini — koleksiyon: her rozet kaç kez + son kazanım; üst kademe hedefleri kilitli */}
-      <section className="mt-3">
-        <h2 className="display text-[22px]">{t(locale, "gecmis.showcase")}</h2>
-        <p className="mt-1 text-[14px] text-steel">{t(locale, "gecmis.showcaseNote")}</p>
+      <CollapsibleSection title={t(locale, "gecmis.showcase")} defaultOpen>
+        <p className="text-[14px] text-steel">{t(locale, "gecmis.showcaseNote")}</p>
         <ul className="mt-3 grid grid-cols-3 gap-2">
           {badges.map((b) => (
             <BadgeTile key={b.key} b={b} locale={locale} />
           ))}
         </ul>
-      </section>
+      </CollapsibleSection>
 
       {/* İstatistikler */}
-      <section className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <Stat icon="tournament" label={t(locale, "gecmis.tournaments")} value={String(h.stats.totalTournaments)} />
         <Stat icon="trophy" label={t(locale, "gecmis.championships")} value={String(h.stats.championships)} />
         <Stat icon="podium" label={t(locale, "gecmis.medals")} value={String(h.stats.medals)} />
@@ -106,10 +106,9 @@ export default async function GecmisPage() {
       </section>
 
       {/* Kariyer zaman çizgisi — eskiden yeniye; dönüm noktaları vurgulu; sonda "sırada" hedefi */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "gecmis.timeline")}</h2>
-        {timeline.length === 0 && <p className="mt-1 text-[14px] text-steel">{t(locale, "gecmis.noAchievements")}</p>}
-        <ol className="mt-4 ml-4 border-l-2 border-line pl-6">
+      <CollapsibleSection title={t(locale, "gecmis.timeline")}>
+        {timeline.length === 0 && <p className="text-[14px] text-steel">{t(locale, "gecmis.noAchievements")}</p>}
+        <ol className="ml-4 border-l-2 border-line pl-6">
           {timeline.map((n, i) => (
             <li key={i} className="relative pb-5">
               <span
@@ -137,28 +136,26 @@ export default async function GecmisPage() {
             <div className="text-[15px] text-steel">{t(locale, `gecmis.goal.${goal}`)}</div>
           </li>
         </ol>
-      </section>
+      </CollapsibleSection>
 
       {/* Oynanan turnuvalar — maçları yeniden izlemek için tıkla */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "gecmis.myTournaments")}</h2>
+      <CollapsibleSection title={t(locale, "gecmis.myTournaments")} defaultOpen>
         {h.tournaments.length === 0 ? (
-          <p className="mt-1 text-[14px] text-steel">{t(locale, "gecmis.noTournaments")}</p>
+          <p className="text-[14px] text-steel">{t(locale, "gecmis.noTournaments")}</p>
         ) : (
           <>
-            <p className="mt-1 text-[14px] text-steel">{t(locale, "gecmis.tapHint")}</p>
+            <p className="text-[14px] text-steel">{t(locale, "gecmis.tapHint")}</p>
             <TournamentsFilter tournaments={h.tournaments} locale={locale} />
           </>
         )}
-      </section>
+      </CollapsibleSection>
 
       {/* Rakiplikler */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "gecmis.rivals")}</h2>
+      <CollapsibleSection title={t(locale, "gecmis.rivals")}>
         {h.rivals.length === 0 ? (
-          <p className="mt-1 text-[14px] text-steel">{t(locale, "gecmis.noRivals")}</p>
+          <p className="text-[14px] text-steel">{t(locale, "gecmis.noRivals")}</p>
         ) : (
-          <ol className="panel mt-3 divide-y divide-line overflow-hidden">
+          <ol className="panel divide-y divide-line overflow-hidden">
             {h.rivals.map((r, i) => (
               <li key={i} className="flex min-h-12 items-center justify-between gap-3 px-3 py-2 text-[15px]">
                 <span className="truncate">{r.name}</span>
@@ -169,7 +166,7 @@ export default async function GecmisPage() {
             ))}
           </ol>
         )}
-      </section>
+      </CollapsibleSection>
     </ArenaPage>
   );
 }

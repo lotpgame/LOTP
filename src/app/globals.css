@@ -209,7 +209,7 @@ dialog.modal {
   /* Arena sayfaları (tam-sayfa fotoğraf): paneller CAMSI — yarı şeffaf + arkası bulanık.
      Fotoğraf panelin ardından yumuşakça görünür ama yazı okunur kalır (glassmorphism). */
   [data-arena] .panel {
-    background: rgba(13, 17, 23, 0.46);
+    background: rgba(13, 17, 23, 0.38);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }

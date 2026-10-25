@@ -50,7 +50,7 @@ export default async function AntrenmanPage() {
   return (
     <ArenaPage bg="/img/bg-antrenman.webp" dim={60} className="flex flex-col gap-5">
       {/* ——— HERO: Kondisyon/Form — ince/kompakt kutu (sayfa arka planı salonun kendisi) ——— */}
-      <section data-scope="console" className="relative overflow-hidden rounded-xl bg-black/25 px-4 py-2.5 ring-1 ring-white/10 backdrop-blur-md">
+      <section className="relative overflow-hidden rounded-xl bg-black/25 px-4 py-2.5 ring-1 ring-white/10 backdrop-blur-md">
         <div className="relative">
           <div className="flex items-center justify-between">
             <span className="kicker text-console-steel">{t(locale, "antrenman.title")}</span>

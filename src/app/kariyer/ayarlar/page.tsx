@@ -5,6 +5,7 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { CAREER_RESET_COST, getCareer } from "@/server/careerService";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { ThemeSettings } from "../ThemeSettings";
 
 export const dynamic = "force-dynamic";
@@ -20,35 +21,29 @@ export default async function AyarlarPage() {
       <h1 className="display text-[28px]">{t(locale, "settings.title")}</h1>
 
       {/* Dil */}
-      <section className="mt-5">
-        <h2 className="display text-[22px]">{t(locale, "settings.language")}</h2>
-        <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.languageNote")}</p>
+      <CollapsibleSection title={t(locale, "settings.language")} defaultOpen>
+        <p className="text-[13px] text-steel">{t(locale, "settings.languageNote")}</p>
         <div className="mt-3">
           <LangSelect current={locale} />
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Görünüm — kişiye özel arka fon + yazı rengi (oyun düzeni YATAY sabittir; seçenek yok) */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "settings.appearance")}</h2>
-        <div className="mt-3">
-          <ThemeSettings locale={locale} />
-        </div>
-      </section>
+      <CollapsibleSection title={t(locale, "settings.appearance")}>
+        <ThemeSettings locale={locale} />
+      </CollapsibleSection>
 
       {/* Ses */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "settings.sound")}</h2>
-        <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.soundNote")}</p>
+      <CollapsibleSection title={t(locale, "settings.sound")}>
+        <p className="text-[13px] text-steel">{t(locale, "settings.soundNote")}</p>
         <div className="mt-3">
           <SoundToggle locale={locale} />
         </div>
-      </section>
+      </CollapsibleSection>
 
       {/* Kariyer */}
-      <section className="mt-8">
-        <h2 className="display text-[22px]">{t(locale, "settings.career")}</h2>
-        <div className="mt-3 flex flex-col gap-3">
+      <CollapsibleSection title={t(locale, "settings.career")}>
+        <div className="flex flex-col gap-3">
           <div>
             <CareerResetButton
               locale={locale}
@@ -61,7 +56,7 @@ export default async function AyarlarPage() {
             <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
     </ArenaPage>
   );
 }

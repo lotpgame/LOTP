@@ -10,6 +10,7 @@ import { PisteLine } from "@/app/ui/Piste";
 import { bandMax } from "@/app/ui/bands";
 import { buildHeadline } from "@/app/ui/headlineText";
 import { serverWorldDay } from "@/server/world";
+import { CollapsibleSection } from "./CollapsibleSection";
 import { KimlikKarti } from "./KimlikKarti";
 import { SkillRadar } from "./SkillRadar";
 import { WeekStrip } from "./WeekStrip";
@@ -169,11 +170,12 @@ export default async function BugunPage({
       <PisteLine className="my-1" />
 
       {/* 4 · Yetenekler — radar (şimdi / geçen çeyrek / +N), altında kategori çubukları */}
-      <section className="flex flex-col gap-4">
-        <h2 className="display text-[22px]">{t(locale, "profil.skills")}</h2>
-        <SkillRadar skills={c.skills} base={c.skillBase?.values ?? null} max={bandMax(c.categoryId)} locale={locale} />
-        <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
-      </section>
+      <CollapsibleSection title={t(locale, "profil.skills")} defaultOpen>
+        <div className="flex flex-col gap-4">
+          <SkillRadar skills={c.skills} base={c.skillBase?.values ?? null} max={bandMax(c.categoryId)} locale={locale} />
+          <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
+        </div>
+      </CollapsibleSection>
 
       <PisteLine className="my-1" />
 

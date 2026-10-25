@@ -34,6 +34,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   Antrenman hero bandı inceltildi + şeffaflaştırıldı (`bg-black/35`→`/25` + blur, daha az dikey boşluk).
   Düz metin okunurluğu için arena sayfalarında varsayılan yazı ağırlığı bir tık artırıldı (400→500;
   açık ağırlıklı/başlık öğeleri değişmez).
+- **Daha şeffaf + açılır-kapanır bölümler (kullanıcı isteği):** paneller bir tık daha şeffaf
+  (`rgba(…,.46)`→`.38`), karartma 60; Antrenman hero bandındaki opak `data-scope="console"` kaldırıldı
+  (artık gerçekten yarı şeffaf). Bölüm başlıkları **açılır-kapanır** (antrenmandaki gibi `CollapsibleSection`):
+  **Kariyer Geçmişi** (vitrin/zaman çizgisi/turnuvalarım/rakipler), **Ayarlar** (dil/görünüm/ses/kariyer),
+  **Bugün** (yetenekler), **Sözlük** (her terim grubu). Tek-içerikli/birincil sayfalar (klasman tablosu,
+  turnuva listesi #yaklasan çapası, kulüp kartı, ekipman—zaten açılır panel) olduğu gibi bırakıldı.
 
 ### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
 - **Eskrim salonu TÜM SAYFA arka planı (Champ Manager tarzı):** AI üretimi (özgün) salon görseli sabit arka planda
