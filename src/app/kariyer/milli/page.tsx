@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArenaPage } from "@/app/ArenaPage";
 import { redirect } from "next/navigation";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -18,13 +19,13 @@ export default async function MilliTakimPage() {
   const members = await getNationalTeam(c.categoryId);
 
   return (
-    <main className="flex flex-col gap-4">
+    <ArenaPage bg="/img/bg-klasman.webp" className="flex flex-col gap-4">
       <Link href="/kariyer" className="inline-flex min-h-11 items-center text-[14px] text-steel underline underline-offset-2">
         {t(locale, "idp.back")}
       </Link>
       <h1 className="display text-[28px]">{t(locale, "milli.title")}</h1>
       <p className="text-[14px] text-steel">{t(locale, "milli.note")}</p>
       <MilliTakimFilter initialCategoryId={c.categoryId} initialMembers={members} countryCode={c.countryCode} locale={locale} />
-    </main>
+    </ArenaPage>
   );
 }

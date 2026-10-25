@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArenaPage } from "@/app/ArenaPage";
 import { redirect } from "next/navigation";
 import { clearAllReportsAction } from "@/app/actions";
 import { t } from "@/i18n";
@@ -45,7 +46,7 @@ export default async function BugunPage({
   const showAway = gains.length > 0 || h.awayTournaments.length > 0 || !!report?.injured;
 
   return (
-    <main className="flex flex-col gap-4">
+    <ArenaPage bg="/img/bg-bugun.webp" className="flex flex-col gap-4">
       <ErrorBanner code={err} locale={locale} dismissHref="/kariyer" />
       {/* 0 · KİMLİK KARTI */}
       <KimlikKarti
@@ -222,6 +223,6 @@ export default async function BugunPage({
           </div>
         </details>
       </section>
-    </main>
+    </ArenaPage>
   );
 }

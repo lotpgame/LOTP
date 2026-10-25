@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArenaPage } from "@/app/ArenaPage";
 import { redirect } from "next/navigation";
 import { attendTournamentAction, registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
 import { t } from "@/i18n";
@@ -34,7 +35,7 @@ export default async function TurnuvalarPage({
   const weekly = c.seasonCalendar.filter((e) => e.month === 0);
 
   return (
-    <main className="flex flex-col gap-4">
+    <ArenaPage bg="/img/bg-turnuvalar.webp" className="flex flex-col gap-4">
       <h1 className="display text-[28px]">{t(locale, "turnuvalar.title")}</h1>
       <ErrorBanner code={err} locale={locale} dismissHref="/kariyer/turnuvalar" />
 
@@ -169,6 +170,6 @@ export default async function TurnuvalarPage({
           </div>
         </div>
       </details>
-    </main>
+    </ArenaPage>
   );
 }

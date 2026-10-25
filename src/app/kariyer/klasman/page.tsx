@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ArenaPage } from "@/app/ArenaPage";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -17,7 +18,7 @@ export default async function KlasmanPage() {
   const intl = myRank != null && myRank <= 4; // uluslararası uygunluk = ülkenin ilk 4'ü (milli takımla aynı)
 
   return (
-    <main className="flex flex-col gap-4">
+    <ArenaPage bg="/img/bg-klasman.webp" className="flex flex-col gap-4">
       <h1 className="display text-[28px]">{t(locale, "klasman.title")}</h1>
 
       {/* Senin durumun: sıra + iki kapı (milli takım ilk 4 · uluslararası ilk 16) */}
@@ -48,6 +49,6 @@ export default async function KlasmanPage() {
         <h2 className="kicker mb-2">{t(locale, "klasman.rankings")}</h2>
         <KlasmanFilter initialCategoryId={c.categoryId} initialRows={c.ranking} countryCode={c.countryCode} locale={locale} />
       </section>
-    </main>
+    </ArenaPage>
   );
 }

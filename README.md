@@ -144,7 +144,8 @@ gösterir; maç bitince **"Sonuçlar işleniyor…"** beklemesi sonrası ilgili 
 sayısı gösterilmez); **antrenman açıklamaları** (hangi antrenman neyi geliştirir)
 ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik değişimi);
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
-kartlar) sürüyor; **Ayarlar sayfası** (dil/ses/kariyer) + **tam 9 dil desteği** (TR/EN/DE/FR/ES/IT/RU/PT/ZH;
+kartlar) sürüyor; **her sayfaya temalı tam-sayfa arka plan** (Champ Manager tarzı; `ArenaPage` bileşeni +
+`public/img/bg-*.webp`, her sayfanın anlamına göre özgün görsel); **Ayarlar sayfası** (dil/ses/kariyer) + **tam 9 dil desteği** (TR/EN/DE/FR/ES/IT/RU/PT/ZH;
 arayüz + maç anlatımları + hata mesajları; cookie tabanlı, oluşturma ekranından seçilebilir).
 
 **🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan

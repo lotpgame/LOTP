@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ArenaPage } from "@/app/ArenaPage";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHistory } from "@/server/careerService";
@@ -75,7 +76,7 @@ export default async function GecmisPage() {
   const goal = nextGoal(h.achievements, badges);
 
   return (
-    <main>
+    <ArenaPage bg="/img/bg-gecmis.webp">
       <h1 className="display text-[28px]">{t(locale, "gecmis.title")}</h1>
 
       {/* Kupa vitrini — koleksiyon: her rozet kaç kez + son kazanım; üst kademe hedefleri kilitli */}
@@ -169,6 +170,6 @@ export default async function GecmisPage() {
           </ol>
         )}
       </section>
-    </main>
+    </ArenaPage>
   );
 }

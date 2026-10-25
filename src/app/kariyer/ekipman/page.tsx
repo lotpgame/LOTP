@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
 import { itemsForWeapon, itemName, itemDesc, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
@@ -93,7 +94,7 @@ export default async function EkipmanPage({
   };
 
   return (
-    <main>
+    <ArenaPage bg="/img/bg-ekipman.webp">
       <div className="flex items-center justify-between gap-3">
         <h1 className="display text-[28px]">{t(locale, "ekipman.title")}</h1>
         <span className="flex items-center gap-1.5 rounded-md border border-line bg-arena-1 px-3 py-1.5 text-[15px]">
@@ -140,6 +141,6 @@ export default async function EkipmanPage({
           <p className="mt-2 text-[13px] text-steel">{t(locale, "ekipman.levelNote")}</p>
         </div>
       </details>
-    </main>
+    </ArenaPage>
   );
 }

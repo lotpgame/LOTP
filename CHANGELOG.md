@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (25.10 — görsel: TÜM sayfalara temalı tam-sayfa arka plan (Champ Manager tarzı))
+- **Her sayfaya kendi temalı fotoğrafı** (AI üretimi, özgün) sabit tam-sayfa arka plan olarak eklendi:
+  Bugün, Antrenman, Turnuvalar, Klasman (+Milli), Ekipman, Kulüp, Sözlük, Geçmiş, Ayarlar, Geri bildirim.
+  Görseller WebP'ye sıkıştırıldı (`public/img/bg-*.webp`, 10 görsel toplam ~0.9MB; kaynak PNG ~20MB'den).
+- **Ortak `ArenaPage` bileşeni** (`src/app/ArenaPage.tsx`): sabit arka plan (z-0) + karartma + içerik (z-10) +
+  `data-scope="console"` → kullanıcı teması ne olursa olsun (açık "Salon" teması dahil) yazı/panel okunur
+  kalır (fotoğraflar koyu olduğu için sayfa bilerek koyu "arena"). Mobilde yatay ve dikey garanti görünür.
+- Antrenman artık ortak bileşeni kullanıyor; eski tekil görsel `salle-antrenman.webp` kaldırıldı.
+- Not: Milli takım sayfasının kendi görseli yok → şimdilik Klasman görselini paylaşıyor (ileride ayrı görsel).
+
 ### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
 - **Eskrim salonu TÜM SAYFA arka planı (Champ Manager tarzı):** AI üretimi (özgün) salon görseli sabit arka planda
   (`public/img/salle-antrenman.webp`) + koyu katman; içerik/kartlar üstünde "yüzer". İnce/kompakt hero şeridi

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ArenaPage } from "@/app/ArenaPage";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -13,7 +14,7 @@ export default async function KulupPage() {
   const locale = await getLocale();
 
   return (
-    <main>
+    <ArenaPage bg="/img/bg-kulup.webp">
       <h1 className="display text-[28px]">{t(locale, "kulup.title")}</h1>
       {c.club ? (
         <section className="panel mt-3 p-4">
@@ -68,6 +69,6 @@ export default async function KulupPage() {
       ) : (
         <p className="mt-4 text-[14px] text-steel">{t(locale, "kulup.none")}</p>
       )}
-    </main>
+    </ArenaPage>
   );
 }

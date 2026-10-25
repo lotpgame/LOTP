@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ArenaPage } from "@/app/ArenaPage";
 import { LangSelect } from "@/app/LangSelect";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -16,7 +17,7 @@ export default async function AyarlarPage() {
   const canAfford = c.balance >= CAREER_RESET_COST;
 
   return (
-    <main>
+    <ArenaPage bg="/img/bg-ayarlar.webp">
       <h1 className="display text-[28px]">{t(locale, "settings.title")}</h1>
 
       {/* Dil */}
@@ -68,6 +69,6 @@ export default async function AyarlarPage() {
           </div>
         </div>
       </section>
-    </main>
+    </ArenaPage>
   );
 }

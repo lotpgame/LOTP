@@ -8,6 +8,7 @@ import { Icon } from "@/app/ui/Icon";
 import { CATEGORY_ICON, SkillsByCategory } from "../parts";
 import { InfoNote } from "../InfoNote";
 import { CollapsibleSection } from "../CollapsibleSection";
+import { ArenaPage } from "@/app/ArenaPage";
 import { TrainingPlanForm } from "./TrainingPlanForm";
 
 export const dynamic = "force-dynamic";
@@ -47,15 +48,7 @@ export default async function AntrenmanPage() {
   const condition = 100 - c.fatigue;
 
   return (
-    <main className="relative">
-      {/* ——— TÜM SAYFA ARKA PLANI: eskrim salonu (Champ Manager tarzı), sabit; içerik üstünde.
-           z-0 arka plan + içerik z-10 → mobil tarayıcılarda da garanti görünür (negatif z gizleniyordu). ——— */}
-      <div aria-hidden="true" className="fixed inset-0 z-0">
-        <img src="/img/salle-antrenman.webp" alt="" className="h-full w-full object-cover object-center" />
-        <div className="absolute inset-0 bg-black/72" />
-      </div>
-
-      <div className="relative z-10 flex flex-col gap-5">
+    <ArenaPage bg="/img/bg-antrenman.webp" dim={72} className="flex flex-col gap-5">
       {/* ——— HERO: Kondisyon/Form — ince/kompakt kutu (sayfa arka planı salonun kendisi) ——— */}
       <section data-scope="console" className="relative overflow-hidden rounded-xl bg-black/35 px-4 py-3 ring-1 ring-white/10">
         <div className="relative">
@@ -143,7 +136,6 @@ export default async function AntrenmanPage() {
           <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
         </div>
       </CollapsibleSection>
-      </div>
-    </main>
+    </ArenaPage>
   );
 }

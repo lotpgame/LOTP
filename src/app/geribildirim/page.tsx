@@ -4,6 +4,7 @@
  * Anahtar yanlış/eksikse liste gösterilmez — arkadaşların yanlışlıkla göremez.
  */
 import { getFeedback } from "@/server/careerService";
+import { ArenaPage } from "@/app/ArenaPage";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function GeriBildirimPage({
   const items = await getFeedback(300);
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+    <ArenaPage bg="/img/bg-feedback.webp" className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
       <h1 className="text-xl font-semibold">Geri bildirimler ({items.length})</h1>
       <p className="mt-1 text-sm opacity-60">Test haftası — en yeni üstte.</p>
 
@@ -57,6 +58,6 @@ export default async function GeriBildirimPage({
           ))}
         </ul>
       )}
-    </div>
+    </ArenaPage>
   );
 }

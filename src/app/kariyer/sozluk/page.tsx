@@ -1,4 +1,5 @@
 import { t } from "@/i18n";
+import { ArenaPage } from "@/app/ArenaPage";
 import { getLocale } from "@/i18n/server";
 import { glossaryFor } from "./glossary";
 
@@ -10,7 +11,7 @@ export default async function SozlukPage() {
   const sections = glossaryFor(locale);
 
   return (
-    <main>
+    <ArenaPage bg="/img/bg-sozluk.webp">
       <h1 className="display text-[28px]">{t(locale, "nav.sozluk")}</h1>
       <div className="mt-3 flex flex-col gap-5">
         {sections.map((section) => (
@@ -27,6 +28,6 @@ export default async function SozlukPage() {
           </section>
         ))}
       </div>
-    </main>
+    </ArenaPage>
   );
 }
