@@ -10,8 +10,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
-- **Gerçek eskrim salonu hero'su:** AI üretimi (özgün) salon görseli arka planda (`public/img/salle-antrenman.webp`)
-  + okunabilirlik degradesi + büyük **Kondisyon/Form enerji barları** + gün. Sayfa "antrenman salonundayım" hissi veriyor.
+- **Eskrim salonu TÜM SAYFA arka planı (Champ Manager tarzı):** AI üretimi (özgün) salon görseli sabit arka planda
+  (`public/img/salle-antrenman.webp`) + koyu katman; içerik/kartlar üstünde "yüzer". İnce/kompakt hero şeridi
+  (Antrenman·gün + **Kondisyon/Form** enerji barları). Sürükleyici "antrenman salonundayım" hissi.
 - **Antrenman türleri renk-kodlu:** 🔵 Teknik · 🔴 Fiziksel · 🟢 Taktik · 🟣 Mental · ⚪ Dinlenme (renkli ikon rozeti).
 - **Açılır-kapanır bölümler** (`CollapsibleSection` + `InfoNote`): Haftalık Plan açık; "Ne geliştirir" + "Yeteneklerin"
   kapalı (dokun → aç). Mobil + genç kitle: taranabilir akordeon, az metin duvarı. Native `<details>`, JS yok.

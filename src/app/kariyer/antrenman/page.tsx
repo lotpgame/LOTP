@@ -5,7 +5,7 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
-import { CATEGORY_ICON, SkillsByCategory, conditionState, formState } from "../parts";
+import { CATEGORY_ICON, SkillsByCategory } from "../parts";
 import { InfoNote } from "../InfoNote";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { TrainingPlanForm } from "./TrainingPlanForm";
@@ -27,13 +27,13 @@ function EnergyBar({ label, value, color }: { label: string; value: number; colo
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="text-[12px] font-medium uppercase tracking-wide text-console-steel">{label}</span>
-        <span className="num text-[22px] leading-none text-console-ink">%{v.toFixed(0)}</span>
+        <span className="text-[11px] font-medium uppercase tracking-wide text-console-steel">{label}</span>
+        <span className="num text-[16px] leading-none text-console-ink">%{v.toFixed(0)}</span>
       </div>
-      <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-console-line">
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-console-line">
         <div
           className="h-full rounded-full transition-[width] duration-500"
-          style={{ width: `${v}%`, background: `linear-gradient(90deg, ${color}99, ${color})`, boxShadow: `0 0 10px ${color}66` }}
+          style={{ width: `${v}%`, background: `linear-gradient(90deg, ${color}99, ${color})`, boxShadow: `0 0 8px ${color}55` }}
         />
       </div>
     </div>
@@ -47,32 +47,26 @@ export default async function AntrenmanPage() {
   const condition = 100 - c.fatigue;
 
   return (
-    <main className="flex flex-col gap-5">
-      {/* ——— HERO: gerçek eskrim salonu görseli (AI üretimi, özgün) + okunabilirlik degradesi ——— */}
-      <section data-scope="console" className="relative overflow-hidden rounded-xl p-5">
-        {/* Arka plan görseli */}
-        <img
-          src="/img/salle-antrenman.webp"
-          alt=""
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-        />
-        {/* Koyu degrade: görsel parlak (beyaz duvar) → yazı/barlar net okunsun diye üstüne katman */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/45" />
+    <main className="relative flex flex-col gap-5">
+      {/* ——— TÜM SAYFA ARKA PLANI: eskrim salonu (Champ Manager tarzı), sabit; içerik üstünde ——— */}
+      <div aria-hidden="true" className="fixed inset-0 -z-10">
+        <img src="/img/salle-antrenman.webp" alt="" className="h-full w-full object-cover object-center" />
+        <div className="absolute inset-0 bg-black/72" />
+      </div>
+
+      {/* ——— HERO: Kondisyon/Form — ince/kompakt kutu (sayfa arka planı salonun kendisi) ——— */}
+      <section data-scope="console" className="relative overflow-hidden rounded-xl bg-black/35 px-4 py-3 ring-1 ring-white/10">
         <div className="relative">
-          <span className="kicker text-console-steel">{t(locale, "antrenman.title")}</span>
-          <div className="mt-1.5 flex items-center gap-2 text-console-ink">
-            <Icon name="calendar" size={18} className="text-console-steel" />
-            <span className="font-display text-[20px] font-bold leading-none">{c.dayName}</span>
+          <div className="flex items-center justify-between">
+            <span className="kicker text-console-steel">{t(locale, "antrenman.title")}</span>
+            <span className="flex items-center gap-1.5 text-console-ink">
+              <Icon name="calendar" size={14} className="text-console-steel" />
+              <span className="font-display text-[15px] font-bold leading-none">{c.dayName}</span>
+            </span>
           </div>
-          {/* Kondisyon + Form: büyük enerji barları (antrenmana hazırlık durumu) */}
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="mt-2.5 grid grid-cols-2 gap-4">
             <EnergyBar label={t(locale, "profil.condition")} value={condition} color="#22c55e" />
             <EnergyBar label={t(locale, "profil.form")} value={c.sharpness} color="#e0b23f" />
-          </div>
-          <div className="mt-2 flex gap-3 text-[11px] text-console-steel">
-            <span>{conditionState(locale, condition)}</span>
-            <span aria-hidden="true">·</span>
-            <span>{formState(locale, c.sharpness)}</span>
           </div>
         </div>
       </section>
