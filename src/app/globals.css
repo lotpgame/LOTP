@@ -213,6 +213,11 @@ dialog.modal {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
+  /* Fotoğraf/camsı zemin üstünde okunurluk: düz metin bir tık daha kalın (varsayılan 400→500).
+     Açık ağırlık verilmiş öğeler (font-medium/semibold/bold, display başlıklar) kendi değerini korur. */
+  [data-arena] {
+    font-weight: 500;
+  }
   /* Ana buton: renksiz "mürekkep" — marka rengi yok */
   .btn-ink {
     display: inline-flex;

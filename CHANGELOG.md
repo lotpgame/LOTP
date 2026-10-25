@@ -32,6 +32,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   şeffaf + arkası bulanık (`[data-arena] .panel`: `rgba(13,17,23,.46)` + `backdrop-blur`) → fotoğraf
   panelin ardından yumuşakça görünür, yazı okunur kalır. Karartma katmanı da hafifletildi (dim 68→60).
   Antrenman hero bandı inceltildi + şeffaflaştırıldı (`bg-black/35`→`/25` + blur, daha az dikey boşluk).
+  Düz metin okunurluğu için arena sayfalarında varsayılan yazı ağırlığı bir tık artırıldı (400→500;
+  açık ağırlıklı/başlık öğeleri değişmez).
 
 ### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
 - **Eskrim salonu TÜM SAYFA arka planı (Champ Manager tarzı):** AI üretimi (özgün) salon görseli sabit arka planda
