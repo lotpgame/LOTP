@@ -28,6 +28,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   kalır (fotoğraflar koyu olduğu için sayfa bilerek koyu "arena"). Mobilde yatay ve dikey garanti görünür.
 - Antrenman artık ortak bileşeni kullanıyor; eski tekil görsel `salle-antrenman.webp` kaldırıldı.
 - Not: Milli takım sayfasının kendi görseli yok → şimdilik Klasman görselini paylaşıyor (ileride ayrı görsel).
+- **Camsı paneller (glassmorphism):** arka plan daha çok görünsün diye arena sayfalarında paneller yarı
+  şeffaf + arkası bulanık (`[data-arena] .panel`: `rgba(13,17,23,.46)` + `backdrop-blur`) → fotoğraf
+  panelin ardından yumuşakça görünür, yazı okunur kalır. Karartma katmanı da hafifletildi (dim 68→60).
+  Antrenman hero bandı inceltildi + şeffaflaştırıldı (`bg-black/35`→`/25` + blur, daha az dikey boşluk).
 
 ### Değişti (19.10 — görsel: antrenman sayfası yenilendi (gençlere göre, mobil))
 - **Eskrim salonu TÜM SAYFA arka planı (Champ Manager tarzı):** AI üretimi (özgün) salon görseli sabit arka planda

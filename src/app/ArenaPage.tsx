@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
  */
 export function ArenaPage({
   bg,
-  dim = 68,
+  dim = 60,
   className = "flex flex-col gap-4",
   children,
 }: {
@@ -22,7 +22,7 @@ export function ArenaPage({
   children: ReactNode;
 }) {
   return (
-    <main data-scope="console" style={{ background: "transparent" }} className="relative">
+    <main data-scope="console" data-arena="" style={{ background: "transparent" }} className="relative">
       <div aria-hidden="true" className="fixed inset-0 z-0">
         <img src={bg} alt="" className="h-full w-full object-cover object-center" />
         <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${dim / 100})` }} />

@@ -206,6 +206,13 @@ dialog.modal {
     border: 1px solid var(--line);
     border-radius: 0.75rem;
   }
+  /* Arena sayfaları (tam-sayfa fotoğraf): paneller CAMSI — yarı şeffaf + arkası bulanık.
+     Fotoğraf panelin ardından yumuşakça görünür ama yazı okunur kalır (glassmorphism). */
+  [data-arena] .panel {
+    background: rgba(13, 17, 23, 0.46);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
   /* Ana buton: renksiz "mürekkep" — marka rengi yok */
   .btn-ink {
     display: inline-flex;

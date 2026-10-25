@@ -48,9 +48,9 @@ export default async function AntrenmanPage() {
   const condition = 100 - c.fatigue;
 
   return (
-    <ArenaPage bg="/img/bg-antrenman.webp" dim={72} className="flex flex-col gap-5">
+    <ArenaPage bg="/img/bg-antrenman.webp" dim={60} className="flex flex-col gap-5">
       {/* ——— HERO: Kondisyon/Form — ince/kompakt kutu (sayfa arka planı salonun kendisi) ——— */}
-      <section data-scope="console" className="relative overflow-hidden rounded-xl bg-black/35 px-4 py-3 ring-1 ring-white/10">
+      <section data-scope="console" className="relative overflow-hidden rounded-xl bg-black/25 px-4 py-2.5 ring-1 ring-white/10 backdrop-blur-md">
         <div className="relative">
           <div className="flex items-center justify-between">
             <span className="kicker text-console-steel">{t(locale, "antrenman.title")}</span>
@@ -59,7 +59,7 @@ export default async function AntrenmanPage() {
               <span className="font-display text-[15px] font-bold leading-none">{c.dayName}</span>
             </span>
           </div>
-          <div className="mt-2.5 grid grid-cols-2 gap-4">
+          <div className="mt-2 grid grid-cols-2 gap-4">
             <EnergyBar label={t(locale, "profil.condition")} value={condition} color="#22c55e" />
             <EnergyBar label={t(locale, "profil.form")} value={c.sharpness} color="#e0b23f" />
           </div>
