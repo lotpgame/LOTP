@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (25.10 — arena sayfalarında yazı netliği (kullanıcı: "yazılar sönük"))
+- Fotoğraf/camsı zemin üstünde yazı daha net: `[data-arena]` için **hafif gölge** (`text-shadow`),
+  bir tık daha kalın (ağırlık 530) ve **ikincil (gri) metin biraz daha parlak** (`--steel`→`#b4bcc6`).
+  Kural konsol kapsamından sonra/katmansız → `--steel` geçersiz kılma güvenle uygulanır. Şeffaflık
+  ve arka planlar aynı (kullanıcı onayladı).
+
 ### Değişti (25.10 — oyun artık YALNIZ yatay (app kararı))
 - **Oyun sadece yatay (landscape) oynanır** — seçenek kaldırıldı. `data-view` her zaman `landscape`
   (`src/app/layout.tsx`); eski "Oyun düzeni" (klasik/yatay) tercihi Ayarlar'dan çıkarıldı (`ViewSettings`
