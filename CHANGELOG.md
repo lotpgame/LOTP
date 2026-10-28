@@ -15,7 +15,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   kırpma/boşluk/bulanıklık yok). Kimlik kartı + menü şeridi + sidebar + **klasman listesinde** gösterim.
 - `Player.avatar` (opsiyonel; boş → harf rozeti/fallback). Havuz = **manifest** (`src/data/avatarManifest.json`,
   slicer üretir) → yeni set eklenince **kod değişmeden** büyür. `pickAvatar` deterministik + test.
-- Şerit→4 kare kesme scripti `scripts/slice-avatars.mjs` (manifest üretir). İlk 8 set (`b01–b03`, `g01–g05`).
+- Şerit→4 kare kesme scripti `scripts/slice-avatars.mjs` (manifest üretir). Havuz: 6 erkek (`b01–b06`) +
+  9 kız (`g01–g09`) = 15 set; yeni şerit eklendikçe artar.
 - **NOT:** canlıya ALINMADI — `Player.avatar` için Neon migration + (opsiyonel) listelerin geri kalanı sonra.
 
 ### Değişti (27.10 — bölgesel/şehir klasmanı + İl artık ulusala karışmaz (kullanıcı kararı))
