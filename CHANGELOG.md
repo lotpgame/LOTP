@@ -9,6 +9,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (27.10 — bölgesel/şehir klasmanı + İl artık ulusala karışmaz (kullanıcı kararı))
+- **İl turnuvaları → ŞEHİR klasmanı** (yeni `CITY:<ülke>#<şehir>` scope). İl ARTIK ULUSALA PUAN VERMEZ
+  (eski hata: İl puanları DOMESTIC'e yazılıyordu → ulusal liste tek şehirle doluyordu). İl yine tecrübe +
+  kendi şehir klasmanını besler — yerel/sık döngü, oyuncuyu oyuna bağlayan motivasyon.
+- **Ulusal klasman yalnız ülke şampiyonasından** (Türkiye/Almanya…). Milli takım + uluslararası uygunluk
+  (ilk 4) artık saf ulusal şampiyona performansından (daha gerçekçi).
+- **Open sadece tecrübe** · **uluslararası → dünya/kıta** (ikisi de değişmedi).
+- **Klasman ekranı: kapsam seçici** — Şehir (varsayılan) · Ülke · Kıta · Dünya. Şehir sekmesinde şehir
+  seçici: başka şehirlerin klasmanına da bakılır (arkadaşını gör).
+- Engine: `rankingScopeForLevel(level, geo)` (Ranking veri sahibi); puan yazma/okuma yerleri (canlı + "sen
+  yokken" + legacy finalize) şehir-kapsamlı. **Şema değişikliği YOK** (scope zaten serbest metin). Geçiş:
+  eski DOMESTIC'teki İl puanları Quarter sonunda temizlenir. Test: "İl → şehir, ulusala puan vermez"
+  (`tests/engine/ranking.test.ts`).
+
 ### Değişti (25.10 — gün seçici/şerit netliği (kullanıcı))
 - **Antrenman gün seçici** (Teknik/Fiziksel/Mental/Taktik/Dinlenme): 5'li segment artık camsı koyu şerit
   üstünde (`bg-black/35` + blur) ve etiketler daha parlak (`text-ink/75`) → fotoğraf üstünde net.

@@ -78,8 +78,7 @@ import {
   rankEntries,
   rankingPointsForPosition,
   levelGivesRankingPoints,
-  rankingTrackForLevel,
-  type RankingTrack,
+  rankingScopeForLevel,
 } from "@/engine/ranking";
 import {
   DAYS_PER_MONTH,
@@ -108,6 +107,11 @@ function localizeRound(locale: Locale, round: string): string {
 /** Turnuva görünen adını dile göre kurar (kalıcı TR ada bağlı kalmaz). */
 /** Turnuva ev sahibi şehri: İl = oyuncunun KENDİ şehri; Ulusal/Open = oyuncunun ÜLKESİNİN bir şehri (o güne göre
  * deterministik, herkes aynı görür); Satellite/GP = dünya şehri; Kıta/Dünya Kupası = şimdilik şehirsiz. */
+/** scopeKey'in coğrafi parçası (İl "TR#Kocaeli"; Türkiye/Open "TR"; uluslararası "WORLD"/kıta) — Ranking scope için. */
+function geoFromScopeKey(scopeKey: string | null): string {
+  return scopeKey?.split(":")[1] ?? "";
+}
+
 /** scopeKey'deki coğrafi kapsamdan ülke kodunu çıkarır (İl "TR#Şehir" → "TR"; Türkiye/Open "TR"; uluslararası "WORLD"). */
 function countryCodeFromScopeKey(scopeKey: string | null): string | null {
   const geo = scopeKey?.split(":")[1] ?? "";
@@ -1340,17 +1344,24 @@ export async function unregisterTournament(worldDay: number, level: TournamentLe
   await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
 }
 
-/** Klasman kapsamı: Dünya (varsayılan) / Kıta / Ülke (M-UI). */
+/** Klasman kapsamı: Şehir (İl) / Ülke (ulusal) / Kıta / Dünya (M-UI). */
 interface RankingScope {
   continent?: string; // kıta kodu (EU/AS/AM/AF)
   country?: string; // ülke kodu (TR…)
+  city?: string; // şehir (İl klasmanı — country ile birlikte verilir)
 }
 
 async function buildRankingView(categoryId: string, quarter: number, humanId: number, scope: RankingScope = {}) {
-  // Klasman TÜRÜ: Ülke kapsamı → DOMESTIC (İl+Ulusal); Dünya/Kıta → WORLD (uluslararası). (Kullanıcı modeli.)
-  const track: RankingTrack = scope.country && !scope.continent ? "DOMESTIC" : "WORLD";
+  // Kapsam → scope satırı: Şehir → CITY:<ülke>#<şehir> (İl klasmanı); Ülke → DOMESTIC (ulusal, yalnız Türkiye şamp.);
+  // Kıta/Dünya → WORLD (uluslararası). İl artık ulusala karışmaz (kullanıcı 27.10).
+  const scopeStr =
+    scope.city && scope.country
+      ? `CITY:${scope.country}#${scope.city}`
+      : scope.country && !scope.continent
+        ? "DOMESTIC"
+        : "WORLD";
   const rows = await prisma.ranking.findMany({
-    where: { categoryId, quarter, scope: track },
+    where: { categoryId, quarter, scope: scopeStr },
     orderBy: [{ points: "desc" }, { playerId: "asc" }],
   });
   const players = await prisma.player.findMany({
@@ -1358,9 +1369,10 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
     include: { club: true, nationality: true },
   });
   const byId = new Map(players.map((p) => [p.id, p]));
-  // Kapsam: ülke → o ülke; kıta → o kıtanın ülkeleri; yoksa DÜNYA. Ülke/kıta ise kapsam-içi 1..N sırası.
-  const narrowed = !!(scope.country || scope.continent);
-  const scoped = narrowed
+  // Şehir satırları zaten o şehre ait (ek süzme yok). Ülke → o ülke; kıta → o kıta. Kapsam-içi 1..N sırası.
+  const narrowByNat = (!!scope.country && !scope.city) || !!scope.continent;
+  const narrowed = !!(scope.city || scope.country || scope.continent);
+  const scoped = narrowByNat
     ? rows.filter((r) => {
         const code = byId.get(r.playerId)?.nationality.code;
         if (!code) return false;
@@ -1384,7 +1396,7 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
 /** Herhangi bir kategorinin bu quarter'daki sıralaması (Klasman filtresi). */
 export async function getCategoryRanking(
   categoryId: string,
-  scope: { continent?: string; country?: string } = {},
+  scope: { continent?: string; country?: string; city?: string } = {},
 ): Promise<RankingRowDTO[]> {
   const state = await loadState();
   if (!state) return [];
@@ -3282,10 +3294,13 @@ async function finalizeLive(
       where: { tournamentId: existing.id, playerId: human.id },
       select: { finalPosition: true },
     });
-    const rank = await prisma.ranking.findUnique({
-      where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter: quarterOf(gs.dayIndex), scope: rankingTrackForLevel(ls.level) } },
-      select: { position: true },
-    });
+    const rankScope = rankingScopeForLevel(ls.level, geoFromScopeKey(ls.scopeKey ?? null));
+    const rank = rankScope
+      ? await prisma.ranking.findUnique({
+          where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter: quarterOf(gs.dayIndex), scope: rankScope } },
+          select: { position: true },
+        })
+      : null;
     ls.finalTournamentId = existing.id;
     ls.earnedPoints = rankingPointsForPosition(part?.finalPosition ?? outcome.pools.length, ls.level);
     // Turnuva başkası tarafından çözülmüş olsa da oyuncu katıldı → tecrübesini al (#28).
@@ -3786,16 +3801,19 @@ async function autoResolveTournament(
   const id = await ensureLiveTournament(gs, human, level, { attendee: false });
   if (id != null) {
     await tickLiveTournament(id, { locale });
-    const t = await prisma.tournament.findUnique({ where: { id }, select: { name: true, status: true } });
+    const t = await prisma.tournament.findUnique({ where: { id }, select: { name: true, status: true, scopeKey: true } });
     const part = await prisma.tournamentParticipant.findFirst({
       where: { tournamentId: id, playerId: human.id },
       select: { finalPosition: true },
     });
     if (t?.status === "FINISHED" && part) {
-      const rank = await prisma.ranking.findUnique({
-        where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter, scope: rankingTrackForLevel(level) } },
-        select: { position: true },
-      });
+      const rankScope = rankingScopeForLevel(level, geoFromScopeKey(t.scopeKey));
+      const rank = rankScope
+        ? await prisma.ranking.findUnique({
+            where: { playerId_categoryId_quarter_scope: { playerId: human.id, categoryId: base.categoryId, quarter, scope: rankScope } },
+            select: { position: true },
+          })
+        : null;
       const fieldSize = await prisma.tournamentParticipant.count({ where: { tournamentId: id } });
       await appendAwayReport(gs.id, {
         tournamentId: id,
@@ -3920,28 +3938,30 @@ async function finalizeTournament(
       });
     }
 
-    // Ranking puanı → DOĞRU KLASMANA: İl/Ulusal → DOMESTIC (ülke klasmanı); uluslararası → WORLD (dünya klasmanı).
-    // Uluslararası sonuçlar DOMESTIC'i etkilemez (kullanıcı kuralı) — ayrı scope satırına yazılır.
-    const track = rankingTrackForLevel(level);
-    for (const s of outcome.standings) {
-      const pts = rankingPointsForPosition(s.position, level);
-      if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
-      await tx.ranking.upsert({
-        where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId, quarter, scope: track } },
-        create: { playerId: s.playerId, categoryId, quarter, scope: track, points: pts },
-        update: { points: { increment: pts } },
-      });
+    // Ranking puanı → DOĞRU KAPSAMA: İl → ŞEHİR (CITY:<geo>), Ulusal → DOMESTIC, uluslararası → WORLD, Open → yok.
+    // İl artık ulusala karışmaz (kullanıcı 27.10). Her kapsam KENDİ içinde sıralanır (ayrı scope satırı).
+    const scope = rankingScopeForLevel(level, geoFromScopeKey(opts.scopeKey ?? null));
+    let newRankById = new Map<number, number>();
+    if (scope) {
+      for (const s of outcome.standings) {
+        const pts = rankingPointsForPosition(s.position, level);
+        if (pts <= 0) continue; // puansız derece Ranking'i şişirmesin
+        await tx.ranking.upsert({
+          where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId, quarter, scope } },
+          create: { playerId: s.playerId, categoryId, quarter, scope, points: pts },
+          update: { points: { increment: pts } },
+        });
+      }
+      const rankRows = await tx.ranking.findMany({ where: { categoryId, quarter, scope } });
+      const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
+      for (const r of ranked) {
+        await tx.ranking.update({
+          where: { playerId_categoryId_quarter_scope: { playerId: r.playerId, categoryId, quarter, scope } },
+          data: { position: r.position },
+        });
+      }
+      newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
     }
-    // Pozisyonları YALNIZ bu track içinde yeniden hesapla (DOMESTIC/WORLD ayrı sıralanır).
-    const rankRows = await tx.ranking.findMany({ where: { categoryId, quarter, scope: track } });
-    const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
-    for (const r of ranked) {
-      await tx.ranking.update({
-        where: { playerId_categoryId_quarter_scope: { playerId: r.playerId, categoryId, quarter, scope: track } },
-        data: { position: r.position },
-      });
-    }
-    const newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
 
     // Her kapsam-içi oyuncu: kariyer en iyi ranking (GDD 19.36) + başarılar (Memory, GDD 21/22.37).
     for (const ph of perHuman) {

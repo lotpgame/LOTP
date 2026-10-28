@@ -28,7 +28,7 @@ import {
 import { prizeFor } from "@/engine/economy";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
 import { COMPETITION_SHARPNESS_GAIN, applySharpness, rollInjury } from "@/engine/conditioning";
-import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingTrackForLevel } from "@/engine/ranking";
+import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingScopeForLevel } from "@/engine/ranking";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import { MS_PER_GAME_DAY } from "@/engine/worldclock";
 import type { Locale } from "@/i18n";
@@ -433,7 +433,7 @@ async function writeStepOutcome(
  */
 async function applyLiveEffectsTx(
   tx: Tx,
-  t: { id: number; level: string; categoryId: string; quarter: number; name: string; date: Date; worldDay: number | null; seedKey: string },
+  t: { id: number; level: string; categoryId: string; quarter: number; name: string; date: Date; worldDay: number | null; seedKey: string; scopeKey: string | null },
   standings: { playerId: number; position: number }[],
 ): Promise<void> {
   const level = t.level as TournamentLevel;
@@ -477,29 +477,30 @@ async function applyLiveEffectsTx(
     });
   }
 
-  // Ranking puanı → DOĞRU KLASMANA: İl/Ulusal → DOMESTIC; uluslararası → WORLD (dünya/kıta). Ayrı scope satırı.
-  const track = rankingTrackForLevel(level);
-  for (const s of standings) {
-    const pts = rankingPointsForPosition(s.position, level);
-    if (pts <= 0) continue; // puansız derece klasmanı şişirmesin
-    await tx.ranking.upsert({
-      where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track } },
-      create: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track, points: pts },
-      update: { points: { increment: pts } },
-    });
-  }
-  // Pozisyonları YALNIZ bu track içinde yeniden hesapla (DOMESTIC/WORLD ayrı sıralanır).
-  const rankRows = await tx.ranking.findMany({ where: { categoryId: t.categoryId, quarter: t.quarter, scope: track } });
-  const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
-  if (ranked.length) {
+  // Ranking puanı → DOĞRU KAPSAMA: İl → ŞEHİR (CITY:<geo>), Ulusal → DOMESTIC, uluslararası → WORLD, Open → yok.
+  // geo = scopeKey'in coğrafi parçası (İl'de "TR#Kocaeli"). Her kapsam KENDİ içinde sıralanır (ayrı scope satırı).
+  const scope = rankingScopeForLevel(level, (t.scopeKey ?? "").split(":")[1] ?? "");
+  let newRankById = new Map<number, number>();
+  if (scope) {
+    for (const s of standings) {
+      const pts = rankingPointsForPosition(s.position, level);
+      if (pts <= 0) continue; // puansız derece klasmanı şişirmesin
+      await tx.ranking.upsert({
+        where: { playerId_categoryId_quarter_scope: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope } },
+        create: { playerId: s.playerId, categoryId: t.categoryId, quarter: t.quarter, scope, points: pts },
+        update: { points: { increment: pts } },
+      });
+    }
+    const rankRows = await tx.ranking.findMany({ where: { categoryId: t.categoryId, quarter: t.quarter, scope } });
+    const ranked = rankEntries(rankRows.map((r) => ({ playerId: r.playerId, points: r.points })));
     for (const r of ranked) {
       await tx.ranking.updateMany({
-        where: { playerId: r.playerId, categoryId: t.categoryId, quarter: t.quarter, scope: track },
+        where: { playerId: r.playerId, categoryId: t.categoryId, quarter: t.quarter, scope },
         data: { position: r.position, updatedAt: new Date() },
       });
     }
+    newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
   }
-  const newRankById = new Map(ranked.map((r) => [r.playerId, r.position]));
 
   for (const h of humans) {
     const position = posOf.get(h.id) ?? fieldSize;

@@ -5,6 +5,7 @@ import {
   levelGivesRankingPoints,
   rankEntries,
   rankingPointsForPosition,
+  rankingScopeForLevel,
 } from "@/engine/ranking";
 
 describe("Ranking Engine", () => {
@@ -21,6 +22,20 @@ describe("Ranking Engine", () => {
     expect(rankingPointsForPosition(9, "EUROPEAN")).toBe(10);
     expect(rankingPointsForPosition(33, "EUROPEAN")).toBe(0); // Avrupa'da son 64 yok
     expect(rankingPointsForPosition(999, "IL")).toBe(0);
+  });
+
+  it("klasman KAPSAMI: İl → ŞEHİR (ulusala puan VERMEZ); Türkiye → ulusal; uluslararası → dünya; Open → yok (kullanıcı 27.10)", () => {
+    // İl yalnız kendi ŞEHİR klasmanına yazar — ulusal (DOMESTIC) klasmanı ETKİLEMEZ.
+    expect(rankingScopeForLevel("IL", "TR#Kocaeli")).toBe("CITY:TR#Kocaeli");
+    expect(rankingScopeForLevel("IL", "TR#İstanbul")).toBe("CITY:TR#İstanbul");
+    expect(rankingScopeForLevel("IL", "TR#Kocaeli")).not.toBe("DOMESTIC");
+    // Ulusal şampiyona → ulusal klasman (milli takım buradan). Geo yok sayılır.
+    expect(rankingScopeForLevel("TURKIYE", "TR")).toBe("DOMESTIC");
+    // Uluslararası → dünya klasmanı.
+    expect(rankingScopeForLevel("WORLD_CUP", "WORLD")).toBe("WORLD");
+    expect(rankingScopeForLevel("EUROPEAN", "EU")).toBe("WORLD");
+    // Open puan vermez → kapsam yok (yalnız tecrübe).
+    expect(rankingScopeForLevel("OPEN", "TR")).toBeNull();
   });
 
   it("tecrübe (XP): Open en çok grind verir; şampiyon > pool-out; antrenman küçük; combat tavanı +3", () => {

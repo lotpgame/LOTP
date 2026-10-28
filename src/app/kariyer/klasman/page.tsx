@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer } from "@/server/careerService";
+import { getCareer, getCategoryRanking } from "@/server/careerService";
 import { KlasmanFilter } from "./KlasmanFilter";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,11 @@ export default async function KlasmanPage() {
   if (!c) redirect("/");
   const locale = await getLocale();
 
+  // Milli takım / uluslararası KAPILARI = ULUSAL sıra (c.ranking, DOMESTIC) — İl artık ulusala karışmaz.
   const myRank = c.ranking.find((r) => r.isHuman)?.position ?? null;
+  // Klasman LİSTESİ varsayılanı = ŞEHİR klasmanı (engagement). Dünyadaki herhangi ülke+şehre de bakılabilir.
+  const city = c.club?.city ?? "";
+  const cityRows = await getCategoryRanking(c.categoryId, { country: c.countryCode, city });
   const ageCat = c.categoryId.split("-")[0];
   const catName = `${t(locale, `country.${c.countryCode}`)} ${t(locale, `gender.${c.gender}`)} ${t(locale, `weapon.${c.weapon}`)} ${ageCat}`;
   const intl = myRank != null && myRank <= 4; // uluslararası uygunluk = ülkenin ilk 4'ü (milli takımla aynı)
@@ -47,7 +51,13 @@ export default async function KlasmanPage() {
 
       <section>
         <h2 className="kicker mb-2">{t(locale, "klasman.rankings")}</h2>
-        <KlasmanFilter initialCategoryId={c.categoryId} initialRows={c.ranking} countryCode={c.countryCode} locale={locale} />
+        <KlasmanFilter
+          initialCategoryId={c.categoryId}
+          initialRows={cityRows}
+          countryCode={c.countryCode}
+          city={city}
+          locale={locale}
+        />
       </section>
     </ArenaPage>
   );

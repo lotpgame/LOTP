@@ -16,8 +16,9 @@ import type { TournamentLevel } from "../domain";
 export const POINT_TABLES: Record<TournamentLevel, Record<number, number>> = {
   // OPEN klasman puanı VERMEZ (yalnız tecrübe) — kullanıcı kararı #28.
   OPEN: {},
-  // YURT-İÇİ (DOMESTIC) klasman: yalnız İl + Ulusal şampiyona → ülke klasmanı / milli takım (ülke ilk 4).
+  // İL → ŞEHİR klasmanı (CITY scope). ULUSALA puan VERMEZ (kullanıcı 27.10). Ulusal yalnız Türkiye şampiyonasından.
   IL: { 1: 5, 2: 3.5, 3: 2.5, 5: 1.5, 9: 1.0, 17: 0.5 },
+  // Ulusal şampiyona → YURT-İÇİ (DOMESTIC) klasman / milli takım (ülke ilk 4).
   TURKIYE: { 1: 12, 2: 9, 3: 7, 5: 5, 9: 3, 17: 2, 33: 1 },
   // DÜNYA (WORLD) klasmanı: uluslararası turnuvalar → dünya/kıta klasmanı (ülke klasmanını ETKİLEMEZ).
   // Bu puanlar WORLD scope'lu ranking satırlarına yazılır (bkz. rankingScopeForLevel + finalizeTournament).
@@ -35,11 +36,27 @@ export function rankingPointsForPosition(
   return POINT_TABLES[level][position] ?? 0;
 }
 
-/** Klasman TÜRÜ: uluslararası → DÜNYA (WORLD) klasmanı; İl/Ulusal → YURT-İÇİ (DOMESTIC); Open → yok. */
+/** Klasman TÜRÜ: uluslararası → DÜNYA (WORLD) klasmanı; Ulusal → YURT-İÇİ (DOMESTIC); İl → ŞEHİR. */
 export type RankingTrack = "DOMESTIC" | "WORLD";
 const WORLD_LEVELS: readonly TournamentLevel[] = ["SATELLITE", "EUROPEAN", "GRAND_PRIX", "WORLD_CUP"];
 export function rankingTrackForLevel(level: TournamentLevel): RankingTrack {
   return WORLD_LEVELS.includes(level) ? "WORLD" : "DOMESTIC";
+}
+
+/**
+ * Puanın yazılacağı klasman KAPSAMI (Ranking.scope satırı):
+ *  - **İl → ŞEHİR klasmanı** `CITY:<geo>` (geo = "TR#Kocaeli") — ULUSALA PUAN VERMEZ (kullanıcı kararı 27.10:
+ *    İl sadece tecrübe + kendi şehir klasmanı; oyuncuyu oyuna bağlayan sık/yerel döngü).
+ *  - **Ulusal şampiyona (Türkiye/Almanya…) → `DOMESTIC`** (ülke klasmanı; milli takım = ilk 4).
+ *  - **Uluslararası → `WORLD`** (dünya/kıta).
+ *  - **Open → null** (puan yok, yalnız tecrübe).
+ * `geoKey` yalnız İl için kullanılır; diğerlerinde yok sayılır.
+ */
+export function rankingScopeForLevel(level: TournamentLevel, geoKey: string): string | null {
+  if (!levelGivesRankingPoints(level)) return null; // Open
+  if (level === "IL") return `CITY:${geoKey}`;
+  if (WORLD_LEVELS.includes(level)) return "WORLD";
+  return "DOMESTIC";
 }
 
 /** Bu seviye (herhangi bir) klasman puanı veriyor mu? Open vermez; diğerleri verir (yurt-içi ya da dünya). */

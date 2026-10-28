@@ -153,11 +153,13 @@ export async function leaveTournamentAction(formData: FormData): Promise<void> {
 /** Klasman filtresi: seçilen kategorinin sıralamasını döndürür (çok oyunculuda dolu, V1'de çoğu boş). */
 export async function getCategoryRankingAction(
   categoryId: string,
-  scope?: { continent?: string; country?: string },
+  scope?: { continent?: string; country?: string; city?: string },
 ) {
   if (!/^[A-Z0-9]+-[MF]-(FL|EPE|KIL)$/.test(categoryId)) throw new Error("Geçersiz kategori");
   if (scope?.country && !/^[A-Z]{2}$/.test(scope.country)) throw new Error("Geçersiz ülke");
   if (scope?.continent && !/^(EU|AS|AM|AF)$/.test(scope.continent)) throw new Error("Geçersiz kıta");
+  // Şehir serbest metin — ama scope ayraçları (":" "#") ENJEKTE edilemez + makul uzunluk.
+  if (scope?.city && (scope.city.length > 40 || /[:#]/.test(scope.city))) throw new Error("Geçersiz şehir");
   return getCategoryRanking(categoryId, scope ?? {});
 }
 

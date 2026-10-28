@@ -14,13 +14,14 @@ import {
   type Gender,
   type Weapon,
 } from "@/engine/domain";
-import { CONTINENTS, COUNTRIES, continentOfCountry } from "@/engine/geo";
+import { CONTINENTS, COUNTRIES, citiesForCountry, continentOfCountry } from "@/engine/geo";
 import { t, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 import { RankingTower } from "../parts";
 
 const AGES = ["U10", "U12", "U14", "U17", "U21", "SENIOR"];
-type ScopeLevel = "world" | "continent" | "country";
+// Şehir = İl klasmanı (yerel); Ülke = ulusal (Türkiye şamp.); Kıta/Dünya = uluslararası. (Kullanıcı 27.10.)
+type ScopeLevel = "city" | "country" | "continent" | "world";
 
 const GENDER_FROM_CODE: Record<string, Gender> = { M: "MALE", F: "FEMALE" };
 const WEAPON_FROM_CODE: Record<string, Weapon> = { FL: "FOIL", EPE: "EPEE", KIL: "SABRE" };
@@ -54,34 +55,46 @@ export function KlasmanFilter({
   initialCategoryId,
   initialRows,
   countryCode,
+  city,
   locale,
 }: {
   initialCategoryId: string;
   initialRows: RankingRowDTO[];
   countryCode: string;
+  city: string; // oyuncunun kendi şehri (varsayılan "Şehrim" kapsamı)
   locale: Locale;
 }) {
   const [age0, gCode, wCode] = initialCategoryId.split("-");
   const [age, setAge] = useState(age0);
   const [gender, setGender] = useState<Gender>(GENDER_FROM_CODE[gCode] ?? "MALE");
   const [weapon, setWeapon] = useState<Weapon>(WEAPON_FROM_CODE[wCode] ?? "FOIL");
-  // Başlangıç: oyuncunun KENDİ ülke klasmanı (initialRows = ülke/DOMESTIC); ülke+kıta varsayılanı da oyuncunun.
-  const [level, setLevel] = useState<ScopeLevel>("country");
+  // Varsayılan: ŞEHİR klasmanı (engagement — yerel/sık döngü). initialRows = oyuncunun şehir klasmanı.
+  const [level, setLevel] = useState<ScopeLevel>("city");
   const [continent, setContinent] = useState<string>(continentOfCountry(countryCode) ?? CONTINENTS[0].code);
   const [country, setCountry] = useState<string>(countryCode);
+  const [selectedCity, setSelectedCity] = useState<string>(city);
   const [rows, setRows] = useState<RankingRowDTO[]>(initialRows);
   const [pending, startTransition] = useTransition();
 
-  const scopeOf = (lv: ScopeLevel, cont: string, co: string) =>
-    lv === "continent" ? { continent: cont } : lv === "country" ? { country: co } : {};
+  const scopeOf = (lv: ScopeLevel, cont: string, co: string, ci: string) =>
+    lv === "city"
+      ? { country: co, city: ci }
+      : lv === "continent"
+        ? { continent: cont }
+        : lv === "country"
+          ? { country: co }
+          : {};
 
-  const load = (a: string, g: Gender, w: Weapon, lv: ScopeLevel, cont: string, co: string) => {
+  // ci varsayılanı = selectedCity (yalnız şehir seçici değişince açıkça geçilir; diğer değişimler şehri etkilemez).
+  const load = (a: string, g: Gender, w: Weapon, lv: ScopeLevel, cont: string, co: string, ci: string = selectedCity) => {
     startTransition(async () => {
-      setRows(await getCategoryRankingAction(makeCategoryId(a as AgeCategory, g, w), scopeOf(lv, cont, co)));
+      setRows(await getCategoryRankingAction(makeCategoryId(a as AgeCategory, g, w), scopeOf(lv, cont, co, ci)));
     });
   };
 
   const selCls = "mt-2 min-h-11 w-full rounded-md border border-line bg-arena-1 px-3 text-[15px] outline-none focus:border-ink";
+  // Şehir sekmesindeki seçili ülkenin şehirleri (herhangi ülke + şehir görülebilir — kullanıcı 27.10).
+  const cityOptions = citiesForCountry(country);
 
   const setScopeLevel = (lv: ScopeLevel) => {
     setLevel(lv);
@@ -92,7 +105,7 @@ export function KlasmanFilter({
     <div className="flex flex-col gap-3">
       {/* ANA kapsam: Dünya / Kıta / Ülke */}
       <div className="flex rounded-md border border-line p-0.5" role="group" aria-label={t(locale, "klasman.rankings")}>
-        {(["world", "continent", "country"] as ScopeLevel[]).map((lv) => (
+        {(["city", "country", "continent", "world"] as ScopeLevel[]).map((lv) => (
           <button
             key={lv}
             type="button"
@@ -106,6 +119,45 @@ export function KlasmanFilter({
           </button>
         ))}
       </div>
+
+      {/* Şehir: DÜNYADAKİ herhangi ülke + şehir klasmanı görülebilir (arkadaşını gör). Varsayılan = kendi ülken/şehrin. */}
+      {level === "city" && (
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+          <select
+            value={country}
+            onChange={(e) => {
+              const co = e.target.value;
+              const first = citiesForCountry(co)[0] ?? "";
+              setCountry(co);
+              setSelectedCity(first);
+              load(age, gender, weapon, "city", continent, co, first);
+            }}
+            className={`${selCls} sm:flex-1`}
+            aria-label={t(locale, "klasman.country")}
+          >
+            {COUNTRIES.map((co) => (
+              <option key={co.code} value={co.code}>
+                {t(locale, `country.${co.code}`)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedCity}
+            onChange={(e) => {
+              setSelectedCity(e.target.value);
+              load(age, gender, weapon, "city", continent, country, e.target.value);
+            }}
+            className={`${selCls} sm:flex-1`}
+            aria-label={t(locale, "klasman.city")}
+          >
+            {cityOptions.map((ct) => (
+              <option key={ct} value={ct}>
+                {ct}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Kıta/Ülke seçince alt seçim */}
       {level === "continent" && (
