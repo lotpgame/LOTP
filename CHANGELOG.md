@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (28.10 — PWA: telefonda "app gibi" (kullanıcı hedefi))
+- Oyun artık **PWA**: telefonda **"Ana Ekrana Ekle" → tam ekran app** gibi açılır (kendi ikonu, açılış
+  rengi, **YATAY** yön). `src/app/manifest.ts` (standalone · landscape · tema `#0b0e12`), ikonlar
+  (192/512/maskable + apple-touch, geçici çapraz-kılıç amblemi), minimal **service worker** (`public/sw.js`
+  + `ServiceWorkerRegister`), iOS meta (`appleWebApp` + `viewport-fit=cover` → çentikli ekranda tam ekran).
+- **Mağaza (App Store/Play) onayı GEREKMEZ** — PWA tarayıcıdan yüklenir; mağaza ileride ayrı/opsiyonel adım.
+  Özel logo gelince geçici ikon değişir.
+
 ### Eklendi (28.10 — avatar: otomatik, cinsiyete göre (kullanıcı kararı))
 - **Oyuncu avatarı**: her oyuncu (insan + AI) cinsiyetine göre **OTOMATİK** yüz alır — **seçim ekranı yok**.
   **Yaşa göre portre** (8/12/16/20; büyüdükçe avatar da büyür). **Kutu + oval köşe** çerçeve (3:4, tam yüz;

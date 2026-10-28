@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Barlow_Condensed, Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
@@ -7,6 +7,7 @@ import { getLocale } from "@/i18n/server";
 import "./globals.css";
 import { InstagramWarning } from "./InstagramWarning";
 import { RotateGate } from "./RotateGate";
+import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 import { ThemeApplier } from "./ThemeApplier";
 import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY } from "./themeKeys";
 import { isInstagramBrowser } from "./ui/inAppBrowser";
@@ -36,6 +37,16 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://lotp-one.vercel.app"),
   title: "Legends of the Piste",
   description: "Eskrim kariyer ve yönetim simülasyonu",
+  applicationName: "Legends of the Piste",
+  // PWA: iOS "Ana ekrana ekle" → tam ekran app, kısa ad, saydam durum çubuğu. (Android manifest'ten gelir.)
+  appleWebApp: { capable: true, title: "LOTP", statusBarStyle: "black-translucent" },
+  icons: { icon: "/favicon.ico", apple: "/icons/apple-180.png" },
+};
+
+// PWA standalone: tema rengi + çentikli ekranlarda tam ekran (safe-area inset'ler çalışsın).
+export const viewport: Viewport = {
+  themeColor: "#0b0e12",
+  viewportFit: "cover",
 };
 
 // Kayıtlı kişisel tema renklerini ilk boyamadan ÖNCE uygular (yanıp sönme olmasın). Yalnız #rgb/#rrggbb
@@ -60,6 +71,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {THEME_BOOT}
         </Script>
         <ThemeApplier />
+        <ServiceWorkerRegister />
         <InstagramWarning show={isInstagram} locale={locale} />
         <RotateGate locale={locale} />
         <div className="flex-1">{children}</div>
