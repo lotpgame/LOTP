@@ -12,6 +12,8 @@ import { usePathname } from "next/navigation";
 import { useRef, type ReactNode } from "react";
 import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
+import { Avatar } from "./Avatar";
+import { avatarSrc } from "./avatarImage";
 import { FeedbackWidget } from "./FeedbackWidget";
 import { Flag } from "./Flag";
 import { WorldClockBadge } from "./WorldClockBadge";
@@ -44,29 +46,6 @@ function activeHref(pathname: string): string | undefined {
     .find((i) => pathname === i.href || pathname.startsWith(i.href + "/"))?.href;
 }
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-/** Maske-oval avatar: tel dokusu + baş harfler (fotoğraf yok). */
-function Avatar({ name, size }: { name: string; size: number }) {
-  return (
-    <span
-      className="mesh flex shrink-0 items-center justify-center bg-ink font-display font-bold text-arena-0"
-      style={{ width: size, height: size * 1.15, borderRadius: "46% 46% 50% 50%", fontSize: size * 0.4 }}
-      aria-hidden="true"
-    >
-      {initials(name)}
-    </span>
-  );
-}
-
 export interface CareerNavProps {
   name: string;
   locale: Locale;
@@ -77,11 +56,13 @@ export interface CareerNavProps {
   city: string;
   countryCode: string; // oyuncunun ülkesi (bayrak)
   nationalTeam: boolean;
+  avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
   /** Gün çubuğu (tarih · bugünkü etkinlik · sıradaki turnuva · Turnuvaya Git/Geç) — sunucuda render edilir. */
   ticker: ReactNode;
 }
 
-export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, ticker }: CareerNavProps) {
+export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, avatar, ticker }: CareerNavProps) {
+  const avatarUrl = avatarSrc(avatar, age);
   const pathname = usePathname();
   const current = activeHref(pathname);
   const moreActive = MORE.some((i) => i.href === current);
@@ -121,7 +102,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
     <>
       {/* ——— Telefon DİKEY: kimlik şeridi (yatayda gizlenir, dikey alan kazanmak için) ——— */}
       <header className="sticky top-0 z-20 -mx-4 mb-4 flex h-16 items-center gap-3 border-b border-line bg-arena-0/90 px-4 backdrop-blur sm:-mx-6 sm:px-6 vland:hidden lg:hidden">
-        <Avatar name={name} size={36} />
+        <Avatar name={name} src={avatarUrl} size={36} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1 className="truncate font-display text-[19px] font-bold leading-tight">{name}</h1>
@@ -164,7 +145,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
           <span lang="en" className="display text-[15px] tracking-[0.18em] text-steel">Legends of the Piste</span>
         </div>
         <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-line bg-arena-0 p-3">
-          <Avatar name={name} size={40} />
+          <Avatar name={name} src={avatarUrl} size={40} />
           <div className="min-w-0">
             <div className="truncate font-display text-[19px] font-bold leading-tight">{name}</div>
             {meta}

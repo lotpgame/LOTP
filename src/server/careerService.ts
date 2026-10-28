@@ -36,6 +36,7 @@ import {
   type Weapon,
 } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
+import { pickAvatar } from "@/engine/avatars";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import {
@@ -450,6 +451,8 @@ export interface RankingRowDTO {
   points: number;
   position: number;
   isHuman: boolean;
+  avatar: string | null; // avatar seti (yaşa göre portre); null → harf rozeti
+  age: number; // portre kademesi için (8/12/16/20)
 }
 
 /** Milli takım kadrosu = kategori Quarter Ranking ilk N'i (GDD 17.32). Tek kaynak → davet/rozet/kadro tutarlı. */
@@ -676,6 +679,7 @@ async function ensureBucketBots(
         traits: encodeTraitPlan(generateTraitPlan(createRng(`${seedBase}:botstraits:${countryCode}:${city}:${i}`))),
         aiDevMonth: aiStartMonth,
         ...geneticsData(g),
+        avatar: pickAvatar(spec.gender, `${seedBase}:av:${city}:${i}`),
         skills: { create: skillCreateData(spec.skills) },
       },
     });
@@ -756,6 +760,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         balance: STARTING_BALANCE,
         clubId: humanClubId,
         ...geneticsData(humanGenetics),
+        avatar: pickAvatar(data.gender, `${seed}:av:human`),
         skills: { create: skillCreateData(humanSkills) },
       },
     });
@@ -799,6 +804,7 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
             traits: encodeTraitPlan(generateTraitPlan(createRng(`${seed}:fxtraits:${j}`))),
             aiDevMonth: aiStartMonth,
             ...geneticsData(fGenetics),
+            avatar: pickAvatar(spec.gender, `${seed}:av:fx:${j}`),
             skills: { create: skillCreateData(spec.skills) },
           },
         });
@@ -1043,6 +1049,7 @@ export interface CareerHeaderDTO {
   city: string; // kulübün şehri (rozet)
   countryCode: string; // oyuncunun ülkesi (bayrak rozeti)
   nationalTeam: boolean; // kategori sıralaması ilk 4 → milli takım rozeti
+  avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
   liveTournamentActive: boolean;
   year: number; // oyun-içi takvim yılı (ör. 2026)
   quarter: number;
@@ -1178,6 +1185,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     city: human.club?.city ?? "",
     countryCode: human.nationality?.code ?? "TR",
     nationalTeam,
+    avatar: human.avatar ?? null,
     liveTournamentActive: gs.liveTournament != null,
     year: gs.currentDate.getFullYear(),
     quarter,
@@ -1380,6 +1388,7 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
         return continentOfCountry(code) === scope.continent;
       })
     : rows;
+  const gameDate = new Date(worldDayStartMs(serverWorldDay(), worldClockConfig()));
   return scoped.map((r, i) => {
     const p = byId.get(r.playerId);
     return {
@@ -1389,6 +1398,8 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
       points: roundSkill(r.points),
       position: narrowed ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,
+      avatar: p?.avatar ?? null,
+      age: p ? computeAge(p.birthDate, gameDate) : 8,
     };
   });
 }

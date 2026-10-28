@@ -7,6 +7,8 @@ import type { RankingRowDTO } from "@/server/careerService";
 import { Icon, type IconName } from "@/app/ui/Icon";
 import { PisteRail, Segments } from "@/app/ui/Piste";
 import { bandMax } from "@/app/ui/bands";
+import { Avatar } from "./Avatar";
+import { avatarSrc } from "./avatarImage";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TECHNICAL: "Teknik",
@@ -180,8 +182,9 @@ export function SkillsByCategory({
 export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: Locale }) {
   return (
     <div className="panel overflow-clip">
-      <div className="grid grid-cols-[2.75rem_1fr_auto] border-b border-line px-3 py-2">
+      <div className="grid grid-cols-[2.25rem_2.5rem_1fr_auto] items-center border-b border-line px-3 py-2">
         <span className="kicker">#</span>
+        <span aria-hidden="true" />
         <span className="kicker">{t(locale, "klasman.player")}</span>
         <span className="kicker">{t(locale, "klasman.points")}</span>
       </div>
@@ -192,12 +195,13 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
           return (
             <li
               key={r.playerId}
-              className={`relative grid min-h-12 grid-cols-[2.75rem_1fr_auto] items-center border-b border-line px-3 py-1.5 last:border-b-0 ${
+              className={`relative grid min-h-12 grid-cols-[2.25rem_2.5rem_1fr_auto] items-center border-b border-line px-3 py-1.5 last:border-b-0 ${
                 r.isHuman ? "sticky bottom-[calc(8rem+env(safe-area-inset-bottom))] z-10 bg-arena-2 lg:bottom-4" : ""
               }`}
             >
               {edge && <span className={`absolute inset-y-0 left-0 w-[3px] ${edge}`} aria-hidden="true" />}
               <span className="num text-[17px]">{r.position}</span>
+              <Avatar name={r.name} src={avatarSrc(r.avatar, r.age)} size={30} />
               <span className="min-w-0">
                 {/* Kendi adın "SEN" etiketi yerine kırmızı+kalın fontla ayırt edilir (satırdaki kırmızı kenarla uyumlu). */}
                 <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-me" : ""}`}>{r.name}</span>

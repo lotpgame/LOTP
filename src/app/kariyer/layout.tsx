@@ -96,6 +96,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           city={h.city}
           countryCode={h.countryCode}
           nationalTeam={h.nationalTeam}
+          avatar={h.avatar}
           ticker={ticker}
         />
 

@@ -6,8 +6,10 @@
 import Link from "next/link";
 import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon } from "@/app/ui/Icon";
+import { Avatar } from "./Avatar";
+import { avatarSrc } from "./avatarImage";
 import { Flag } from "./Flag";
-import { initials, toRoman } from "./parts";
+import { toRoman } from "./parts";
 
 export interface KimlikKartiProps {
   name: string;
@@ -21,20 +23,15 @@ export interface KimlikKartiProps {
   rating: number;
   nationalTeam: boolean;
   seasonNo: number;
+  avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
   locale: Locale;
 }
 
-export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, countryCode, rating, nationalTeam, seasonNo, locale }: KimlikKartiProps) {
+export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, countryCode, rating, nationalTeam, seasonNo, avatar, locale }: KimlikKartiProps) {
   return (
     <section className="panel overflow-hidden border-t-2 border-t-ink p-4">
       <div className="flex items-center gap-3">
-        <span
-          className="mesh flex h-16 w-[3.75rem] shrink-0 items-center justify-center bg-ink font-display text-[26px] font-bold text-arena-0"
-          style={{ borderRadius: "46% 46% 50% 50%" }}
-          aria-hidden="true"
-        >
-          {initials(name)}
-        </span>
+        <Avatar name={name} src={avatarSrc(avatar, age)} size={60} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-display text-[24px] font-bold leading-tight">{name}</h2>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[14px] text-steel">

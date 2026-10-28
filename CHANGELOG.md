@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (28.10 — avatar: otomatik, cinsiyete göre (kullanıcı kararı))
+- **Oyuncu avatarı**: her oyuncu (insan + AI) cinsiyetine göre **OTOMATİK** yüz alır — **seçim ekranı yok**.
+  **Yaşa göre portre** (8/12/16/20; büyüdükçe avatar da büyür). **Kutu + oval köşe** çerçeve (3:4, tam yüz;
+  kırpma/boşluk/bulanıklık yok). Kimlik kartı + menü şeridi + sidebar + **klasman listesinde** gösterim.
+- `Player.avatar` (opsiyonel; boş → harf rozeti/fallback). Havuz = **manifest** (`src/data/avatarManifest.json`,
+  slicer üretir) → yeni set eklenince **kod değişmeden** büyür. `pickAvatar` deterministik + test.
+- Şerit→4 kare kesme scripti `scripts/slice-avatars.mjs` (manifest üretir). İlk 8 set (`b01–b03`, `g01–g05`).
+- **NOT:** canlıya ALINMADI — `Player.avatar` için Neon migration + (opsiyonel) listelerin geri kalanı sonra.
+
 ### Değişti (27.10 — bölgesel/şehir klasmanı + İl artık ulusala karışmaz (kullanıcı kararı))
 - **İl turnuvaları → ŞEHİR klasmanı** (yeni `CITY:<ülke>#<şehir>` scope). İl ARTIK ULUSALA PUAN VERMEZ
   (eski hata: İl puanları DOMESTIC'e yazılıyordu → ulusal liste tek şehirle doluyordu). İl yine tecrübe +

@@ -67,6 +67,11 @@ model Player {
   birthDate DateTime // yaş buradan türetilir (GDD 8.7)
   weapon    String // FOIL | EPEE | SABRE
 
+  // Görünüm: seçilen avatar seti id'si (ör. "b01" erkek, "g01" kız). Gösterilen portre yaşa göre
+  // türetilir (8/12/16/20 kademesi) → public/img/avatars/<set>/<yaş>.webp. Boş = harf rozeti (fallback).
+  // Eklemeli/opsiyonel: mevcut oyuncular bozulmaz (CONTRIBUTING §2 canlı veri koruma).
+  avatar String?
+
   nationalityId Int
   nationality   Country @relation(fields: [nationalityId], references: [id])
 
