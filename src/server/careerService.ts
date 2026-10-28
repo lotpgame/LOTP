@@ -1421,6 +1421,8 @@ export interface NationalTeamMemberDTO {
   rating: number; // overall reyting (milli takımda rakipleri yakından tanımak için)
   position: number; // kategori sıralamasındaki yeri (1..N)
   isHuman: boolean;
+  avatar: string | null; // avatar seti; null → harf rozeti
+  age: number; // portre kademesi için
 }
 
 /**
@@ -1444,6 +1446,7 @@ export async function getNationalTeam(categoryId: string): Promise<NationalTeamM
     include: { skills: true },
   });
   const byId = new Map(players.map((p) => [p.id, p]));
+  const gameDate = new Date(worldDayStartMs(serverWorldDay(), worldClockConfig()));
   return rows.map((r, i) => {
     const p = byId.get(r.playerId);
     return {
@@ -1452,6 +1455,8 @@ export async function getNationalTeam(categoryId: string): Promise<NationalTeamM
       rating: p ? roundSkill(overall(rowsToSkills(p.skills))) : 0,
       position: r.position ?? i + 1,
       isHuman: r.playerId === human.id,
+      avatar: p?.avatar ?? null,
+      age: p ? computeAge(p.birthDate, gameDate) : 8,
     };
   });
 }
@@ -1916,7 +1921,7 @@ export interface CareerHistoryDTO {
     matchWins: number;
     careerBestRank: number | null;
   };
-  rivals: { name: string; matches: number; wins: number; losses: number }[];
+  rivals: { name: string; matches: number; wins: number; losses: number; avatar: string | null; age: number }[];
   tournaments: {
     id: number;
     name: string;
@@ -2001,13 +2006,24 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   const oppPlayers = await prisma.player.findMany({
     where: { id: { in: topOppIds.map(([id]) => id) } },
   });
-  const oppName = new Map(oppPlayers.map((p) => [p.id, `${p.firstName} ${p.lastName}`]));
-  const rivals = topOppIds.map(([id, r]) => ({
-    name: oppName.get(id) ?? formatPlayerCode(id),
-    matches: r.matches,
-    wins: r.wins,
-    losses: r.losses,
-  }));
+  const rivalGameDate = new Date(worldDayStartMs(serverWorldDay(), worldClockConfig()));
+  const oppInfo = new Map(
+    oppPlayers.map((p) => [
+      p.id,
+      { name: `${p.firstName} ${p.lastName}`, avatar: p.avatar ?? null, age: computeAge(p.birthDate, rivalGameDate) },
+    ]),
+  );
+  const rivals = topOppIds.map(([id, r]) => {
+    const info = oppInfo.get(id);
+    return {
+      name: info?.name ?? formatPlayerCode(id),
+      matches: r.matches,
+      wins: r.wins,
+      losses: r.losses,
+      avatar: info?.avatar ?? null,
+      age: info?.age ?? 8,
+    };
+  });
 
   return {
     name: `${human.firstName} ${human.lastName}`,
@@ -2066,6 +2082,11 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
   const nameById = new Map(
     tourn.participants.map((p) => [p.playerId, `${p.player.firstName} ${p.player.lastName}`]),
   );
+  // Avatar: oyuncunun o turnuva günündeki yaşına göre portre (katılımcı player objesinden).
+  const tourDate = new Date(tourn.worldDay != null ? worldDayStartMs(tourn.worldDay, worldClockConfig()) : tourn.date.getTime());
+  const avatarById = new Map(
+    tourn.participants.map((p) => [p.playerId, { avatar: p.player.avatar ?? null, age: computeAge(p.player.birthDate, tourDate) }]),
+  );
   const sortedParticipants = [...tourn.participants].sort(
     (a, b) => (a.finalPosition ?? 999) - (b.finalPosition ?? 999),
   );
@@ -2108,6 +2129,8 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
           losses: p.losses ?? 0,
           indicator: p.indicator ?? 0,
           isHuman: p.playerId === humanId,
+          avatar: avatarById.get(p.playerId)?.avatar ?? null,
+          age: avatarById.get(p.playerId)?.age ?? 8,
         }))
     : [];
   const live = liveModel ? await tournamentLiveDto(id, humanId, nameById, fieldSize, locale) : null;
@@ -2184,6 +2207,8 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
           position: p.finalPosition ?? fieldSize,
           name: nameById.get(p.playerId) ?? formatPlayerCode(p.playerId),
           isHuman: p.playerId === humanId,
+          avatar: avatarById.get(p.playerId)?.avatar ?? null,
+          age: avatarById.get(p.playerId)?.age ?? 8,
         }))
       : [],
     matches: tourn.matches.map((m) => {
@@ -2320,8 +2345,8 @@ export interface TournamentResultDTO {
   championName: string | null;
   pools: PoolViewDTO[];
   poolSheets: PoolSheetDTO[];
-  standings: { position: number; name: string; isHuman: boolean }[];
-  seeding: { position: number; name: string; wins: number; losses: number; indicator: number; isHuman: boolean }[]; // #44: pul sonrası klasman (seed)
+  standings: { position: number; name: string; isHuman: boolean; avatar: string | null; age: number }[];
+  seeding: { position: number; name: string; wins: number; losses: number; indicator: number; isHuman: boolean; avatar: string | null; age: number }[]; // #44: pul sonrası klasman (seed)
   showBracket: boolean; // #43: eleme çatalı klasmandan ~30 sn sonra açılır
   matches: {
     phase: string;

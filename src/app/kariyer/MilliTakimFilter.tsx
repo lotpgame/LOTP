@@ -8,6 +8,8 @@ import { useState, useTransition, type ReactNode } from "react";
 import { getNationalTeamAction } from "@/app/actions";
 import { GENDERS, WEAPONS, makeCategoryId, type AgeCategory, type Gender, type Weapon } from "@/engine/domain";
 import { t, type Locale } from "@/i18n";
+import { Avatar } from "./Avatar";
+import { avatarSrc } from "./avatarImage";
 import { Flag } from "./Flag";
 import type { NationalTeamMemberDTO } from "@/server/careerService";
 
@@ -134,6 +136,7 @@ export function MilliTakimFilter({
             >
               <span className="flex min-w-0 items-center gap-2.5">
                 <span className="num w-5 shrink-0 text-steel">{m.position}.</span>
+                <Avatar name={m.name} src={avatarSrc(m.avatar, m.age)} size={28} />
                 {/* Kendi adın "(sen)" yerine kendi renginle ayırt edilir (Ayarlar → Görünüm). */}
                 <span className={`truncate ${m.isHuman ? "text-me" : ""}`}>{m.name}</span>
               </span>

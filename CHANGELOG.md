@@ -12,7 +12,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 ### Eklendi (28.10 — avatar: otomatik, cinsiyete göre (kullanıcı kararı))
 - **Oyuncu avatarı**: her oyuncu (insan + AI) cinsiyetine göre **OTOMATİK** yüz alır — **seçim ekranı yok**.
   **Yaşa göre portre** (8/12/16/20; büyüdükçe avatar da büyür). **Kutu + oval köşe** çerçeve (3:4, tam yüz;
-  kırpma/boşluk/bulanıklık yok). Kimlik kartı + menü şeridi + sidebar + **klasman listesinde** gösterim.
+  kırpma/boşluk/bulanıklık yok). Gösterim: kimlik kartı + menü şeridi + sidebar + **klasman**, **milli takım**,
+  **kariyer geçmişi (rakipler)** ve **turnuva (seeding + final sıralama)** listeleri.
 - `Player.avatar` (opsiyonel; boş → harf rozeti/fallback). Havuz = **manifest** (`src/data/avatarManifest.json`,
   slicer üretir) → yeni set eklenince **kod değişmeden** büyür. `pickAvatar` deterministik + test.
 - Şerit→4 kare kesme scripti `scripts/slice-avatars.mjs` (manifest üretir). Havuz: 6 erkek (`b01–b06`) +

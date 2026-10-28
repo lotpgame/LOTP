@@ -9,6 +9,8 @@ import { LiveAutoRefresh } from "./LiveAutoRefresh";
 import { LivePodium, LiveStatusBadge, type PodiumMatch } from "./LivePodium";
 import { PulKagidi } from "./PulKagidi";
 import { Icon } from "@/app/ui/Icon";
+import { Avatar } from "@/app/kariyer/Avatar";
+import { avatarSrc } from "@/app/kariyer/avatarImage";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
 import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
 
@@ -167,6 +169,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
             >
               {p.isHuman && <span className="absolute inset-y-0 left-0 w-[3px] bg-me" aria-hidden="true" />}
               <span className="num w-6 shrink-0 text-steel">{p.position}.</span>
+              <Avatar name={p.name} src={avatarSrc(p.avatar, p.age)} size={26} />
               <span className={`min-w-0 flex-1 truncate ${p.isHuman ? "text-me" : ""}`}>{p.name}</span>
               <span className="num shrink-0 text-[13px] text-steel">
                 {p.wins}-{p.losses} · {p.indicator >= 0 ? "+" : ""}
@@ -357,8 +360,11 @@ function FinalStandings({ standings, locale }: { standings: TournamentResultDTO[
             {(s.isHuman || s.position === 1) && (
               <span className={`absolute inset-y-0 left-0 w-[3px] ${s.isHuman ? "bg-me" : "bg-prio"}`} aria-hidden="true" />
             )}
-            <span className={s.isHuman ? "text-me" : ""}>{s.name}</span>
-            <span className="text-steel">{positionLabel(locale, s.position)}</span>
+            <span className="flex min-w-0 items-center gap-2.5">
+              <Avatar name={s.name} src={avatarSrc(s.avatar, s.age)} size={26} />
+              <span className={`truncate ${s.isHuman ? "text-me" : ""}`}>{s.name}</span>
+            </span>
+            <span className="shrink-0 text-steel">{positionLabel(locale, s.position)}</span>
           </li>
         ))}
       </ol>

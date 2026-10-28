@@ -7,6 +7,8 @@ import { Icon, type IconName } from "@/app/ui/Icon";
 import { ACH_ICON, METAL_BRONZE, METAL_GOLD, METAL_SILVER, PRIO_RING } from "@/app/ui/achievementBadge";
 import { buildShowcase, buildTimeline, nextGoal, type Badge, type BadgeKey } from "@/app/ui/showcase";
 import { Stat } from "../parts";
+import { Avatar } from "../Avatar";
+import { avatarSrc } from "../avatarImage";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { TournamentsFilter } from "./TournamentsFilter";
 
@@ -158,7 +160,10 @@ export default async function GecmisPage() {
           <ol className="panel divide-y divide-line overflow-hidden">
             {h.rivals.map((r, i) => (
               <li key={i} className="flex min-h-12 items-center justify-between gap-3 px-3 py-2 text-[15px]">
-                <span className="truncate">{r.name}</span>
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <Avatar name={r.name} src={avatarSrc(r.avatar, r.age)} size={28} />
+                  <span className="truncate">{r.name}</span>
+                </span>
                 <span className="num shrink-0 text-[14px] text-steel">
                   {t(locale, "gecmis.record", { m: r.matches, w: r.wins, l: r.losses })}
                 </span>
