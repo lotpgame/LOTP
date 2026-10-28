@@ -14,6 +14,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   rengi, **YATAY** yön). `src/app/manifest.ts` (standalone · landscape · tema `#0b0e12`), ikonlar
   (192/512/maskable + apple-touch, geçici çapraz-kılıç amblemi), minimal **service worker** (`public/sw.js`
   + `ServiceWorkerRegister`), iOS meta (`appleWebApp` + `viewport-fit=cover` → çentikli ekranda tam ekran).
+- **İndirme uyarısı** (`InstallPrompt`, landing): tarayıcıda + yüklü değilken → **Android**'de tek-dokunuş
+  "Yükle" butonu (`beforeinstallprompt`), **iOS Safari**'de "Paylaş → Ana Ekrana Ekle" yönergesi (Apple
+  otomatik butona izin vermez). Kapatılabilir (bir kez), 9 dil.
 - **Mağaza (App Store/Play) onayı GEREKMEZ** — PWA tarayıcıdan yüklenir; mağaza ileride ayrı/opsiyonel adım.
   Özel logo gelince geçici ikon değişir.
 

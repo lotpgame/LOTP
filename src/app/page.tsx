@@ -10,6 +10,7 @@ import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { currentUser, hasCareer } from "@/server/careerService";
 import { GoogleSignIn } from "@/app/GoogleSignIn";
+import { InstallPrompt } from "@/app/InstallPrompt";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { ScoreBug } from "@/app/ui/ScoreBug";
@@ -186,6 +187,9 @@ export default async function Home({
           </form>
         )}
       </div>
+
+      {/* "App gibi yükle" uyarısı (yalnız tarayıcıda, yüklü değilken) — iOS'ta yönerge, Android'de tek dokunuş. */}
+      <InstallPrompt locale={locale} />
     </main>
   );
 }
