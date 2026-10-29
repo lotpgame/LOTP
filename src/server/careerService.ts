@@ -894,7 +894,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
           dayName: dayLabel,
           kind: "TOURNAMENT",
           level: act.level,
-          label: t(locale, `tournament.${act.level}`),
+          label: tournamentDisplayName(locale, cur.ageCategory, act.level, tournamentHostCity(act.level, gs.dayIndex, human.club?.city ?? "", human.nationality?.code ?? "TR"), human.nationality?.code ?? "TR"),
           qualified: !injured && qualifies(act.qualification, humanRank),
           requirement: t(locale, `qual.${act.qualification}`),
         };
@@ -907,7 +907,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     if (a.kind === "TOURNAMENT") {
       seasonCalendar.push({
         level: a.level,
-        label: t(locale, `tournament.${a.level}`),
+        label: tournamentDisplayName(locale, cur.ageCategory, a.level, null, human.nationality?.code ?? "TR"),
         month: 0, // 0 = her ay
         dayName: t(locale, `day.${dayOfWeek(yearStart + dow)}`),
         qualified: qualifies(a.qualification, humanRank),
@@ -920,7 +920,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     if (a.kind === "TOURNAMENT") {
       seasonCalendar.push({
         level: a.level,
-        label: t(locale, `tournament.${a.level}`),
+        label: tournamentDisplayName(locale, cur.ageCategory, a.level, null, human.nationality?.code ?? "TR"),
         month: m,
         dayName: t(locale, "day.6"),
         qualified: qualifies(a.qualification, humanRank),
@@ -1159,7 +1159,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
       dayName: dayLabel,
       kind: "TOURNAMENT",
       level: act.level,
-      label: t(locale, `tournament.${act.level}`),
+      label: tournamentDisplayName(locale, cur.ageCategory, act.level, tournamentHostCity(act.level, gs.dayIndex, human.club?.city ?? "", human.nationality?.code ?? "TR"), human.nationality?.code ?? "TR"),
       qualified: !injured && qualifies(act.qualification, humanRank) && levelAllowedForCategory(act.level, cur.ageCategory),
       requirement: t(locale, `qual.${act.qualification}`),
     };

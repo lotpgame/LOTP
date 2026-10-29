@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (29.10 — ulusal şampiyona adı her ülke için kendi adıyla (kullanıcı))
+- Bugünkü etkinlik + haftalık program etiketleri ulusal şampiyonayı artık **her oyuncunun kendi ülkesiyle**
+  gösterir (GB → "İngiltere Şampiyonası", DE → "Almanya Şampiyonası"…). Eskiden generic `tournament.TURKIYE`
+  (= "Türkiye Şampiyonası") herkese basılıyordu. `getCareer`/`getCareerHeader` artık `tournamentDisplayName`
+  (ülke koduyla) kullanıyor — "sıradaki turnuva" kartıyla tutarlı.
+
 ### Eklendi (28.10 — PWA: telefonda "app gibi" (kullanıcı hedefi))
 - Oyun artık **PWA**: telefonda **"Ana Ekrana Ekle" → tam ekran app** gibi açılır (kendi ikonu, açılış
   rengi, **YATAY** yön). `src/app/manifest.ts` (standalone · landscape · tema `#0b0e12`), ikonlar
