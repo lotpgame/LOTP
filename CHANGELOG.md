@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (01.11 — avatar havuzu 42 sete çıktı (kullanıcı üretimi))
+- Yeni avatar şeritleri dilimlendi: **15 erkek** (`b01–b15`) + **27 kız** (`g01–g27`) = **42 set**
+  (eskiden 15). Her set 4 yaş (8/12/16/20). `scripts/slice-avatars.mjs` ile üretildi, manifest güncel.
+  Kod değişmeden havuz büyüdü (`pickAvatar` manifestten okur).
+
 ### Düzeltildi (01.11 — ulusal şampiyona rozeti de kendi ülkesiyle (kullanıcı))
 - Turnuva **seviye rozetleri** (yaklaşan liste `LevelTag` + "sıradaki" kartı + haftalık şerit `WeekStrip`)
   ulusal şampiyonayı artık **oyuncunun kendi ülkesiyle** gösterir: GB oyuncu → "İNGİLTERE" rozeti (eskiden
