@@ -214,6 +214,8 @@ export default async function BugunPage({
             <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} tone="good" />
             <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} tone="good" />
             <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} tone="bad" />
+            {/* İtibar/fair-play (GDD 10 ahlak ekseni): Çirkef/Hilekâr düşürür. Oyun-içi ceza V2. */}
+            <StatBar label={t(locale, "profil.reputation")} value={c.psychology.reputation} tone="good" />
             {c.traits.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {c.traits.map((tr) => (

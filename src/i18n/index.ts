@@ -332,6 +332,7 @@ const TR: Dict = {
   "profil.motivation": "Motivasyon",
   "profil.confidence": "Özgüven",
   "profil.stress": "Stres",
+  "profil.reputation": "İtibar",
   "profil.skills": "Yetenekler",
   "profil.injured": "Sakatsın — {n} gün pistlerden uzaksın. Dinlenerek iyileşirsin.",
   // Antrenman
@@ -978,6 +979,7 @@ const EN: Dict = {
   "profil.motivation": "Motivation",
   "profil.confidence": "Confidence",
   "profil.stress": "Stress",
+  "profil.reputation": "Reputation",
   "profil.skills": "Skills",
   "profil.injured": "Injured — {n} days off the piste. Rest to recover.",
   "antrenman.title": "Training",
@@ -1639,6 +1641,7 @@ const DE: Dict = {
   "profil.motivation": "Motivation",
   "profil.confidence": "Selbstvertrauen",
   "profil.stress": "Stress",
+  "profil.reputation": "Ruf",
   "profil.skills": "Fähigkeiten",
   "profil.injured": "Du bist verletzt — {n} Tage von der Planche fern. Erholung bringt dich zurück.",
   "antrenman.title": "Training",
@@ -2314,6 +2317,7 @@ const FR: Dict = {
   "profil.motivation": "Motivation",
   "profil.confidence": "Confiance",
   "profil.stress": "Stress",
+  "profil.reputation": "Réputation",
   "profil.skills": "Capacités",
   "profil.injured": "Tu es blessé — {n} jours loin des pistes. Tu guéris en te reposant.",
   // Antrenman
@@ -2979,6 +2983,7 @@ const ES: Dict = {
   "profil.motivation": "Motivación",
   "profil.confidence": "Confianza",
   "profil.stress": "Estrés",
+  "profil.reputation": "Reputación",
   "profil.skills": "Capacidades",
   "profil.injured": "Estás lesionado — {n} días lejos de las pistas. Te recuperas descansando.",
   // Antrenman
@@ -3644,6 +3649,7 @@ const IT: Dict = {
   "profil.motivation": "Motivazione",
   "profil.confidence": "Fiducia",
   "profil.stress": "Stress",
+  "profil.reputation": "Reputazione",
   "profil.skills": "Capacità",
   "profil.injured": "Sei infortunato — {n} giorni lontano dalle pedane. Guarisci riposando.",
   // Antrenman
@@ -4309,6 +4315,7 @@ const RU: Dict = {
   "profil.motivation": "Мотивация",
   "profil.confidence": "Уверенность",
   "profil.stress": "Стресс",
+  "profil.reputation": "Репутация",
   "profil.skills": "Навыки",
   "profil.injured": "У вас травма — {n} дн. вне дорожки. Вы восстанавливаетесь, отдыхая.",
   // Antrenman
@@ -4974,6 +4981,7 @@ const PT: Dict = {
   "profil.motivation": "Motivação",
   "profil.confidence": "Confiança",
   "profil.stress": "Estresse",
+  "profil.reputation": "Reputação",
   "profil.skills": "Habilidades",
   "profil.injured": "Você está lesionado — {n} dias longe da pista. Você se recupera descansando.",
   // Antrenman
@@ -5639,6 +5647,7 @@ const ZH: Dict = {
   "profil.motivation": "动力",
   "profil.confidence": "自信",
   "profil.stress": "压力",
+  "profil.reputation": "声誉",
   "profil.skills": "技能",
   "profil.injured": "你受伤了 — {n} 天不能上剑道。休息即可康复。",
   // Antrenman

@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (01.11 — itibar/fair-play ekseni: Çirkef/Hilekâr uzun vadede bedel ödetir (kullanıcı kararı))
+- **İtibar (reputation) alanı** eklendi (`Player.reputation` 0–100, varsayılan 100; eklemeli şema → Neon
+  migration gerekir). Turnuva SONRASI güncellenir: **Çirkef** aktifse en çok düşer (−4), **Hilekâr** az düşer
+  (−2.5), **Dürüst** yavaş toparlar (+1.5), nötr zamanla tavana sürüklenir (+0.5). `reputationAfterEvent`
+  (motor, saf) iki persist noktasına bağlandı (canlı + offline turnuva).
+- **Gösterim:** Psikoloji panelinde "İtibar" çubuğu (9 dil). Karar: *risk + itibar cezası* — çirkeflik anlık
+  durumsal avantaj verir (mevcut gamesmanship) ama uzun vadede itibar düşer.
+- **V2 kancası:** düşük itibarın oyun-içi somut cezası (hakem/kart/dışlanma) ileride; şimdilik alan birikir +
+  görünür. Test: çirkef düşüşü > hilekâr, dürüst toparlar, 0–100 sınırı, 10 turnuvada birikim.
+
 ### Düzeltildi (01.11 — zıt trait'ler birlikte görünmez (okuma-anı güvencesi))
 - **Zıt/çift trait temizliği okuma anında** (`activeTraitKeys` → yeni `sanitizeTraitKeys`): bir oyuncuda
   zıt trait çifti (ör. Çalışkan↔Tembel) veya tekrar asla aktif olmaz; çelişkide **erken oluşan** (küçük

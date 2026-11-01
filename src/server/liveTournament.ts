@@ -27,6 +27,7 @@ import {
 } from "@/engine/tournament/live";
 import { prizeFor } from "@/engine/economy";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
+import { activeTraitKeys, parseTraitPlan, reputationAfterEvent } from "@/engine/trait";
 import { COMPETITION_SHARPNESS_GAIN, applySharpness, rollInjury } from "@/engine/conditioning";
 import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingScopeForLevel } from "@/engine/ranking";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
@@ -471,6 +472,7 @@ async function applyLiveEffectsTx(
         motivation: post.motivation,
         confidence: post.confidence,
         stress: post.stress,
+        reputation: reputationAfterEvent(h.reputation, activeTraitKeys(parseTraitPlan(h.traits), snap.c?.age ?? 16)), // çirkef/hilekâr → düşer
         status: injury.injured ? "INJURED" : h.status,
         injuryDaysRemaining: injury.injured ? injury.days : 0,
       },

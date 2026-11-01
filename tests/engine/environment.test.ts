@@ -5,6 +5,7 @@ import {
   activeTraitKeys,
   generateTraitPlan,
   sanitizeTraitKeys,
+  reputationAfterEvent,
   traitCombatModifier,
   traitTrainingMultiplier,
 } from "@/engine/trait";
@@ -74,6 +75,19 @@ describe("Trait Engine", () => {
     expect(active).toContain("LAZY"); // erken oluşan kaldı
     expect(active).not.toContain("HARDWORKING"); // zıt olan düştü
     expect(active).toContain("CALM");
+  });
+  it("itibar: Çirkef düşer (en çok), Hilekâr az düşer, Dürüst toparlar, nötr tavana sürüklenir", () => {
+    expect(reputationAfterEvent(100, ["NASTY"])).toBeLessThan(reputationAfterEvent(100, ["DECEITFUL"]));
+    expect(reputationAfterEvent(100, ["DECEITFUL"])).toBeLessThan(100);
+    expect(reputationAfterEvent(50, ["HONEST"])).toBeGreaterThan(50); // toparlar
+    expect(reputationAfterEvent(50, ["CALM"])).toBeGreaterThan(50); // nötr → hafif yukarı
+    // sınırlar: 0–100 dışına taşmaz
+    expect(reputationAfterEvent(1, ["NASTY"])).toBe(0);
+    expect(reputationAfterEvent(100, ["HONEST"])).toBe(100);
+    // Çirkeflik tekrar ettikçe birikir (uzun vadede dışlanma)
+    let r = 100;
+    for (let i = 0; i < 10; i++) r = reputationAfterEvent(r, ["NASTY"]);
+    expect(r).toBeLessThan(65);
   });
   it("kademeli açılım: 8-10 yaş 1 trait, 11'de 2, 12'de 3", () => {
     // Zıt-çift filtresi bazen <3 üretebilir; birçok tohumdan tam 3'lük bir plan bul.

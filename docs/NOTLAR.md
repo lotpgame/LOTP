@@ -147,5 +147,7 @@ Pencere 12'de donmaz, **ergenliğe (16) yayılır** — kişilik gerçekte orada
    Memory/rekabet sistemine bağlanır.
 
 ### Açık alt-soru (kullanıcıya sorulacak, karara bağlı)
-- **Çirkef/Hilekâr** gibi trait'ler net **avantaj** mı sağlamalı (rakibi bozma) yoksa çoğunlukla
-  **dezavantaj/risk** mi (itibar/ceza)? Eskrim dengesi açısından karar verilecek.
+- ✅ **KARAR (01.11): risk + itibar cezası.** Çirkef/Hilekâr anlık **durumsal** avantaj verir (mevcut
+  gamesmanship: hassas/kaygılı rakibi bozar, soğukkanlıya sökmez, kendine selfRisk) AMA **uzun vadede itibar
+  düşer** (`Player.reputation`; çirkef −4, hilekâr −2.5/turnuva; dürüst +1.5 toparlar). Psikoloji panelinde
+  görünür. Düşük itibarın somut oyun-içi cezası (hakem/kart/**dışlanma**) → V2.

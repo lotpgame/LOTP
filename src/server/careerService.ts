@@ -191,6 +191,7 @@ import {
   encodeTraitPlan,
   generateTraitPlan,
   parseTraitPlan,
+  reputationAfterEvent,
   traitCombatModifier,
   traitTrainingMultiplier,
   type TraitKey,
@@ -483,7 +484,7 @@ export interface CareerDTO {
   experience: number; // birikmiş tecrübe (XP) — #28
   // Gelişim çevresi (M6)
   traits: string[]; // Türkçe etiketler
-  psychology: { morale: number; motivation: number; confidence: number; stress: number };
+  psychology: { morale: number; motivation: number; confidence: number; stress: number; reputation: number };
   club: {
     name: string;
     city: string;
@@ -965,6 +966,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       motivation: roundSkill(human.motivation),
       confidence: roundSkill(human.confidence),
       stress: roundSkill(human.stress),
+      reputation: roundSkill(human.reputation),
     },
     club: human.club
       ? {
@@ -3679,6 +3681,7 @@ interface EffectHuman {
   status: string;
   careerBestRank: number | null;
   traits: string;
+  reputation: number;
   equipmentLevel: number;
 }
 
@@ -3904,6 +3907,7 @@ async function finalizeTournament(
       injury: rollInjury(createRng(`${seedKey}:injury:${h.id}`), finalFatigue, base.age),
       prize: prizeFor(level, position),
       postPsych: psychAfterTournament(psychologyOf(h), position, outcome.pools.length),
+      reputation: reputationAfterEvent(h.reputation, activeTraitsOf(h.traits, base.age)), // çirkef/hilekâr → düşer
     };
   });
 
@@ -3968,6 +3972,7 @@ async function finalizeTournament(
           motivation: ph.postPsych.motivation,
           confidence: ph.postPsych.confidence,
           stress: ph.postPsych.stress,
+          reputation: ph.reputation,
           status: ph.injury.injured ? "INJURED" : ph.h.status,
           injuryDaysRemaining: ph.injury.injured ? ph.injury.days : 0,
         },

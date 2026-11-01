@@ -199,6 +199,28 @@ export function incomingGamesmanshipPenalty(
   return clamp(g * 0.6 - sumField(ownTraits, "composure") * 0.6, 0, 1.5);
 }
 
+// ——— İtibar / fair-play (ahlak ekseni, GDD 10) ———
+
+/** İtibar değişimi: bir turnuva/etkinlik sonrası uygulanacak miktar (puan). Çirkef düşer en çok. */
+export const REPUTATION_STEP = { NASTY: -4, DECEITFUL: -2.5, HONEST: +1.5, NEUTRAL: +0.5 } as const;
+
+/**
+ * İtibar (0–100), bir turnuva SONRASI güncellenir. Çirkef/Hilekâr AKTİFSE düşer (çirkef daha çok),
+ * Dürüst yavaşça toparlar, nötrse zamanla tavana (100) sürüklenir. Oyuncu en çok BİR ahlak trait'i
+ * taşır (tek havuzdan tek seçim), o yüzden öncelik: Çirkef > Hilekâr > Dürüst > nötr.
+ * Düşük itibarın oyun-içi cezası (hakem/kart/dışlanma) → V2.
+ */
+export function reputationAfterEvent(current: number, activeTraits: readonly TraitKey[]): number {
+  const step = activeTraits.includes("NASTY")
+    ? REPUTATION_STEP.NASTY
+    : activeTraits.includes("DECEITFUL")
+      ? REPUTATION_STEP.DECEITFUL
+      : activeTraits.includes("HONEST")
+        ? REPUTATION_STEP.HONEST
+        : REPUTATION_STEP.NEUTRAL;
+  return clamp(current + step, 0, 100);
+}
+
 // ——— Kalıcılık kodlaması: "KEY:unlockAge" virgülle ———
 
 export function encodeTraitPlan(plan: readonly TraitPlanEntry[]): string {
