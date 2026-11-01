@@ -58,9 +58,9 @@ export default async function TurnuvalarPage({
       )}
 
       {/* Sıradaki turnuva: gerçek saat + canlı geri sayım + kayıt durumu */}
-      {!liveNow && next && <NextTournament info={next} variant="card" locale={locale} registered={nextRegistered} registerHref="#yaklasan" />}
+      {!liveNow && next && <NextTournament info={next} variant="card" locale={locale} registered={nextRegistered} registerHref="#yaklasan" country={c.countryCode} />}
 
-      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(header, locale))} locale={locale} />
+      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(header, locale))} locale={locale} countryCode={c.countryCode} />
 
       {/* M10.2: Yaklaşan turnuvalar — önceden kayıt + taktik (ortak dünyada sunucu otomatik oynatır) */}
       <section id="yaklasan" className="scroll-mt-20">
@@ -80,7 +80,7 @@ export default async function TurnuvalarPage({
                     <Icon name="calendar" size={14} /> {u.dateLabel} {t(locale, "next.trTime")}
                   </div>
                 </div>
-                <LevelTag level={u.level} locale={locale} />
+                <LevelTag level={u.level} locale={locale} country={c.countryCode} />
               </div>
 
               {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}

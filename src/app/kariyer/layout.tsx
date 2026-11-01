@@ -70,7 +70,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
                 {t(locale, "bar.syncing")}
               </span>
             ) : !h.injured && h.today.kind === "TRAINING" && h.nextTournament ? (
-              <NextTournament info={h.nextTournament} variant="bar" locale={locale} />
+              <NextTournament info={h.nextTournament} variant="bar" locale={locale} country={h.countryCode} />
             ) : (
               <span className="text-[13px] text-steel">{t(locale, "bar.caughtUp")}</span>
             )}

@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (01.11 — ulusal şampiyona rozeti de kendi ülkesiyle (kullanıcı))
+- Turnuva **seviye rozetleri** (yaklaşan liste `LevelTag` + "sıradaki" kartı + haftalık şerit `WeekStrip`)
+  ulusal şampiyonayı artık **oyuncunun kendi ülkesiyle** gösterir: GB oyuncu → "İNGİLTERE" rozeti (eskiden
+  sabit "Türkiye"/"TR" basılıyordu). 29.10 düzeltmesi yalnız turnuva **adını** çözmüştü; rozet hâlâ generic
+  `levelTag.TURKIYE`/`levelShort.TURKIYE` kullanıyordu. `LevelTag`/`WeekStrip` artık `country` koduyla
+  `country.<kod>` çevirisini basıyor; çağrı yerlerine `c.countryCode`/`h.countryCode` geçirildi.
+
 ### Düzeltildi (29.10 — ulusal şampiyona adı her ülke için kendi adıyla (kullanıcı))
 - Bugünkü etkinlik + haftalık program etiketleri ulusal şampiyonayı artık **her oyuncunun kendi ülkesiyle**
   gösterir (GB → "İngiltere Şampiyonası", DE → "Almanya Şampiyonası"…). Eskiden generic `tournament.TURKIYE`

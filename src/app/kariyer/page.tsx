@@ -68,7 +68,7 @@ export default async function BugunPage({
 
       {/* Sadeleştirme (#38): Son başarılar + "Bugün" aktivite bölümü + Sıradaki turnuva kartı kaldırıldı.
           "Önümüzdeki 7 gün" şeridi zaten bugünkü etkinliği/sıradaki turnuvayı gösteriyor. */}
-      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(h, locale))} locale={locale} />
+      <WeekStrip days={buildWeek(serverWorldDay(), c.trainingPlan, upcoming, todayFromHeader(h, locale))} locale={locale} countryCode={c.countryCode} />
 
       {/* 2 · SEN YOKKEN — antrenman raporu + yokken oynanan turnuvalar tek panelde */}
       {showAway && (

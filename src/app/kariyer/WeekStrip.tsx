@@ -23,7 +23,7 @@ function statusKey(d: WeekDay): string {
   return d.today ? "" : "week.open";
 }
 
-export function WeekStrip({ days, locale }: { days: WeekDay[]; locale: Locale }) {
+export function WeekStrip({ days, locale, countryCode }: { days: WeekDay[]; locale: Locale; countryCode?: string }) {
   const anyLocked = days.some((d) => statusKey(d) === "week.locked");
   return (
     <section aria-labelledby="hafta-seridi">
@@ -49,7 +49,7 @@ export function WeekStrip({ days, locale }: { days: WeekDay[]; locale: Locale })
                 </span>
                 {d.kind === "TOURNAMENT" ? (
                   <span className="kicker rounded border border-ink/60 px-1 py-px text-[10px] leading-tight text-ink">
-                    {t(locale, `levelShort.${d.level}`)}
+                    {d.level === "TURKIYE" && countryCode ? countryCode : t(locale, `levelShort.${d.level}`)}
                   </span>
                 ) : (
                   <Icon name={TRAINING_ICON[d.training ?? "REST"] ?? "rest"} size={18} className="text-ink/80" />

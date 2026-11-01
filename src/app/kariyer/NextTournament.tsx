@@ -49,11 +49,13 @@ function fmtRemaining(ms: number, locale: Locale): string {
   return t(locale, "time.m", { m });
 }
 
-/** Turnuva seviyesi etiketi (İL / TR / OPEN …) — seviyeye göre renkli çerçeve/yazı. */
-export function LevelTag({ level, locale }: { level: string; locale: Locale }) {
+/** Turnuva seviyesi etiketi (İL / ülke / OPEN …) — seviyeye göre renkli çerçeve/yazı. */
+export function LevelTag({ level, locale, country }: { level: string; locale: Locale; country?: string }) {
+  // Ulusal şampiyona (TURKIYE seviyesi) her oyuncunun KENDİ ülkesini gösterir (GB→İngiltere), sabit "Türkiye" değil.
+  const label = level === "TURKIYE" && country ? t(locale, `country.${country}`) : t(locale, `levelTag.${level}`);
   return (
     <span className={`kicker inline-flex items-center rounded-md border px-1.5 py-0.5 ${levelColor(level).tag}`}>
-      {t(locale, `levelTag.${level}`)}
+      {label}
     </span>
   );
 }
@@ -64,6 +66,7 @@ export function NextTournament({
   locale,
   registered,
   registerHref = "/kariyer/turnuvalar",
+  country,
 }: {
   info: NextTournamentInfo;
   variant: "card" | "bar";
@@ -71,6 +74,7 @@ export function NextTournament({
   registered?: boolean;
   /** "Kaydol" nereye götürsün (Turnuvalar sayfasının kendisinde: listedeki yere kaydırır). */
   registerHref?: string;
+  country?: string; // oyuncunun ülkesi — ulusal şampiyona etiketini kendi ülkesiyle gösterir
 }) {
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -112,7 +116,7 @@ export function NextTournament({
     <div className="panel p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="kicker">{t(locale, "next.title")}</span>
-        <LevelTag level={info.level} locale={locale} />
+        <LevelTag level={info.level} locale={locale} country={country} />
       </div>
       <div className="mt-2 font-display text-[22px] font-bold leading-tight">{info.label}</div>
       <div className="mt-1 flex items-center gap-1.5 text-[14px] text-steel">
