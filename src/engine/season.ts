@@ -13,17 +13,6 @@ export const DAYS_PER_MONTH = 7;
 export const MONTHS_PER_QUARTER = 12; // 12 ay = 1 oyun yılı = 1 Quarter
 export const DAYS_PER_QUARTER = DAYS_PER_MONTH * MONTHS_PER_QUARTER; // 84
 
-/** Haftanın günleri (0 = Pazartesi). */
-export const DAY_NAMES_TR = [
-  "Pazartesi",
-  "Salı",
-  "Çarşamba",
-  "Perşembe",
-  "Cuma",
-  "Cumartesi",
-  "Pazar",
-] as const;
-
 /** 0-tabanlı global gün indeksinden Quarter (oyun yılı) numarası (1'den başlar). */
 export function quarterOf(dayIndex: number): number {
   return Math.floor(dayIndex / DAYS_PER_QUARTER) + 1;
@@ -38,11 +27,6 @@ export function monthOfQuarter(dayIndex: number): number {
  * (dev'de kısa dünya saati sınırında dayIndex anlık negatif olup "dayShort.-1" verebiliyordu). */
 export function dayOfWeek(dayIndex: number): number {
   return ((dayIndex % DAYS_PER_MONTH) + DAYS_PER_MONTH) % DAYS_PER_MONTH;
-}
-
-/** Gün adı (Türkçe). */
-export function dayNameTR(dayIndex: number): string {
-  return DAY_NAMES_TR[dayOfWeek(dayIndex)];
 }
 
 /** Katılım kuralı: serbest / kategori sıralaması ilk 16 / milli takım ilk 4. */

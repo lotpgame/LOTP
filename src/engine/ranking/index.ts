@@ -39,9 +39,6 @@ export function rankingPointsForPosition(
 /** Klasman TÜRÜ: uluslararası → DÜNYA (WORLD) klasmanı; Ulusal → YURT-İÇİ (DOMESTIC); İl → ŞEHİR. */
 export type RankingTrack = "DOMESTIC" | "WORLD";
 const WORLD_LEVELS: readonly TournamentLevel[] = ["SATELLITE", "EUROPEAN", "GRAND_PRIX", "WORLD_CUP"];
-export function rankingTrackForLevel(level: TournamentLevel): RankingTrack {
-  return WORLD_LEVELS.includes(level) ? "WORLD" : "DOMESTIC";
-}
 
 /**
  * Puanın yazılacağı klasman KAPSAMI (Ranking.scope satırı):

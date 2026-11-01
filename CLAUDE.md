@@ -116,7 +116,6 @@ src/
     ranking/
     probability/    #   tohumlanabilir RNG burada
     ...
-    events.ts       #   engine'ler arası olay tipleri (TrainingCompleted, MatchCompleted…)
   db/               # Prisma şeması + kalıcılık ("Database Engine")
   server/           # engine'leri DB'ye bağlayan orkestrasyon (API, günlük döngü)
   app/              # Next.js arayüzü (React ekranları)
@@ -256,7 +255,7 @@ saatine çevirir (UI'da sağ üstteki GMT saat rozeti bunun için — `WorldCloc
 - [x] Next.js 16 + TypeScript + Tailwind iskeleti kuruldu, `build` doğrulandı
 - [x] Teknik uygulama planı hazırlandı → [`docs/ROADMAP.md`](docs/ROADMAP.md) (M0–M8)
 - [x] **M0 — Altyapı:** Prisma 7+SQLite (better-sqlite3 adapter), Vitest, seeded RNG,
-      events, `src/db` + Data Service iskeleti. build+lint+test yeşil.
+      `src/db`. build+lint+test yeşil.
 - [x] **M1 — Dikey dilim:** oynanabilir minimal kariyer (oyuncu oluştur → antren → turnuva
       → sonuç → ranking → save/load). 7 engine + testler; Next 16 Server Actions ile ekranlar.
 - [x] **M2 — Combat + Probability:** silaha göre ağırlıklar, effective strength + modifier,

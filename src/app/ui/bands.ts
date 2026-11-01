@@ -17,8 +17,3 @@ export function bandMax(categoryOrAge: string): number {
   const age = categoryOrAge.split("-")[0];
   return BAND_MAX[age] ?? BAND_MAX.default;
 }
-
-/** Kategori kimliğinden yaş grubu etiketi ("U10-M-EP" → "U10"). */
-export function ageGroup(categoryId: string): string {
-  return categoryId.split("-")[0];
-}

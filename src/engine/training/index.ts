@@ -18,14 +18,6 @@ export const TRAINING_TYPES: readonly TrainingType[] = [
   "REST",
 ] as const;
 
-export const TRAINING_LABEL_TR: Record<TrainingType, string> = {
-  TECHNICAL: "Teknik Antrenman",
-  PHYSICAL: "Fiziksel Antrenman",
-  MENTAL: "Mental Çalışma",
-  TACTICAL: "Taktik Çalışma",
-  REST: "Dinlenme",
-};
-
 /** Antrenman türüne göre temel yorgunluk üretimi (GDD 14.35). REST negatif (toparlanma). */
 const BASE_FATIGUE: Record<TrainingType, number> = {
   PHYSICAL: 16,

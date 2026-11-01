@@ -120,6 +120,3 @@ export function firstNamesFor(gender: Gender, countryCode?: string): readonly st
 export function lastNamesFor(countryCode?: string): readonly string[] {
   return poolFor(countryCode).last;
 }
-
-/** Geriye-dönük uyum: ülke verilmeden TR soyadları. */
-export const LAST_NAMES: readonly string[] = DEFAULT_POOL.last;

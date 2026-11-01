@@ -33,7 +33,6 @@ import {
   signOut,
   submitTournamentTactic,
   unregisterTournament,
-  upgradeEquipment,
 } from "@/server/careerService";
 import type { TacticSubmitResult } from "@/server/liveTournament";
 
@@ -91,16 +90,6 @@ export async function setTrainingPlanAction(formData: FormData): Promise<void> {
   );
   await setTrainingPlan(slots);
   revalidatePath("/kariyer/antrenman");
-}
-
-export async function upgradeEquipmentAction(): Promise<void> {
-  try {
-    await upgradeEquipment();
-  } catch (e) {
-    if (e instanceof GameError) redirect(`/kariyer/ekipman?err=${e.code}`);
-    throw e;
-  }
-  revalidatePath("/kariyer/ekipman");
 }
 
 /** Gladius mağazasından ürün satın alır (Denar ile). */
@@ -201,18 +190,6 @@ export async function unregisterTournamentAction(formData: FormData): Promise<vo
   const level = String(formData.get("level") ?? "") as TournamentLevel;
   await unregisterTournament(worldDay, level);
   revalidatePath("/kariyer/turnuvalar");
-}
-
-/** Antrenman haber kartını kapatır. */
-export async function clearReportAction(): Promise<void> {
-  await clearReport();
-  revalidatePath("/kariyer", "layout");
-}
-
-/** "Yokken neler oldu" kartını kapatır (M11.4). */
-export async function clearAwayReportAction(): Promise<void> {
-  await clearAwayReport();
-  revalidatePath("/kariyer", "layout");
 }
 
 /** Bugün ekranındaki "Sen yokken" panelini kapatır (antrenman raporu + yokken oynanan turnuvalar birlikte). */

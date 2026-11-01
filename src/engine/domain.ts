@@ -41,17 +41,6 @@ export const TOURNAMENT_LABEL_TR: Record<TournamentLevel, string> = {
   WORLD_CUP: "Dünya Kupası",
 };
 
-/** Görünmeyen prestij katsayısı (GDD 17.93) — XP/kariyer etkisi için. */
-export const TOURNAMENT_PRESTIGE: Record<TournamentLevel, number> = {
-  IL: 1,
-  OPEN: 2,
-  TURKIYE: 3,
-  SATELLITE: 4,
-  GRAND_PRIX: 5,
-  EUROPEAN: 6,
-  WORLD_CUP: 7,
-};
-
 /**
  * Eskrimin yapıldığı büyük iller (başlangıç seti — sonra editlenir). Tüm 81 il gerekmez;
  * kulüp/aktivite olan şehirler. Seçilen şehir oyuncunun kulübünü ve İl Şampiyonası kapsamını belirler.
@@ -71,23 +60,6 @@ export const PROFILES: readonly PlayerProfile[] = [
   "TACTICAL",
 ] as const;
 
-/** UI için Türkçe etiketler. */
-export const WEAPON_LABEL_TR: Record<Weapon, string> = {
-  FOIL: "Flöre",
-  EPEE: "Epe",
-  SABRE: "Kılıç",
-};
-export const GENDER_LABEL_TR: Record<Gender, string> = {
-  MALE: "Erkek",
-  FEMALE: "Kadın",
-};
-export const PROFILE_LABEL_TR: Record<PlayerProfile, string> = {
-  BALANCED: "Dengeli",
-  TECHNICAL: "Teknik",
-  PHYSICAL: "Fiziksel",
-  MENTAL: "Mental",
-  TACTICAL: "Taktik",
-};
 
 /** Kategori ID'sinde kullanılan kısa silah kodları (GDD 22.10: FL/EPE/KIL). */
 const WEAPON_CODE: Record<Weapon, string> = { FOIL: "FL", EPEE: "EPE", SABRE: "KIL" };

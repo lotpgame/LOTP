@@ -1870,20 +1870,6 @@ export async function leaveTournament(tournamentId: number): Promise<void> {
   await prisma.$transaction((tx) => worldAdvanceTx(tx, gs, gs.dayIndex + 1));
 }
 
-/** Ekipmanı bir seviye yükseltir (Economy: parayla, GDD 15/16). Hafta ilerletmez. */
-export async function upgradeEquipment(): Promise<void> {
-  const state = await loadState();
-  if (!state) throw new Error("Aktif kariyer yok.");
-  const { human } = state;
-  if (human.equipmentLevel >= MAX_EQUIPMENT_LEVEL) throw new GameError("equip_maxed", "Ekipman zaten en üst seviyede.");
-  const cost = equipmentUpgradeCost(human.equipmentLevel);
-  if (human.balance < cost) throw new Error("Yeterli paran yok.");
-  await prisma.player.update({
-    where: { id: human.id },
-    data: { equipmentLevel: human.equipmentLevel + 1, balance: { decrement: cost } },
-  });
-}
-
 /** Gladius mağazasından bir ürün satın alır (Denar ile). Zaten sahipse/parası yoksa uygun hata. */
 export async function buyEquipment(itemId: string): Promise<void> {
   const state = await loadState();

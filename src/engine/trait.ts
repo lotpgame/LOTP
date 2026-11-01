@@ -84,13 +84,6 @@ export const TRAITS: Record<TraitKey, TraitDef> = {
 
 export const TRAIT_KEYS = Object.keys(TRAITS) as TraitKey[];
 
-export const TRAIT_CATEGORY_LABEL: Record<TraitCategory, string> = {
-  CHARACTER: "Karakter",
-  PSYCH: "Psikolojik",
-  COMPETITIVE: "Rekabetçi",
-  MORAL: "Ahlak / Sportmenlik",
-};
-
 /** Kademeli açılım: bir trait planı kaydı — hangi yaşta açılır. */
 export interface TraitPlanEntry {
   key: TraitKey;
@@ -169,10 +162,6 @@ export function traitTrainingMultiplier(traits: readonly TraitKey[]): number {
 /** Verilen (aktif) trait'lerin combat katkıları toplamı. */
 export function traitCombatModifier(traits: readonly TraitKey[]): number {
   return traits.reduce((acc, t) => acc + (TRAITS[t]?.combatMod ?? 0), 0);
-}
-
-export function traitLabels(traits: readonly TraitKey[]): string[] {
-  return traits.map((t) => TRAITS[t]?.label ?? t);
 }
 
 // ——— Gamesmanship / sükûnet (rakip etkileşimi + kendi riski) ———

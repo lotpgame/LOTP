@@ -59,7 +59,6 @@ export const MATCH_FORMATS = { POOL: 5, DE: 15 } as const;
 
 /** Eleme maçı zamanlaması (GDD 18.8): 3 periyot × 3 dk (9 dk). Havuz tek 3 dk periyot. */
 export const PERIOD_SECONDS = 180;
-export const DE_PERIODS = 3;
 
 /**
  * Yaş kategorisine göre eleme maç formatı (USA Fencing gençler SYC — doğrulandı 12.10):

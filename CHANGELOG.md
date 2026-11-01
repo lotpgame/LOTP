@@ -9,6 +9,18 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Kaldırıldı (01.11 — ölü kod temizliği (knip ile tarama))
+- **4 kullanılmayan dosya silindi** (344 satır): `ViewSettings.tsx`, `LiveTournamentPanel.tsx` (eski canlı
+  turnuva paneli, podyum modeline geçince atıl kaldı), `engine/events.ts` (M0 iskelet, hiç kullanılmadı),
+  `server/dataService.ts` (M0 iskelet). Hiçbir yerden import edilmiyorlardı.
+- **~20 tamamen ölü export temizlendi:** `TOURNAMENT_PRESTIGE`, `WEAPON/GENDER/PROFILE/TRAINING_LABEL_TR`,
+  `TRAIT_CATEGORY_LABEL`, `traitLabels`, `DAY_NAMES_TR`+`dayNameTR`, `dailyRecovery`, `ageGroup`,
+  `rankingTrackForLevel`, `upgradeEquipment`(+action), `clearReport/ClearAwayReportAction`, `LAST_NAMES`,
+  `AVATAR_STAGES`, `DE_PERIODS`, `avatarPoolSize` (çoğu i18n'e geçince atıl kalan eski TR etiket sabitleri).
+- Dokunulmadı: zincirli/riskli olanlar (ACH_TONE), **çıkış (`signOut`) yarım-özellik** (butona bağlı değil —
+  silelim mi yoksa çıkış butonu mu ekleyelim, kullanıcıya soruldu), `pg`/`dotenv` (knip yanlış pozitif; prod'da
+  kullanılıyor). tsc + 214 test + lint yeşil.
+
 ### Eklendi (01.11 — itibar/fair-play ekseni: Çirkef/Hilekâr uzun vadede bedel ödetir (kullanıcı kararı))
 - **İtibar (reputation) alanı** eklendi (`Player.reputation` 0–100, varsayılan 100; eklemeli şema → Neon
   migration gerekir). Turnuva SONRASI güncellenir: **Çirkef** aktifse en çok düşer (−4), **Hilekâr** az düşer

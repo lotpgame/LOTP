@@ -7,9 +7,6 @@
 import { createRng } from "@/engine/probability";
 import manifest from "@/data/avatarManifest.json";
 
-/** Mevcut set sayıları (boş havuz = o cinsiyette görsel yok → null → harf rozeti). */
-export const avatarPoolSize = { MALE: manifest.b.length, FEMALE: manifest.g.length };
-
 /**
  * Cinsiyete uygun havuzdan deterministik bir avatar seti (seed ile → aynı oyuncu hep aynı yüz).
  * Havuz boşsa null döner (çağıran harf rozetine düşer). FEMALE → kız (g), diğer → erkek (b).

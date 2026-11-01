@@ -5,10 +5,8 @@
  * (Dosya adı Avatar.tsx ile Windows'ta çakışmasın diye "avatarImage".)
  */
 
-export const AVATAR_STAGES = [8, 12, 16, 20] as const;
-
 /** Yaşa karşılık gelen portre kademesi (en yakın alt eşik): 8–11→8, 12–15→12, 16–19→16, 20+→20. */
-export function avatarStage(age: number): number {
+function avatarStage(age: number): number {
   if (age >= 20) return 20;
   if (age >= 16) return 16;
   if (age >= 12) return 12;
