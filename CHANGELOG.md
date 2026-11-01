@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (01.11 — zıt trait'ler birlikte görünmez (okuma-anı güvencesi))
+- **Zıt/çift trait temizliği okuma anında** (`activeTraitKeys` → yeni `sanitizeTraitKeys`): bir oyuncuda
+  zıt trait çifti (ör. Çalışkan↔Tembel) veya tekrar asla aktif olmaz; çelişkide **erken oluşan** (küçük
+  unlockAge) tutulur. Üretim (`generateTraitPlan`) zaten zıt-çift vermiyordu; bu değişiklik **faz4 öncesi
+  üretilmiş eski/canlı kayıtları** veri silmeden güvenceye alır (CLAUDE.md: canlı veri korunur, eklemeli).
+- Test: 5000 tohumda üretim hiç zıt/çift vermiyor; zıt-harita simetrik; bozuk eski plan okuma anında
+  temizleniyor (`tests/engine/environment.test.ts`).
+
 ### Eklendi (01.11 — avatar havuzu 42 sete çıktı (kullanıcı üretimi))
 - Yeni avatar şeritleri dilimlendi: **15 erkek** (`b01–b15`) + **27 kız** (`g01–g27`) = **42 set**
   (eskiden 15). Her set 4 yaş (8/12/16/20). `scripts/slice-avatars.mjs` ile üretildi, manifest güncel.

@@ -4,6 +4,7 @@ import {
   TRAITS,
   activeTraitKeys,
   generateTraitPlan,
+  sanitizeTraitKeys,
   traitCombatModifier,
   traitTrainingMultiplier,
 } from "@/engine/trait";
@@ -36,6 +37,43 @@ describe("Trait Engine", () => {
       const opp = TRAITS[k].opposite;
       if (opp) expect(keys).not.toContain(opp);
     }
+  });
+  it("zıt-harita simetrik (A.opposite=B ⟺ B.opposite=A)", () => {
+    for (const def of Object.values(TRAITS)) {
+      if (!def.opposite) continue;
+      expect(TRAITS[def.opposite].opposite).toBe(def.key);
+    }
+  });
+  it("hiçbir tohum zıt/çift trait üretmez (5000 tohum)", () => {
+    for (let i = 0; i < 5000; i++) {
+      const keys = generateTraitPlan(createRng(`seed:${i}`)).map((e) => e.key);
+      expect(new Set(keys).size).toBe(keys.length); // tekrarsız
+      for (const k of keys) {
+        const opp = TRAITS[k].opposite;
+        if (opp) expect(keys).not.toContain(opp);
+      }
+    }
+  });
+  it("sanitizeTraitKeys: zıt/çift eski kaydı temizler, erken OLUŞANI tutar", () => {
+    // faz4 öncesi bozuk kayıt: Çalışkan + Tembel (zıt) + tekrar
+    expect(sanitizeTraitKeys(["HARDWORKING", "LAZY", "HARDWORKING"])).toEqual(["HARDWORKING"]);
+    // önce gelen (daha erken oluşan) tutulur
+    expect(sanitizeTraitKeys(["CALM", "ANXIOUS"])).toEqual(["CALM"]);
+    expect(sanitizeTraitKeys(["ANXIOUS", "CALM"])).toEqual(["ANXIOUS"]);
+    // çelişkisiz set olduğu gibi kalır
+    expect(sanitizeTraitKeys(["HARDWORKING", "CALM", "AGGRESSIVE"])).toEqual(["HARDWORKING", "CALM", "AGGRESSIVE"]);
+  });
+  it("activeTraitKeys zıt-çift bozuk planı okuma anında temizler (küçük unlockAge tutulur)", () => {
+    // Elle kurulmuş BOZUK plan (üretim böyle vermez): Tembel(8) + Çalışkan(12) → zıt.
+    const badPlan = [
+      { key: "LAZY" as const, unlockAge: 8 },
+      { key: "CALM" as const, unlockAge: 11 },
+      { key: "HARDWORKING" as const, unlockAge: 12 },
+    ];
+    const active = activeTraitKeys(badPlan, 20);
+    expect(active).toContain("LAZY"); // erken oluşan kaldı
+    expect(active).not.toContain("HARDWORKING"); // zıt olan düştü
+    expect(active).toContain("CALM");
   });
   it("kademeli açılım: 8-10 yaş 1 trait, 11'de 2, 12'de 3", () => {
     // Zıt-çift filtresi bazen <3 üretebilir; birçok tohumdan tam 3'lük bir plan bul.

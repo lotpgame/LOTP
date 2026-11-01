@@ -131,7 +131,9 @@ Kişilik çocukta oturmamıştır, **yaşla + yaşanmışlıkla** şekillenir (n
 Pencere 12'de donmaz, **ergenliğe (16) yayılır** — kişilik gerçekte orada oturur. Maksimum **3 trait**.
 
 ### Kurallar
-- **Zıt trait'ler birlikte olamaz** (Çalışkan↔Tembel gibi). Mevcut hata bu.
+- ✅ **Zıt trait'ler birlikte olamaz** (Çalışkan↔Tembel gibi). Üretim zaten vermiyor (yaş-havuzlu
+  + çapraz kontrol); ayrıca okuma anında `activeTraitKeys` zıt/çift'i eler (erken oluşanı tutar) →
+  faz4 öncesi eski kayıtlar da temizlenir. Stres testi + temizlik testi eklendi (01.11).
 - **Set genişletilecek** (şu an 6): GDD 10 seti + kullanıcının hatırladıkları — **çirkef, hilekâr, dürüst**
   gibi karakter/kişilik trait'leri. Sadece antrenman/combat değil; davranış/psikoloji/rekabet/itibarı da etkiler.
 - **Trait → psikoloji/combat bağı:** örn. Soğukkanlı → stres yavaş yükselir; Hırslı → yenilgi sonrası

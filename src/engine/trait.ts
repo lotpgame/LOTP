@@ -135,9 +135,30 @@ export function generateTraitPlan(rng: SeededRng): TraitPlanEntry[] {
   return plan;
 }
 
-/** Verilen yaşta AKTİF trait anahtarları (unlockAge ≤ yaş). */
+/**
+ * Zıt/çift trait'leri eler, erken OLUŞANI (küçük unlockAge) tutar. Kişilik önce oturduğu haliyle kalır;
+ * sonradan gelen çelişik trait düşer. Üretim zaten zıt-çift vermez (generateTraitPlan); bu, faz4 öncesi
+ * üretilmiş ESKİ kayıtları okuma anında güvenceye alır (canlı veri silinmeden kural garanti edilir).
+ */
+export function sanitizeTraitKeys(keys: readonly TraitKey[]): TraitKey[] {
+  const kept: TraitKey[] = [];
+  for (const k of keys) {
+    if (!(k in TRAITS)) continue;
+    if (kept.includes(k)) continue; // çift
+    const opp = TRAITS[k].opposite;
+    if (opp && kept.includes(opp)) continue; // zıt-çift
+    kept.push(k);
+  }
+  return kept;
+}
+
+/** Verilen yaşta AKTİF trait anahtarları (unlockAge ≤ yaş). Zıt/çift elenir (erken oluşan tutulur). */
 export function activeTraitKeys(plan: readonly TraitPlanEntry[], age: number): TraitKey[] {
-  return plan.filter((e) => age >= e.unlockAge).map((e) => e.key);
+  const ordered = [...plan]
+    .filter((e) => age >= e.unlockAge)
+    .sort((a, b) => a.unlockAge - b.unlockAge) // erken oluşan önce → çelişkide o tutulur
+    .map((e) => e.key);
+  return sanitizeTraitKeys(ordered);
 }
 
 /** Verilen (aktif) trait'lerin antrenman verimi çarpanları çarpımı. */
