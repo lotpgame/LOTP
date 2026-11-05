@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
-import { itemsForWeapon, itemName, itemDesc, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { itemById, itemsForWeapon, itemName, itemDesc, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -48,7 +48,8 @@ export default async function EkipmanPage({
   if (!c) redirect("/");
   const locale = await getLocale();
   const { err } = await searchParams;
-  const owned = new Set(c.ownedEquipment);
+  // "Sahip" = çantadaki parçalar (başlangıç takımı dahil) → eski oyuncular da tam takım görür, market tutarlı.
+  const owned = new Set(c.kit.map((k) => k.itemId));
   // Silaha göre katalog: oyuncu yalnız kendi silahının + ortak ürünlerini görür (epe → yelek/maske kordonu yok).
   const catalog = itemsForWeapon(c.weapon as Weapon);
   const ownedCount = catalog.filter((i) => owned.has(i.id)).length;
@@ -106,9 +107,42 @@ export default async function EkipmanPage({
         <ErrorBanner code={err} locale={locale} dismissHref="/kariyer/ekipman" />
       </div>
 
-      {/* Marka paneli — açılır/kapanır (bkz. BrandPanel.tsx). Şimdilik tek marka: GLADIUS.
-          Yeni bir marka geldiğinde burada bir <BrandPanel> daha eklenir. */}
-      <div className="mt-4">
+      {/* Malzeme Çantam — oyuncunun mevcut takımı: parça + beden + dayanıklılık + (varsa) KIRIK. */}
+      <section className="mt-4">
+        <h2 className="kicker mb-2">{t(locale, "ekipman.myKit")}</h2>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {c.kit.map((k) => {
+            const item = itemById(k.itemId);
+            if (!item) return null;
+            const kicon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot as Exclude<EquipmentSlot, "WEAPON">];
+            const sizeLabel = k.size >= 5 ? "U14+" : k.size >= 2 ? "U12" : "U10";
+            return (
+              <li key={k.slot} className={`panel flex items-center gap-3 p-2.5 ${k.broken ? "border-sig-red" : ""}`}>
+                <span className="mesh flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
+                  <Icon name={kicon} size={24} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-[14px] font-semibold">{itemName(item, locale)}</span>
+                    <span className="kicker shrink-0 rounded border border-line px-1 text-[10px] text-steel">{sizeLabel}</span>
+                    {k.broken && <span className="kicker shrink-0 rounded bg-sig-red/20 px-1 text-[10px] text-sig-red">{t(locale, "ekipman.broken")}</span>}
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-arena-2" aria-hidden="true">
+                      <span className="block h-full rounded-full bg-ink" style={{ width: `${Math.max(0, Math.min(100, k.durability))}%` }} />
+                    </span>
+                    <span className="num text-[11px] text-steel">%{k.durability.toFixed(0)}</span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Market (Gladius) — marka paneli, açılır/kapanır (BrandPanel.tsx). Yeni marka → yeni <BrandPanel>. */}
+      <h2 className="kicker mt-6 mb-2">{t(locale, "ekipman.market")}</h2>
+      <div className="mt-0">
         <BrandPanel icon="gladius" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={catalog.length} locale={locale}>
           {GROUPS.map((g) => {
             const items = catalog.filter((i) => g.slots.includes(i.slot));

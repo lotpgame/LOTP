@@ -9,6 +9,17 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 1: malzeme çantası + bedava başlangıç takımı (docs/EKIPMAN_VE_OLAYLAR.md))
+- **Malzeme çantası modeli (`equipmentState` JSON, eklemeli):** her parçanın **beden + dayanıklılık + kırık**
+  durumu (`KitItemState`). `starterKit` / `resolveKit` / `applyKitPurchase` (saf, test). Eski kayıt (null) →
+  başlangıç takımına düşer (herkes tam çanta görür).
+- **Bedava başlangıç takımı:** yeni oyuncu 8 yaşında **tam Gladius takımı** ile başlar (doğru slotlar, beden 0,
+  %100) — herkes maça girebilir (paywall değil). createCareer hem `ownedEquipment` hem `equipmentState` yazar.
+- **Ekipman sayfası yeniden düzen:** üstte **"Malzeme Çantam"** (parça + beden rozeti U10/U12/U14 + dayanıklılık
+  barı + KIRIK), altta **"Market (Gladius)"**. Market "sahip" rozetleri çantadan türetilir (eski oyuncu da tutarlı).
+- **Yeni alan `Player.equipmentState`** (eklemeli şema → Neon migration gerekir). Satın alım çantayı günceller.
+  Beden→yaş, katılım kuralı, yıpranma/kırılma Dilim 2–3'te. 219 test; görsel doğrulandı.
+
 ### Eklendi (05.11 — Trait Katman 2 / Dilim 3: evrim bildirimi "Sen yokken" panelinde (hikâye))
 - Trait değişince **"Sen yokken" panelinde bildirim**: dönüşümde *"Karakterin olgunlaştı: Sabırsız →
   Soğukkanlı"* (eski üstü çizili), edinmede *"Yeni bir karakter özelliği: + Özgüvenli"* (9 dil). Mevcut trait

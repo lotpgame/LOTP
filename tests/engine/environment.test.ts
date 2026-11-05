@@ -16,6 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
+import { applyKitPurchase, encodeKit, itemById, resolveKit, starterKit } from "@/engine/equipment";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -164,6 +165,38 @@ describe("Trait Engine", () => {
     expect(activeTraitKeys(plan, 10)).toHaveLength(1);
     expect(activeTraitKeys(plan, 11)).toHaveLength(2);
     expect(activeTraitKeys(plan, 12)).toHaveLength(3);
+  });
+});
+
+describe("Malzeme çantası (equipmentState)", () => {
+  it("starterKit: tam takım, kozmetik hariç, beden 0 + tam dayanıklılık + kırık değil", () => {
+    const kit = starterKit("FOIL");
+    expect(kit.length).toBeGreaterThan(5);
+    for (const k of kit) {
+      expect(itemById(k.itemId)?.cosmetic).not.toBe(true); // kozmetik (çanta) yok
+      expect(k.size).toBe(0);
+      expect(k.durability).toBe(100);
+      expect(k.broken).toBe(false);
+    }
+    // flöre yeleği içerir, epe içermez
+    expect(starterKit("FOIL").some((k) => k.slot === "LAME")).toBe(true);
+    expect(starterKit("EPEE").some((k) => k.slot === "LAME")).toBe(false);
+  });
+  it("resolveKit: null/boş/bozuk → başlangıç takımı; geçerli JSON → kendisi", () => {
+    expect(resolveKit(null, "EPEE")).toEqual(starterKit("EPEE"));
+    expect(resolveKit("bozuk-json", "EPEE")).toEqual(starterKit("EPEE"));
+    const kit = starterKit("SABRE");
+    expect(resolveKit(encodeKit(kit), "SABRE")).toEqual(kit);
+  });
+  it("applyKitPurchase: o slotu yeni ürünle değiştirir (tam dayanıklılık), slot sayısı artmaz", () => {
+    const kit = starterKit("FOIL");
+    const weapon = itemById("gl-weapon-foil")!;
+    const worn = kit.map((k) => (k.slot === "WEAPON" ? { ...k, durability: 20, broken: true } : k));
+    const next = applyKitPurchase(worn, weapon);
+    const w = next.find((k) => k.slot === "WEAPON")!;
+    expect(w.durability).toBe(100);
+    expect(w.broken).toBe(false);
+    expect(next.filter((k) => k.slot === "WEAPON").length).toBe(1); // slot başına tek parça
   });
 });
 

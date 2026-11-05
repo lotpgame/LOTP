@@ -376,3 +376,45 @@ export function parseOwned(csv: string): string[] {
 export function encodeOwned(ids: readonly string[]): string {
   return [...new Set(ids)].join(",");
 }
+
+// ——— Malzeme çantası (equipmentState) — her parçanın beden/dayanıklılık/kırık durumu (docs/EKIPMAN_VE_OLAYLAR.md) ———
+
+export interface KitItemState {
+  slot: EquipmentSlot;
+  itemId: string;
+  size: number; // beden: U10→0, U12→2, U14+→5 (Dilim 1'de başlangıç 0; yaş→beden Dilim 2)
+  durability: number; // 0–100 (Dilim 1'de görünür, combat'a etkisi sonra)
+  broken: boolean; // olay sonucu kırık (Dilim 3) → geçersiz parça
+}
+
+/** Başlangıç takımı (BEDAVA): silahın gerektirdiği tüm parçalar (kozmetik hariç), beden 0, tam dayanıklılık. */
+export function starterKit(weapon: Weapon): KitItemState[] {
+  return itemsForWeapon(weapon)
+    .filter((i) => !i.cosmetic)
+    .map((i) => ({ slot: i.slot, itemId: i.id, size: 0, durability: 100, broken: false }));
+}
+
+export function encodeKit(kit: readonly KitItemState[]): string {
+  return JSON.stringify(kit);
+}
+
+/** equipmentState JSON'u çözer; yoksa/boşsa/bozuksa BAŞLANGIÇ takımına düşer (eski kayıtlar da tam çanta görür). */
+export function resolveKit(equipmentState: string | null | undefined, weapon: Weapon): KitItemState[] {
+  if (equipmentState) {
+    try {
+      const parsed = JSON.parse(equipmentState) as KitItemState[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed.filter((k) => k && itemById(k.itemId));
+    } catch {
+      // bozuk JSON → başlangıç takımına düş
+    }
+  }
+  return starterKit(weapon);
+}
+
+/** Bir satın alım/değişimi çantaya uygular: o slotun parçasını yeni ürünle değiştirir (tam dayanıklılık, kırık değil). */
+export function applyKitPurchase(kit: readonly KitItemState[], item: GladiusItem): KitItemState[] {
+  const prev = kit.find((k) => k.slot === item.slot);
+  const next = kit.filter((k) => k.slot !== item.slot);
+  next.push({ slot: item.slot, itemId: item.id, size: prev?.size ?? 0, durability: 100, broken: false });
+  return next;
+}

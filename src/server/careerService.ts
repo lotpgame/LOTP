@@ -217,7 +217,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { encodeOwned, equipmentCombatBonus, itemById, parseOwned } from "@/engine/equipment";
+import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, resolveKit, starterKit, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -499,6 +499,7 @@ export interface CareerDTO {
   } | null;
   equipmentLevel: number;
   ownedEquipment: string[]; // sahip olunan Gladius ürün id'leri
+  kit: KitItemState[]; // Malzeme çantası: her parçanın beden/dayanıklılık/kırık durumu (Dilim 1)
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
@@ -761,6 +762,9 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         careerStartDate: GAME_START,
         traits: encodeTraitPlan(traitPlan),
         balance: STARTING_BALANCE,
+        // Bedava başlangıç takımı (Yusuf): 8 yaşında tam Gladius takımı — herkes maça girebilir (paywall değil).
+        ownedEquipment: encodeOwned(starterKit(data.weapon as Weapon).map((k) => k.itemId)),
+        equipmentState: encodeKit(starterKit(data.weapon as Weapon)),
         clubId: humanClubId,
         ...geneticsData(humanGenetics),
         avatar: pickAvatar(data.gender, `${seed}:av:human`),
@@ -984,6 +988,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       : null,
     equipmentLevel: human.equipmentLevel,
     ownedEquipment: parseOwned(human.ownedEquipment),
+    kit: resolveKit(human.equipmentState, human.weapon as Weapon),
     balance: roundSkill(human.balance),
     equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
     canUpgradeEquipment:
@@ -1891,9 +1896,15 @@ export async function buyEquipment(itemId: string): Promise<void> {
   const owned = parseOwned(human.ownedEquipment);
   if (owned.includes(item.id)) return; // zaten sahipsin
   if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
+  // Çantayı da güncelle: o slotun parçası yeni ürünle değişir (tam dayanıklılık, kırık değil).
+  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item);
   await prisma.player.update({
     where: { id: human.id },
-    data: { balance: { decrement: item.denar }, ownedEquipment: encodeOwned([...owned, item.id]) },
+    data: {
+      balance: { decrement: item.denar },
+      ownedEquipment: encodeOwned([...owned, item.id]),
+      equipmentState: encodeKit(kit),
+    },
   });
 }
 
