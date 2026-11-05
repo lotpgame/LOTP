@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — avatar havuzu 60 sete çıktı (kullanıcı üretimi))
+- Yeni şeritler dilimlendi: **23 erkek** (`b01–b23`) + **37 kız** (`g01–g37`) = **60 set** (eskiden 42).
+  `b21–b23` farklı oranda (3:2) geldiği için çene kesilmesin diye özel (daha ferah) kırpımla yeniden
+  dilimlendi; diğerleri standart. Kod değişmeden havuz büyüdü (`pickAvatar` manifestten okur).
+
 ### Kaldırıldı (01.11 — ölü kod temizliği (knip ile tarama))
 - **4 kullanılmayan dosya silindi** (344 satır): `ViewSettings.tsx`, `LiveTournamentPanel.tsx` (eski canlı
   turnuva paneli, podyum modeline geçince atıl kaldı), `engine/events.ts` (M0 iskelet, hiç kullanılmadı),
