@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
-import { buyEquipmentAction } from "@/app/actions";
+import { buyEquipmentAction, discardEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
-import { itemById, itemsForWeapon, itemName, itemDesc, kitItemFits, weaponSizeLabel, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { itemById, itemsForWeapon, itemName, itemDesc, itemsInSlot, kitItemFits, MAX_PER_SLOT, weaponSizeLabel, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
 import type { AgeCategory } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -58,7 +58,9 @@ export default async function EkipmanPage({
   const ageCat = (c.categoryId.split("-")[0] ?? "U10") as AgeCategory;
 
   const card = (item: GladiusItem) => {
-    const isOwned = owned.has(item.id);
+    // Her parçadan 3'e kadar yedek alınabilir → "dolu" sadece 3/3'te.
+    const slotCount = itemsInSlot(c.kit, item.slot).length;
+    const isOwned = slotCount >= MAX_PER_SLOT;
     const missing = Math.max(0, Math.ceil(item.denar - c.balance));
     const icon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot];
     return (
@@ -79,7 +81,7 @@ export default async function EkipmanPage({
           </span>
           {isOwned ? (
             <span className="flex min-h-11 items-center gap-1.5 text-[14px] font-semibold">
-              <Icon name="check" size={18} className="text-ink" /> {t(locale, "ekipman.owned")}
+              <Icon name="check" size={18} className="text-ink" /> {t(locale, "ekipman.owned")} <span className="num text-steel">{slotCount}/{MAX_PER_SLOT}</span>
             </span>
           ) : missing > 0 ? (
             // Yetmiyorsa ipucu tooltip'te değil, görünür yazı olarak.
@@ -89,7 +91,9 @@ export default async function EkipmanPage({
           ) : (
             <form action={buyEquipmentAction}>
               <input type="hidden" name="itemId" value={item.id} />
-              <button className="btn-ink press text-[14px]">{t(locale, "ekipman.buy")}</button>
+              <button className="btn-ink press text-[14px]">
+                {slotCount >= 1 ? `${slotCount + 1}. ` : ""}{t(locale, "ekipman.buy")}
+              </button>
             </form>
           )}
         </div>
@@ -120,19 +124,23 @@ export default async function EkipmanPage({
           <Icon name="chevron-down" size={18} className="shrink-0 text-steel transition-transform group-open:rotate-180" />
         </summary>
         <ul className="grid gap-2 border-t border-line px-4 pb-4 pt-3 sm:grid-cols-2">
-          {c.kit.map((k) => {
+          {c.kit.map((k, ki) => {
             const item = itemById(k.itemId);
             if (!item) return null;
             const kicon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot as Exclude<EquipmentSlot, "WEAPON">];
             const tooSmall = !kitItemFits(k, c.age, ageCat); // yaşla büyüdü, beden küçük geldi → yenileme
+            // Çoklu parça: aynı slotta birden çok varsa "1./2./3." ön eki + çöp at (index = slot içi sıra)
+            const slotItems = c.kit.filter((x) => x.slot === k.slot);
+            const idxInSlot = slotItems.indexOf(k);
+            const multiPrefix = slotItems.length > 1 ? `${idxInSlot + 1}. ` : "";
             return (
-              <li key={k.slot} className={`panel flex items-center gap-3 p-2.5 ${k.broken || tooSmall ? "border-sig-red" : ""}`}>
+              <li key={`${k.slot}-${ki}`} className={`panel flex items-center gap-3 p-2.5 ${k.broken || tooSmall ? "border-sig-red" : ""}`}>
                 <span className="mesh flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
                   <Icon name={kicon} size={24} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="truncate text-[14px] font-semibold">{itemName(item, locale)}</span>
+                    <span className="truncate text-[14px] font-semibold">{multiPrefix}{itemName(item, locale)}</span>
                     {item.slot === "WEAPON" && (
                       <span className={`kicker shrink-0 rounded border px-1 text-[10px] ${tooSmall ? "border-sig-red text-sig-red" : "border-line text-steel"}`}>{weaponSizeLabel(k.size)}</span>
                     )}
@@ -146,6 +154,14 @@ export default async function EkipmanPage({
                     <span className="num text-[11px] text-steel">%{k.durability.toFixed(0)}</span>
                   </div>
                 </div>
+                {/* Çöp at — parçayı çantadan çıkarır (iade yok). İleride marka değişiminde işe yarar. */}
+                <form action={discardEquipmentAction} className="shrink-0">
+                  <input type="hidden" name="slot" value={k.slot} />
+                  <input type="hidden" name="index" value={idxInSlot} />
+                  <button className="flex h-8 w-8 items-center justify-center rounded-md text-steel active:bg-arena-2" aria-label={t(locale, "ekipman.discard")} title={t(locale, "ekipman.discard")}>
+                    <Icon name="close" size={16} />
+                  </button>
+                </form>
               </li>
             );
           })}

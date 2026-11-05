@@ -219,7 +219,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1920,11 +1920,13 @@ export async function buyEquipment(itemId: string): Promise<void> {
   const item = itemById(itemId);
   if (!item) throw new GameError("item_not_found", "Ürün bulunamadı.");
   const owned = parseOwned(human.ownedEquipment);
-  if (owned.includes(item.id)) return; // zaten sahipsin
+  const curKit = resolveKit(human.equipmentState, human.weapon as Weapon);
+  // Her parçadan 3'e kadar (yedek). Slot doluysa alma (çöp at'la yer aç).
+  if (itemsInSlot(curKit, item.slot).length >= MAX_PER_SLOT) throw new GameError("slot_full", "Bu parçadan en fazla 3 tanesine sahip olabilirsin.");
   if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
-  // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞINA uygun bedenle değişir (silah→kategori, kıyafet→gövde).
+  // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞINA uygun bedenle (silah→kategori, kıyafet→gövde). Silah → yedek ekler.
   const ident = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
-  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item, requiredSize(item.slot, ident.age, ident.ageCategory));
+  const kit = applyKitPurchase(curKit, item, requiredSize(item.slot, ident.age, ident.ageCategory));
   await prisma.player.update({
     where: { id: human.id },
     data: {
@@ -1932,6 +1934,18 @@ export async function buyEquipment(itemId: string): Promise<void> {
       ownedEquipment: encodeOwned([...owned, item.id]),
       equipmentState: encodeKit(kit),
     },
+  });
+}
+
+/** Bir ekipman parçasını ÇÖP ATAR (slot + o slottaki sıra). İade yok. owned combat için çantadan tazelenir. */
+export async function discardEquipment(slot: string, index: number): Promise<void> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { human } = state;
+  const kit = discardKitItem(resolveKit(human.equipmentState, human.weapon as Weapon), slot as EquipmentSlot, index);
+  await prisma.player.update({
+    where: { id: human.id },
+    data: { equipmentState: encodeKit(kit), ownedEquipment: encodeOwned(kit.map((k) => k.itemId)) },
   });
 }
 

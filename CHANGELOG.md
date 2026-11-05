@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2C-1: çoklu parça (her slotta 3'e kadar) + çöp at (kullanıcı))
+- **Her ekipman slotunda 1–3 yedek:** silah, kıyafet, ayakkabı… hepsinden 3'e kadar alınabilir. Çantada aynı
+  slotta birden çok varsa **"1./2./3."** numaralanır. Maça katılım: slotta **en az bir sağlam** (kırık değil +
+  doğru beden) parça yeter (yedek sayesinde biri kırılsa da girilir). `MAX_PER_SLOT`/`itemsInSlot`/`applyKitPurchase`
+  (dolunca en yıpranmışı değişir).
+- **Çöp at (`discardKitItem`/`discardEquipment`):** her parçanın yanında × ile çantadan atılır (iade yok) —
+  ileride marka değişiminde (eldekini at, yenisini al) işe yarar. Market: parça başına **"N. Al"** + dolu "3/3".
+- Şema değişmedi (equipmentState mevcut). 222 test, görsel doğrulandı. Sırada: 2C-2 (iki tür yıpranma).
+
 ### Eklendi (05.11 — Ekipman Dilim 2B-3: kulüp aidatı (düzenli Denar))
 - **Kulüp aidatı:** oyuncu "dünyaya yetiş"irken geçilen her oyun-ayında (7 gün) küçük Denar öder
   (`clubMonthlyDues`, kulüp `coachSkill`'ine bağlı: 0→1 … 100→4 Đ/ay — iyi kulüp daha pahalı). **Yumuşak:**

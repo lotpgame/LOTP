@@ -16,7 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, bodySize, encodeKit, itemById, kitItemFits, requiredSize, resolveKit, validateKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
 import {
   clubTrainingMultiplier,
@@ -239,15 +239,38 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(clubMonthlyDues(60)).toBeLessThanOrEqual(4);
     expect(clubMonthlyDues(0)).toBeGreaterThanOrEqual(1);
   });
-  it("applyKitPurchase: o slotu yeni ürünle değiştirir (tam dayanıklılık), slot sayısı artmaz", () => {
-    const kit = starterKit("FOIL");
-    const weapon = itemById("gl-weapon-foil")!;
-    const worn = kit.map((k) => (k.slot === "WEAPON" ? { ...k, durability: 20, broken: true } : k));
-    const next = applyKitPurchase(worn, weapon);
-    const w = next.find((k) => k.slot === "WEAPON")!;
-    expect(w.durability).toBe(100);
-    expect(w.broken).toBe(false);
-    expect(next.filter((k) => k.slot === "WEAPON").length).toBe(1); // slot başına tek parça
+  it("çoklu silah (2C): 3'e kadar yedek; en az bir sağlam silah yeterli; dolu→en kötüyü değiştirir", () => {
+    const foilWeapon = itemById("gl-weapon-foil")!;
+    let kit = starterKit("FOIL"); // 1 silah
+    expect(weaponsInKit(kit).length).toBe(1);
+    kit = applyKitPurchase(kit, foilWeapon, 0); // 2. silah
+    kit = applyKitPurchase(kit, foilWeapon, 0); // 3. silah
+    expect(weaponsInKit(kit).length).toBe(3);
+    kit = applyKitPurchase(kit, foilWeapon, 0); // dolu → hâlâ 3
+    expect(weaponsInKit(kit).length).toBe(3);
+    // Bir silah kırık ama diğeri sağlam → maça girilebilir (null)
+    const w = weaponsInKit(kit);
+    const mixed = kit.map((k) => (k === w[0] ? { ...k, broken: true } : k));
+    expect(validateKit(mixed, "FOIL", 9, "U10")).toBeNull();
+    // Tüm silahlar kırık → kit_broken
+    const allBroken = kit.map((k) => (k.slot === "WEAPON" ? { ...k, broken: true } : k));
+    expect(validateKit(allBroken, "FOIL", 9, "U10")).toBe("kit_broken");
+  });
+  it("applyKitPurchase: her slot 3'e kadar YEDEK ekler; dolunca en kötüyü değiştirir; discardKitItem çöpe atar", () => {
+    const mask = itemById("gl-mask-foil")!;
+    let kit = starterKit("FOIL"); // 1 maske
+    expect(itemsInSlot(kit, "MASK").length).toBe(1);
+    kit = applyKitPurchase(kit, mask); // 2. maske (yedek)
+    kit = applyKitPurchase(kit, mask); // 3. maske
+    expect(itemsInSlot(kit, "MASK").length).toBe(3);
+    // Dolu: en yıpranmış maske (durability 10) değişir, sayı 3 kalır
+    kit = kit.map((k) => (k.slot === "MASK" && itemsInSlot(kit, "MASK").indexOf(k) === 0 ? { ...k, durability: 10 } : k));
+    kit = applyKitPurchase(kit, mask);
+    expect(itemsInSlot(kit, "MASK").length).toBe(3);
+    expect(itemsInSlot(kit, "MASK").every((m) => m.durability >= 100 || m.durability > 10)).toBe(true); // 10'luk atıldı
+    // Çöp at: 1. maskeyi çıkar → 2 kalır
+    const after = discardKitItem(kit, "MASK", 0);
+    expect(itemsInSlot(after, "MASK").length).toBe(2);
   });
 });
 

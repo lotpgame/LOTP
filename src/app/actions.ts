@@ -16,6 +16,7 @@ import {
   advanceLiveStage,
   attendTournament,
   buyEquipment,
+  discardEquipment,
   GameError,
   clearReport,
   clearAwayReport,
@@ -101,6 +102,15 @@ export async function buyEquipmentAction(formData: FormData): Promise<void> {
     if (e instanceof GameError) redirect(`/kariyer/ekipman?err=${e.code}`);
     throw e;
   }
+  revalidatePath("/kariyer/ekipman");
+}
+
+/** Bir ekipman parçasını çöp atar (slot + o slottaki sıra). */
+export async function discardEquipmentAction(formData: FormData): Promise<void> {
+  const slot = String(formData.get("slot") ?? "");
+  const index = Number(formData.get("index") ?? 0);
+  if (!slot || !Number.isInteger(index) || index < 0) return;
+  await discardEquipment(slot, index);
   revalidatePath("/kariyer/ekipman");
 }
 

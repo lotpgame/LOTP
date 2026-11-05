@@ -415,18 +415,27 @@ export function kitItemFits(k: KitItemState, age: number, ageCategory: AgeCatego
   return k.size >= requiredSize(k.slot, age, ageCategory);
 }
 
+// ——— Çoklu parça (Dilim 2C): HER slotta 1–3 parça (yedek). Biri kırılır/küçülürse diğeri geçerli (katılım). ———
+export const MAX_PER_SLOT = 3;
+export function itemsInSlot(kit: readonly KitItemState[], slot: EquipmentSlot): KitItemState[] {
+  return kit.filter((k) => k.slot === slot);
+}
+/** Geriye-uyum: silahlar (en çok kullanılan çoklu-parça örneği). */
+export function weaponsInKit(kit: readonly KitItemState[]): KitItemState[] {
+  return itemsInSlot(kit, "WEAPON");
+}
+
 /**
- * Maça katılım için takım geçerli mi? Tüm gerekli parçalar var + kırık değil + doğru beden (Dilim 2B).
- * Sorun varsa hata KODU döner ("kit_incomplete" | "kit_broken" | "kit_small"), yoksa null. Kod = i18n err.<kod>.
+ * Maça katılım için takım geçerli mi? Her gerekli slotta EN AZ BİR geçerli (kırık değil + doğru beden) parça
+ * yeter (yedekler sayesinde). Sorun → hata KODU (i18n err.<kod>), yoksa null.
  */
 export function validateKit(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory): "kit_incomplete" | "kit_broken" | "kit_small" | null {
-  const bySlot = new Map(kit.map((k) => [k.slot, k]));
-  for (const req of itemsForWeapon(weapon).filter((i) => !i.cosmetic)) {
-    if (!bySlot.has(req.slot)) return "kit_incomplete"; // eksik parça
-  }
-  for (const k of kit) {
-    if (k.broken) return "kit_broken"; // kırık parça
-    if (!kitItemFits(k, age, ageCategory)) return "kit_small"; // küçük gelmiş
+  const requiredSlots = new Set(itemsForWeapon(weapon).filter((i) => !i.cosmetic).map((i) => i.slot));
+  for (const slot of requiredSlots) {
+    const items = itemsInSlot(kit, slot);
+    if (items.length === 0) return "kit_incomplete";
+    if (items.some((k) => !k.broken && kitItemFits(k, age, ageCategory))) continue; // en az bir geçerli → ok
+    return items.every((k) => k.broken) ? "kit_broken" : "kit_small";
   }
   return null;
 }
@@ -455,9 +464,22 @@ export function resolveKit(equipmentState: string | null | undefined, weapon: We
   return starterKit(weapon);
 }
 
-/** Bir satın alım/değişimi çantaya uygular: o slotun parçasını yeni ürünle, DOĞRU bedenle değiştirir (tam dayanıklılık). */
+/** Bir satın alımı çantaya uygular: o slota YEDEK ekler (3 doluysa en yıpranmış/kırık olanı değiştirir).
+ * Tam dayanıklılık + DOĞRU beden. Her slot için geçerli (silah, kıyafet, ayakkabı…). */
 export function applyKitPurchase(kit: readonly KitItemState[], item: GladiusItem, size = 0): KitItemState[] {
-  const next = kit.filter((k) => k.slot !== item.slot);
-  next.push({ slot: item.slot, itemId: item.id, size, durability: 100, broken: false });
-  return next;
+  const fresh: KitItemState = { slot: item.slot, itemId: item.id, size, durability: 100, broken: false };
+  const inSlot = itemsInSlot(kit, item.slot);
+  if (inSlot.length < MAX_PER_SLOT) return [...kit, fresh]; // yedek ekle
+  const worst = inSlot.reduce((a, b) => ((b.broken ? -1 : b.durability) < (a.broken ? -1 : a.durability) ? b : a));
+  return kit.map((k) => (k === worst ? fresh : k)); // dolu → en kötüyü değiştir
+}
+
+/** Bir parçayı çantadan ATAR (çöp at). `index` o slottaki kaçıncı parça (0-tabanlı). Diğerleri korunur. */
+export function discardKitItem(kit: readonly KitItemState[], slot: EquipmentSlot, index: number): KitItemState[] {
+  let seen = -1;
+  return kit.filter((k) => {
+    if (k.slot !== slot) return true;
+    seen++;
+    return seen !== index; // o slottaki `index`. parçayı çıkar
+  });
 }
