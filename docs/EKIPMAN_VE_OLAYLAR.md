@@ -37,17 +37,78 @@ Yeni hafif motor: `src/engine/events/` (ya da `lifeEvents.ts`). Kariyer ilerledi
 - **Psikoloji/moral olayları** (Psychology'ye delta): olumlu ("formdasın → moral ↑"), olumsuz ("kötü gün → stres ↑").
 - **Malzeme olayları:** "antrenmanda silah kırıldı → broken" (→ tamir/yenile), "ayakkabı yıprandı" vb.
 - Her olay: `{ key, kind: PSYCH|MATERIAL, etki, i18n metni }`. Sonuç uygulanır + **bildirilir** ("Sen yokken" paneli + anlık).
-- Denge: olaylar seyrek; olumsuz malzeme olayı (kırılma) Denar talebi doğurur ama hep **ucuz tamir** alternatifi var (kilit yok).
+- **Sıklık (KARAR, Yusuf):** **~haftada 2 olay** (seeded, deterministik). Sık çıktığı için **etkiler KÜÇÜK** (dengeyi bozmaz).
+- **Ağırlık:** çoğu **psikoloji/renk** olayı; **malzeme-kırılma NADİR** (düşük ağırlık) — haftada silah kırılmaz. Kırılma
+  olunca hep **ucuz tamir** alternatifi var (kilit yok).
 - Not: Trait evrimi (Katman 2) zaten büyük olaylara bağlı; bu sistem onunla uyumlu (olay → Memory/Psychology → Trait).
+
+### 5b. Olay kataloğu — **30 olay** (~haftada 2 çıkar; genişletilebilir)
+Etkiler KÜÇÜK (sık çıkar), olumlu/olumsuz dengeli. "çocuk sporcu" temalı (okul-spor dengesi dahil, gerçekçi).
+Dağılım: 11 olumlu + 10 olumsuz psikoloji, 6 malzeme-olumsuz (kırılma NADİR ağırlıkta), 3 malzeme-olumlu.
+
+**Psikoloji/moral — OLUMLU**
+| key | etki | örnek metin |
+|---|---|---|
+| goodDay | moral ↑ | "Bugün formda hissediyorsun — her şey yolunda gidiyor." |
+| coachPraise | özgüven ↑, motivasyon ↑ | "Koçun antrenmanda seni övdü." |
+| familySupport | moral ↑, stres ↓ | "Ailen maçına geldi, desteklerini hissettin." |
+| goodSleep | stres ↓ | "İyi dinlendin, zihnin berrak." |
+| smallGoal | motivasyon ↑ | "Koyduğun küçük hedefe ulaştın." |
+| inspiredByEvent | motivasyon ↑ | "Büyük bir turnuvayı izledin, ilham aldın." |
+| newFriendClub | moral ↑ | "Kulübe yeni bir arkadaş katıldı, antrenman keyifli." |
+| teammateWin | moral ↑ | "Kulüp arkadaşın madalya aldı, sevindin." |
+| coachTip | özgüven ↑ | "Koçtan işine yarayan bir ipucu aldın." |
+| restDayFun | stres ↓ | "Dinlenme gününde iyi vakit geçirdin." |
+| newGearJoy | motivasyon ↑ | "Yeni ekipmanınla antrenman keyifliydi." |
+
+**Psikoloji/moral — OLUMSUZ**
+| key | etki | örnek metin |
+|---|---|---|
+| badDay | moral ↓ | "Morali bozuk bir gün; aklın dağınık." |
+| coachCritique | özgüven ↓, stres ↑ | "Koçun sert eleştirdi, biraz yıkıldın." |
+| schoolBusy | motivasyon ↓, stres ↑ | "Okulda yoğun bir hafta — spora vakit zor." |
+| examWeek | motivasyon ↓ | "Sınav haftası; kafan derslerde." |
+| slumpTraining | özgüven ↓ | "Antrenmanda üst üste hata yaptın." |
+| rivalryTension | stres ↑ | "Bir rakiple araların gerildi." |
+| minorIllness | keskinlik ↓ (kısa) | "Hafif hastalandın, birkaç gün düşük tempo." |
+| nervousBigMatch | stres ↑ | "Büyük maç öncesi gerginsin." |
+| growthSpurt | özgüven ↓ (kısa) | "Hızlı büyüdün, hareketlerin biraz dağıldı." |
+| travelTired | keskinlik ↓ (kısa) | "Uzak turnuva dönüşü yorgunsun." |
+
+**Malzeme — OLUMSUZ (Denar talebi doğurur; ama hep ucuz alternatif var → kilit yok)**
+| key | etki | örnek metin |
+|---|---|---|
+| weaponBroke | silah KIRIK | "Antrenmanda silahın kırıldı — yeni gerek ya da tamir." |
+| cordFault | kordon KIRIK (ucuz) | "Vücut kordonun arızalandı." |
+| maskCordSnap | maske kordonu KIRIK (ucuz) | "Maske kordonun koptu." |
+| shoesWorn | ayakkabı dayanıklılık ↓↓ | "Ayakkabın iyice yıprandı." |
+| clothingTear | kıyafet dayanıklılık ↓↓ | "Kıyafetin yırtıldı." |
+| lameIssue | yelek dayanıklılık ↓↓ | "Elektrikli yeleğin sorun çıkardı." |
+
+**Malzeme — OLUMLU / rahatlatıcı (nadir)**
+| key | etki | örnek metin |
+|---|---|---|
+| clubLoanGear | geçici yedek (kilit açılır) | "Kulüp sana yedek ekipman ödünç verdi." |
+| secondHandDeal | ucuz fırsat (indirimli parça) | "İkinci el bir parça fırsatı çıktı." |
+| clubGift | bedava küçük parça / az Denar | "Kulüp bir parça hediye etti." |
 
 ## 6. Ekipman sayfası (UI) + Market
 - **Üst: "Malzeme Çantam"** — oyuncunun mevcut takımı: her parça + beden + dayanıklılık barı + (varsa) "KIRIK"/"küçük" rozeti.
 - **Alt: "Market (Gladius)"** — satın alınabilir Gladius ürünleri (doğru beden), fiyat (Denar), "Al" butonu + bakiye.
 - Kırık/küçük/yıpranan parça için **kısayol:** "yenile/tamir et" → markette ilgili ürün.
 
+## 6b. Kulüp aidatı (düzenli Denar gideri) — KARAR (Yusuf)
+- Oyuncu bir kulübe bağlı (gerçekte çocuk sporcu aidat öder). **Düzenli (ör. aylık = her oyun-ayında) küçük Denar aidatı.**
+- Kulüp kalitesine bağlı olabilir: **daha iyi kulüp = daha yüksek aidat** (daha iyi antrenman karşılığı) → anlamlı seçim
+  (ucuz kulüp/az gelişim ↔ pahalı kulüp/çok gelişim). İleride kulüp değiştirme bununla dengelenir.
+- **Adillik:** aidat küçük tutulur; turnuva ödülü + reklam ödülü temel aidatı karşılar. Ödenmezse: sert ceza değil,
+  yumuşak sonuç (ör. uyarı, geçici antrenman kalitesi düşüşü) — çocuğu oyundan atmaz.
+- Denge kalibrasyonu Dilim 4'te (katılım ücreti + aidat + reklam ödülü birlikte ayarlanır).
+
 ## 7. Denar musluğu (bu tasarımın yaktığı Denar — özet)
-Katılım ücreti · beden yükseltme (yaş) · büyüme kıyafeti (2 yıl) · kırık silah tamiri/yenileme · yıpranma yenileme ·
-(+ ayrı: kozmetik). Kazanç: turnuva (kıt) + **reklam izle → küçük Denar** (katılım ücretini çıkarır, silah ALMAZ) + (V2) prim/sponsor.
+Katılım ücreti · **kulüp aidatı (düzenli)** · beden yükseltme (yaş) · büyüme kıyafeti (2 yıl) · kırık silah tamiri/yenileme ·
+yıpranma yenileme · (+ ayrı: kozmetik, asıl büyük musluk) · (opsiyonel) uluslararası seyahat.
+Kazanç: turnuva (kıt) + **reklam izle → küçük Denar** (katılım/aidat çıkar, silah ALMAZ) + (V2) prim/sponsor.
 
 ## 8. Uygulama DİLİMLERİ (küçük, güvenli, canlı veriyi korur)
 1. **Dilim 1 — Ekipman durumu + başlangıç takımı + sayfa/market:** `equipmentState` JSON (eklemeli), kariyer başında
