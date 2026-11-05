@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Dilim 3-1: Hayat olayları motoru (psikoloji, dengeli))
+- **Olay motoru** (`src/engine/lifeEvents.ts`): çocuk→genç sporcunun kariyerinde her oyun-haftasında **1 olumlu
+  + 1 olumsuz** psikoloji olayı (DENGE → oyuncu hep kötüden yılıp bırakmasın). 20 olay (koç övgüsü, aile desteği,
+  sınav haftası, büyük maç stresi…), deterministik + ağırlıklı + **yaş kapılı** (sınav 10+, büyüme atağı 12–16).
+  Etkiler küçük (±2–5), moral/motivasyon/özgüven/stres'e uygulanır.
+- "Dünyaya yetiş"te geçilen haftalar için üretilir (uzun boşlukta son 8 hafta), **"Sen yokken"** panelinde listelenir
+  (9 dil). **Migration yok** (olaylar antrenman raporuna gömülü). 226 test, görsel doğrulandı.
+- Sırada: **3-2** malzeme olayları (kırılma → yedek; 1 olumsuz + 1 olumlu/harçlık) · **3-3** fırsat/indirim teklifleri.
+
 ### Eklendi (05.11 — Ekipman Dilim 2C-3: durma/paslanma (atıl parça bozulur))
 - **Atıl ekipman paslanır:** uzun süre kullanılmayan (son kullanımdan +21 gün sonra) parça, "dünyaya yetiş"
   penceresinde oyun-ayı başına ~2 dayanıklılık kaybeder (`applyRestAging`); 0'da kırılır. Kullanılan parça

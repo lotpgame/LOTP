@@ -50,9 +50,11 @@ Yeni hafif motor: `src/engine/events/` (ya da `lifeEvents.ts`). Kariyer ilerledi
 - **Psikoloji/moral olayları** (Psychology'ye delta): olumlu ("formdasın → moral ↑"), olumsuz ("kötü gün → stres ↑").
 - **Malzeme olayları:** "antrenmanda silah kırıldı → broken" (→ tamir/yenile), "ayakkabı yıprandı" vb.
 - Her olay: `{ key, kind: PSYCH|MATERIAL, etki, i18n metni }`. Sonuç uygulanır + **bildirilir** ("Sen yokken" paneli + anlık).
-- **Sıklık (KARAR, Yusuf):** **~haftada 2 olay** (seeded, deterministik). Sık çıktığı için **etkiler KÜÇÜK** (dengeyi bozmaz).
-- **Ağırlık:** çoğu **psikoloji/renk** olayı; **malzeme-kırılma NADİR** (düşük ağırlık) — haftada silah kırılmaz. Kırılma
-  olunca hep **ucuz tamir** alternatifi var (kilit yok).
+- **Sıklık + DENGE (KARAR, Yusuf):** her kategori **kendi içinde dengeli** — oyuncu hep kötüden yılıp bırakmasın:
+  - **Psikoloji:** haftada **1 olumlu + 1 olumsuz** (deterministik, ağırlıklı, yaş kapılı). ✅ Dilim 3-1.
+  - **Malzeme:** **ASLA 2 olumsuz** (2 kırılma yok). Olduğunda **1 olumsuz (kırılma/sorun) + 1 olumlu
+    (harçlık/indirim-fırsat/hediye)**. Kırılma **nadir** (her hafta değil). → Dilim 3-2/3-3.
+- Etkiler KÜÇÜK (sık çıkar, dengeyi bozmaz). Kırılmada hep **ucuz tamir/yedek** var (kilit yok).
 - Not: Trait evrimi (Katman 2) zaten büyük olaylara bağlı; bu sistem onunla uyumlu (olay → Memory/Psychology → Trait).
 
 ### 5b. Olay kataloğu — **30 olay** (~haftada 2 çıkar; genişletilebilir)

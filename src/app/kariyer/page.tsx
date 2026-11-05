@@ -116,6 +116,16 @@ export default async function BugunPage({
                   </span>
                 )}
               </div>
+              {/* Dilim 3-1: hayat olayları (haftada 1 iyi + 1 kötü) */}
+              {report.events && report.events.length > 0 && (
+                <ul className="mt-2 flex flex-col gap-1 border-t border-line pt-2">
+                  {report.events.map((ek, i) => (
+                    <li key={`${ek}-${i}`} className="flex items-center gap-2 text-[13px] text-steel">
+                      <Icon name="info" size={14} className="shrink-0" /> {t(locale, `event.${ek}`)}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </>
           )}
 

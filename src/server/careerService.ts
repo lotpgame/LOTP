@@ -220,6 +220,7 @@ import {
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
 import { applyKitPurchase, applyMatchWear, applyRestAging, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
+import { applyEventsToPsych, LIFE_EVENTS, rollWeeklyEvents } from "@/engine/lifeEvents";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1035,6 +1036,7 @@ export interface TrainingReport {
   conditionDelta: number; // kondisyon değişimi (+ toparladı, − yoruldu)
   sharpnessDelta: number; // keskinlik değişimi
   injured: boolean; // bu ilerlemede sakatlandı mı
+  events?: string[]; // Dilim 3-1: hayat olayları anahtarları (event.<key>) — opsiyonel (eski raporlar taşımaz)
 }
 
 /** M11.4: "yokken neler oldu" — offline'ken otomatik oynanan bir turnuvanın özeti. */
@@ -1729,6 +1731,17 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
 
   const nextPsych = psychAfterTrainingWeek(psych, restSessions);
 
+  // Dilim 3-1: hayat olayları — geçilen her oyun-haftasında ~2 olay (psikoloji). Uzun boşlukta son 8 hafta ile
+  // sınırla (sel olmasın). Deterministik (oyuncu+hafta tohumu). Psikolojiye uygulanır + "Sen yokken"de bildirilir.
+  const fromWeek = Math.floor(startDay / DAYS_PER_MONTH);
+  const toWeek = Math.floor(d / DAYS_PER_MONTH);
+  const weekEvents: { key: string }[] = [];
+  for (let w = Math.max(fromWeek, toWeek - 8); w < toWeek; w++) {
+    for (const ev of rollWeeklyEvents(createRng(`events:${human.id}:${w}`), cur.age)) weekEvents.push({ key: ev.key });
+  }
+  const eventDefs = weekEvents.map((e) => LIFE_EVENTS.find((d2) => d2.key === e.key)!).filter(Boolean);
+  const finalPsych = applyEventsToPsych(nextPsych, eventDefs);
+
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
   const days = d - startDay;
@@ -1746,6 +1759,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
           conditionDelta: Math.round(fatigueBefore - fatigue), // + toparladı, − yoruldu
           sharpnessDelta: Math.round(sharpness - sharpnessBefore),
           injured: injuryDays > 0 && injuredNow,
+          events: weekEvents.map((e) => e.key), // Dilim 3-1: hayat olayları (Sen yokken'de gösterilir)
         })
       : null;
 
@@ -1769,10 +1783,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         balance: { decrement: clubDues }, // kulüp aidatı
         // 2C-3: bu ilerleme penceresinde ATIL ekipman paslanır (kullanılan parça etkilenmez).
         equipmentState: encodeKit(applyRestAging(resolveKit(human.equipmentState, human.weapon as Weapon), startDay, d)),
-        morale: nextPsych.morale,
-        motivation: nextPsych.motivation,
-        confidence: nextPsych.confidence,
-        stress: nextPsych.stress,
+        morale: finalPsych.morale,
+        motivation: finalPsych.motivation,
+        confidence: finalPsych.confidence,
+        stress: finalPsych.stress,
         status: injuryDays > 0 ? "INJURED" : "ACTIVE",
         injuryDaysRemaining: injuryDays,
       },

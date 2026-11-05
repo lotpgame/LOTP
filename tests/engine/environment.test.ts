@@ -18,6 +18,7 @@ import {
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
 import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
+import { applyEventsToPsych, rollWeeklyEvents } from "@/engine/lifeEvents";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -302,6 +303,33 @@ describe("Malzeme çantası (equipmentState)", () => {
     // Çöp at: 1. maskeyi çıkar → 2 kalır
     const after = discardKitItem(kit, "MASK", 0);
     expect(itemsInSlot(after, "MASK").length).toBe(2);
+  });
+});
+
+describe("Hayat Olayları (Dilim 3-1)", () => {
+  it("haftada 1 olumlu + 1 olumsuz (denge), deterministik, yaş kapılı", () => {
+    const a = rollWeeklyEvents(createRng("w1"), 14);
+    const b = rollWeeklyEvents(createRng("w1"), 14);
+    expect(a).toEqual(b); // deterministik
+    expect(a.length).toBe(2);
+    expect(a.filter((e) => e.tone === "pos").length).toBe(1);
+    expect(a.filter((e) => e.tone === "neg").length).toBe(1);
+    // Yaş kapısı: 8 yaşında examWeek (minAge 10) ve growthSpurt (minAge 12) çıkmaz
+    for (let i = 0; i < 50; i++) {
+      for (const e of rollWeeklyEvents(createRng(`y${i}`), 8)) {
+        expect(e.minAge == null || 8 >= e.minAge).toBe(true);
+      }
+    }
+  });
+  it("applyEventsToPsych: etkileri toplar, 0–100 sınırlar", () => {
+    const base = { morale: 50, motivation: 50, confidence: 50, stress: 50 };
+    const up = applyEventsToPsych(base, [{ key: "x", tone: "pos", weight: 1, morale: 4, stress: -3 }]);
+    expect(up.morale).toBe(54);
+    expect(up.stress).toBe(47);
+    // sınır: taşmaz
+    const hi = applyEventsToPsych({ morale: 99, motivation: 1, confidence: 50, stress: 50 }, [{ key: "x", tone: "pos", weight: 1, morale: 10, motivation: -10 }]);
+    expect(hi.morale).toBe(100);
+    expect(hi.motivation).toBe(0);
   });
 });
 
