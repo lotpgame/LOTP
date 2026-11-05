@@ -219,7 +219,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, applyMatchWear, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, applyRestAging, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1767,6 +1767,8 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         sharpness,
         experience: { increment: xpGained }, // #28: antrenman tecrübesi
         balance: { decrement: clubDues }, // kulüp aidatı
+        // 2C-3: bu ilerleme penceresinde ATIL ekipman paslanır (kullanılan parça etkilenmez).
+        equipmentState: encodeKit(applyRestAging(resolveKit(human.equipmentState, human.weapon as Weapon), startDay, d)),
         morale: nextPsych.morale,
         motivation: nextPsych.motivation,
         confidence: nextPsych.confidence,

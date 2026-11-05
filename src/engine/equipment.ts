@@ -502,6 +502,26 @@ export function applyMatchWear(kit: readonly KitItemState[], weapon: Weapon, age
   });
 }
 
+// ——— Durma/paslanma (Dilim 2C-3): atıl (kullanılmayan) parça zamanla paslanır/sertleşir. ———
+export const REST_GRACE_DAYS = 21; // bu kadar gün kullanılmazsa paslanmaya başlar
+export const REST_RUST_PER_MONTH = 2; // sonra oyun-ayı (7 gün) başına dayanıklılık düşüşü
+
+/**
+ * [fromDay, toDay] penceresinde ATIL parça paslanır. Pencere bir kez işlenir (dünyaya-yetiş monotoniktir) →
+ * tekrar-hesaplama yok. Son kullanım (lastUsedDay) + grace'ten sonrası idle sayılır; kullanılan parça paslanmaz.
+ */
+export function applyRestAging(kit: readonly KitItemState[], fromDay: number, toDay: number): KitItemState[] {
+  if (toDay <= fromDay) return [...kit];
+  return kit.map((k) => {
+    const idleStart = (k.lastUsedDay ?? fromDay) + REST_GRACE_DAYS;
+    const idleDays = Math.max(0, toDay - Math.max(fromDay, idleStart));
+    const rust = Math.round((idleDays * REST_RUST_PER_MONTH) / 7);
+    if (rust <= 0) return k;
+    const durability = Math.max(0, k.durability - rust);
+    return { ...k, durability, broken: durability <= 0 ? true : k.broken };
+  });
+}
+
 /** Bir parçayı çantadan ATAR (çöp at). `index` o slottaki kaçıncı parça (0-tabanlı). Diğerleri korunur. */
 export function discardKitItem(kit: readonly KitItemState[], slot: EquipmentSlot, index: number): KitItemState[] {
   let seen = -1;

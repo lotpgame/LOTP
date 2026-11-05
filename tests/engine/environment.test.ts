@@ -16,7 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, applyMatchWear, activeInSlot, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
 import {
   clubTrainingMultiplier,
@@ -235,6 +235,20 @@ describe("Malzeme çantası (equipmentState)", () => {
     let low = starterKit("FOIL").map((k) => (k.slot === "WEAPON" ? { ...k, durability: 3 } : k));
     low = applyMatchWear(low, "FOIL", 9, "U10", 10); // 3 - 5 → 0 → kırık
     expect(itemsInSlot(low, "WEAPON")[0].broken).toBe(true);
+  });
+  it("paslanma (2C-3): atıl parça zamanla düşer; yakın kullanılan paslanmaz; pencere bir kez", () => {
+    const base = starterKit("FOIL").map((k) => (k.slot === "WEAPON" ? { ...k, lastUsedDay: 0 } : k));
+    // Grace (21g) içinde: paslanmaz
+    expect(applyRestAging(base, 0, 20).find((k) => k.slot === "WEAPON")?.durability).toBe(100);
+    // Uzun atıl: 0→100 gün, ~79 idle gün → gözle görülür düşüş (<100)
+    const aged = applyRestAging(base, 0, 100).find((k) => k.slot === "WEAPON")!;
+    expect(aged.durability).toBeLessThan(100);
+    expect(aged.durability).toBeGreaterThan(0);
+    // Yakın zamanda kullanılan (lastUsedDay büyük) paslanmaz
+    const used = starterKit("FOIL").map((k) => (k.slot === "WEAPON" ? { ...k, lastUsedDay: 95 } : k));
+    expect(applyRestAging(used, 90, 100).find((k) => k.slot === "WEAPON")?.durability).toBe(100);
+    // Pencere yoksa (toDay<=fromDay) değişmez
+    expect(applyRestAging(base, 100, 100)).toEqual(base);
   });
   it("validateKit (2B): tam+doğru beden+kırık değil → null; aksi halde hata kodu; entryFee seviyeye göre", () => {
     // Başlangıç takımı U10'da geçerli

@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2C-3: durma/paslanma (atıl parça bozulur))
+- **Atıl ekipman paslanır:** uzun süre kullanılmayan (son kullanımdan +21 gün sonra) parça, "dünyaya yetiş"
+  penceresinde oyun-ayı başına ~2 dayanıklılık kaybeder (`applyRestAging`); 0'da kırılır. Kullanılan parça
+  (maçta aktif) paslanmaz → **tek silahı ezdirmek de, yedekleri çürütmek de kötü; 2–3 silahı dönüşümlü kullan.**
+  İdempotent: ilerleme penceresi [başlangıç, güncel] bir kez işlenir (tekrar-hesaplama yok). Şema değişmedi. 224 test.
+- 🎉 **Ekipman Dilim 2C TAMAM** (çoklu parça + çöp at + kullanım yıpranması + paslanma). Sırada: **Dilim 3** olay motoru.
+
 ### Eklendi (05.11 — Ekipman Dilim 2C-2: kullanım yıpranması (maç aşındırır))
 - **Maç yıprandırır:** her maç sonunda **aktif** (o slottaki en sağlam, geçerli) parça aşınır (`applyMatchWear`:
   silah −5, diğer −2/maç); dayanıklılık **0'a inince KIRILIR** → yedek parça devreye girer (katılım korunur).
