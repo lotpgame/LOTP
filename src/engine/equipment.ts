@@ -387,29 +387,39 @@ export interface KitItemState {
   broken: boolean; // olay sonucu kırık (Dilim 3) → geçersiz parça
 }
 
-// ——— Beden (Dilim 2A): SİLAH bedeni yaş kategorisine bağlı (U10→0, U12→2, U14+→5). Diğer parçalar şimdilik bedensiz. ———
+// ——— Beden (Dilim 2A+2B): SİLAH → yaş kategorisi (U10→0, U12→2, U14+→5); KIYAFET/dış parça → gövde bedeni
+// (her 2 yılda +1, 20'ye kadar); kordon/çorap/plastron/göğüs/eldiven bedensiz. ———
 const WEAPON_SIZE_BY_CATEGORY: Record<AgeCategory, number> = { U10: 0, U12: 2, U14: 5, U17: 5, U21: 5, SENIOR: 5 };
+/** Gövde bedenli (büyümeyle değişen) parçalar — 2B: kıyafet/ayakkabı/maske/yelek. */
+const BODY_SLOTS: readonly EquipmentSlot[] = ["CLOTHING", "SHOES", "MASK", "LAME"];
 
-/** Bir slotun o yaş kategorisinde GEREKEN bedeni. Silah dışı parçalar 2A'da bedensiz (0). */
-export function requiredSize(slot: EquipmentSlot, ageCategory: AgeCategory): number {
-  return slot === "WEAPON" ? WEAPON_SIZE_BY_CATEGORY[ageCategory] : 0;
+/** Gövde bedeni: 8'den itibaren her 2 yılda +1 (20'de donar). 8→0, 10→1, 12→2 … 20→6. */
+export function bodySize(age: number): number {
+  return Math.max(0, Math.floor((Math.min(age, 20) - 8) / 2));
 }
 
-/** Beden rozeti: 0→U10, 2→U12, 5→U14+. */
-export function sizeLabel(size: number): string {
+/** Bir slotun o yaşta GEREKEN bedeni: silah → kategori; gövde parçaları → yaş/2; diğerleri bedensiz (0). */
+export function requiredSize(slot: EquipmentSlot, age: number, ageCategory: AgeCategory): number {
+  if (slot === "WEAPON") return WEAPON_SIZE_BY_CATEGORY[ageCategory];
+  if (BODY_SLOTS.includes(slot)) return bodySize(age);
+  return 0;
+}
+
+/** Silah beden rozeti (yalnız WEAPON): 0→U10, 2→U12, 5→U14+. */
+export function weaponSizeLabel(size: number): string {
   return size >= 5 ? "U14+" : size >= 2 ? "U12" : "U10";
 }
 
 /** Parça o yaşta uygun mu? (bedeni gerekenden küçükse "küçük geldi" → yenileme gerekir). */
-export function kitItemFits(k: KitItemState, ageCategory: AgeCategory): boolean {
-  return k.size >= requiredSize(k.slot, ageCategory);
+export function kitItemFits(k: KitItemState, age: number, ageCategory: AgeCategory): boolean {
+  return k.size >= requiredSize(k.slot, age, ageCategory);
 }
 
-/** Başlangıç takımı (BEDAVA): gerekli parçalar (kozmetik hariç), doğru beden (varsayılan U10), tam dayanıklılık. */
-export function starterKit(weapon: Weapon, ageCategory: AgeCategory = "U10"): KitItemState[] {
+/** Başlangıç takımı (BEDAVA): gerekli parçalar (kozmetik hariç), doğru beden (varsayılan 8 yaş/U10), tam dayanıklılık. */
+export function starterKit(weapon: Weapon, age = 8, ageCategory: AgeCategory = "U10"): KitItemState[] {
   return itemsForWeapon(weapon)
     .filter((i) => !i.cosmetic)
-    .map((i) => ({ slot: i.slot, itemId: i.id, size: requiredSize(i.slot, ageCategory), durability: 100, broken: false }));
+    .map((i) => ({ slot: i.slot, itemId: i.id, size: requiredSize(i.slot, age, ageCategory), durability: 100, broken: false }));
 }
 
 export function encodeKit(kit: readonly KitItemState[]): string {

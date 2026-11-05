@@ -1896,9 +1896,9 @@ export async function buyEquipment(itemId: string): Promise<void> {
   const owned = parseOwned(human.ownedEquipment);
   if (owned.includes(item.id)) return; // zaten sahipsin
   if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
-  // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞ KATEGORİSİNE uygun bedenle değişir (tam dayanıklılık).
-  const ageCategory = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)).ageCategory;
-  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item, requiredSize(item.slot, ageCategory));
+  // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞINA uygun bedenle değişir (silah→kategori, kıyafet→gövde).
+  const ident = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item, requiredSize(item.slot, ident.age, ident.ageCategory));
   await prisma.player.update({
     where: { id: human.id },
     data: {

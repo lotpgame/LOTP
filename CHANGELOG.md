@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2B-1: kıyafet büyümesi (her 2 yıl))
+- **Gövde bedeni:** kıyafet/ayakkabı/maske/yelek artık **yaşla büyür** (`bodySize`: 8→0, her 2 yıl +1, 20'de donar).
+  Oyuncu büyüyünce bu parçalar **"KÜÇÜK GELDİ"** olur → yeni beden gerekir. `requiredSize` artık yaş + kategori
+  alır (silah→kategori 0/2/5, kıyafet→gövde). `sizeLabel`→`weaponSizeLabel` (U-etiketi yalnız silahta). Şema yok.
+
 ### Eklendi (05.11 — Ekipman Dilim 2A: silah bedeni (yaş → 0/2/5))
 - **Silah bedeni yaş kategorisine bağlı:** U10→0, U12→2, U14+→5 (`requiredSize`/`sizeLabel`/`kitItemFits`).
   Çantada beden rozeti (U10/U12/U14+); oyuncu büyüyüp silahı küçük gelince **"KÜÇÜK GELDİ"** uyarısı (kırmızı) →
