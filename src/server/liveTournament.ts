@@ -28,6 +28,7 @@ import {
 import { prizeFor } from "@/engine/economy";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
 import { activeTraitKeys, parseTraitPlan, reputationAfterEvent } from "@/engine/trait";
+import { applyTraitEvolution } from "./traitEvolution";
 import { COMPETITION_SHARPNESS_GAIN, applySharpness, rollInjury } from "@/engine/conditioning";
 import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingScopeForLevel } from "@/engine/ranking";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
@@ -525,6 +526,15 @@ async function applyLiveEffectsTx(
           worldDay: t.worldDay, // kupa vitrini / zaman çizgisi tam tarihi (GORSEL §7)
         },
       });
+    }
+    // Katman 2: başarılar yazıldıktan SONRA trait evrimi (bu turnuvanın sonucu da sinyale girsin, GDD 10.37).
+    if (t.worldDay != null) {
+      const age = (JSON.parse(humanParts.find((p) => p.playerId === h.id)?.snapshot ?? "{}") as { c?: { age?: number } }).c?.age ?? 16;
+      await applyTraitEvolution(
+        tx,
+        { id: h.id, traits: h.traits, lastTraitEventDay: h.lastTraitEventDay, clubId: h.clubId },
+        { age, level, position, fieldSize, dayIndex: t.worldDay },
+      );
     }
   }
 }

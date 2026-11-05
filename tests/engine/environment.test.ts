@@ -7,6 +7,9 @@ import {
   sanitizeTraitKeys,
   reputationAfterEvent,
   evolveTraits,
+  applyTraitChange,
+  parseTraitPlan,
+  encodeTraitPlan,
   TRAIT_CHANGE_COOLDOWN_DAYS,
   type TraitSignals,
   traitCombatModifier,
@@ -137,6 +140,20 @@ describe("Trait Engine", () => {
       return n;
     };
     expect(count(12)).toBeGreaterThan(count(25));
+  });
+  it("applyTraitChange: dönüşüm eski trait'i çıkarır, yenisi aktif olur (zıt-çift kalmaz)", () => {
+    const plan = parseTraitPlan("IMPATIENT:11,CALM:12");
+    // Sabırsız → Sabırlı (14 yaşında)
+    const next = applyTraitChange(plan, { kind: "TRANSFORM", from: "IMPATIENT", to: "PATIENT", reason: "x" }, 14);
+    const active = activeTraitKeys(next, 20);
+    expect(active).toContain("PATIENT");
+    expect(active).not.toContain("IMPATIENT"); // eski çıktı → zıt-çift yok
+    expect(active).toContain("CALM"); // diğer trait korunur
+    // CSV olarak saklanabilir (round-trip)
+    expect(parseTraitPlan(encodeTraitPlan(next)).length).toBe(next.length);
+    // Edinme: boş slota yeni trait, eskiler durur
+    const gained = applyTraitChange(parseTraitPlan("DISCIPLINED:8"), { kind: "ACQUIRE", to: "CONFIDENT", reason: "x" }, 17);
+    expect(activeTraitKeys(gained, 20).sort()).toEqual(["CONFIDENT", "DISCIPLINED"]);
   });
   it("kademeli açılım: 8-10 yaş 1 trait, 11'de 2, 12'de 3", () => {
     // Zıt-çift filtresi bazen <3 üretebilir; birçok tohumdan tam 3'lük bir plan bul.

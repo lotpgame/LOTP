@@ -225,6 +225,17 @@ export function evolveTraits(active: readonly TraitKey[], s: TraitSignals, rng: 
   return null;
 }
 
+/**
+ * Bir TraitChange'i saklı PLANA uygular. Dönüşümde eski trait (`from`) çıkar; her iki türde de yeni trait
+ * (`to`) ŞU ANKİ yaşla eklenir (hemen aktif). Zıt-çift kalmaz (dönüşümde zıttı zaten çıktı); edinmede
+ * çağıran boş slotu garanti eder. Çıktı encodeTraitPlan ile saklanır.
+ */
+export function applyTraitChange(plan: readonly TraitPlanEntry[], change: TraitChange, atAge: number): TraitPlanEntry[] {
+  const kept = plan.filter((e) => e.key !== change.to && !(change.kind === "TRANSFORM" && e.key === change.from));
+  kept.push({ key: change.to, unlockAge: atAge });
+  return kept;
+}
+
 /** Verilen (aktif) trait'lerin antrenman verimi çarpanları çarpımı. */
 export function traitTrainingMultiplier(traits: readonly TraitKey[]): number {
   return traits.reduce((acc, t) => acc * (TRAITS[t]?.trainingMult ?? 1), 1);

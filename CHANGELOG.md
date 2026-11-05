@@ -9,6 +9,17 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Trait Katman 2 / Dilim 2: evrim canlı akışa bağlandı (GDD 10.37))
+- **`applyTraitEvolution`** (`src/server/traitEvolution.ts`, ortak modül): turnuva bitişinde kariyer
+  sinyallerini (başarılar, koç skoru, oynanan turnuva, yaş, son düşüş) okuyup `evolveTraits`'i çağırır;
+  değişim olursa oyuncunun trait planını + `lastTraitEventDay`'i yazar. **Cooldown'da erken çıkar** → turnuva
+  başına ek maliyet ~0. Hem canlı (`liveTournament`) hem offline (`finalizeTournament`) yola bağlandı;
+  başarılar yazıldıktan SONRA çalışır (bu turnuvanın sonucu da sinyale girer).
+- **Yeni alan `Player.lastTraitEventDay`** (eklemeli şema → Neon migration gerekir). `applyTraitChange`
+  (saf): dönüşümde eski trait çıkar, yenisi şu anki yaşla aktif olur (zıt-çift kalmaz). +1 test.
+- **NOT:** değişim şimdilik **sessiz** uygulanır (profil trait rozetleri güncellenir); açıklayıcı bildirim
+  ("Karakterin değişti: Sabırsız → Soğukkanlı") **Dilim 3**'te eklenecek. Gerçek DB'ye karşı smoke doğrulandı.
+
 ### Eklendi (05.11 — Trait Katman 2 / Dilim 1: yaşanmışlıkla trait evrimi (motor) (GDD 10.31–10.37))
 - **`evolveTraits`** (saf motor, trait.ts): kariyer sinyallerine göre (yaş, şampiyonluk/madalya/milli takım,
   koç kalitesi, tecrübe, son düşüş) EN FAZLA BİR trait değişimi önerir. **Dönüşüm** (Sabırsız→Sabırlı,

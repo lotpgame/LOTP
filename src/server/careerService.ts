@@ -17,6 +17,7 @@ import {
   type LiveViewDTO,
   type TacticSubmitResult,
 } from "./liveTournament";
+import { applyTraitEvolution } from "./traitEvolution";
 import { MAX_FIELD, deRoundLabel } from "@/engine/tournament/live";
 import { LIVE_POOL_STEPS, LIVE_RESULTS_STEP, liveStepAtMs } from "@/engine/schedule";
 import { MS_PER_GAME_DAY, worldDayStartMs, worldEventStartMs } from "@/engine/worldclock";
@@ -3669,6 +3670,8 @@ interface EffectHuman {
   traits: string;
   reputation: number;
   equipmentLevel: number;
+  lastTraitEventDay: number;
+  clubId: number | null;
 }
 
 /** Combatant kurmak için gereken oyuncu alanları (insan veya AI). */
@@ -4013,6 +4016,13 @@ async function finalizeTournament(
         });
       }
     }
+
+    // Katman 2: ÇÖZÜCÜ insanda trait evrimi (başarılar yazıldıktan sonra; GDD 10.37).
+    await applyTraitEvolution(
+      tx,
+      { id: resolver.id, traits: resolver.traits, lastTraitEventDay: resolver.lastTraitEventDay, clubId: resolver.clubId },
+      { age: base.age, level, position: positionByPlayer.get(resolver.id) ?? outcome.pools.length, fieldSize: outcome.pools.length, dayIndex: gs.dayIndex },
+    );
 
     // Turnuva gününden bir sonraki güne geç — YALNIZ çözücünün günü ilerler.
     await worldAdvanceTx(tx, gs, gs.dayIndex + 1);

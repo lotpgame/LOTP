@@ -86,6 +86,7 @@ model Player {
 
   // Gelişim çevresi (M6)
   traits     String @default("") // virgülle ayrık trait anahtarları (GDD 10)
+  lastTraitEventDay Int @default(0) // Katman 2: son trait evrimi (edinme/dönüşüm) günü — cooldown için (GDD 10.32)
   morale     Float  @default(60) // Psychology (GDD 11)
   motivation Float  @default(65)
   confidence Float  @default(50)
