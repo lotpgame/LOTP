@@ -18,6 +18,19 @@ oyunu zenginleştirir hem **Denar talebini** (sağlıklı, adil) doğurur. Oyunc
 - **Dayanıklılık:** kullandıkça (turnuva/antrenman) düşer; düşünce etkisi (özgüven) azalır; 0'a yakınsa yenileme.
 - **Kırık (`broken`):** olay sonucu (bkz. §4) bir parça (özellikle silah) kırılabilir → o parça geçersiz.
 
+## 2b. Çoklu silah yönetimi + yıpranma (KARAR, Yusuf) — Dilim 2
+Gerçek eskrimde sporcu **birden çok silah** taşır (biri kırılırsa yedek). Oyunda da:
+- Oyuncu **1., 2., 3. silaha** sahip olabilir (aynı slotta birden çok parça, her birinin KENDİ dayanıklılığı).
+- Çantada/markette silah "Gladius Flöre" yerine **"1. Silah", "2. Silah", "3. Silah"** diye gösterilir (altında marka/model + dayanıklılık).
+- **Maça girerken aktif silah** seçilir (ör. en sağlam olanı); maçta o yıpranır → oyuncu rotasyon yapar (dayanıklılığı dengeler).
+- **İki tür yıpranma:**
+  1. **Kullanım yıpranması:** maç/antrenmanda kullandıkça dayanıklılık düşer (çok kullanılan silah çabuk biter).
+  2. **Durma yıpranması (paslanma/sertleşme):** uzun süre KULLANILMAYAN silah da bozulur (paslanır, sertleşir) → dayanıklılık/esneklik düşer.
+  → Denge: tek silahı sürekli kullanmak da, çok silahı atıl bırakmak da kötü. İdeal: 2-3 silahı dönüşümlü kullan.
+- Kırılma (olay, §5) bir silahı aniden bitirir → yedek devreye girer; yedeği yoksa yeni/tamir gerekir (ama hep ucuz zemin var).
+- **Veri:** `equipmentState` WEAPON slotu **liste** olur: `[{itemId, size, durability, broken, lastUsedDay}]`; `lastUsedDay`
+  durma-yıpranmasını hesaplar. Model eklemeli (eski tek-silah kayıt → 1. silah olarak okunur).
+
 ## 3. Başlangıç takımı + beden/büyüme kuralları
 - **Kariyer başında (8 yaş):** tam Gladius takımı **bedava** verilir, **doğru beden** (U10 → size 0), dayanıklılık %100.
 - **8→10 arası:** malzeme ihtiyacı yok (tek istisna: silah kırılırsa).

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (05.11 — Ekipman: "Malzeme Çantam" açılır/kapanır panel (Market gibi))
+- "Malzeme Çantam" artık Market/GLADIUS gibi **açılır-kapanır panel** (chevron, çanta ikonu). İleride yeni markalar
+  geldiğinde her biri Gladius gibi kendi açılır-kapanır panelinde durur.
+- Tasarım notu (docs): **çoklu silah yönetimi** (1./2./3. silah, her birinin dayanıklılığı) + **iki tür yıpranma**
+  (kullanım + durma/paslanma-sertleşme) Dilim 2'ye eklendi.
+
 ### Eklendi (05.11 — Ekipman Dilim 1: malzeme çantası + bedava başlangıç takımı (docs/EKIPMAN_VE_OLAYLAR.md))
 - **Malzeme çantası modeli (`equipmentState` JSON, eklemeli):** her parçanın **beden + dayanıklılık + kırık**
   durumu (`KitItemState`). `starterKit` / `resolveKit` / `applyKitPurchase` (saf, test). Eski kayıt (null) →

@@ -107,10 +107,16 @@ export default async function EkipmanPage({
         <ErrorBanner code={err} locale={locale} dismissHref="/kariyer/ekipman" />
       </div>
 
-      {/* Malzeme Çantam — oyuncunun mevcut takımı: parça + beden + dayanıklılık + (varsa) KIRIK. */}
-      <section className="mt-4">
-        <h2 className="kicker mb-2">{t(locale, "ekipman.myKit")}</h2>
-        <ul className="grid gap-2 sm:grid-cols-2">
+      {/* Malzeme Çantam — açılır/kapanır panel (Market gibi). Oyuncunun takımı: parça + beden + dayanıklılık + KIRIK. */}
+      <details className="panel group mt-4" open>
+        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+          <Icon name="bag" size={28} className="shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "ekipman.myKit")}</div>
+          </div>
+          <Icon name="chevron-down" size={18} className="shrink-0 text-steel transition-transform group-open:rotate-180" />
+        </summary>
+        <ul className="grid gap-2 border-t border-line px-4 pb-4 pt-3 sm:grid-cols-2">
           {c.kit.map((k) => {
             const item = itemById(k.itemId);
             if (!item) return null;
@@ -138,7 +144,7 @@ export default async function EkipmanPage({
             );
           })}
         </ul>
-      </section>
+      </details>
 
       {/* Market (Gladius) — marka paneli, açılır/kapanır (BrandPanel.tsx). Yeni marka → yeni <BrandPanel>. */}
       <h2 className="kicker mt-6 mb-2">{t(locale, "ekipman.market")}</h2>
