@@ -16,7 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, activeInSlot, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
 import {
   clubTrainingMultiplier,
@@ -218,6 +218,23 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(starterKit("FOIL", 13, "U14").find((k) => k.slot === "WEAPON")?.size).toBe(5);
     expect(starterKit("FOIL", 12, "U12").find((k) => k.slot === "CLOTHING")?.size).toBe(2);
     expect(starterKit("FOIL").find((k) => k.slot === "WEAPON")?.size).toBe(0); // varsayılan 8/U10
+  });
+  it("yıpranma (2C-2): maçta AKTİF (en sağlam) parça aşınır; yedek korunur; 0'da kırılır", () => {
+    // 2 silah: 100 ve 60 → aktif = 100 olan; o aşınır, 60'lık el değmez
+    let kit = starterKit("FOIL");
+    const w2 = itemById("gl-weapon-foil")!;
+    kit = applyKitPurchase(kit, w2); // 2. silah (100)
+    kit = kit.map((k, i) => (k.slot === "WEAPON" && itemsInSlot(kit, "WEAPON").indexOf(k) === 1 ? { ...k, durability: 60 } : k));
+    const active = activeInSlot(kit, "WEAPON", 9, "U10");
+    expect(active?.durability).toBe(100); // en sağlamı aktif
+    const worn = applyMatchWear(kit, "FOIL", 9, "U10", 500);
+    const weapons = itemsInSlot(worn, "WEAPON").map((k) => k.durability).sort((a, b) => a - b);
+    expect(weapons).toEqual([60, 95]); // aktif 100→95, yedek 60 sabit
+    expect(itemsInSlot(worn, "WEAPON").some((k) => k.lastUsedDay === 500)).toBe(true);
+    // Dayanıklılık 0'a inince kırılır
+    let low = starterKit("FOIL").map((k) => (k.slot === "WEAPON" ? { ...k, durability: 3 } : k));
+    low = applyMatchWear(low, "FOIL", 9, "U10", 10); // 3 - 5 → 0 → kırık
+    expect(itemsInSlot(low, "WEAPON")[0].broken).toBe(true);
   });
   it("validateKit (2B): tam+doğru beden+kırık değil → null; aksi halde hata kodu; entryFee seviyeye göre", () => {
     // Başlangıç takımı U10'da geçerli

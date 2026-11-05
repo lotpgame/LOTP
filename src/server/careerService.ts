@@ -219,7 +219,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -3734,6 +3734,8 @@ interface EffectHuman {
   equipmentLevel: number;
   lastTraitEventDay: number;
   clubId: number | null;
+  equipmentState: string | null;
+  weapon: string;
 }
 
 /** Combatant kurmak için gereken oyuncu alanları (insan veya AI). */
@@ -3959,6 +3961,8 @@ async function finalizeTournament(
       prize: prizeFor(level, position),
       postPsych: psychAfterTournament(psychologyOf(h), position, outcome.pools.length),
       reputation: reputationAfterEvent(h.reputation, activeTraitsOf(h.traits, base.age)), // çirkef/hilekâr → düşer
+      // 2C-2: maçta kullanılan aktif ekipman aşınır (0'da kırılır → yedek devreye girer).
+      wornKit: encodeKit(applyMatchWear(resolveKit(h.equipmentState, h.weapon as Weapon), h.weapon as Weapon, base.age, base.ageCategory, gs.dayIndex)),
     };
   });
 
@@ -4024,6 +4028,7 @@ async function finalizeTournament(
           confidence: ph.postPsych.confidence,
           stress: ph.postPsych.stress,
           reputation: ph.reputation,
+          equipmentState: ph.wornKit, // 2C-2: maç aşınması
           status: ph.injury.injured ? "INJURED" : ph.h.status,
           injuryDaysRemaining: ph.injury.injured ? ph.injury.days : 0,
         },

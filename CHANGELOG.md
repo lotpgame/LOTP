@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2C-2: kullanım yıpranması (maç aşındırır))
+- **Maç yıprandırır:** her maç sonunda **aktif** (o slottaki en sağlam, geçerli) parça aşınır (`applyMatchWear`:
+  silah −5, diğer −2/maç); dayanıklılık **0'a inince KIRILIR** → yedek parça devreye girer (katılım korunur).
+  `activeInSlot` en sağlam geçerli parçayı seçer; yedekler el değmeden durur. `lastUsedDay` işlenir (2C-3 paslanma için).
+- Canlı + offline maç yollarına bağlandı (reputation/trait-evrimi gibi). Şema değişmedi. 223 test.
+- Sırada: **2C-3** durma/paslanma (atıl parça zamanla bozulur) · **Dilim 3** olay motoru.
+
 ### Eklendi (05.11 — Ekipman Dilim 2C-1: çoklu parça (her slotta 3'e kadar) + çöp at (kullanıcı))
 - **Her ekipman slotunda 1–3 yedek:** silah, kıyafet, ayakkabı… hepsinden 3'e kadar alınabilir. Çantada aynı
   slotta birden çok varsa **"1./2./3."** numaralanır. Maça katılım: slotta **en az bir sağlam** (kırık değil +

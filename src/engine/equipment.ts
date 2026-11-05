@@ -385,6 +385,7 @@ export interface KitItemState {
   size: number; // beden: U10→0, U12→2, U14+→5 (Dilim 1'de başlangıç 0; yaş→beden Dilim 2)
   durability: number; // 0–100 (Dilim 1'de görünür, combat'a etkisi sonra)
   broken: boolean; // olay sonucu kırık (Dilim 3) → geçersiz parça
+  lastUsedDay?: number; // en son hangi gün maçta kullanıldı (2C-3 paslanma hesabı için)
 }
 
 // ——— Beden (Dilim 2A+2B): SİLAH → yaş kategorisi (U10→0, U12→2, U14+→5); KIYAFET/dış parça → gövde bedeni
@@ -472,6 +473,33 @@ export function applyKitPurchase(kit: readonly KitItemState[], item: GladiusItem
   if (inSlot.length < MAX_PER_SLOT) return [...kit, fresh]; // yedek ekle
   const worst = inSlot.reduce((a, b) => ((b.broken ? -1 : b.durability) < (a.broken ? -1 : a.durability) ? b : a));
   return kit.map((k) => (k === worst ? fresh : k)); // dolu → en kötüyü değiştir
+}
+
+// ——— Yıpranma (Dilim 2C-2): maçta KULLANILAN (aktif) parça aşınır; 0'da kırılır → yedek devreye girer. ———
+/** Maç başına aşınma (dayanıklılık puanı). Silah en çok (uçta en çok zorlanır). */
+export const MATCH_WEAR: Record<"WEAPON" | "DEFAULT", number> = { WEAPON: 5, DEFAULT: 2 };
+
+/** Bir slotta maçta KULLANILACAK (aktif) parça: geçerli olanlar (kırık değil + doğru beden) içinde en sağlamı. */
+export function activeInSlot(kit: readonly KitItemState[], slot: EquipmentSlot, age: number, ageCategory: AgeCategory): KitItemState | null {
+  const valid = itemsInSlot(kit, slot).filter((k) => !k.broken && kitItemFits(k, age, ageCategory));
+  if (valid.length === 0) return null;
+  return valid.reduce((a, b) => (b.durability > a.durability ? b : a));
+}
+
+/** Maç sonrası: her gerekli slotun AKTİF parçası aşınır (durability↓, lastUsedDay=day); 0'a inince KIRILIR. */
+export function applyMatchWear(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory, day: number): KitItemState[] {
+  const required = new Set(itemsForWeapon(weapon).filter((i) => !i.cosmetic).map((i) => i.slot));
+  const actives = new Set<KitItemState>();
+  for (const slot of required) {
+    const a = activeInSlot(kit, slot, age, ageCategory);
+    if (a) actives.add(a);
+  }
+  return kit.map((k) => {
+    if (!actives.has(k)) return k;
+    const wear = k.slot === "WEAPON" ? MATCH_WEAR.WEAPON : MATCH_WEAR.DEFAULT;
+    const durability = Math.max(0, k.durability - wear);
+    return { ...k, durability, broken: durability <= 0 ? true : k.broken, lastUsedDay: day };
+  });
 }
 
 /** Bir parçayı çantadan ATAR (çöp at). `index` o slottaki kaçıncı parça (0-tabanlı). Diğerleri korunur. */

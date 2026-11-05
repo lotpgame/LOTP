@@ -28,6 +28,8 @@ import {
 import { prizeFor } from "@/engine/economy";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
 import { activeTraitKeys, parseTraitPlan, reputationAfterEvent } from "@/engine/trait";
+import { applyMatchWear, encodeKit, resolveKit } from "@/engine/equipment";
+import type { AgeCategory, Weapon } from "@/engine/domain";
 import { applyTraitEvolution } from "./traitEvolution";
 import { COMPETITION_SHARPNESS_GAIN, applySharpness, rollInjury } from "@/engine/conditioning";
 import { experienceForTournament, rankEntries, rankingPointsForPosition, rankingScopeForLevel } from "@/engine/ranking";
@@ -474,6 +476,10 @@ async function applyLiveEffectsTx(
         confidence: post.confidence,
         stress: post.stress,
         reputation: reputationAfterEvent(h.reputation, activeTraitKeys(parseTraitPlan(h.traits), snap.c?.age ?? 16)), // çirkef/hilekâr → düşer
+        // 2C-2: maçta kullanılan aktif ekipman aşınır (0'da kırılır → yedek).
+        equipmentState: t.worldDay != null
+          ? encodeKit(applyMatchWear(resolveKit(h.equipmentState, h.weapon as Weapon), h.weapon as Weapon, snap.c?.age ?? 16, (t.categoryId.split("-")[0] ?? "U10") as AgeCategory, t.worldDay))
+          : h.equipmentState,
         status: injury.injured ? "INJURED" : h.status,
         injuryDaysRemaining: injury.injured ? injury.days : 0,
       },
