@@ -105,6 +105,60 @@ Dağılım: 11 olumlu + 10 olumsuz psikoloji, 6 malzeme-olumsuz (kırılma NADİ
 | secondHandDeal | ucuz fırsat (indirimli parça) | "İkinci el bir parça fırsatı çıktı." |
 | clubGift | bedava küçük parça / az Denar | "Kulüp bir parça hediye etti." |
 
+### 5c. Genişletilmiş olay kategorileri (05.11, Yusuf — çocuk→genç sporcu hayatı)
+Yaşa duyarlı: bazıları yalnız ergenlikte (büyüme atağı, dikkat dağınıklığı). Etkiler küçük.
+
+**Okul / hayat dengesi** (çocuk olduğu için kritik)
+| key | etki | metin |
+|---|---|---|
+| goodReport | moral ↑ | "Karnen iyi geldi, keyfin yerinde." |
+| examWeek* | motivasyon ↓, antrenman zamanı ↓ | "Sınav haftası — spora az vakit." |
+| teacherSupport | moral ↑ | "Öğretmenin spora destek oldu." |
+| schoolClash | (bir turnuvayı kaçırma riski) | "Okul etkinliği antrenmana denk geldi." |
+| holidayCamp | gelişim fırsatı (kamp) | "Tatilde yoğun kampa katılabilirsin." |
+
+**Fizik / sağlık** (yaşa duyarlı)
+| key | etki | metin |
+|---|---|---|
+| growthSpurt* | özgüven ↓ (kısa, ergenlik) | "Hızlı büyüdün, koordinasyonun bir süre dağınık." |
+| wellRested | kondisyon ↑ | "İyi dinlendin, formun yerinde." |
+| travelFatigue | keskinlik ↓ | "Uzak turnuva dönüşü yorgunsun." |
+| mildIllness | keskinlik ↓ (kısa) | "Hafif hastalandın." |
+
+**Sosyal / ilişki**
+| key | etki | metin |
+|---|---|---|
+| rivalryBorn | motivasyon ↑, stres ↑ | "Bir rakiple çekişme başladı." |
+| teammateLeft | moral ↓ | "Yakın antrenman arkadaşın kulüpten ayrıldı." |
+| newCoachVibe | motivasyon ↑/↓ | "Koçunla yeni bir dönem." |
+
+**Kariyer / ilham**
+| key | etki | metin |
+|---|---|---|
+| metIdol | motivasyon ↑↑ (nadir) | "İdolünle tanıştın, imza aldın!" |
+| inPress | moral ↑, itibar ↑ | "Adın yerel haberde geçti." |
+| scoutCall | motivasyon ↑ (ileride seçme) | "Bir yetenek seçmesine çağrıldın." |
+
+**Harçlık / çeşitli**
+| key | etki | metin |
+|---|---|---|
+| pocketMoney | az Denar | "Biraz harçlık biriktirdin." |
+| gearLove | motivasyon ↑ | "Yeni ekipmanınla çalışmak keyifli." |
+| poorCare | durability ↓ (bakımsızlık) | "Ekipmanına iyi bakmadın, çabuk yıprandı." |
+| seasonStart | motivasyon ↑ | "Yeni sezon, yeni heyecan." |
+
+*(\*) yaş kapılı: examWeek/growthSpurt daha çok okul-çağı/ergenlik.*
+
+### 5d. 💰 Fırsat / indirim mekaniği (süreli teklifler) — KARAR (Yusuf)
+Bazı malzeme olayları bir **süreli satın-alma teklifi** üretir (markette "fırsat" olarak görünür):
+- **İçerik:** hangi parça (ör. tam istediğin özellikte 2. el Epe) + **indirim** (ör. %50) + **son gün** (ör. 2 gün sonra kapanır).
+- **Örnekler:** "İkinci el silah %50", "Bu hafta ayakkabıda %30", kulüp hediyesi (bedava parça), devralınan ekipman.
+- **Oyuncu:** süre dolmadan alırsa indirimli Denar'a sahip olur; kaçırırsa teklif gider ("kaçırma" hissi → markete canlılık).
+- **Her malzeme için** olabilir (silah, kıyafet, ayakkabı…).
+- **Veri (eklemeli):** `GameState.pendingOffer` JSON — `{ itemId, discountPct, expiresDay }` (ya da liste). Market bunu okur,
+  indirimli fiyatı + geri sayımı gösterir; satın alım indirimi uygular; süre geçince temizlenir. (Migration: küçük, sonra.)
+- İlke korunur: fırsatlar **kolaylık/tasarruf** verir, güç değil (pay-to-win değil).
+
 ## 6. Ekipman sayfası (UI) + Market
 - **Üst: "Malzeme Çantam"** — oyuncunun mevcut takımı: her parça + beden + dayanıklılık barı + (varsa) "KIRIK"/"küçük" rozeti.
 - **Alt: "Market (Gladius)"** — satın alınabilir Gladius ürünleri (doğru beden), fiyat (Denar), "Al" butonu + bakiye.
