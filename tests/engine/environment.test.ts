@@ -16,7 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, encodeKit, itemById, resolveKit, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, encodeKit, itemById, kitItemFits, requiredSize, resolveKit, sizeLabel, starterKit } from "@/engine/equipment";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -187,6 +187,23 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(resolveKit("bozuk-json", "EPEE")).toEqual(starterKit("EPEE"));
     const kit = starterKit("SABRE");
     expect(resolveKit(encodeKit(kit), "SABRE")).toEqual(kit);
+  });
+  it("beden (Dilim 2A): silah yaş kategorisine göre 0/2/5; diğer parçalar bedensiz; küçük gelince uymaz", () => {
+    expect(requiredSize("WEAPON", "U10")).toBe(0);
+    expect(requiredSize("WEAPON", "U12")).toBe(2);
+    expect(requiredSize("WEAPON", "U14")).toBe(5);
+    expect(requiredSize("WEAPON", "SENIOR")).toBe(5);
+    expect(requiredSize("MASK", "U14")).toBe(0); // silah dışı 2A'da bedensiz
+    expect(sizeLabel(0)).toBe("U10");
+    expect(sizeLabel(2)).toBe("U12");
+    expect(sizeLabel(5)).toBe("U14+");
+    // U10 silahı (beden 0) U10'da uyar, U12'de küçük gelir
+    const w = { slot: "WEAPON" as const, itemId: "gl-weapon-foil", size: 0, durability: 100, broken: false };
+    expect(kitItemFits(w, "U10")).toBe(true);
+    expect(kitItemFits(w, "U12")).toBe(false);
+    // starterKit kategoriye göre doğru silah bedeni verir
+    expect(starterKit("FOIL", "U14").find((k) => k.slot === "WEAPON")?.size).toBe(5);
+    expect(starterKit("FOIL").find((k) => k.slot === "WEAPON")?.size).toBe(0); // varsayılan U10
   });
   it("applyKitPurchase: o slotu yeni ürünle değiştirir (tam dayanıklılık), slot sayısı artmaz", () => {
     const kit = starterKit("FOIL");

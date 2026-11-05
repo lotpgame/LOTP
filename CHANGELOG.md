@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2A: silah bedeni (yaş → 0/2/5))
+- **Silah bedeni yaş kategorisine bağlı:** U10→0, U12→2, U14+→5 (`requiredSize`/`sizeLabel`/`kitItemFits`).
+  Çantada beden rozeti (U10/U12/U14+); oyuncu büyüyüp silahı küçük gelince **"KÜÇÜK GELDİ"** uyarısı (kırmızı) →
+  yenileme sinyali. Market satın alımı parçayı **oyuncunun güncel kategorisinin bedeniyle** verir; başlangıç
+  takımı da doğru bedende. Şema değişmedi (migration yok). 9 dil, 220 test.
+- Not: kıyafet büyümesi (2 yıl), maça katılım kuralı + ücreti, kulüp aidatı → Dilim 2B; çoklu silah + yıpranma → 2C.
+
 ### Değişti (05.11 — Ekipman: "Malzeme Çantam" açılır/kapanır panel (Market gibi))
 - "Malzeme Çantam" artık Market/GLADIUS gibi **açılır-kapanır panel** (chevron, çanta ikonu). İleride yeni markalar
   geldiğinde her biri Gladius gibi kendi açılır-kapanır panelinde durur.

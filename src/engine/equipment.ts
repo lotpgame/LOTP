@@ -13,7 +13,7 @@
  * gl-maskcord) LEGACY_ITEMS'te gizli tutulur — daha önce alınmış eşya düşmesin diye. Ortak id'ler
  * (gl-clothing, gl-shoes, gl-socks, gl-plastron, gl-bag) AYNI kalır.
  */
-import type { Weapon } from "@/engine/domain";
+import type { AgeCategory, Weapon } from "@/engine/domain";
 
 export type EquipmentSlot =
   | "WEAPON"
@@ -387,11 +387,29 @@ export interface KitItemState {
   broken: boolean; // olay sonucu kırık (Dilim 3) → geçersiz parça
 }
 
-/** Başlangıç takımı (BEDAVA): silahın gerektirdiği tüm parçalar (kozmetik hariç), beden 0, tam dayanıklılık. */
-export function starterKit(weapon: Weapon): KitItemState[] {
+// ——— Beden (Dilim 2A): SİLAH bedeni yaş kategorisine bağlı (U10→0, U12→2, U14+→5). Diğer parçalar şimdilik bedensiz. ———
+const WEAPON_SIZE_BY_CATEGORY: Record<AgeCategory, number> = { U10: 0, U12: 2, U14: 5, U17: 5, U21: 5, SENIOR: 5 };
+
+/** Bir slotun o yaş kategorisinde GEREKEN bedeni. Silah dışı parçalar 2A'da bedensiz (0). */
+export function requiredSize(slot: EquipmentSlot, ageCategory: AgeCategory): number {
+  return slot === "WEAPON" ? WEAPON_SIZE_BY_CATEGORY[ageCategory] : 0;
+}
+
+/** Beden rozeti: 0→U10, 2→U12, 5→U14+. */
+export function sizeLabel(size: number): string {
+  return size >= 5 ? "U14+" : size >= 2 ? "U12" : "U10";
+}
+
+/** Parça o yaşta uygun mu? (bedeni gerekenden küçükse "küçük geldi" → yenileme gerekir). */
+export function kitItemFits(k: KitItemState, ageCategory: AgeCategory): boolean {
+  return k.size >= requiredSize(k.slot, ageCategory);
+}
+
+/** Başlangıç takımı (BEDAVA): gerekli parçalar (kozmetik hariç), doğru beden (varsayılan U10), tam dayanıklılık. */
+export function starterKit(weapon: Weapon, ageCategory: AgeCategory = "U10"): KitItemState[] {
   return itemsForWeapon(weapon)
     .filter((i) => !i.cosmetic)
-    .map((i) => ({ slot: i.slot, itemId: i.id, size: 0, durability: 100, broken: false }));
+    .map((i) => ({ slot: i.slot, itemId: i.id, size: requiredSize(i.slot, ageCategory), durability: 100, broken: false }));
 }
 
 export function encodeKit(kit: readonly KitItemState[]): string {
@@ -411,10 +429,9 @@ export function resolveKit(equipmentState: string | null | undefined, weapon: We
   return starterKit(weapon);
 }
 
-/** Bir satın alım/değişimi çantaya uygular: o slotun parçasını yeni ürünle değiştirir (tam dayanıklılık, kırık değil). */
-export function applyKitPurchase(kit: readonly KitItemState[], item: GladiusItem): KitItemState[] {
-  const prev = kit.find((k) => k.slot === item.slot);
+/** Bir satın alım/değişimi çantaya uygular: o slotun parçasını yeni ürünle, DOĞRU bedenle değiştirir (tam dayanıklılık). */
+export function applyKitPurchase(kit: readonly KitItemState[], item: GladiusItem, size = 0): KitItemState[] {
   const next = kit.filter((k) => k.slot !== item.slot);
-  next.push({ slot: item.slot, itemId: item.id, size: prev?.size ?? 0, durability: 100, broken: false });
+  next.push({ slot: item.slot, itemId: item.id, size, durability: 100, broken: false });
   return next;
 }

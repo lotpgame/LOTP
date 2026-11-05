@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
-import { itemById, itemsForWeapon, itemName, itemDesc, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { itemById, itemsForWeapon, itemName, itemDesc, kitItemFits, sizeLabel, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import type { AgeCategory } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -53,6 +54,8 @@ export default async function EkipmanPage({
   // Silaha göre katalog: oyuncu yalnız kendi silahının + ortak ürünlerini görür (epe → yelek/maske kordonu yok).
   const catalog = itemsForWeapon(c.weapon as Weapon);
   const ownedCount = catalog.filter((i) => owned.has(i.id)).length;
+  // Yaş kategorisi (categoryId: "U10-M-EP" → "U10") — çantada beden uygunluğu için (silah 0/2/5).
+  const ageCat = (c.categoryId.split("-")[0] ?? "U10") as AgeCategory;
 
   const card = (item: GladiusItem) => {
     const isOwned = owned.has(item.id);
@@ -121,16 +124,17 @@ export default async function EkipmanPage({
             const item = itemById(k.itemId);
             if (!item) return null;
             const kicon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot as Exclude<EquipmentSlot, "WEAPON">];
-            const sizeLabel = k.size >= 5 ? "U14+" : k.size >= 2 ? "U12" : "U10";
+            const tooSmall = !kitItemFits(k, ageCat); // yaşla büyüdü, beden küçük geldi → yenileme
             return (
-              <li key={k.slot} className={`panel flex items-center gap-3 p-2.5 ${k.broken ? "border-sig-red" : ""}`}>
+              <li key={k.slot} className={`panel flex items-center gap-3 p-2.5 ${k.broken || tooSmall ? "border-sig-red" : ""}`}>
                 <span className="mesh flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
                   <Icon name={kicon} size={24} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-[14px] font-semibold">{itemName(item, locale)}</span>
-                    <span className="kicker shrink-0 rounded border border-line px-1 text-[10px] text-steel">{sizeLabel}</span>
+                    <span className={`kicker shrink-0 rounded border px-1 text-[10px] ${tooSmall ? "border-sig-red text-sig-red" : "border-line text-steel"}`}>{sizeLabel(k.size)}</span>
+                    {tooSmall && <span className="kicker shrink-0 rounded bg-sig-red/20 px-1 text-[10px] text-sig-red">{t(locale, "ekipman.tooSmall")}</span>}
                     {k.broken && <span className="kicker shrink-0 rounded bg-sig-red/20 px-1 text-[10px] text-sig-red">{t(locale, "ekipman.broken")}</span>}
                   </div>
                   <div className="mt-1.5 flex items-center gap-1.5">

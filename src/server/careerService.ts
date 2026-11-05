@@ -217,7 +217,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, resolveKit, starterKit, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, requiredSize, resolveKit, starterKit, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1890,14 +1890,15 @@ export async function leaveTournament(tournamentId: number): Promise<void> {
 export async function buyEquipment(itemId: string): Promise<void> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
-  const { human } = state;
+  const { gs, human } = state;
   const item = itemById(itemId);
   if (!item) throw new GameError("item_not_found", "Ürün bulunamadı.");
   const owned = parseOwned(human.ownedEquipment);
   if (owned.includes(item.id)) return; // zaten sahipsin
   if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
-  // Çantayı da güncelle: o slotun parçası yeni ürünle değişir (tam dayanıklılık, kırık değil).
-  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item);
+  // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞ KATEGORİSİNE uygun bedenle değişir (tam dayanıklılık).
+  const ageCategory = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)).ageCategory;
+  const kit = applyKitPurchase(resolveKit(human.equipmentState, human.weapon as Weapon), item, requiredSize(item.slot, ageCategory));
   await prisma.player.update({
     where: { id: human.id },
     data: {
