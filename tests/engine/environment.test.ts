@@ -17,7 +17,7 @@ import {
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
 import { applyKitPurchase, bodySize, encodeKit, itemById, kitItemFits, requiredSize, resolveKit, validateKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
-import { entryFee } from "@/engine/economy";
+import { clubMonthlyDues, entryFee } from "@/engine/economy";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -234,6 +234,10 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(entryFee("IL")).toBe(0);
     expect(entryFee("TURKIYE")).toBeGreaterThan(0);
     expect(entryFee("WORLD_CUP")).toBeGreaterThan(entryFee("TURKIYE"));
+    // Kulüp aidatı: iyi kulüp daha pahalı; küçük tutulur (ay=hafta)
+    expect(clubMonthlyDues(100)).toBeGreaterThan(clubMonthlyDues(40));
+    expect(clubMonthlyDues(60)).toBeLessThanOrEqual(4);
+    expect(clubMonthlyDues(0)).toBeGreaterThanOrEqual(1);
   });
   it("applyKitPurchase: o slotu yeni ürünle değiştirir (tam dayanıklılık), slot sayısı artmaz", () => {
     const kit = starterKit("FOIL");

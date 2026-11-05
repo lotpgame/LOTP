@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2B-3: kulüp aidatı (düzenli Denar))
+- **Kulüp aidatı:** oyuncu "dünyaya yetiş"irken geçilen her oyun-ayında (7 gün) küçük Denar öder
+  (`clubMonthlyDues`, kulüp `coachSkill`'ine bağlı: 0→1 … 100→4 Đ/ay — iyi kulüp daha pahalı). **Yumuşak:**
+  bakiyeyi 0'ın altına indirmez (ödeyemezse elindeki kadar, ceza yok). Şema değişmedi.
+- 🎉 **Ekipman Dilim 2 TAMAM** (2A silah bedeni · 2B-1 kıyafet büyümesi · 2B-2 katılım kuralı+ücreti · 2B-3 aidat).
+  Sırada: 2C (çoklu silah + iki tür yıpranma) ve Dilim 3 (30 olaylı olay motoru).
+
 ### Eklendi (05.11 — Ekipman Dilim 2B-2: maça katılım kuralı + katılım ücreti)
 - **Katılım kuralı:** turnuvaya YENİ kayıtta takım **tam + doğru beden + kırık değil** olmalı (`validateKit`).
   Değilse yumuşak uyarı (`err.kit_small`/`kit_broken`/`kit_incomplete`) + Ekipman'a yönlendir. Mevcut oyuncular

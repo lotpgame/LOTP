@@ -39,6 +39,12 @@ export function entryFee(level: TournamentLevel): number {
   return ENTRY_FEES[level] ?? 0;
 }
 
+/** Kulüp aidatı (Dilim 2B): her oyun-ayında (7 gün) küçük Denar; kulüp KALİTESİNE (coachSkill 0–100) bağlı.
+ * 0→1, 50→2, 75→3, 100→4 Đ/ay. İyi kulüp = daha iyi gelişim ama daha pahalı (anlamlı seçim). Küçük tutulur. */
+export function clubMonthlyDues(coachSkill: number): number {
+  return Math.max(1, Math.round(coachSkill / 25));
+}
+
 export const MAX_EQUIPMENT_LEVEL = 5;
 
 /** `level` → `level+1` yükseltme maliyeti. Üst seviyeler pahalıdır. */

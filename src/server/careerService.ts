@@ -208,6 +208,7 @@ import {
 import {
   MAX_EQUIPMENT_LEVEL,
   STARTING_BALANCE,
+  clubMonthlyDues,
   entryFee,
   equipmentUpgradeCost,
   prizeFor,
@@ -1755,12 +1756,17 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         data: { current: skills[def.key].current },
       });
     }
+    // Kulüp aidatı (Dilim 2B-3): geçilen her oyun-ayında (7 gün) küçük Denar; kulüp kalitesine bağlı.
+    // Yumuşak: bakiyeyi 0'ın altına indirmez (ödeyemezse elindeki kadar öder, ceza yok).
+    const monthsCrossed = Math.floor(d / DAYS_PER_MONTH) - Math.floor(startDay / DAYS_PER_MONTH);
+    const clubDues = Math.min(human.balance, clubMonthlyDues(human.club?.coachSkill ?? 60) * Math.max(0, monthsCrossed));
     await tx.player.update({
       where: { id: human.id },
       data: {
         fatigue,
         sharpness,
         experience: { increment: xpGained }, // #28: antrenman tecrübesi
+        balance: { decrement: clubDues }, // kulüp aidatı
         morale: nextPsych.morale,
         motivation: nextPsych.motivation,
         confidence: nextPsych.confidence,
