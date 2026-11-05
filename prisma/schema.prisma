@@ -208,6 +208,8 @@ model GameState {
   skillQuarterBase String?
   // M11.4: "yokken neler oldu" — offline'ken otomatik oynanan turnuvaların özeti (JSON dizi). Görülünce temizlenir.
   awayReport String?
+  // Katman 2: trait evrimi bildirimleri (JSON dizi {kind, from?, to}). "Sen yokken" panelinde gösterilir, görülünce temizlenir.
+  traitReport String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

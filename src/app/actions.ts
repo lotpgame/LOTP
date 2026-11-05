@@ -19,6 +19,7 @@ import {
   GameError,
   clearReport,
   clearAwayReport,
+  clearTraitReport,
   submitFeedback,
   createCareer,
   getCategoryRanking,
@@ -196,6 +197,7 @@ export async function unregisterTournamentAction(formData: FormData): Promise<vo
 export async function clearAllReportsAction(): Promise<void> {
   await clearReport();
   await clearAwayReport();
+  await clearTraitReport();
   revalidatePath("/kariyer", "layout");
 }
 

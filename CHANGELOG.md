@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Trait Katman 2 / Dilim 3: evrim bildirimi "Sen yokken" panelinde (hikâye))
+- Trait değişince **"Sen yokken" panelinde bildirim**: dönüşümde *"Karakterin olgunlaştı: Sabırsız →
+  Soğukkanlı"* (eski üstü çizili), edinmede *"Yeni bir karakter özelliği: + Özgüvenli"* (9 dil). Mevcut trait
+  etiketleri kullanılır. Kapatınca (mevcut ✕) temizlenir (`clearTraitReport`, clearAllReports'a eklendi).
+- **Yeni alan `GameState.traitReport`** (eklemeli şema → Neon migration gerekir): son 10 evrim notu (JSON).
+  `applyTraitEvolution` değişim olunca oyuncunun GameState'ine notu yazar (kendi içinde). getCareerHeader →
+  `traitEvents`. Yerelde görsel doğrulandı (ekran görüntüsü), tsc + 216 test yeşil.
+- 🎉 **Trait Katman 2 TAMAM** (Dilim 1 motor + Dilim 2 bağlama + Dilim 3 bildirim). Tam 0–4 intensity modeli
+  hâlâ V2.
+
 ### Eklendi (05.11 — Trait Katman 2 / Dilim 2: evrim canlı akışa bağlandı (GDD 10.37))
 - **`applyTraitEvolution`** (`src/server/traitEvolution.ts`, ortak modül): turnuva bitişinde kariyer
   sinyallerini (başarılar, koç skoru, oynanan turnuva, yaş, son düşüş) okuyup `evolveTraits`'i çağırır;

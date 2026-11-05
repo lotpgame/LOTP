@@ -15,6 +15,7 @@ import {
   parseTraitPlan,
   TRAIT_CHANGE_COOLDOWN_DAYS,
   type TraitChange,
+  type TraitEventNote,
   type TraitSignals,
 } from "@/engine/trait";
 
@@ -74,5 +75,13 @@ export async function applyTraitEvolution(
     where: { id: player.id },
     data: { traits: encodeTraitPlan(nextPlan), lastTraitEventDay: ctx.dayIndex },
   });
+
+  // Dilim 3: bildirim notunu oyuncunun kendi GameState'ine ekle ("Sen yokken" panelinde görünür, son 10).
+  const gsRow = await tx.gameState.findFirst({ where: { humanPlayerId: player.id }, select: { id: true, traitReport: true } });
+  if (gsRow) {
+    const notes: TraitEventNote[] = gsRow.traitReport ? (JSON.parse(gsRow.traitReport) as TraitEventNote[]) : [];
+    notes.push({ kind: change.kind, from: change.from, to: change.to });
+    await tx.gameState.update({ where: { id: gsRow.id }, data: { traitReport: JSON.stringify(notes.slice(-10)) } });
+  }
   return change;
 }

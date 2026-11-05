@@ -196,6 +196,7 @@ import {
   traitCombatModifier,
   traitTrainingMultiplier,
   type TraitKey,
+  type TraitEventNote,
 } from "@/engine/trait";
 import {
   afterTournament as psychAfterTournament,
@@ -1065,6 +1066,7 @@ export interface CareerHeaderDTO {
   today: TodayDTO; // bugünün etkinliği (çubuk Katıl/Geç için)
   report: TrainingReport | null; // son "dünyaya yetiş" antrenman haberi (varsa)
   awayTournaments: AwayTournamentEntry[]; // M11.4: yokken otomatik oynanan turnuvalar (varsa)
+  traitEvents: TraitEventNote[]; // Katman 2 Dilim 3: trait evrimi bildirimleri (varsa)
   // M10 dünya saati: canAttend = bugünkü uygun turnuva "geldi" (Katıl/Geç); needsSync = işlenecek
   // gün var (otomatik dünyaya yetiş); caughtUp = dünyaya yetişildi, sonraki gün gerçek zamanda gelecek.
   canAttend: boolean;
@@ -1207,6 +1209,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     today,
     report: gs.lastReport ? (JSON.parse(gs.lastReport) as TrainingReport) : null,
     awayTournaments: gs.awayReport ? (JSON.parse(gs.awayReport) as AwayTournamentEntry[]) : [],
+    traitEvents: gs.traitReport ? (JSON.parse(gs.traitReport) as TraitEventNote[]) : [],
     canAttend,
     needsSync,
     caughtUp: !arrived,
@@ -1770,6 +1773,13 @@ export async function clearAwayReport(): Promise<void> {
   const gs = await currentGameState();
   if (!gs) return;
   await prisma.gameState.update({ where: { id: gs.id }, data: { awayReport: null } });
+}
+
+/** Katman 2 Dilim 3: trait evrimi bildirimlerini temizler (görülünce). */
+export async function clearTraitReport(): Promise<void> {
+  const gs = await currentGameState();
+  if (!gs) return;
+  await prisma.gameState.update({ where: { id: gs.id }, data: { traitReport: null } });
 }
 
 /** Geri bildirim / hata bildirimi kaydeder (test haftası). Giriş yoksa da çalışır (playerName null). */

@@ -176,6 +176,13 @@ export interface TraitChange {
   reason: string;
 }
 
+/** "Sen yokken" panelinde gösterilecek trait evrimi notu (kalıcı; reason gerekmez — UI etiketten türetir). */
+export interface TraitEventNote {
+  kind: TraitChange["kind"];
+  from?: TraitKey;
+  to: TraitKey;
+}
+
 /** Değişimler arası en az bekleme (1 oyun-yılı ≈ 12 hafta × 7 = 84 gün). Karakter sık sık dönmez (GDD 10.32). */
 export const TRAIT_CHANGE_COOLDOWN_DAYS = 84;
 /** Bu yaştan sonra karakter oturur → değişim çok nadir (GDD 10.35). */

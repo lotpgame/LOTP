@@ -44,7 +44,7 @@ export default async function BugunPage({
 
   const report = h.report;
   const gains = report?.gains ?? [];
-  const showAway = gains.length > 0 || h.awayTournaments.length > 0 || !!report?.injured;
+  const showAway = gains.length > 0 || h.awayTournaments.length > 0 || !!report?.injured || h.traitEvents.length > 0;
 
   return (
     <ArenaPage bg="/img/bg-bugun.webp" className="flex flex-col gap-4">
@@ -139,6 +139,31 @@ export default async function BugunPage({
                     </div>
                     <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
                   </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Katman 2: trait evrimi bildirimleri — "karakterin gelişti" (GDD 10.37). */}
+          {h.traitEvents.length > 0 && (
+            <ul className={`flex flex-col gap-1.5 ${report || h.awayTournaments.length > 0 ? "mt-3 border-t border-line pt-2" : "mt-1"}`}>
+              {h.traitEvents.map((ev, i) => (
+                <li key={`${ev.to}-${i}`} className="flex items-center gap-2 text-[14px]">
+                  <Icon name="mental" size={16} className="shrink-0 text-ink" />
+                  <span className="text-steel">
+                    {t(locale, ev.kind === "TRANSFORM" ? "bugun.traitTransform" : "bugun.traitAcquire")}:
+                  </span>
+                  <span className="font-medium">
+                    {ev.kind === "TRANSFORM" && ev.from ? (
+                      <>
+                        <span className="text-steel line-through">{t(locale, `trait.${ev.from}`)}</span>
+                        {" → "}
+                        {t(locale, `trait.${ev.to}`)}
+                      </>
+                    ) : (
+                      <>+ {t(locale, `trait.${ev.to}`)}</>
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>
