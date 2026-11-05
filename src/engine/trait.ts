@@ -154,6 +154,77 @@ export function activeTraitKeys(plan: readonly TraitPlanEntry[], age: number): T
   return sanitizeTraitKeys(ordered);
 }
 
+// ——— Katman 2: Yaşanmışlıkla trait gelişimi (GDD 10.31–10.37) ———
+
+/** Trait evrimi için kariyer sinyalleri — hepsi mevcut veriden türetilir (yeni takip gerekmez). */
+export interface TraitSignals {
+  age: number;
+  championships: number; // kümülatif şampiyonluk (ulusal+)
+  medals: number; // uluslararası madalya
+  nationalTeam: boolean; // milli takıma seçildi mi
+  coachQuality: number; // 0..1 antrenman/koç kalitesi
+  tournamentsPlayed: number; // oynanan turnuva (tecrübe)
+  recentSetback: boolean; // son dönemde önemli bir düşüş/büyük kayıp
+  daysSinceLastChange: number; // son trait değişiminden bu yana gün
+}
+
+/** Uygulanacak TEK trait değişimi (yoksa null). reason = i18n bildirim anahtarı ("traitEvo.*"). */
+export interface TraitChange {
+  kind: "TRANSFORM" | "ACQUIRE";
+  from?: TraitKey; // TRANSFORM'da dönüşen eski trait
+  to: TraitKey;
+  reason: string;
+}
+
+/** Değişimler arası en az bekleme (1 oyun-yılı ≈ 12 hafta × 7 = 84 gün). Karakter sık sık dönmez (GDD 10.32). */
+export const TRAIT_CHANGE_COOLDOWN_DAYS = 84;
+/** Bu yaştan sonra karakter oturur → değişim çok nadir (GDD 10.35). */
+const TRAIT_STABILIZE_AGE = 20;
+
+/** Yaşa göre değişime açıklık: genç çok, yaşlı az (GDD 10.35). 8→1.0, 20→0.2, sonrası 0.05. */
+function changeOpennessByAge(age: number): number {
+  if (age >= TRAIT_STABILIZE_AGE) return 0.05;
+  return clamp(1.0 - ((age - 8) / (TRAIT_STABILIZE_AGE - 8)) * 0.8, 0.2, 1.0);
+}
+
+/**
+ * Kariyer yaşanmışlığına göre EN FAZLA BİR trait değişimi önerir (yoksa null). Deterministik (rng).
+ * Ani değildir: cooldown + yaş kapısı + düşük olasılık (GDD 10.32). Zıt-çift korunur (dönüşüm zaten
+ * olgun/zıt haline gider); max 3 trait → edinme yalnız boş slotta. Çağıran uygular + Memory'ye yazar (10.37).
+ */
+export function evolveTraits(active: readonly TraitKey[], s: TraitSignals, rng: SeededRng): TraitChange | null {
+  if (s.daysSinceLastChange < TRAIT_CHANGE_COOLDOWN_DAYS) return null; // çok yakın — bekle
+  const openness = changeOpennessByAge(s.age);
+  const has = (k: TraitKey) => active.includes(k);
+  const success = s.championships + s.medals + (s.nationalTeam ? 1 : 0);
+
+  // Aday değişimler: koşul + taban olasılık. Öncelik sırayla; koşulu sağlayan İLK adayda olasılık atılır.
+  const cands: { when: boolean; p: number; change: TraitChange }[] = [
+    // — Olgunlaşma dönüşümleri —
+    { when: has("IMPATIENT") && s.age >= 12 && s.coachQuality >= 0.55 && s.tournamentsPlayed >= 12, p: 0.5,
+      change: { kind: "TRANSFORM", from: "IMPATIENT", to: "PATIENT", reason: "traitEvo.impatientToPatient" } },
+    { when: has("ANXIOUS") && success >= 2, p: 0.5,
+      change: { kind: "TRANSFORM", from: "ANXIOUS", to: "CALM", reason: "traitEvo.anxiousToCalm" } },
+    { when: has("SENSITIVE") && success >= 2, p: 0.5,
+      change: { kind: "TRANSFORM", from: "SENSITIVE", to: "CONFIDENT", reason: "traitEvo.sensitiveToConfident" } },
+    { when: has("LAZY") && s.coachQuality >= 0.6 && s.tournamentsPlayed >= 16, p: 0.4,
+      change: { kind: "TRANSFORM", from: "LAZY", to: "HARDWORKING", reason: "traitEvo.lazyToHardworking" } },
+    // — Olumsuz dönüşüm (büyük düşüş, başarısızlık) —
+    { when: has("CONFIDENT") && s.recentSetback && success === 0, p: 0.4,
+      change: { kind: "TRANSFORM", from: "CONFIDENT", to: "SENSITIVE", reason: "traitEvo.confidentToSensitive" } },
+    // — Edinme (yalnız boş slot; max 3 korunur) —
+    { when: active.length < 3 && success >= 3 && !has("CONFIDENT") && !has("SENSITIVE"), p: 0.5,
+      change: { kind: "ACQUIRE", to: "CONFIDENT", reason: "traitEvo.gainConfident" } },
+    { when: active.length < 3 && s.recentSetback && !has("PRESSURE_PROOF") && !has("ANXIOUS") && !has("SENSITIVE"), p: 0.35,
+      change: { kind: "ACQUIRE", to: "PRESSURE_PROOF", reason: "traitEvo.gainPressureProof" } },
+  ];
+
+  for (const c of cands) {
+    if (c.when && rng.bool(c.p * openness)) return c.change;
+  }
+  return null;
+}
+
 /** Verilen (aktif) trait'lerin antrenman verimi çarpanları çarpımı. */
 export function traitTrainingMultiplier(traits: readonly TraitKey[]): number {
   return traits.reduce((acc, t) => acc * (TRAITS[t]?.trainingMult ?? 1), 1);

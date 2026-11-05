@@ -6,6 +6,9 @@ import {
   generateTraitPlan,
   sanitizeTraitKeys,
   reputationAfterEvent,
+  evolveTraits,
+  TRAIT_CHANGE_COOLDOWN_DAYS,
+  type TraitSignals,
   traitCombatModifier,
   traitTrainingMultiplier,
 } from "@/engine/trait";
@@ -88,6 +91,52 @@ describe("Trait Engine", () => {
     let r = 100;
     for (let i = 0; i < 10; i++) r = reputationAfterEvent(r, ["NASTY"]);
     expect(r).toBeLessThan(65);
+  });
+  it("Katman 2 — trait evrimi: cooldown, dönüşüm, max-3, yaş kapısı, determinizm", () => {
+    // Güçlü "olgunlaşma" sinyali: genç, iyi koç, çok tecrübe → Sabırsız → Sabırlı adayı.
+    const mature = (over: Partial<TraitSignals> = {}): TraitSignals => ({
+      age: 13, championships: 0, medals: 0, nationalTeam: false,
+      coachQuality: 0.7, tournamentsPlayed: 20, recentSetback: false,
+      daysSinceLastChange: 200, ...over,
+    });
+
+    // 1) Cooldown: son değişim çok yakınsa HİÇBİR tohumda değişmez.
+    for (let i = 0; i < 40; i++) {
+      expect(evolveTraits(["IMPATIENT"], mature({ daysSinceLastChange: TRAIT_CHANGE_COOLDOWN_DAYS - 1 }), createRng(`cd${i}`))).toBeNull();
+    }
+
+    // 2) Dönüşüm gerçekleşir: bazı tohumlarda Sabırsız → Sabırlı; başka bir şeye dönüşmez.
+    let transformed = 0;
+    for (let i = 0; i < 60; i++) {
+      const ch = evolveTraits(["IMPATIENT"], mature(), createRng(`tf${i}`));
+      if (ch) {
+        expect(ch).toEqual({ kind: "TRANSFORM", from: "IMPATIENT", to: "PATIENT", reason: "traitEvo.impatientToPatient" });
+        transformed++;
+      }
+    }
+    expect(transformed).toBeGreaterThan(0);
+
+    // 3) Determinizm: aynı tohum → aynı sonuç.
+    expect(evolveTraits(["IMPATIENT"], mature(), createRng("same"))).toEqual(evolveTraits(["IMPATIENT"], mature(), createRng("same")));
+
+    // 4) Uygun aday yoksa null (nötr trait + zayıf sinyal).
+    for (let i = 0; i < 30; i++) {
+      expect(evolveTraits(["DISCIPLINED"], mature({ coachQuality: 0.2, tournamentsPlayed: 2 }), createRng(`no${i}`))).toBeNull();
+    }
+
+    // 5) Max 3 korunur: 3 trait doluyken edinme (ACQUIRE) tetiklenmez.
+    const full = ["DISCIPLINED", "AMBITIOUS", "RISK_TAKER"] as const;
+    for (let i = 0; i < 40; i++) {
+      expect(evolveTraits(full, mature({ championships: 5 }), createRng(`full${i}`))).toBeNull();
+    }
+
+    // 6) Yaş kapısı: genç, yaşlıdan daha sık değişir (GDD 10.35).
+    const count = (age: number) => {
+      let n = 0;
+      for (let i = 0; i < 200; i++) if (evolveTraits(["IMPATIENT"], mature({ age }), createRng(`age${age}:${i}`))) n++;
+      return n;
+    };
+    expect(count(12)).toBeGreaterThan(count(25));
   });
   it("kademeli açılım: 8-10 yaş 1 trait, 11'de 2, 12'de 3", () => {
     // Zıt-çift filtresi bazen <3 üretebilir; birçok tohumdan tam 3'lük bir plan bul.

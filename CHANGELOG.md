@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Trait Katman 2 / Dilim 1: yaşanmışlıkla trait evrimi (motor) (GDD 10.31–10.37))
+- **`evolveTraits`** (saf motor, trait.ts): kariyer sinyallerine göre (yaş, şampiyonluk/madalya/milli takım,
+  koç kalitesi, tecrübe, son düşüş) EN FAZLA BİR trait değişimi önerir. **Dönüşüm** (Sabırsız→Sabırlı,
+  Kaygılı→Soğukkanlı, Hassas→Özgüvenli, Tembel→Çalışkan, Özgüven↓→Hassas) + **edinme** (boş slotta
+  Özgüvenli/Baskıya Dayanıklı). Ani değil: **cooldown** (1 oyun-yılı) + **yaş kapısı** (gençken sık, ~20
+  sonrası oturur) + düşük olasılık. Deterministik (seeded). Max 3 trait + zıt-çift korunur.
+- Henüz canlıya BAĞLANMADI (Dilim 2: turnuva bitişine kancala + kalıcılık + migration; Dilim 3: bildirim).
+  15 test (cooldown, dönüşüm, max-3, yaş kapısı, determinizm).
+
 ### Eklendi (05.11 — avatar havuzu 60 sete çıktı (kullanıcı üretimi))
 - Yeni şeritler dilimlendi: **23 erkek** (`b01–b23`) + **37 kız** (`g01–g37`) = **60 set** (eskiden 42).
   `b21–b23` farklı oranda (3:2) geldiği için çene kesilmesin diye özel (daha ferah) kırpımla yeniden
