@@ -415,6 +415,22 @@ export function kitItemFits(k: KitItemState, age: number, ageCategory: AgeCatego
   return k.size >= requiredSize(k.slot, age, ageCategory);
 }
 
+/**
+ * Maça katılım için takım geçerli mi? Tüm gerekli parçalar var + kırık değil + doğru beden (Dilim 2B).
+ * Sorun varsa hata KODU döner ("kit_incomplete" | "kit_broken" | "kit_small"), yoksa null. Kod = i18n err.<kod>.
+ */
+export function validateKit(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory): "kit_incomplete" | "kit_broken" | "kit_small" | null {
+  const bySlot = new Map(kit.map((k) => [k.slot, k]));
+  for (const req of itemsForWeapon(weapon).filter((i) => !i.cosmetic)) {
+    if (!bySlot.has(req.slot)) return "kit_incomplete"; // eksik parça
+  }
+  for (const k of kit) {
+    if (k.broken) return "kit_broken"; // kırık parça
+    if (!kitItemFits(k, age, ageCategory)) return "kit_small"; // küçük gelmiş
+  }
+  return null;
+}
+
 /** Başlangıç takımı (BEDAVA): gerekli parçalar (kozmetik hariç), doğru beden (varsayılan 8 yaş/U10), tam dayanıklılık. */
 export function starterKit(weapon: Weapon, age = 8, ageCategory: AgeCategory = "U10"): KitItemState[] {
   return itemsForWeapon(weapon)

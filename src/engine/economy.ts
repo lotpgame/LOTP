@@ -31,6 +31,14 @@ export function prizeFor(level: TournamentLevel, position: number): number {
   return PRIZE_TABLES[level][position] ?? 0;
 }
 
+// Maça katılım ücreti (Dilim 2B): küçük, o seviyenin 1. ödülünün ALTINDA (engel değil, denge). İl bedava (çocuk/sık).
+const ENTRY_FEES: Record<TournamentLevel, number> = {
+  IL: 0, OPEN: 2, TURKIYE: 3, SATELLITE: 5, GRAND_PRIX: 8, EUROPEAN: 12, WORLD_CUP: 15,
+};
+export function entryFee(level: TournamentLevel): number {
+  return ENTRY_FEES[level] ?? 0;
+}
+
 export const MAX_EQUIPMENT_LEVEL = 5;
 
 /** `level` → `level+1` yükseltme maliyeti. Üst seviyeler pahalıdır. */

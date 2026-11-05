@@ -208,6 +208,7 @@ import {
 import {
   MAX_EQUIPMENT_LEVEL,
   STARTING_BALANCE,
+  entryFee,
   equipmentUpgradeCost,
   prizeFor,
 } from "@/engine/economy";
@@ -217,7 +218,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, requiredSize, resolveKit, starterKit, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, encodeKit, encodeOwned, equipmentCombatBonus, itemById, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type KitItemState } from "@/engine/equipment";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1349,10 +1350,24 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   const ranking = await buildRankingView(id.categoryId, quarterOf(worldDay), human.id, { country: human.nationality?.code ?? "TR" });
   const humanRank = ranking.find((r) => r.isHuman)?.position ?? null;
   if (!qualifies(act.qualification, humanRank)) throw new Error(`Katılım hakkın yok — ${qualificationLabel(act.qualification)}.`);
-  await prisma.registration.upsert({
+
+  // Zaten kayıtlıysa yalnız taktik güncellenir (ücret/kit kontrolü yok — bir kez ödendi).
+  const existing = await prisma.registration.findUnique({
     where: { playerId_worldDay_level: { playerId: gs.humanPlayerId, worldDay, level } },
-    create: { playerId: gs.humanPlayerId, worldDay, level, categoryId: id.categoryId, tactic },
-    update: { tactic, categoryId: id.categoryId },
+  });
+  if (existing) {
+    await prisma.registration.update({ where: { id: existing.id }, data: { tactic, categoryId: id.categoryId } });
+    return;
+  }
+
+  // YENİ kayıt: maça katılım kuralı (tam + doğru beden + kırık değil) + katılım ücreti (Dilim 2B).
+  const kitProblem = validateKit(resolveKit(human.equipmentState, human.weapon as Weapon), human.weapon as Weapon, id.age, id.ageCategory);
+  if (kitProblem) throw new GameError(kitProblem, "Ekipmanın maça hazır değil — Ekipman sayfasından kontrol et.");
+  const fee = entryFee(level);
+  if (fee > 0 && human.balance < fee) throw new GameError("entry_fee", `Katılım ücreti için ${fee} Denar gerekir.`);
+  await prisma.$transaction(async (tx) => {
+    if (fee > 0) await tx.player.update({ where: { id: human.id }, data: { balance: { decrement: fee } } });
+    await tx.registration.create({ data: { playerId: gs.humanPlayerId, worldDay, level, categoryId: id.categoryId, tactic } });
   });
 }
 
@@ -1360,7 +1375,12 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
 export async function unregisterTournament(worldDay: number, level: TournamentLevel): Promise<void> {
   const gs = await currentGameState();
   if (!gs) throw new Error("Aktif kariyer yok.");
-  await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
+  const del = await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
+  // Katılım ücreti iade (kayıt vardıysa; İl ücretsiz → 0, no-op).
+  const fee = entryFee(level);
+  if (del.count > 0 && fee > 0) {
+    await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { balance: { increment: fee } } });
+  }
 }
 
 /** Klasman kapsamı: Şehir (İl) / Ülke (ulusal) / Kıta / Dünya (M-UI). */

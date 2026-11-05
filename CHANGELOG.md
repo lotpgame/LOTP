@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (05.11 — Ekipman Dilim 2B-2: maça katılım kuralı + katılım ücreti)
+- **Katılım kuralı:** turnuvaya YENİ kayıtta takım **tam + doğru beden + kırık değil** olmalı (`validateKit`).
+  Değilse yumuşak uyarı (`err.kit_small`/`kit_broken`/`kit_incomplete`) + Ekipman'a yönlendir. Mevcut oyuncular
+  başlangıç takımıyla U10'da geçerli (kimse kilitlenmez).
+- **Katılım ücreti** (`entryFee`): İl **bedava**, Open 2, Ulusal 3, uluslararası 5–15 Đ — hepsi o seviyenin
+  1. ödülünün altında (engel değil). Yeni kayıtta düşülür, kayıt iptalinde iade edilir. Şema değişmedi. 221 test.
+
 ### Eklendi (05.11 — Ekipman Dilim 2B-1: kıyafet büyümesi (her 2 yıl))
 - **Gövde bedeni:** kıyafet/ayakkabı/maske/yelek artık **yaşla büyür** (`bodySize`: 8→0, her 2 yıl +1, 20'de donar).
   Oyuncu büyüyünce bu parçalar **"KÜÇÜK GELDİ"** olur → yeni beden gerekir. `requiredSize` artık yaş + kategori

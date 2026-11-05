@@ -16,7 +16,8 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, bodySize, encodeKit, itemById, kitItemFits, requiredSize, resolveKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, bodySize, encodeKit, itemById, kitItemFits, requiredSize, resolveKit, validateKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { entryFee } from "@/engine/economy";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -217,6 +218,22 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(starterKit("FOIL", 13, "U14").find((k) => k.slot === "WEAPON")?.size).toBe(5);
     expect(starterKit("FOIL", 12, "U12").find((k) => k.slot === "CLOTHING")?.size).toBe(2);
     expect(starterKit("FOIL").find((k) => k.slot === "WEAPON")?.size).toBe(0); // varsayılan 8/U10
+  });
+  it("validateKit (2B): tam+doğru beden+kırık değil → null; aksi halde hata kodu; entryFee seviyeye göre", () => {
+    // Başlangıç takımı U10'da geçerli
+    expect(validateKit(starterKit("FOIL"), "FOIL", 9, "U10")).toBeNull();
+    // Kırık parça → kit_broken
+    const broken = starterKit("FOIL").map((k) => (k.slot === "WEAPON" ? { ...k, broken: true } : k));
+    expect(validateKit(broken, "FOIL", 9, "U10")).toBe("kit_broken");
+    // Büyüyünce (U12) silah/kıyafet küçük → kit_small
+    expect(validateKit(starterKit("FOIL"), "FOIL", 11, "U12")).toBe("kit_small");
+    // Eksik parça → kit_incomplete
+    const incomplete = starterKit("FOIL").filter((k) => k.slot !== "WEAPON");
+    expect(validateKit(incomplete, "FOIL", 9, "U10")).toBe("kit_incomplete");
+    // Katılım ücreti: İl bedava, ulusal/uluslararası artar; hepsi 1. ödülün altında
+    expect(entryFee("IL")).toBe(0);
+    expect(entryFee("TURKIYE")).toBeGreaterThan(0);
+    expect(entryFee("WORLD_CUP")).toBeGreaterThan(entryFee("TURKIYE"));
   });
   it("applyKitPurchase: o slotu yeni ürünle değiştirir (tam dayanıklılık), slot sayısı artmaz", () => {
     const kit = starterKit("FOIL");
