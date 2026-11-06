@@ -40,7 +40,8 @@ export const metadata: Metadata = {
   applicationName: "Legends of the Piste",
   // PWA: iOS "Ana ekrana ekle" → tam ekran app, kısa ad, saydam durum çubuğu. (Android manifest'ten gelir.)
   appleWebApp: { capable: true, title: "LOTP", statusBarStyle: "black-translucent" },
-  icons: { icon: "/favicon.ico", apple: "/icons/apple-180.png" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-180.png" },
+  // Link önizleme görseli (og:image) `src/app/opengraph-image.tsx` dosya-kuralından gelir (1200×630 yatay).
 };
 
 // PWA standalone: tema rengi + çentikli ekranlarda tam ekran (safe-area inset'ler çalışsın).

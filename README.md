@@ -151,7 +151,9 @@ arayüz + maç anlatımları + hata mesajları; cookie tabanlı, oluşturma ekra
 **ekipman yaşam döngüsü** (bedava başlangıç takımı, beden/büyüme, dayanıklılık + yıpranma/kırılma, dolap + market,
 yedekler, çöp at); **hayat & malzeme olayları** (haftada dengeli 1 olumlu + 1 olumsuz; harçlık/kırılma; süreli
 fırsatlar); **monetization** — Market'teki "Denar Kazan & Al" köşesinde **ödüllü reklam** (+2 Denar, günde 3) +
-**Denar paketleri** (lansmanta Stripe'a bağlanır). İlke: ödeyen daha güçlü olmaz, yalnız kesintisiz oynar (pay-to-win yok).
+**Denar paketleri** (lansmanta Stripe'a bağlanır). İlke: ödeyen daha güçlü olmaz, yalnız kesintisiz oynar (pay-to-win yok);
+**oyun logosu** ("Legends of the Piste" amblemi — `public/img/logo.png`): giriş hero'su + masaüstü sidebar başlığı,
+telefon/PWA ikonları + favicon logodan üretilir (link önizleme görseli `opengraph-image.tsx`'ten).
 
 **🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan
 dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar

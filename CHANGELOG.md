@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Oyun logosu: "Legends of the Piste" marka amblemi)
+- **Gerçek logo oyuna gömüldü** (kullanıcının sağladığı amblem). Tek kaynak `public/img/logo.png`'den üretildi:
+  giriş ekranı hero'su (yazı başlık ekran okuyucuya saklandı — logoda zaten yazı var) + masaüstü sidebar başlığı.
+- **PWA / telefon ikonları logodan yenilendi**: `icon-192`, `icon-512`, `maskable-512` (Android daire kırpımı için
+  tema zeminine %78 ortalandı), `apple-180`; favicon → `/icons/icon-192.png` (eski placeholder `favicon.ico` + geçici
+  `app/icon.png` kaldırıldı, tek kaynak kaldı). Link önizleme görseli (og:image) mevcut `opengraph-image.tsx`'ten gelir.
+
 ### Değişti (06.11 — Ekipman sayfası cila: silme onayı + Kumbaram kalem kalem + Denar renk + flicker)
 - **Dolaptan silme 2 kademeli onay** (`DiscardButton`): tek tıkla silinmiyor; "Sil?" + ✓/✗ (kullanıcı: "cat diye silinmesin").
 - **Kumbaram kalem kalem**: turnuva kalemleri seviyeyle gösteriliyor — "İl · Turnuva ödülü +6", "Türkiye · Turnuva katılımı −3"
