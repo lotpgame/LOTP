@@ -23,7 +23,9 @@ export function ArenaPage({
 }) {
   return (
     <main data-scope="console" data-arena="" style={{ background: "transparent" }} className="relative">
-      <div aria-hidden="true" className="fixed inset-0 z-0">
+      {/* translateZ(0): arka planı ayrı compositor katmanına al → üstteki panellerin backdrop-filter'ı
+          açılıp/kapanırken arka plan yeniden çizilip "derinlik gidip geliyor" titremesi olmasın. */}
+      <div aria-hidden="true" className="fixed inset-0 z-0" style={{ transform: "translateZ(0)", willChange: "transform" }}>
         <img src={bg} alt="" className="h-full w-full object-cover object-center" />
         <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${dim / 100})` }} />
       </div>

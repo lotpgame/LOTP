@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
-import { discardEquipmentAction } from "@/app/actions";
 import { DENAR_PACKAGES } from "@/engine/ads";
 import type { AgeCategory } from "@/engine/domain";
 import { itemById, itemName, kitItemFits, weaponSizeLabel, type EquipmentSlot } from "@/engine/equipment";
@@ -10,6 +9,7 @@ import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
 import { DenarPanel } from "./DenarPanel";
+import { DiscardButton } from "./DiscardButton";
 import { Kumbara } from "./Kumbara";
 import { ErrorBanner } from "../ErrorBanner";
 
@@ -81,14 +81,8 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
                     <span className="num text-[11px] text-steel">%{k.durability.toFixed(0)}</span>
                   </div>
                 </div>
-                {/* Çöp at — parçayı çantadan çıkarır (iade yok). */}
-                <form action={discardEquipmentAction} className="shrink-0">
-                  <input type="hidden" name="slot" value={k.slot} />
-                  <input type="hidden" name="index" value={idxInSlot} />
-                  <button className="flex h-8 w-8 items-center justify-center rounded-md text-steel active:bg-arena-2" aria-label={t(locale, "ekipman.discard")} title={t(locale, "ekipman.discard")}>
-                    <Icon name="close" size={16} />
-                  </button>
-                </form>
+                {/* Çöp at — 2 kademeli onay (iade yok). */}
+                <DiscardButton slot={k.slot} index={idxInSlot} labels={{ discard: t(locale, "ekipman.discard"), sure: t(locale, "ekipman.confirmDiscard") }} />
               </li>
             );
           })}

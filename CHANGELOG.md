@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Ekipman sayfası cila: silme onayı + Kumbaram kalem kalem + Denar renk + flicker)
+- **Dolaptan silme 2 kademeli onay** (`DiscardButton`): tek tıkla silinmiyor; "Sil?" + ✓/✗ (kullanıcı: "cat diye silinmesin").
+- **Kumbaram kalem kalem**: turnuva kalemleri seviyeyle gösteriliyor — "İl · Turnuva ödülü +6", "Türkiye · Turnuva katılımı −3"
+  (yeni `lvl.*` i18n, 9 dil); malzeme ürün adıyla. Gelir/gider/net zaten vardı.
+- **Denar Kazan & Al renklendirildi**: reklam kartı yeşil "kazan" vurgusu + yeşil buton; paket kartı belirgin.
+- **Arka plan "derinlik titremesi" düzeltildi**: açılır panellerin `backdrop-filter`'ı panel açılıp/kapanırken arka planı
+  yeniden çizdiriyordu → sabit arka plan ayrı compositor katmanına alındı (`translateZ(0)`, `ArenaPage`). Migration yok. 241 test.
+
 ### Kaldırıldı (06.11 — Market'teki "ekipman maçı kazandırmaz" notu)
 - Market marka panelindeki "Ekipman maçı kazandırmaz — prestij ve his içindir…" açıklaması kaldırıldı (kullanıcı kararı).
 

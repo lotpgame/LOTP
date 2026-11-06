@@ -8,13 +8,18 @@ import { t, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
 
-/** Bir işlem kaydının gösterilecek etiketi (malzeme → ürün adı; diğerleri → ledger.<key>). */
+/** Bir işlem kaydının gösterilecek etiketi (malzeme → ürün adı; turnuva → "İl · Turnuva ödülü"; diğerleri → ledger.<key>). */
 function entryLabel(e: LedgerEntry, locale: Locale): string {
   if (e.key === "equipment" && e.arg) {
     const item = itemById(e.arg);
     if (item) return itemName(item, locale);
   }
-  return t(locale, `ledger.${e.key}`);
+  const base = t(locale, `ledger.${e.key}`);
+  // Turnuva kalemleri: seviyeyi öne ekle (arg = seviye kodu) → "İl · Turnuva katılımı", "Türkiye · Turnuva ödülü".
+  if ((e.key === "prize" || e.key === "entry" || e.key === "refund") && e.arg) {
+    return `${t(locale, `lvl.${e.arg}`)} · ${base}`;
+  }
+  return base;
 }
 
 export function Kumbara({
