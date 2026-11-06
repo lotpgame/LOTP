@@ -117,6 +117,11 @@ export function citiesForCountry(code: string): readonly string[] {
   return countryByCode(code)?.cities ?? [];
 }
 
+/** Bir şehrin ait olduğu ülke kodu (COUNTRIES şehir listelerinde ara; şehir adları benzersiz). Bilinmeyen → undefined. */
+export function countryCodeOfCity(city: string): string | undefined {
+  return COUNTRIES.find((c) => c.cities.includes(city))?.code;
+}
+
 /**
  * Ham telefon girdisini E.164'e yakın normalize eder: boşluk/tire/parantez temizlenir; baştaki
  * "00" → "+"; "+" yoksa (ve makul uzunluktaysa) olduğu gibi bırakılır (çağıran ülke kodu ister).

@@ -30,3 +30,50 @@ export function computeFacility(baseFacility: number, members: number, graduates
   const bonus = (members * MEMBER_WEIGHT + grads * GRADUATE_WEIGHT) * rate;
   return clamp(Math.round(baseFacility + bonus), baseFacility, MAX_FACILITY);
 }
+
+/* ─────────────────────────── Antrenör kalitesi (kullanıcı kararı 06.11) ───────────────────────────
+ * Antrenör de 30'dan başlar ve yeteneği tesis kalitesini TAKİP eder — ama sürekli kayarak değil, OLAY olarak:
+ * tesis, son antrenör gelişinden bu yana %20 artıp 1 hafta o seviyede sabit kaldığında eski antrenörler ayrılır,
+ * yeni (daha yetenekli) antrenörler gelir (yeni isim, yetenek = güncel tesis; uzmanlıklar aynı kalır).
+ * Böylece büyüyen kulüp daha iyi hoca çeker; küçük/yeni kulüpte mütevazı hocalar. */
+export const BASE_COACH_SKILL = 30;
+export const COACH_UPGRADE_RATIO = 1.2; // tetik: tesis son antrenör gelişine göre +%20
+export const COACH_STABLE_DAYS = 7; // bu artış 1 hafta (7 oyun günü) sabit kalmalı
+
+/** Antrenör yeteneği = tesis (1:1), [30, 100] (kullanıcı kararı). */
+export function coachSkillForFacility(facility: number): number {
+  return clamp(Math.round(facility), BASE_COACH_SKILL, MAX_FACILITY);
+}
+
+export interface CoachState {
+  facility: number; // kulübün güncel tesisi
+  lastCoachFacility: number; // antrenörlerin en son geldiği andaki tesis (eşik buna göre)
+  pendingSinceDay: number; // +%20 eşiğinin ilk aşıldığı oyun günü (-1 = beklemede değil)
+  currentDay: number; // güncel oyun günü (global)
+}
+export interface CoachDecision {
+  upgrade: boolean; // true → antrenörler yenilensin
+  newCoachSkill: number; // upgrade ise yeni yetenek (= güncel tesis)
+  lastCoachFacility: number; // kalıcılaştırılacak yeni değer
+  pendingSinceDay: number; // kalıcılaştırılacak yeni değer
+}
+
+/**
+ * Antrenör yükseltme kararı (saf). Tesis eşiğin (son antrenör tesisi ×1.2) altındaysa bekleme sıfırlanır;
+ * eşiğe ilk ulaşınca bekleme başlar; eşikte 1 hafta kalınca yükseltilir (yeni yetenek = güncel tesis).
+ */
+export function decideCoachUpgrade(s: CoachState): CoachDecision {
+  const threshold = s.lastCoachFacility * COACH_UPGRADE_RATIO;
+  const noChange = (pending: number, last: number): CoachDecision => ({
+    upgrade: false,
+    newCoachSkill: 0,
+    lastCoachFacility: last,
+    pendingSinceDay: pending,
+  });
+  if (s.facility < threshold) return noChange(-1, s.lastCoachFacility); // stabilite bozuldu → beklemeyi sıfırla
+  if (s.pendingSinceDay < 0) return noChange(s.currentDay, s.lastCoachFacility); // eşiğe ilk ulaşıldı → bekleme başlat
+  if (s.currentDay - s.pendingSinceDay >= COACH_STABLE_DAYS) {
+    return { upgrade: true, newCoachSkill: coachSkillForFacility(s.facility), lastCoachFacility: s.facility, pendingSinceDay: -1 };
+  }
+  return noChange(s.pendingSinceDay, s.lastCoachFacility); // hâlâ bekliyor
+}

@@ -159,12 +159,16 @@ model Club {
   // getCareer her açılışta yeniden hesaplar ve buraya yazar (antrenman yolu bu taze değeri okur).
   baseFacility   Int      @default(30) // kuruluş tabanı (alt sınır)
   facility       Int      @default(30) // canlı hesaplanan tesis (materialized)
-  // İki antrenör; ikisi de aynı yetenekte (coachSkill), farklı uzmanlıkta (GDD 13).
+  // İki antrenör; ikisi de aynı yetenekte (coachSkill), farklı uzmanlıkta (GDD 13). Antrenör yeteneği tesisi
+  // TAKİP eder: tesis son antrenör gelişine göre +%20 artıp 1 hafta sabit kalınca antrenörler yenilenir (yeni
+  // isim + yetenek = güncel tesis; uzmanlıklar aynı kalır). src/engine/club.ts decideCoachUpgrade.
   coachName      String
-  coachSkill     Int      @default(60) // her iki koçun ortak yeteneği 0–100
+  coachSkill     Int      @default(30) // her iki koçun ortak yeteneği 0–100 (30'dan başlar, tesisi takip eder)
   coachSpecialty String // 1. koç uzmanlığı: TECHNICAL | PHYSICAL | MENTAL | TACTICAL
   coach2Name     String   @default("")
   coach2Specialty String  @default("") // 2. koç uzmanlığı (1.'den farklı)
+  lastCoachFacility    Int @default(30) // antrenörlerin en son geldiği andaki tesis (+%20 eşiği buna göre)
+  coachPendingSinceDay Int @default(-1) // +%20 eşiğinin ilk aşıldığı oyun günü (-1 = beklemede değil)
   players        Player[]
   createdAt      DateTime @default(now())
 }

@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Antrenör kalitesi tesisi takip eder (olay olarak yükselir))
+- **Antrenör de 30'dan başlar**; yeteneği kulübün tesis kalitesini **1:1 takip eder** (kullanıcı kararı).
+- **Olay olarak yükselir:** tesis, son antrenör gelişine göre **+%20 artıp 1 hafta sabit kaldığında** eski antrenörler
+  ayrılır, **yeni antrenörler** gelir (yeni isim + yetenek = güncel tesis; **uzmanlıklar aynı kalır** — kulüp geleneği).
+- `src/engine/club.ts` `decideCoachUpgrade` (saf + 5 test). `getCareer` her açılışta (tesis tazelendikten sonra) kontrol eder.
+- **Yeni alanlar `Club.lastCoachFacility` (30), `Club.coachPendingSinceDay` (-1)** + `coachSkill` tabanı 30 — eklemeli şema → Neon migration. 254 test.
+
 ### Değişti (06.11 — Menü sırası + Bildir Ayarlar'a taşındı)
 - **Menü sırası** (kullanıcı): Bugün · Kulüp · Antrenman · Ekipman · Turnuvalar · Klasman · Kariyer Geçmişi · Sözlük · Ayarlar.
   Masaüstü sidebar bunu birebir gösterir; telefon alt çubuğu çekirdek 4 sayfa (Bugün/Antrenman/Turnuvalar/Klasman), gerisi "Daha fazla".

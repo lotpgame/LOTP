@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { BASE_FACILITY, computeFacility } from "@/engine/club";
+import {
+  BASE_COACH_SKILL,
+  BASE_FACILITY,
+  COACH_STABLE_DAYS,
+  coachSkillForFacility,
+  computeFacility,
+  decideCoachUpgrade,
+} from "@/engine/club";
 
 describe("club facility — tesis büyüme modeli", () => {
   it("taban 30'dan başlar", () => {
@@ -42,5 +49,43 @@ describe("club facility — tesis büyüme modeli", () => {
       expect(f).toBeGreaterThanOrEqual(b);
       expect(f).toBeLessThanOrEqual(100);
     }
+  });
+});
+
+describe("club coach — antrenör kalitesi (tesisi takip eder, olay olarak yükselir)", () => {
+  it("antrenör de 30'dan başlar; yetenek = tesis (1:1), [30,100]", () => {
+    expect(BASE_COACH_SKILL).toBe(30);
+    expect(coachSkillForFacility(30)).toBe(30);
+    expect(coachSkillForFacility(36)).toBe(36);
+    expect(coachSkillForFacility(80)).toBe(80);
+    expect(coachSkillForFacility(20)).toBe(30); // alt sınır
+    expect(coachSkillForFacility(150)).toBe(100); // tavan
+  });
+
+  it("tesis +%20 eşiğinin altındaysa yükseltme yok, bekleme sıfır", () => {
+    // son antrenör tesisi 30 → eşik 36. tesis 34 < 36.
+    const d = decideCoachUpgrade({ facility: 34, lastCoachFacility: 30, pendingSinceDay: 5, currentDay: 20 });
+    expect(d.upgrade).toBe(false);
+    expect(d.pendingSinceDay).toBe(-1); // stabilite bozuldu
+  });
+
+  it("eşiğe ilk ulaşınca bekleme başlar (henüz yükseltme yok)", () => {
+    const d = decideCoachUpgrade({ facility: 36, lastCoachFacility: 30, pendingSinceDay: -1, currentDay: 10 });
+    expect(d.upgrade).toBe(false);
+    expect(d.pendingSinceDay).toBe(10); // bekleme bugünden başladı
+  });
+
+  it("eşikte 1 haftadan az kalındıysa hâlâ bekler", () => {
+    const d = decideCoachUpgrade({ facility: 36, lastCoachFacility: 30, pendingSinceDay: 10, currentDay: 10 + COACH_STABLE_DAYS - 1 });
+    expect(d.upgrade).toBe(false);
+    expect(d.pendingSinceDay).toBe(10);
+  });
+
+  it("eşikte 1 hafta sabit kalınca antrenörler yükselir (yetenek = güncel tesis)", () => {
+    const d = decideCoachUpgrade({ facility: 48, lastCoachFacility: 30, pendingSinceDay: 10, currentDay: 10 + COACH_STABLE_DAYS });
+    expect(d.upgrade).toBe(true);
+    expect(d.newCoachSkill).toBe(48); // 1:1 tesis
+    expect(d.lastCoachFacility).toBe(48); // yeni eşik tabanı
+    expect(d.pendingSinceDay).toBe(-1); // bekleme sıfırlandı
   });
 });

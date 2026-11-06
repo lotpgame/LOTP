@@ -155,7 +155,8 @@ fırsatlar); **monetization** — Market'teki "Denar Kazan & Al" köşesinde **�
 **oyun logosu** ("Legends of the Piste" amblemi — `public/img/logo.png`): giriş hero'su + masaüstü sidebar başlığı,
 telefon/PWA ikonları + favicon logodan üretilir (link önizleme görseli `opengraph-image.tsx`'ten);
 **kulüp tesis büyümesi** (`src/engine/club.ts`): tesis kalitesi, kulübün **gerçek oyuncu** sayısı ve **başarı
-oranına** göre canlı hesaplanır (taban 30 + üye×1.5 + başarılı mezun×4 × oran; botlar sayılmaz).
+oranına** göre canlı hesaplanır (taban 30 + üye×1.5 + başarılı mezun×4 × oran; botlar sayılmaz); **antrenör kalitesi**
+tesisi takip eder — tesis +%20 artıp 1 hafta sabit kalınca antrenörler yenilenir (yeni isim, yetenek = tesis).
 
 **🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan
 dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar

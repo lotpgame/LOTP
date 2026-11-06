@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor, countryCodeOfCity } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -219,7 +219,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { BASE_FACILITY, computeFacility } from "@/engine/club";
+import { BASE_COACH_SKILL, BASE_FACILITY, computeFacility, decideCoachUpgrade } from "@/engine/club";
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
@@ -625,7 +625,6 @@ const CLUB_SPECIALTIES: SkillCategory[] = ["TECHNICAL", "PHYSICAL", "MENTAL", "T
 /** Bir kulübün verisi (2 antrenör, 4 türü 2+2 kapsar — GDD 13). Ad + koç adları ülkenin kendi dilinde. rng deterministik. */
 function makeClubData(city: string, rng: ReturnType<typeof createRng>, countryCode: string) {
   const specs = rng.shuffle(CLUB_SPECIALTIES);
-  const skill = rng.int(45, 85);
   // Koç adları da kulübün ülkesinden (Berlin Fechtclub → Alman koç). Cinsiyet rastgele.
   const coachFullName = () =>
     `${rng.pick([...firstNamesFor(rng.pick(["MALE", "FEMALE"]), countryCode)])} ${rng.pick([...lastNamesFor(countryCode)])}`;
@@ -635,10 +634,12 @@ function makeClubData(city: string, rng: ReturnType<typeof createRng>, countryCo
     baseFacility: BASE_FACILITY, // taban 30; tesis canlı hesaplanır (üye + başarılı mezun oranı)
     facility: BASE_FACILITY,
     coachName: coachFullName(),
-    coachSkill: skill,
+    coachSkill: BASE_COACH_SKILL, // antrenör de 30'dan başlar; tesis büyüdükçe (+%20 ×1 hafta) yenilenir
     coachSpecialty: `${specs[0]},${specs[1]}`,
     coach2Name: coachFullName(),
     coach2Specialty: `${specs[2]},${specs[3]}`,
+    lastCoachFacility: BASE_FACILITY,
+    coachPendingSinceDay: -1,
   };
 }
 
@@ -940,6 +941,43 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const clubStats = human.club
     ? await refreshClubFacility(human.club.id, human.club.baseFacility, human.club.facility)
     : null;
+
+  // Antrenör kalitesi: tesis son antrenör gelişine göre +%20 artıp 1 hafta sabit kalınca antrenörler yenilenir
+  // (yeni isim + yetenek = güncel tesis; uzmanlıklar aynı kalır). Tesis tazelendikten SONRA kontrol edilir.
+  if (human.club && clubStats) {
+    const dec = decideCoachUpgrade({
+      facility: clubStats.facility,
+      lastCoachFacility: human.club.lastCoachFacility,
+      pendingSinceDay: human.club.coachPendingSinceDay,
+      currentDay: serverWorldDay(),
+    });
+    if (dec.upgrade) {
+      // Yeni antrenör adları kulübün ŞEHRİNİN ülkesinden (Kocaeli → Türk hoca), izleyicinin uyruğundan değil.
+      const cc = countryCodeOfCity(human.club.city) ?? human.nationality?.code ?? "TR";
+      const crng = createRng(`coach:${human.club.id}:${dec.lastCoachFacility}:${serverWorldDay()}`);
+      const newName = () =>
+        `${crng.pick([...firstNamesFor(crng.pick(["MALE", "FEMALE"]), cc)])} ${crng.pick([...lastNamesFor(cc)])}`;
+      const coachName = newName();
+      const coach2Name = newName();
+      await prisma.club
+        .update({
+          where: { id: human.club.id },
+          data: { coachSkill: dec.newCoachSkill, coachName, coach2Name, lastCoachFacility: dec.lastCoachFacility, coachPendingSinceDay: -1 },
+        })
+        .catch(() => {});
+      human.club.coachSkill = dec.newCoachSkill;
+      human.club.coachName = coachName;
+      human.club.coach2Name = coach2Name;
+      human.club.lastCoachFacility = dec.lastCoachFacility;
+      human.club.coachPendingSinceDay = -1;
+    } else if (dec.pendingSinceDay !== human.club.coachPendingSinceDay || dec.lastCoachFacility !== human.club.lastCoachFacility) {
+      await prisma.club
+        .update({ where: { id: human.club.id }, data: { coachPendingSinceDay: dec.pendingSinceDay, lastCoachFacility: dec.lastCoachFacility } })
+        .catch(() => {});
+      human.club.coachPendingSinceDay = dec.pendingSinceDay;
+      human.club.lastCoachFacility = dec.lastCoachFacility;
+    }
+  }
 
   // Bugünün etkinliği (gün-bazlı program).
   const act = activityForDay(gs.dayIndex);
