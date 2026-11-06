@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Dilim 3-2: Malzeme olayları (kırılma → yedek; dengeli))
+- **Malzeme olayları** (`rollWeeklyMaterial`): **nadir** (~haftada %22); olunca **1 olumsuz + 1 olumlu** (ASLA 2
+  kırılma). Olumsuz: silah kırılması (→ `damageActive` aktif silahı kırar → **yedek devreye girer**, 2C) veya
+  hırpalanma (dayanıklılık↓). Olumlu: **harçlık/kulüp hediyesi** (+Denar). "Sen yokken" panelinde bildirilir (9 dil).
+- Antrenman advance'ine bağlandı: paslanma üstüne malzeme hasarı + net Denar (harçlık − aidat; bakiye 0 altına inmez).
+  **Migration yok** (kit/balance/rapor mevcut). 228 test. Sırada: **3-3** fırsat/indirim teklifleri.
+
 ### Eklendi (05.11 — Dilim 3-1: Hayat olayları motoru (psikoloji, dengeli))
 - **Olay motoru** (`src/engine/lifeEvents.ts`): çocuk→genç sporcunun kariyerinde her oyun-haftasında **1 olumlu
   + 1 olumsuz** psikoloji olayı (DENGE → oyuncu hep kötüden yılıp bırakmasın). 20 olay (koç övgüsü, aile desteği,

@@ -219,8 +219,8 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
-import { applyKitPurchase, applyMatchWear, applyRestAging, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
-import { applyEventsToPsych, LIFE_EVENTS, rollWeeklyEvents } from "@/engine/lifeEvents";
+import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
+import { applyEventsToPsych, LIFE_EVENTS, rollWeeklyEvents, rollWeeklyMaterial, type MaterialEvent } from "@/engine/lifeEvents";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -1736,11 +1736,21 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const fromWeek = Math.floor(startDay / DAYS_PER_MONTH);
   const toWeek = Math.floor(d / DAYS_PER_MONTH);
   const weekEvents: { key: string }[] = [];
+  const matEvents: MaterialEvent[] = [];
   for (let w = Math.max(fromWeek, toWeek - 8); w < toWeek; w++) {
     for (const ev of rollWeeklyEvents(createRng(`events:${human.id}:${w}`), cur.age)) weekEvents.push({ key: ev.key });
+    for (const mv of rollWeeklyMaterial(createRng(`matev:${human.id}:${w}`))) matEvents.push(mv); // 3-2: nadir malzeme olayı
   }
   const eventDefs = weekEvents.map((e) => LIFE_EVENTS.find((d2) => d2.key === e.key)!).filter(Boolean);
   const finalPsych = applyEventsToPsych(nextPsych, eventDefs);
+  // 3-2: malzeme olayları → kit (paslanma üstüne hasar: kırılma/yıpranma) + harçlık (Denar).
+  let eventKit = applyRestAging(resolveKit(human.equipmentState, human.weapon as Weapon), startDay, d);
+  for (const mv of matEvents) {
+    if (mv.effect === "breakWeapon") eventKit = damageActive(eventKit, "WEAPON", cur.age, cur.ageCategory, { break: true });
+    else if (mv.effect === "wearWeapon") eventKit = damageActive(eventKit, "WEAPON", cur.age, cur.ageCategory, { hit: mv.durabilityHit });
+  }
+  const harclik = matEvents.reduce((s, e) => s + (e.denar ?? 0), 0);
+  const allEventKeys = [...weekEvents.map((e) => e.key), ...matEvents.map((e) => e.key)];
 
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
@@ -1759,7 +1769,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
           conditionDelta: Math.round(fatigueBefore - fatigue), // + toparladı, − yoruldu
           sharpnessDelta: Math.round(sharpness - sharpnessBefore),
           injured: injuryDays > 0 && injuredNow,
-          events: weekEvents.map((e) => e.key), // Dilim 3-1: hayat olayları (Sen yokken'de gösterilir)
+          events: allEventKeys, // Dilim 3: hayat + malzeme olayları (Sen yokken'de gösterilir)
         })
       : null;
 
@@ -1780,9 +1790,9 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         fatigue,
         sharpness,
         experience: { increment: xpGained }, // #28: antrenman tecrübesi
-        balance: { decrement: clubDues }, // kulüp aidatı
-        // 2C-3: bu ilerleme penceresinde ATIL ekipman paslanır (kullanılan parça etkilenmez).
-        equipmentState: encodeKit(applyRestAging(resolveKit(human.equipmentState, human.weapon as Weapon), startDay, d)),
+        balance: { increment: harclik - clubDues }, // 3-2 harçlık/hediye − kulüp aidatı (net; bakiye 0 altına inmez)
+        // 2C-3 paslanma + 3-2 malzeme olayı hasarı uygulanmış kit.
+        equipmentState: encodeKit(eventKit),
         morale: finalPsych.morale,
         motivation: finalPsych.motivation,
         confidence: finalPsych.confidence,

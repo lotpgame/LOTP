@@ -16,9 +16,9 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, damageActive, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
-import { applyEventsToPsych, rollWeeklyEvents } from "@/engine/lifeEvents";
+import { applyEventsToPsych, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -320,6 +320,30 @@ describe("Hayat Olayları (Dilim 3-1)", () => {
         expect(e.minAge == null || 8 >= e.minAge).toBe(true);
       }
     }
+  });
+  it("malzeme olayları (3-2): nadir; olunca 1 olumsuz + 1 olumlu (denge)", () => {
+    let fired = 0;
+    let twoBreaks = 0;
+    for (let i = 0; i < 400; i++) {
+      const m = rollWeeklyMaterial(createRng(`m${i}`));
+      if (m.length === 0) continue;
+      fired++;
+      expect(m.length).toBe(2);
+      expect(m.filter((e) => e.tone === "pos").length).toBe(1);
+      expect(m.filter((e) => e.tone === "neg").length).toBe(1); // ASLA 2 kırılma
+      if (m.filter((e) => e.tone === "neg").length === 2) twoBreaks++;
+    }
+    expect(fired).toBeGreaterThan(0); // bazen olur
+    expect(fired).toBeLessThan(400); // ama nadir (her hafta değil)
+    expect(twoBreaks).toBe(0);
+  });
+  it("damageActive: aktif silahı kırar / dayanıklılık düşürür (yedek korunur)", () => {
+    let kit = starterKit("FOIL");
+    kit = applyKitPurchase(kit, itemById("gl-weapon-foil")!); // 2 silah
+    const broken = damageActive(kit, "WEAPON", 9, "U10", { break: true });
+    expect(itemsInSlot(broken, "WEAPON").filter((k) => k.broken).length).toBe(1); // yalnız aktif kırıldı
+    const worn = damageActive(kit, "WEAPON", 9, "U10", { hit: 30 });
+    expect(itemsInSlot(worn, "WEAPON").some((k) => k.durability === 70)).toBe(true);
   });
   it("applyEventsToPsych: etkileri toplar, 0–100 sınırlar", () => {
     const base = { morale: 50, motivation: 50, confidence: 50, stress: 50 };

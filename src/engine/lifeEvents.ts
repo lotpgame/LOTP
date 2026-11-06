@@ -47,7 +47,7 @@ export const LIFE_EVENTS: readonly LifeEvent[] = [
   { key: "teammateLeft", tone: "neg", weight: 3, morale: -3 },
 ] as const;
 
-function pickWeighted(rng: SeededRng, pool: readonly LifeEvent[]): LifeEvent | null {
+function pickWeighted<T extends { weight: number }>(rng: SeededRng, pool: readonly T[]): T | null {
   if (pool.length === 0) return null;
   const total = pool.reduce((s, e) => s + e.weight, 0);
   let r = rng.next() * total;
@@ -67,6 +67,37 @@ export function rollWeeklyEvents(rng: SeededRng, age: number): LifeEvent[] {
   const pos = pickWeighted(rng, LIFE_EVENTS.filter((e) => e.tone === "pos" && fits(e)));
   const neg = pickWeighted(rng, LIFE_EVENTS.filter((e) => e.tone === "neg" && fits(e)));
   return [pos, neg].filter((e): e is LifeEvent => e != null);
+}
+
+// ——— Malzeme olayları (Dilim 3-2): kırılma/yıpranma (olumsuz) + harçlık/hediye (olumlu). DENGE: olunca 1 neg + 1 pos.
+// Kırılma NADİR — her hafta değil; `MATERIAL_WEEK_CHANCE` ile kapılı. Kırılınca yedek devreye girer (2C).
+export interface MaterialEvent {
+  key: string; // i18n: event.<key>
+  tone: "pos" | "neg";
+  weight: number;
+  denar?: number; // pos: harçlık/hediye (+Denar)
+  effect?: "breakWeapon" | "wearWeapon"; // neg: silaha etki
+  durabilityHit?: number; // wearWeapon: aktif silahın dayanıklılığından düşülür
+}
+
+export const MATERIAL_EVENTS: readonly MaterialEvent[] = [
+  // — Olumsuz (silah) —
+  { key: "weaponBroke", tone: "neg", weight: 4, effect: "breakWeapon" },
+  { key: "gearChipped", tone: "neg", weight: 7, effect: "wearWeapon", durabilityHit: 15 },
+  // — Olumlu (Denar) —
+  { key: "pocketMoney", tone: "pos", weight: 8, denar: 8 },
+  { key: "clubGift", tone: "pos", weight: 4, denar: 12 },
+] as const;
+
+/** Haftada malzeme olayı olasılığı (nadir). Olduğunda 1 olumsuz + 1 olumlu birlikte gelir (denge). */
+export const MATERIAL_WEEK_CHANCE = 0.22;
+
+/** Bir hafta: olasılıkla (nadir) 1 olumsuz (kırılma/yıpranma) + 1 olumlu (harçlık/hediye) malzeme olayı. */
+export function rollWeeklyMaterial(rng: SeededRng): MaterialEvent[] {
+  if (rng.next() >= MATERIAL_WEEK_CHANCE) return [];
+  const neg = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "neg"));
+  const pos = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "pos"));
+  return [neg, pos].filter((e): e is MaterialEvent => e != null);
 }
 
 /** Olayların psikolojiye toplam etkisini uygular (0–100 sınırlı). */

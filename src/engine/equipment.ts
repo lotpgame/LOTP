@@ -522,6 +522,17 @@ export function applyRestAging(kit: readonly KitItemState[], fromDay: number, to
   });
 }
 
+/** Malzeme olayı (3-2): bir slottaki AKTİF parçaya hasar — kırar (break) ya da dayanıklılık düşürür (hit). 0→kırık. */
+export function damageActive(kit: readonly KitItemState[], slot: EquipmentSlot, age: number, ageCategory: AgeCategory, opts: { break?: boolean; hit?: number }): KitItemState[] {
+  const a = activeInSlot(kit, slot, age, ageCategory);
+  if (!a) return [...kit];
+  return kit.map((k) => {
+    if (k !== a) return k;
+    const durability = Math.max(0, k.durability - (opts.hit ?? 0));
+    return { ...k, durability, broken: opts.break || durability <= 0 ? true : k.broken };
+  });
+}
+
 /** Bir parçayı çantadan ATAR (çöp at). `index` o slottaki kaçıncı parça (0-tabanlı). Diğerleri korunur. */
 export function discardKitItem(kit: readonly KitItemState[], slot: EquipmentSlot, index: number): KitItemState[] {
   let seen = -1;
