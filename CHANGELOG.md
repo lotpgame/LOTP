@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Menü sırası + Bildir Ayarlar'a taşındı)
+- **Menü sırası** (kullanıcı): Bugün · Kulüp · Antrenman · Ekipman · Turnuvalar · Klasman · Kariyer Geçmişi · Sözlük · Ayarlar.
+  Masaüstü sidebar bunu birebir gösterir; telefon alt çubuğu çekirdek 4 sayfa (Bugün/Antrenman/Turnuvalar/Klasman), gerisi "Daha fazla".
+- **Bildir menüden kaldırıldı** → **Ayarlar** sayfasına "Geri bildirim" bölümü olarak taşındı (kullanıcı kararı).
+
 ### Eklendi (06.11 — Kulüp tesis büyüme sistemi: gerçek üye + başarı oranı)
 - **Tesis artık canlı hesaplanıyor** (`src/engine/club.ts` + test): taban **30** + (gerçek üye×1.5 + başarılı
   mezun×4) × **başarı_oranı**, tavan 100. **Botlar sayılmaz** (ne üye ne mezun). "Başarılı mezun" = önem ≥ 3

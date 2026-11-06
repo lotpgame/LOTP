@@ -6,6 +6,7 @@ import { getLocale } from "@/i18n/server";
 import { CAREER_RESET_COST, getCareer } from "@/server/careerService";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
 import { CollapsibleSection } from "../CollapsibleSection";
+import { FeedbackWidget } from "../FeedbackWidget";
 import { ThemeSettings } from "../ThemeSettings";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,14 @@ export default async function AyarlarPage() {
             <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
           </div>
         </div>
+      </CollapsibleSection>
+
+      {/* Bildir — geri bildirim / hata (menüden Ayarlar'a taşındı 06.11, kullanıcı kararı). */}
+      <CollapsibleSection title={t(locale, "feedback.title")}>
+        <FeedbackWidget
+          locale={locale}
+          className="press flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]"
+        />
       </CollapsibleSection>
     </ArenaPage>
   );

@@ -14,7 +14,6 @@ import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
-import { FeedbackWidget } from "./FeedbackWidget";
 import { Flag } from "./Flag";
 import { WorldClockBadge } from "./WorldClockBadge";
 
@@ -24,21 +23,23 @@ interface NavItem {
   icon: IconName;
 }
 
-// Alt sekme çubuğundaki 4 ana sayfa (5. sekme "Daha fazla").
-const MAIN: NavItem[] = [
+// Tüm sayfalar — kullanıcının istediği sıra (06.11). Masaüstü sidebar bunu birebir gösterir.
+const NAV: NavItem[] = [
   { href: "/kariyer", key: "nav.profil", icon: "today" },
+  { href: "/kariyer/kulup", key: "nav.kulup", icon: "club" },
   { href: "/kariyer/antrenman", key: "nav.antrenman", icon: "train" },
+  { href: "/kariyer/ekipman", key: "nav.ekipman", icon: "shop" },
   { href: "/kariyer/turnuvalar", key: "nav.turnuvalar", icon: "tournament" },
   { href: "/kariyer/klasman", key: "nav.klasman", icon: "ranking" },
-];
-const MORE: NavItem[] = [
-  { href: "/kariyer/kulup", key: "nav.kulup", icon: "club" },
-  { href: "/kariyer/ekipman", key: "nav.ekipman", icon: "shop" },
   { href: "/kariyer/gecmis", key: "nav.gecmis", icon: "history" },
   { href: "/kariyer/sozluk", key: "nav.sozluk", icon: "glossary" },
   { href: "/kariyer/ayarlar", key: "nav.ayarlar", icon: "settings" },
 ];
-const ALL = [...MAIN, ...MORE];
+// Telefon alt sekme çubuğu = çekirdek döngünün 4 sayfası (sıra NAV'dan korunur). Gerisi "Daha fazla".
+const PRIMARY = new Set(["/kariyer", "/kariyer/antrenman", "/kariyer/turnuvalar", "/kariyer/klasman"]);
+const MAIN = NAV.filter((i) => PRIMARY.has(i.href)); // Bugün · Antrenman · Turnuvalar · Klasman
+const MORE = NAV.filter((i) => !PRIMARY.has(i.href)); // Kulüp · Ekipman · Geçmiş · Sözlük · Ayarlar
+const ALL = NAV;
 
 function activeHref(pathname: string): string | undefined {
   return [...ALL]
@@ -171,10 +172,6 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
               </Link>
             );
           })}
-          <FeedbackWidget
-            locale={locale}
-            className="flex min-h-11 items-center gap-3 rounded-md px-3 text-[15px] text-steel transition-colors hover:bg-arena-2 hover:text-ink"
-          />
         </nav>
       </aside>
 
@@ -276,14 +273,6 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
               </li>
             );
           })}
-          <li>
-            <FeedbackWidget
-              locale={locale}
-              onOpen={closeSheet}
-              className="flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-left text-[16px] active:bg-arena-1"
-              withChevron
-            />
-          </li>
         </ul>
       </dialog>
     </>
