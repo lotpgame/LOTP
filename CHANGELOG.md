@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Alt menüde Denar rozeti (hızlı erişim))
+- **Denar rozeti** telefon-yatay alt şeritte, **Ayarlar'ın yanında** (saat rozeti gibi): bakiyeyi gösterir, tıklayınca
+  **"Denar Kazan & Al"** menüsü (ödüllü reklam + paketler) pencerede açılır. `DenarBadge` + mevcut `DenarPanel` yeniden kullanıldı.
+- `getCareerHeader`'a bakiye + ödüllü reklam durumu alanları eklendi (CareerNav → DenarBadge'e geçer). Migration yok.
+
 ### Değişti (06.11 — Menü yatay şerit düzeni + Sözlük Ayarlar'a taşındı)
 - **Telefon-yatay üst şerit** artık **Bugün · Kulüp · Antrenman · Ekipman** (çekirdek); alt şerit **Turnuvalar · Klasman ·
   Kariyer Geçmişi · Ayarlar**. Üst şerit (PRIMARY) ilk 4 sayfadan; yatay alt şerit sütun sayısı dinamik.

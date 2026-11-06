@@ -1185,6 +1185,11 @@ export interface CareerHeaderDTO {
   needsSync: boolean;
   caughtUp: boolean;
   nextTournament: NextTournamentDTO | null; // sıradaki turnuva + gerçek başlama anı (bilgi/geri sayım)
+  // Denar rozeti (alt menü): bakiye + ödüllü reklam durumu (tıklayınca "Denar kazan/satın al" menüsü açılır).
+  balance: number;
+  adsLeftToday: number;
+  adReward: number;
+  adDailyCap: number;
 }
 
 /** Sıradaki turnuva bilgisi (gösterim + canlı geri sayım). `startMs` = gerçek zamanda gün geçiş anı. */
@@ -1326,6 +1331,10 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     needsSync,
     caughtUp: !arrived,
     nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale, human.club?.city ?? "", human.nationality?.code ?? "TR"),
+    balance: roundSkill(human.balance),
+    adsLeftToday: adsLeftToday({ lastAdDay: human.lastAdDay, adsToday: human.adsToday }, serverWorldDay()),
+    adReward: AD_REWARD,
+    adDailyCap: AD_DAILY_CAP,
   };
 }
 

@@ -14,6 +14,7 @@ import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
+import { DenarBadge } from "./DenarBadge";
 import { Flag } from "./Flag";
 import { WorldClockBadge } from "./WorldClockBadge";
 
@@ -58,11 +59,16 @@ export interface CareerNavProps {
   countryCode: string; // oyuncunun ülkesi (bayrak)
   nationalTeam: boolean;
   avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
+  // Denar rozeti (alt menü): bakiye + ödüllü reklam durumu.
+  balance: number;
+  adsLeft: number;
+  adDailyCap: number;
+  adReward: number;
   /** Gün çubuğu (tarih · bugünkü etkinlik · sıradaki turnuva · Turnuvaya Git/Geç) — sunucuda render edilir. */
   ticker: ReactNode;
 }
 
-export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, avatar, ticker }: CareerNavProps) {
+export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, avatar, balance, adsLeft, adDailyCap, adReward, ticker }: CareerNavProps) {
   const avatarUrl = avatarSrc(avatar, age);
   const pathname = usePathname();
   const current = activeHref(pathname);
@@ -215,10 +221,10 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
           </button>
         </nav>
 
-        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları — üstteki 4 ile birlikte tüm menü görünür ——— */}
+        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları + sonda Denar rozeti (saat gibi) ——— */}
         <nav
           className="mx-auto hidden max-w-3xl border-t border-line pb-[env(safe-area-inset-bottom)] vland:grid lg:!hidden"
-          style={{ gridTemplateColumns: `repeat(${MORE.length}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${MORE.length + 1}, minmax(0, 1fr))` }}
           aria-label={t(locale, "nav.menu")}
         >
           {MORE.map((item) => {
@@ -238,6 +244,15 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
               </Link>
             );
           })}
+          {/* Denar rozeti — Ayarlar'ın yanı; tıklayınca "Denar kazan/satın al" penceresi. */}
+          <DenarBadge
+            locale={locale}
+            balance={balance}
+            adsLeft={adsLeft}
+            adDailyCap={adDailyCap}
+            adReward={adReward}
+            className="press flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[13px] font-semibold text-ink"
+          />
         </nav>
       </div>
 
