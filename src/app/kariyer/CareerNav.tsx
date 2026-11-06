@@ -221,37 +221,38 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
           </button>
         </nav>
 
-        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları + sonda Denar rozeti (saat gibi) ——— */}
+        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları (sola, flex-1) + sağ köşede Denar rozeti (üstteki saat gibi) ——— */}
         <nav
-          className="mx-auto hidden max-w-3xl border-t border-line pb-[env(safe-area-inset-bottom)] vland:grid lg:!hidden"
-          style={{ gridTemplateColumns: `repeat(${MORE.length + 1}, minmax(0, 1fr))` }}
+          className="mx-auto hidden max-w-3xl items-stretch border-t border-line pb-[env(safe-area-inset-bottom)] vland:flex lg:!hidden"
           aria-label={t(locale, "nav.menu")}
         >
-          {MORE.map((item) => {
-            const on = item.href === current;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={on ? "page" : undefined}
-                className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
-                  on ? "font-semibold text-ink" : "text-steel"
-                }`}
-              >
-                {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                <Icon name={item.icon} size={16} className="shrink-0" />
-                <span className="truncate">{t(locale, item.key)}</span>
-              </Link>
-            );
-          })}
-          {/* Denar rozeti — Ayarlar'ın yanı; tıklayınca "Denar kazan/satın al" penceresi. */}
+          <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${MORE.length}, minmax(0, 1fr))` }}>
+            {MORE.map((item) => {
+              const on = item.href === current;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={on ? "page" : undefined}
+                  className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
+                    on ? "font-semibold text-ink" : "text-steel"
+                  }`}
+                >
+                  {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
+                  <Icon name={item.icon} size={16} className="shrink-0" />
+                  <span className="truncate">{t(locale, item.key)}</span>
+                </Link>
+              );
+            })}
+          </div>
+          {/* Denar rozeti — sağ alt köşe (üstteki saat gibi); tıklayınca "Denar Kazan & Al". */}
           <DenarBadge
             locale={locale}
             balance={balance}
             adsLeft={adsLeft}
             adDailyCap={adDailyCap}
             adReward={adReward}
-            className="press flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[13px] font-semibold text-ink"
+            className="press flex items-center gap-1.5 self-stretch border-l border-line px-3 text-[14px] font-semibold text-ink"
           />
         </nav>
       </div>

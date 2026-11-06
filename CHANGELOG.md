@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Denar rozeti sağ-alt köşeye (saat gibi) + daha güçlü dokunma flaşı)
+- **Denar rozeti** alt şeritte artık **sağ alt köşede** (üstteki saat rozetinin aynası; sol kenarlıkla ayrı). 4 nav
+  düğmesi sola yayılıp ferahladı (Denar artık eşit sütun kaplamıyor).
+- **Dokunma flaşı güçlendirildi**: tap-highlight %45; basınca scale 0.95 + parlaklık ×1.3 (40 ms anında); bırakınca
+  260 ms yavaş geri dönüş → "biraz basılı kaldı" hissi.
+
 ### Değişti (06.11 — Ekipman Denar kaldırıldı · Sözlük açılır-kapanır · mobil dokunma geri bildirimi)
 - **Ekipman'daki "Denar Kazan & Al" bölümü kaldırıldı** (artık yalnız alt menü Denar rozetinde — tek yer, kopya yok).
 - **Ayarlar'da Sözlük**, Geri Bildirim'in **altına** alındı ve **açılır/kapanır** yapıldı (içinden sözlük sayfasına link).
