@@ -558,7 +558,16 @@ dialog.modal {
       animation: shine-ring 900ms ease-out 3;
     }
     .press:active {
-      transform: scale(0.98);
+      transform: scale(0.96);
+      filter: brightness(1.12);
     }
   }
+}
+
+/* Mobilde "dokundum mu?" belirsizliğini gider: ANINDA tap-highlight (kırmızı flaş) + 300ms tap gecikmesi yok.
+   reduced-motion'dan bağımsız (hareket değil, geri bildirim). .press:active büyümesi yukarıda motion-guard'lı. */
+.press {
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--sig-red) 24%, transparent);
+  touch-action: manipulation;
+  transition: transform 90ms ease, filter 90ms ease;
 }

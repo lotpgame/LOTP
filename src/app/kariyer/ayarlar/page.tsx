@@ -60,22 +60,24 @@ export default async function AyarlarPage() {
         </div>
       </CollapsibleSection>
 
-      {/* Sözlük — ayrı sayfa; girişi menüden Ayarlar'a taşındı (kullanıcı kararı 06.11). */}
-      <a
-        href="/kariyer/sozluk"
-        className="press mt-4 flex min-h-14 items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
-      >
-        <Icon name="glossary" size={24} className="shrink-0 text-steel" />
-        <span className="flex-1 font-display text-[16px] font-semibold uppercase tracking-wide">{t(locale, "nav.sozluk")}</span>
-        <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
-      </a>
-
       {/* Bildir — geri bildirim / hata (menüden Ayarlar'a taşındı 06.11, kullanıcı kararı). */}
       <CollapsibleSection title={t(locale, "feedback.title")}>
         <FeedbackWidget
           locale={locale}
           className="press flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]"
         />
+      </CollapsibleSection>
+
+      {/* Sözlük — açılır/kapanır; içinden sözlük sayfasına git (Geri Bildirim gibi; kullanıcı kararı 06.11). */}
+      <CollapsibleSection title={t(locale, "nav.sozluk")}>
+        <a
+          href="/kariyer/sozluk"
+          className="press flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]"
+        >
+          <Icon name="glossary" size={20} className="shrink-0 text-steel" />
+          <span className="flex-1">{t(locale, "nav.sozluk")}</span>
+          <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
+        </a>
       </CollapsibleSection>
     </ArenaPage>
   );

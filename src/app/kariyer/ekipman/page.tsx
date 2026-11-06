@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
-import { DENAR_PACKAGES } from "@/engine/ads";
 import type { AgeCategory } from "@/engine/domain";
 import { itemById, itemName, kitItemFits, weaponSizeLabel, type EquipmentSlot } from "@/engine/equipment";
 import { t } from "@/i18n";
@@ -8,7 +7,6 @@ import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
-import { DenarPanel } from "./DenarPanel";
 import { DiscardButton } from "./DiscardButton";
 import { Kumbara } from "./Kumbara";
 import { ErrorBanner } from "../ErrorBanner";
@@ -114,34 +112,6 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
         <Icon name="chevron-down" size={18} className="shrink-0 -rotate-90 text-steel" />
       </a>
 
-      {/* Denar Kazan & Al — en altta. Reklam izle (+Denar) + paket (lansmanta). */}
-      <details className="panel group mt-4">
-        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-          <DenarMark size={26} className="shrink-0" />
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "denar.title")}</div>
-          </div>
-          <Icon name="chevron-down" size={18} className="shrink-0 text-steel transition-transform group-open:rotate-180" />
-        </summary>
-        <DenarPanel
-          adsLeft={c.adsLeftToday}
-          adDailyCap={c.adDailyCap}
-          adReward={c.adReward}
-          packages={DENAR_PACKAGES}
-          labels={{
-            earnTitle: t(locale, "denar.earnTitle"),
-            watch: t(locale, "denar.watch"),
-            left: t(locale, "denar.left"),
-            playing: t(locale, "denar.playing"),
-            earned: t(locale, "denar.earned"),
-            capReached: t(locale, "denar.capReached"),
-            buyTitle: t(locale, "denar.buyTitle"),
-            best: t(locale, "denar.best"),
-            soon: t(locale, "denar.soon"),
-            soonNote: t(locale, "denar.soonNote"),
-          }}
-        />
-      </details>
     </ArenaPage>
   );
 }

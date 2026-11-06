@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Ekipman Denar kaldırıldı · Sözlük açılır-kapanır · mobil dokunma geri bildirimi)
+- **Ekipman'daki "Denar Kazan & Al" bölümü kaldırıldı** (artık yalnız alt menü Denar rozetinde — tek yer, kopya yok).
+- **Ayarlar'da Sözlük**, Geri Bildirim'in **altına** alındı ve **açılır/kapanır** yapıldı (içinden sözlük sayfasına link).
+- **Mobil dokunma geri bildirimi**: `.press` artık **anında tap-highlight** (kırmızı flaş) + daha belirgin basılma
+  (scale 0.96 + parlaklık) + `touch-action: manipulation` (300 ms tap gecikmesi yok). "Dokundum mu?" belirsizliği giderildi.
+
 ### Eklendi (06.11 — Alt menüde Denar rozeti (hızlı erişim))
 - **Denar rozeti** telefon-yatay alt şeritte, **Ayarlar'ın yanında** (saat rozeti gibi): bakiyeyi gösterir, tıklayınca
   **"Denar Kazan & Al"** menüsü (ödüllü reklam + paketler) pencerede açılır. `DenarBadge` + mevcut `DenarPanel` yeniden kullanıldı.
