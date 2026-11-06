@@ -8,6 +8,7 @@ import { CareerResetButton, SoundToggle } from "./AyarlarClient";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { FeedbackWidget } from "../FeedbackWidget";
 import { ThemeSettings } from "../ThemeSettings";
+import { Icon } from "@/app/ui/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,16 @@ export default async function AyarlarPage() {
           </div>
         </div>
       </CollapsibleSection>
+
+      {/* Sözlük — ayrı sayfa; girişi menüden Ayarlar'a taşındı (kullanıcı kararı 06.11). */}
+      <a
+        href="/kariyer/sozluk"
+        className="press mt-4 flex min-h-14 items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
+      >
+        <Icon name="glossary" size={24} className="shrink-0 text-steel" />
+        <span className="flex-1 font-display text-[16px] font-semibold uppercase tracking-wide">{t(locale, "nav.sozluk")}</span>
+        <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
+      </a>
 
       {/* Bildir — geri bildirim / hata (menüden Ayarlar'a taşındı 06.11, kullanıcı kararı). */}
       <CollapsibleSection title={t(locale, "feedback.title")}>

@@ -24,6 +24,7 @@ interface NavItem {
 }
 
 // Tüm sayfalar — kullanıcının istediği sıra (06.11). Masaüstü sidebar bunu birebir gösterir.
+// Sözlük menüde değil → Ayarlar içinden açılır (kullanıcı kararı, Bildir gibi).
 const NAV: NavItem[] = [
   { href: "/kariyer", key: "nav.profil", icon: "today" },
   { href: "/kariyer/kulup", key: "nav.kulup", icon: "club" },
@@ -32,13 +33,12 @@ const NAV: NavItem[] = [
   { href: "/kariyer/turnuvalar", key: "nav.turnuvalar", icon: "tournament" },
   { href: "/kariyer/klasman", key: "nav.klasman", icon: "ranking" },
   { href: "/kariyer/gecmis", key: "nav.gecmis", icon: "history" },
-  { href: "/kariyer/sozluk", key: "nav.sozluk", icon: "glossary" },
   { href: "/kariyer/ayarlar", key: "nav.ayarlar", icon: "settings" },
 ];
-// Telefon alt sekme çubuğu = çekirdek döngünün 4 sayfası (sıra NAV'dan korunur). Gerisi "Daha fazla".
-const PRIMARY = new Set(["/kariyer", "/kariyer/antrenman", "/kariyer/turnuvalar", "/kariyer/klasman"]);
-const MAIN = NAV.filter((i) => PRIMARY.has(i.href)); // Bugün · Antrenman · Turnuvalar · Klasman
-const MORE = NAV.filter((i) => !PRIMARY.has(i.href)); // Kulüp · Ekipman · Geçmiş · Sözlük · Ayarlar
+// Telefon üst şeridi / alt sekme çubuğu = ilk 4 (çekirdek). Gerisi "Daha fazla" / alt şerit.
+const PRIMARY = new Set(["/kariyer", "/kariyer/kulup", "/kariyer/antrenman", "/kariyer/ekipman"]);
+const MAIN = NAV.filter((i) => PRIMARY.has(i.href)); // Bugün · Kulüp · Antrenman · Ekipman
+const MORE = NAV.filter((i) => !PRIMARY.has(i.href)); // Turnuvalar · Klasman · Geçmiş · Ayarlar
 const ALL = NAV;
 
 function activeHref(pathname: string): string | undefined {
@@ -215,9 +215,10 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
           </button>
         </nav>
 
-        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları (5) — üstteki 4 ile birlikte tüm menü görünür ——— */}
+        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları — üstteki 4 ile birlikte tüm menü görünür ——— */}
         <nav
-          className="mx-auto hidden max-w-3xl grid-cols-5 border-t border-line pb-[env(safe-area-inset-bottom)] vland:grid lg:!hidden"
+          className="mx-auto hidden max-w-3xl border-t border-line pb-[env(safe-area-inset-bottom)] vland:grid lg:!hidden"
+          style={{ gridTemplateColumns: `repeat(${MORE.length}, minmax(0, 1fr))` }}
           aria-label={t(locale, "nav.menu")}
         >
           {MORE.map((item) => {

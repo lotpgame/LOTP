@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Menü yatay şerit düzeni + Sözlük Ayarlar'a taşındı)
+- **Telefon-yatay üst şerit** artık **Bugün · Kulüp · Antrenman · Ekipman** (çekirdek); alt şerit **Turnuvalar · Klasman ·
+  Kariyer Geçmişi · Ayarlar**. Üst şerit (PRIMARY) ilk 4 sayfadan; yatay alt şerit sütun sayısı dinamik.
+- **Sözlük menüden kaldırıldı** → Ayarlar içinden açılır (Bildir gibi; sayfa `/kariyer/sozluk` aynen duruyor).
+
 ### Eklendi (06.11 — Antrenör kalitesi tesisi takip eder (olay olarak yükselir))
 - **Antrenör de 30'dan başlar**; yeteneği kulübün tesis kalitesini **1:1 takip eder** (kullanıcı kararı).
 - **Olay olarak yükselir:** tesis, son antrenör gelişine göre **+%20 artıp 1 hafta sabit kaldığında** eski antrenörler
