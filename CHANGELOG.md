@@ -14,8 +14,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (`AD_DAILY_CAP`; ekonomiyi korur — 1 silah ≈ 133 reklam, "reklamla silah alınmaz"). Sayaç günlük sıfırlanır.
 - **İSTENMEDEN açılmaz** (kullanıcı kararı): Market'te **"Denar Kazan & Al"** paneli — oyuncu isteyince "Reklam İzle"
   der → kısa oynatma simülasyonu (gerçek reklam ağı lansmanta buraya girer) → +Denar. Günlük kalan hak gösterilir.
-- **Denar paketleri** (gösterim): 500/£1.99 · 1.000/£3.49 · **2.000/£5.99 (en iyi değer ≈ tam takım)** · 5.000/£12.99
-  (Finans/HESAP §4.1). Satın alma **lansmanta** (Stripe sonra bağlanır; sahte ödeme yok). 9 dil.
+- **Denar paketi** (gösterim): **TEK ürün — 1.000 Đ / £4.99** (kullanıcı kararı 06.11, sade "tok satıcı"; 500/2.000/5.000
+  satılmaz). Satın alma **lansmanta** (Stripe sonra bağlanır; sahte ödeme yok). 9 dil.
 - **Yeni alan `Player.lastAdDay` + `Player.adsToday`** (eklemeli şema → Neon migration gerekir). İlke korunur:
   ödeyen daha güçlü olmaz (malzeme etkisi minik+gizli), yalnız kesintisiz oynar. 235 test, tarayıcıda doğrulandı.
 

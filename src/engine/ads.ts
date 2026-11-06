@@ -55,10 +55,7 @@ export interface DenarPackage {
   best?: boolean; // "en iyi değer" rozeti (ana ürün ≈ tam takım)
 }
 
-/** Paket kataloğu (Finans/HESAP §4.1). 2.000 Đ ≈ tam takım = ana ürün. */
+/** Paket kataloğu (kullanıcı kararı 06.11): TEK ürün — 1.000 Đ / £4.99. Başka paket yok (sade "tok satıcı"). */
 export const DENAR_PACKAGES: readonly DenarPackage[] = [
-  { denar: 500, gbp: "£1.99" },
-  { denar: 1000, gbp: "£3.49" },
-  { denar: 2000, gbp: "£5.99", best: true },
-  { denar: 5000, gbp: "£12.99" },
+  { denar: 1000, gbp: "£4.99" },
 ];

@@ -54,11 +54,9 @@ describe("ads — ödüllü reklam sayacı", () => {
     expect(r.state).toEqual({ lastAdDay: 11, adsToday: 1 });
   });
 
-  it("paket kataloğu: 4 paket, ana ürün 2.000 Đ (best)", () => {
-    expect(DENAR_PACKAGES).toHaveLength(4);
-    const best = DENAR_PACKAGES.filter((p) => p.best);
-    expect(best).toHaveLength(1);
-    expect(best[0].denar).toBe(2000);
-    expect(best[0].gbp).toBe("£5.99");
+  it("paket kataloğu: tek ürün — 1.000 Đ / £4.99 (kullanıcı kararı 06.11)", () => {
+    expect(DENAR_PACKAGES).toHaveLength(1);
+    expect(DENAR_PACKAGES[0].denar).toBe(1000);
+    expect(DENAR_PACKAGES[0].gbp).toBe("£4.99");
   });
 });

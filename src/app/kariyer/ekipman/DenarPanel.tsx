@@ -112,7 +112,7 @@ export function DenarPanel({
       {/* Denar paketleri (lansmanta açılacak — satın alma yok) */}
       <div className="panel flex flex-col gap-2 p-3">
         <div className="text-[15px] font-semibold">{labels.buyTitle}</div>
-        <ul className="grid grid-cols-2 gap-2">
+        <ul className={`grid gap-2 ${packages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
           {packages.map((p) => (
             <li key={p.denar} className={`rounded-md border p-2 text-center ${p.best ? "border-ink" : "border-line"}`}>
               {p.best && <div className="kicker mb-0.5 text-[10px] text-sig-green">{labels.best}</div>}
