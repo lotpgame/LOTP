@@ -44,7 +44,7 @@ npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişi
 npm run dev       # geliştirme sunucusu → http://localhost:3000
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Vitest testleri (241) — CI her PR'da lint + test + build çalıştırır
+npm test          # Vitest testleri (249) — CI her PR'da lint + test + build çalıştırır
 npm run sim       # başsız denge raporu (combat/gelişim/turnuva/sakatlık)
 npm run db:studio # veritabanını görsel incele (Prisma Studio)
 npm run db:backup # veritabanının zaman damgalı yedeğini al
@@ -153,7 +153,9 @@ yedekler, çöp at); **hayat & malzeme olayları** (haftada dengeli 1 olumlu + 1
 fırsatlar); **monetization** — Market'teki "Denar Kazan & Al" köşesinde **ödüllü reklam** (+2 Denar, günde 3) +
 **Denar paketleri** (lansmanta Stripe'a bağlanır). İlke: ödeyen daha güçlü olmaz, yalnız kesintisiz oynar (pay-to-win yok);
 **oyun logosu** ("Legends of the Piste" amblemi — `public/img/logo.png`): giriş hero'su + masaüstü sidebar başlığı,
-telefon/PWA ikonları + favicon logodan üretilir (link önizleme görseli `opengraph-image.tsx`'ten).
+telefon/PWA ikonları + favicon logodan üretilir (link önizleme görseli `opengraph-image.tsx`'ten);
+**kulüp tesis büyümesi** (`src/engine/club.ts`): tesis kalitesi, kulübün **gerçek oyuncu** sayısı ve **başarı
+oranına** göre canlı hesaplanır (taban 30 + üye×1.5 + başarılı mezun×4 × oran; botlar sayılmaz).
 
 **🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan
 dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar

@@ -219,6 +219,7 @@ import {
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
+import { BASE_FACILITY, computeFacility } from "@/engine/club";
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
@@ -503,6 +504,8 @@ export interface CareerDTO {
     name: string;
     city: string;
     facility: number;
+    members: number; // kulüpteki gerçek (bot olmayan) aktif oyuncu sayısı
+    graduates: number; // bunlardan başarılı mezun (önem ≥ 3 başarısı olan)
     coachName: string;
     coachSkill: number;
     coachSpecialty: string;
@@ -629,7 +632,8 @@ function makeClubData(city: string, rng: ReturnType<typeof createRng>, countryCo
   return {
     name: clubNameFor(city, countryCode),
     city,
-    facility: rng.int(45, 85),
+    baseFacility: BASE_FACILITY, // taban 30; tesis canlı hesaplanır (üye + başarılı mezun oranı)
+    facility: BASE_FACILITY,
     coachName: coachFullName(),
     coachSkill: skill,
     coachSpecialty: `${specs[0]},${specs[1]}`,
@@ -863,6 +867,30 @@ async function loadState() {
   return { gs, human };
 }
 
+/**
+ * Bir kulübün CANLI tesisini hesaplar (src/engine/club.ts) ve materialized `facility` alanını tazeler.
+ * Gerçek (bot olmayan, emekli olmayan) üye sayısı + "başarılı mezun" (önem ≥ 3 = madalya/şampiyonluk/ranking
+ * en az bir başarısı olan) sayısına göre. **Botlar sayılmaz.** getCareer her açılışta çağırır → kulüp sayfası
+ * tam doğru gösterir, saklı değer tazelenir (antrenman yolu bunu okur; üye azalınca da düşer). Değer değişmemişse
+ * yazmaz (gereksiz DB yazımı yok).
+ */
+async function refreshClubFacility(
+  clubId: number,
+  baseFacility: number,
+  currentFacility: number,
+): Promise<{ facility: number; members: number; graduates: number }> {
+  const realWhere = { clubId, isAI: false, status: { not: "RETIRED" } } as const;
+  const [members, graduates] = await Promise.all([
+    prisma.player.count({ where: realWhere }),
+    prisma.player.count({ where: { ...realWhere, achievements: { some: { importance: { gte: 3 } } } } }),
+  ]);
+  const facility = computeFacility(baseFacility, members, graduates);
+  if (facility !== currentFacility) {
+    await prisma.club.update({ where: { id: clubId }, data: { facility } }).catch(() => {});
+  }
+  return { facility, members, graduates };
+}
+
 /** Kalıcı trait planından, oyuncunun O YAŞTA aktif trait anahtarları (kademeli açılım). */
 function activeTraitsOf(csv: string, age: number): TraitKey[] {
   return activeTraitKeys(parseTraitPlan(csv), age);
@@ -904,6 +932,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const nationalTeam = humanRank != null && humanRank <= NATIONAL_TEAM_SIZE;
   const injured = human.injuryDaysRemaining > 0;
   const planArr = (gs.trainingPlan || DEFAULT_PLAN).split(",").filter(Boolean);
+
+  // Kulüp tesisi: CANLI hesapla (gerçek üye + başarılı mezun oranı; botlar sayılmaz) ve saklı değeri tazele.
+  const clubStats = human.club
+    ? await refreshClubFacility(human.club.id, human.club.baseFacility, human.club.facility)
+    : null;
 
   // Bugünün etkinliği (gün-bazlı program).
   const act = activityForDay(gs.dayIndex);
@@ -996,7 +1029,9 @@ export async function getCareer(): Promise<CareerDTO | null> {
       ? {
           name: `${human.club.city} ${t(locale, "club.suffix")}`,
           city: human.club.city,
-          facility: human.club.facility,
+          facility: clubStats?.facility ?? human.club.facility,
+          members: clubStats?.members ?? 0,
+          graduates: clubStats?.graduates ?? 0,
           coachName: human.club.coachName,
           coachSkill: human.club.coachSkill,
           coachSpecialty: human.club.coachSpecialty,

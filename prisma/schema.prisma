@@ -154,7 +154,11 @@ model Club {
   id             Int      @id @default(autoincrement())
   name           String
   city           String
-  facility       Int      @default(60) // tesis seviyesi 0–100 (antrenman kalitesi)
+  // Tesis 0–100 (antrenman kalitesi). baseFacility = kuruluş tabanı (30). facility = CANLI hesaplanan güncel
+  // değer: taban + (gerçek üye×1.5 + başarılı mezun×4) × başarı_oranı (src/engine/club.ts). Botlar sayılmaz.
+  // getCareer her açılışta yeniden hesaplar ve buraya yazar (antrenman yolu bu taze değeri okur).
+  baseFacility   Int      @default(30) // kuruluş tabanı (alt sınır)
+  facility       Int      @default(30) // canlı hesaplanan tesis (materialized)
   // İki antrenör; ikisi de aynı yetenekte (coachSkill), farklı uzmanlıkta (GDD 13).
   coachName      String
   coachSkill     Int      @default(60) // her iki koçun ortak yeteneği 0–100

@@ -9,6 +9,17 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Kulüp tesis büyüme sistemi: gerçek üye + başarı oranı)
+- **Tesis artık canlı hesaplanıyor** (`src/engine/club.ts` + test): taban **30** + (gerçek üye×1.5 + başarılı
+  mezun×4) × **başarı_oranı**, tavan 100. **Botlar sayılmaz** (ne üye ne mezun). "Başarılı mezun" = önem ≥ 3
+  (madalya/şampiyonluk/ranking) en az bir başarısı olan gerçek oyuncu.
+- **Başarı oranı kilit** (kullanıcı kararı): kalabalık ama başarısız kulüp DÜŞER — 20 kişi/5 başarılı = **43** <
+  5 kişi/5 başarılı = **58**. Yeni açılan başarısız hesaplar akın edince tesis düşer; çocuklar derece yaptıkça çıkar.
+- **Kulüp sayfası** tesis dökümünü gösteriyor: gerçek oyuncu · başarılı mezun · başarı oranı + açıklama (9 dil).
+- `getCareer` her açılışta tesisi yeniden hesaplayıp saklı değeri tazeler (üye kaybında da düşer). Antrenman verimi
+  etkisi küçük tutuldu — zaten ±%10, **değişmedi** (kullanıcı: "kesinlikle çok büyük değil").
+- **Yeni alan `Club.baseFacility` (varsayılan 30)** — eklemeli şema → Neon migration gerekir. 249 test.
+
 ### Eklendi (06.11 — Oyun logosu: "Legends of the Piste" marka amblemi)
 - **Gerçek logo oyuna gömüldü** (kullanıcının sağladığı amblem). Giriş ekranı hero'su (yazı başlık ekran okuyucuya
   saklandı — logoda zaten yazı var) + masaüstü sidebar başlığı. Hero'da **saydam amblem** (`logo-mark.png`: koyu zemin
