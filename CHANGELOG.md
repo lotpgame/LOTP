@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Monetization: Ödüllü reklam + Denar paketleri (Market'te "Denar" köşesi))
+- **Ödüllü reklam motoru** (`src/engine/ads.ts`, saf + test): 1 reklam → **+2 Denar**, günde en çok **3**
+  (`AD_DAILY_CAP`; ekonomiyi korur — 1 silah ≈ 133 reklam, "reklamla silah alınmaz"). Sayaç günlük sıfırlanır.
+- **İSTENMEDEN açılmaz** (kullanıcı kararı): Market'te **"Denar Kazan & Al"** paneli — oyuncu isteyince "Reklam İzle"
+  der → kısa oynatma simülasyonu (gerçek reklam ağı lansmanta buraya girer) → +Denar. Günlük kalan hak gösterilir.
+- **Denar paketleri** (gösterim): 500/£1.99 · 1.000/£3.49 · **2.000/£5.99 (en iyi değer ≈ tam takım)** · 5.000/£12.99
+  (Finans/HESAP §4.1). Satın alma **lansmanta** (Stripe sonra bağlanır; sahte ödeme yok). 9 dil.
+- **Yeni alan `Player.lastAdDay` + `Player.adsToday`** (eklemeli şema → Neon migration gerekir). İlke korunur:
+  ödeyen daha güçlü olmaz (malzeme etkisi minik+gizli), yalnız kesintisiz oynar. 235 test, tarayıcıda doğrulandı.
+
 ### Eklendi (06.11 — Dilim 3-3: Fırsat/indirim teklifleri (her malzeme))
 - **Süreli fırsatlar** (`rollOffer`): ~haftada %20, oyuncunun silahına uygun **rastgele bir parça** için indirim
   (%30/40/50, 2–4 gün). Markette **indirimli fiyat + üstü çizili orijinal + "🔥 %X · Ng"** rozeti. Süre dolmadan

@@ -44,7 +44,7 @@ npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişi
 npm run dev       # geliştirme sunucusu → http://localhost:3000
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Vitest testleri (204) — CI her PR'da lint + test + build çalıştırır
+npm test          # Vitest testleri (235) — CI her PR'da lint + test + build çalıştırır
 npm run sim       # başsız denge raporu (combat/gelişim/turnuva/sakatlık)
 npm run db:studio # veritabanını görsel incele (Prisma Studio)
 npm run db:backup # veritabanının zaman damgalı yedeğini al
@@ -147,7 +147,11 @@ ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik d
 kartlar) sürüyor; **her sayfaya temalı tam-sayfa arka plan** (Champ Manager tarzı; `ArenaPage` bileşeni +
 `public/img/bg-*.webp`, her sayfanın anlamına göre özgün görsel); **oyun yalnız yatay oynanır** (app
 kararı; dik tutunca "telefonu yan çevir" uyarısı — `RotateGate`); **Ayarlar sayfası** (dil/ses/kariyer) + **tam 9 dil desteği** (TR/EN/DE/FR/ES/IT/RU/PT/ZH;
-arayüz + maç anlatımları + hata mesajları; cookie tabanlı, oluşturma ekranından seçilebilir).
+arayüz + maç anlatımları + hata mesajları; cookie tabanlı, oluşturma ekranından seçilebilir);
+**ekipman yaşam döngüsü** (bedava başlangıç takımı, beden/büyüme, dayanıklılık + yıpranma/kırılma, dolap + market,
+yedekler, çöp at); **hayat & malzeme olayları** (haftada dengeli 1 olumlu + 1 olumsuz; harçlık/kırılma; süreli
+fırsatlar); **monetization** — Market'teki "Denar Kazan & Al" köşesinde **ödüllü reklam** (+2 Denar, günde 3) +
+**Denar paketleri** (lansmanta Stripe'a bağlanır). İlke: ödeyen daha güçlü olmaz, yalnız kesintisiz oynar (pay-to-win yok).
 
 **🎯 V2 — Çok Oyunculu / Ortak Dünya (asıl hedef, başladı):** Tüm dünyadaki eskrimciler tek paylaşılan
 dünyada, aynı turnuvalarda karşılaşır (asenkron/Hattrick: sunucu oynatır, sen replay izlersin). Aşamalar

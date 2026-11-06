@@ -221,6 +221,7 @@ import {
 } from "@/engine/environment";
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
+import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -505,6 +506,9 @@ export interface CareerDTO {
   kit: KitItemState[]; // Malzeme çantası: her parçanın beden/dayanıklılık/kırık durumu (Dilim 1)
   offer: { itemId: string; discountPct: number; daysLeft: number } | null; // Dilim 3-3: markette aktif fırsat
   balance: number;
+  adsLeftToday: number; // bugün kalan ödüllü reklam hakkı (Market "Denar" köşesi)
+  adReward: number; // 1 reklam → kaç Denar
+  adDailyCap: number; // günlük reklam tavanı
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
@@ -999,6 +1003,9 @@ export async function getCareer(): Promise<CareerDTO | null> {
       return offerActive(o, today) ? { itemId: o.itemId, discountPct: o.discountPct, daysLeft: o.expiresDay - today + 1 } : null;
     })(),
     balance: roundSkill(human.balance),
+    adsLeftToday: adsLeftToday({ lastAdDay: human.lastAdDay, adsToday: human.adsToday }, serverWorldDay()),
+    adReward: AD_REWARD,
+    adDailyCap: AD_DAILY_CAP,
     equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
     canUpgradeEquipment:
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
@@ -1988,6 +1995,27 @@ export async function discardEquipment(slot: string, index: number): Promise<voi
     where: { id: human.id },
     data: { equipmentState: encodeKit(kit), ownedEquipment: encodeOwned(kit.map((k) => k.itemId)) },
   });
+}
+
+/**
+ * Ödüllü reklam izlendi → +AD_REWARD Denar (günde en çok AD_DAILY_CAP). İSTENMEDEN açılmaz; oyuncu
+ * Market'teki "Denar" köşesinde isteyerek çağırır. Sayaç günlük sıfırlanır (serverWorldDay). Kota
+ * dolmuşsa hata. Gerçek reklam ağı entegrasyonu lansmanta; bu fonksiyon yalnız ödülü verir.
+ */
+export async function watchRewardedAd(): Promise<{ balance: number; adsLeft: number }> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { human } = state;
+  const day = serverWorldDay();
+  const adState: AdState = { lastAdDay: human.lastAdDay, adsToday: human.adsToday };
+  if (!canWatchAd(adState, day)) throw new GameError("ad_cap", "Bugünkü reklam hakkın doldu.");
+  const { state: next, reward } = watchAd(adState, day);
+  const updated = await prisma.player.update({
+    where: { id: human.id },
+    data: { lastAdDay: next.lastAdDay, adsToday: next.adsToday, balance: { increment: reward } },
+    select: { balance: true },
+  });
+  return { balance: roundSkill(updated.balance), adsLeft: adsLeftToday(next, day) };
 }
 
 export interface CareerHistoryDTO {

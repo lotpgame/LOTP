@@ -35,6 +35,7 @@ import {
   signOut,
   submitTournamentTactic,
   unregisterTournament,
+  watchRewardedAd,
 } from "@/server/careerService";
 import type { TacticSubmitResult } from "@/server/liveTournament";
 
@@ -103,6 +104,23 @@ export async function buyEquipmentAction(formData: FormData): Promise<void> {
     throw e;
   }
   revalidatePath("/kariyer/ekipman");
+}
+
+/**
+ * Ödüllü reklam izlendi → +Denar (günde en çok 3). İstenmeden açılmaz; Market'teki "Denar" köşesinde
+ * oyuncu isteyerek çağırır. Sonuç client bileşenine döner (bakiye + kalan hak), sayfa tazelenir.
+ */
+export async function watchAdAction(): Promise<
+  { ok: true; balance: number; adsLeft: number } | { ok: false; reason: string }
+> {
+  try {
+    const r = await watchRewardedAd();
+    revalidatePath("/kariyer/ekipman");
+    return { ok: true, ...r };
+  } catch (e) {
+    if (e instanceof GameError) return { ok: false, reason: e.code };
+    throw e;
+  }
 }
 
 /** Bir ekipman parçasını çöp atar (slot + o slottaki sıra). */

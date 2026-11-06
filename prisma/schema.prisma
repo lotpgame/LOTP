@@ -97,6 +97,10 @@ model Player {
   equipmentState String? // Malzeme çantası (JSON): her parçanın beden/dayanıklılık/kırık durumu (docs/EKIPMAN_VE_OLAYLAR.md). null=başlangıç takımı
   balance        Float @default(0) // Denar bakiyesi (turnuva ödülü + mağaza) (GDD 16)
   experience     Int   @default(0) // tecrübe (XP) — turnuva + antrenman; combat'a küçük katkı (#28)
+  // Ödüllü reklam sayacı (monetization, src/engine/ads.ts): günde en çok AD_DAILY_CAP reklam → +Denar.
+  // lastAdDay = en son reklam izlenen oyun-günü; adsToday = o günkü sayı (gün değişince sıfırlanır). Eklemeli.
+  lastAdDay      Int   @default(0)
+  adsToday       Int   @default(0)
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE
 
