@@ -35,19 +35,17 @@ export default async function KulupPage() {
               <span className="num text-[15px]">{c.club.facility}/100</span>
             </div>
             <Segments value={c.club.facility} traffic className="mt-2" />
-            {/* Tesis neden bu seviyede: gerçek üye + başarılı mezun oranı (botlar sayılmaz). */}
+            {/* Kulüp sporcu sayısı (gerçek) + varsa milli sporcu sayısı. */}
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-steel">
               <span>
                 {t(locale, "kulup.members")}: <span className="num text-ink">{c.club.members}</span>
               </span>
-              <span aria-hidden="true">·</span>
-              <span>
-                {t(locale, "kulup.graduates")}: <span className="num text-ink">{c.club.graduates}</span>
-              </span>
-              {c.club.members > 0 && (
+              {c.club.nationals > 0 && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="num">%{Math.round((c.club.graduates / c.club.members) * 100)}</span>
+                  <span className="text-prio">
+                    {t(locale, "kulup.nationals")}: <span className="num">{c.club.nationals}</span>
+                  </span>
                 </>
               )}
             </div>

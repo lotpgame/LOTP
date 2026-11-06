@@ -15,7 +15,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (madalya/şampiyonluk/ranking) en az bir başarısı olan gerçek oyuncu.
 - **Başarı oranı kilit** (kullanıcı kararı): kalabalık ama başarısız kulüp DÜŞER — 20 kişi/5 başarılı = **43** <
   5 kişi/5 başarılı = **58**. Yeni açılan başarısız hesaplar akın edince tesis düşer; çocuklar derece yaptıkça çıkar.
-- **Kulüp sayfası** tesis dökümünü gösteriyor: gerçek oyuncu · başarılı mezun · başarı oranı + açıklama (9 dil).
+- **Kulüp sayfası** (sade): **Kulüp sporcu sayısı** (gerçek) + varsa **Milli sporcu** rozeti (NATIONAL_TEAM başarısı);
+  başarı sayısı/oranı ekranda gösterilmez (içte tesisi büyütür). Açıklama 9 dil (kullanıcı: "botlar sayılmaz" ibaresi çıktı).
 - `getCareer` her açılışta tesisi yeniden hesaplayıp saklı değeri tazeler (üye kaybında da düşer). Antrenman verimi
   etkisi küçük tutuldu — zaten ±%10, **değişmedi** (kullanıcı: "kesinlikle çok büyük değil").
 - **Yeni alan `Club.baseFacility` (varsayılan 30)** — eklemeli şema → Neon migration gerekir. 249 test.

@@ -504,8 +504,8 @@ export interface CareerDTO {
     name: string;
     city: string;
     facility: number;
-    members: number; // kulüpteki gerçek (bot olmayan) aktif oyuncu sayısı
-    graduates: number; // bunlardan başarılı mezun (önem ≥ 3 başarısı olan)
+    members: number; // kulüpteki gerçek (bot olmayan) aktif sporcu sayısı
+    nationals: number; // bunlardan milli takıma seçilmiş olanlar (NATIONAL_TEAM başarısı)
     coachName: string;
     coachSkill: number;
     coachSpecialty: string;
@@ -878,17 +878,20 @@ async function refreshClubFacility(
   clubId: number,
   baseFacility: number,
   currentFacility: number,
-): Promise<{ facility: number; members: number; graduates: number }> {
+): Promise<{ facility: number; members: number; nationals: number }> {
   const realWhere = { clubId, isAI: false, status: { not: "RETIRED" } } as const;
-  const [members, graduates] = await Promise.all([
+  const [members, graduates, nationals] = await Promise.all([
     prisma.player.count({ where: realWhere }),
+    // Formül için: önemli başarısı (önem ≥ 3) olan gerçek oyuncu (tesis büyümesini bu belirler, ekranda gösterilmez).
     prisma.player.count({ where: { ...realWhere, achievements: { some: { importance: { gte: 3 } } } } }),
+    // Ekran için: milli takıma seçilmiş gerçek oyuncu (NATIONAL_TEAM başarısı) — "Milli sporcu" rozeti.
+    prisma.player.count({ where: { ...realWhere, achievements: { some: { type: "NATIONAL_TEAM" } } } }),
   ]);
   const facility = computeFacility(baseFacility, members, graduates);
   if (facility !== currentFacility) {
     await prisma.club.update({ where: { id: clubId }, data: { facility } }).catch(() => {});
   }
-  return { facility, members, graduates };
+  return { facility, members, nationals };
 }
 
 /** Kalıcı trait planından, oyuncunun O YAŞTA aktif trait anahtarları (kademeli açılım). */
@@ -1031,7 +1034,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
           city: human.club.city,
           facility: clubStats?.facility ?? human.club.facility,
           members: clubStats?.members ?? 0,
-          graduates: clubStats?.graduates ?? 0,
+          nationals: clubStats?.nationals ?? 0,
           coachName: human.club.coachName,
           coachSkill: human.club.coachSkill,
           coachSpecialty: human.club.coachSpecialty,
