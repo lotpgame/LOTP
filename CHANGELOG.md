@@ -10,8 +10,9 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Eklendi (06.11 — Oyun logosu: "Legends of the Piste" marka amblemi)
-- **Gerçek logo oyuna gömüldü** (kullanıcının sağladığı amblem). Tek kaynak `public/img/logo.png`'den üretildi:
-  giriş ekranı hero'su (yazı başlık ekran okuyucuya saklandı — logoda zaten yazı var) + masaüstü sidebar başlığı.
+- **Gerçek logo oyuna gömüldü** (kullanıcının sağladığı amblem). Giriş ekranı hero'su (yazı başlık ekran okuyucuya
+  saklandı — logoda zaten yazı var) + masaüstü sidebar başlığı. Hero'da **saydam amblem** (`logo-mark.png`: koyu zemin
+  parlaklıktan alfaya çevrildi → kare yok, sayfaya oturur) ve **ortalı** duruyor (kullanıcı geri bildirimi).
 - **PWA / telefon ikonları logodan yenilendi**: `icon-192`, `icon-512`, `maskable-512` (Android daire kırpımı için
   tema zeminine %78 ortalandı), `apple-180`; favicon → `/icons/icon-192.png` (eski placeholder `favicon.ico` + geçici
   `app/icon.png` kaldırıldı, tek kaynak kaldı). Link önizleme görseli (og:image) mevcut `opengraph-image.tsx`'ten gelir.

@@ -142,8 +142,8 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
       {/* ——— Masaüstü: sol sidebar ——— */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-arena-1 lg:flex">
         <div className="px-5 pt-5">
-          {/* Marka logosu (sidebar başlık). */}
-          <img src="/img/logo.png" alt="Legends of the Piste" width={560} height={560} className="w-36" />
+          {/* Marka logosu (sidebar başlık) — saydam amblem. */}
+          <img src="/img/logo-mark.png" alt="Legends of the Piste" width={560} height={560} className="mx-auto w-40" />
         </div>
         <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-line bg-arena-0 p-3">
           <Avatar name={name} src={avatarUrl} size={40} />

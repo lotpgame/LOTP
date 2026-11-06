@@ -63,13 +63,14 @@ export default async function Home({
             <span className="kicker">{t(locale, "landing.kicker")}</span>
             <LangSelect current={locale} />
           </div>
-          {/* Marka logosu — hero. Logoda yazı zaten var; başlık metni ekran okuyucu için saklı (erişilebilirlik + SEO). */}
+          {/* Marka logosu — hero. Saydam amblem (kare zemin yok → sayfaya oturur), ortalı. Logoda yazı zaten
+              var; başlık metni ekran okuyucu için saklı (erişilebilirlik + SEO). */}
           <img
-            src="/img/logo.png"
+            src="/img/logo-mark.png"
             alt="Legends of the Piste"
             width={560}
             height={560}
-            className="mt-3 w-44 self-start lg:w-64"
+            className="mt-1 w-60 self-center lg:w-72"
           />
           <h1 lang="en" className="sr-only">Legends of the Piste</h1>
           <p className="mt-3 text-[15px] text-console-steel lg:text-[17px]">{t(locale, "landing.lead")}</p>
