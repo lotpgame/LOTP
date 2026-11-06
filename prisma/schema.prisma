@@ -211,6 +211,8 @@ model GameState {
   awayReport String?
   // Katman 2: trait evrimi bildirimleri (JSON dizi {kind, from?, to}). "Sen yokken" panelinde gösterilir, görülünce temizlenir.
   traitReport String?
+  // Dilim 3-3: markette süreli fırsat/indirim teklifi (JSON {itemId, discountPct, expiresDay}). Süre geçince temizlenir.
+  pendingOffer String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

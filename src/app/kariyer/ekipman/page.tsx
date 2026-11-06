@@ -3,6 +3,7 @@ import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction, discardEquipmentAction } from "@/app/actions";
 import type { Weapon } from "@/engine/domain";
 import { itemById, itemsForWeapon, itemName, itemDesc, itemsInSlot, kitItemFits, MAX_PER_SLOT, weaponSizeLabel, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { discountedPrice } from "@/engine/lifeEvents";
 import type { AgeCategory } from "@/engine/domain";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -61,7 +62,10 @@ export default async function EkipmanPage({
     // Her parçadan 3'e kadar yedek alınabilir → "dolu" sadece 3/3'te.
     const slotCount = itemsInSlot(c.kit, item.slot).length;
     const isOwned = slotCount >= MAX_PER_SLOT;
-    const missing = Math.max(0, Math.ceil(item.denar - c.balance));
+    // 3-3: bu üründe aktif fırsat varsa indirimli fiyat gösterilir.
+    const onOffer = c.offer?.itemId === item.id;
+    const price = onOffer ? discountedPrice(item.denar, c.offer!.discountPct) : item.denar;
+    const missing = Math.max(0, Math.ceil(price - c.balance));
     const icon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot];
     return (
       <li key={item.id} className={`panel flex flex-col p-3 ${isOwned ? "border-ink" : ""}`}>
@@ -76,8 +80,14 @@ export default async function EkipmanPage({
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-2.5">
-          <span className="flex items-center gap-1 text-[15px]">
-            <DenarMark size={15} /> <span className="num">{item.denar}</span>
+          <span className="flex flex-wrap items-center gap-1.5 text-[15px]">
+            <DenarMark size={15} /> <span className="num">{price}</span>
+            {onOffer && (
+              <>
+                <span className="num text-[12px] text-steel line-through">{item.denar}</span>
+                <span className="kicker rounded bg-sig-red/15 px-1 py-px text-[10px] font-semibold text-sig-red">🔥 %{c.offer!.discountPct} · {c.offer!.daysLeft}g</span>
+              </>
+            )}
           </span>
           {isOwned ? (
             <span className="flex min-h-11 items-center gap-1.5 text-[14px] font-semibold">

@@ -4,8 +4,10 @@
  * olumlu/olumsuz dengeli. 3-1: yalnız psikoloji; malzeme olayları + fırsat teklifleri sonraki dilimler.
  */
 import { clamp } from "./domain";
+import type { Weapon } from "./domain";
 import type { SeededRng } from "./probability";
 import type { Psychology } from "./psychology";
+import { itemsForWeapon } from "./equipment";
 
 export const EVENTS_PER_WEEK = 2;
 
@@ -98,6 +100,33 @@ export function rollWeeklyMaterial(rng: SeededRng): MaterialEvent[] {
   const neg = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "neg"));
   const pos = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "pos"));
   return [neg, pos].filter((e): e is MaterialEvent => e != null);
+}
+
+// ——— Fırsat / indirim teklifleri (Dilim 3-3): HER malzeme için süreli indirim. Kaçırırsan gider. ———
+export interface GearOffer {
+  itemId: string;
+  discountPct: number; // 30/40/50
+  expiresDay: number; // bu dünya gününe kadar geçerli (dahil)
+}
+export const OFFER_WEEK_CHANCE = 0.2; // haftada ~1/5 fırsat çıkar
+
+/** Bir hafta: olasılıkla, oyuncunun silahına uygun RASTGELE bir parça için süreli indirim teklifi (her malzeme). */
+export function rollOffer(rng: SeededRng, weapon: Weapon, currentDay: number): GearOffer | null {
+  if (rng.next() >= OFFER_WEEK_CHANCE) return null;
+  const items = itemsForWeapon(weapon);
+  if (items.length === 0) return null;
+  const item = rng.pick(items);
+  return { itemId: item.id, discountPct: rng.pick([30, 40, 50]), expiresDay: currentDay + rng.int(2, 4) };
+}
+
+/** Teklif hâlâ geçerli mi (süre geçmedi)? */
+export function offerActive(offer: GearOffer | null | undefined, currentDay: number): offer is GearOffer {
+  return offer != null && currentDay <= offer.expiresDay;
+}
+
+/** İndirimli fiyat (yuvarlanmış). Teklif yoksa/uyuşmuyorsa tam fiyat. */
+export function discountedPrice(fullDenar: number, discountPct: number): number {
+  return Math.max(1, Math.round(fullDenar * (1 - discountPct / 100)));
 }
 
 /** Olayların psikolojiye toplam etkisini uygular (0–100 sınırlı). */

@@ -18,7 +18,7 @@ import {
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
 import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, damageActive, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
-import { applyEventsToPsych, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
+import { applyEventsToPsych, discountedPrice, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
 import {
   clubTrainingMultiplier,
   coachTrainingMultiplier,
@@ -344,6 +344,27 @@ describe("Hayat Olayları (Dilim 3-1)", () => {
     expect(itemsInSlot(broken, "WEAPON").filter((k) => k.broken).length).toBe(1); // yalnız aktif kırıldı
     const worn = damageActive(kit, "WEAPON", 9, "U10", { hit: 30 });
     expect(itemsInSlot(worn, "WEAPON").some((k) => k.durability === 70)).toBe(true);
+  });
+  it("fırsat/indirim (3-3): nadir, geçerli ürün+indirim+süre; offerActive/discountedPrice", () => {
+    let fired = 0;
+    for (let i = 0; i < 400; i++) {
+      const o = rollOffer(createRng(`o${i}`), "FOIL", 100);
+      if (!o) continue;
+      fired++;
+      expect([30, 40, 50]).toContain(o.discountPct);
+      expect(o.expiresDay).toBeGreaterThan(100); // süre ileride
+      expect(itemById(o.itemId)).toBeTruthy(); // geçerli ürün
+    }
+    expect(fired).toBeGreaterThan(0);
+    expect(fired).toBeLessThan(400); // nadir
+    // offerActive: süre
+    const off = { itemId: "gl-weapon-foil", discountPct: 50, expiresDay: 105 };
+    expect(offerActive(off, 105)).toBe(true);
+    expect(offerActive(off, 106)).toBe(false);
+    expect(offerActive(null, 1)).toBe(false);
+    // indirim
+    expect(discountedPrice(400, 50)).toBe(200);
+    expect(discountedPrice(100, 30)).toBe(70);
   });
   it("applyEventsToPsych: etkileri toplar, 0–100 sınırlar", () => {
     const base = { morale: 50, motivation: 50, confidence: 50, stress: 50 };

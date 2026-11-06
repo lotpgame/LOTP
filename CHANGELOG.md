@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (06.11 — Dilim 3-3: Fırsat/indirim teklifleri (her malzeme))
+- **Süreli fırsatlar** (`rollOffer`): ~haftada %20, oyuncunun silahına uygun **rastgele bir parça** için indirim
+  (%30/40/50, 2–4 gün). Markette **indirimli fiyat + üstü çizili orijinal + "🔥 %X · Ng"** rozeti. Süre dolmadan
+  alırsan indirimli; kaçırırsan gider. Satın alınca teklif tükenir. Her malzeme için (silah/ayakkabı/maske…).
+- **Yeni alan `GameState.pendingOffer`** (eklemeli şema → Neon migration gerekir). Advance'de üretilir/süresi kontrol
+  edilir; `buyEquipment` indirimi uygular. İlke korunur (tasarruf, güç değil). 229 test, görsel doğrulandı.
+- 🎉 **Dilim 3 (olay sistemi) TAMAM** (3-1 psikoloji · 3-2 malzeme · 3-3 fırsat). Tüm büyük tasarım bitti.
+
 ### Eklendi (06.11 — Dilim 3-2: Malzeme olayları (kırılma → yedek; dengeli))
 - **Malzeme olayları** (`rollWeeklyMaterial`): **nadir** (~haftada %22); olunca **1 olumsuz + 1 olumlu** (ASLA 2
   kırılma). Olumsuz: silah kırılması (→ `damageActive` aktif silahı kırar → **yedek devreye girer**, 2C) veya

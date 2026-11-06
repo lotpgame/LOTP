@@ -220,7 +220,7 @@ import {
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
-import { applyEventsToPsych, LIFE_EVENTS, rollWeeklyEvents, rollWeeklyMaterial, type MaterialEvent } from "@/engine/lifeEvents";
+import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -503,6 +503,7 @@ export interface CareerDTO {
   equipmentLevel: number;
   ownedEquipment: string[]; // sahip olunan Gladius ürün id'leri
   kit: KitItemState[]; // Malzeme çantası: her parçanın beden/dayanıklılık/kırık durumu (Dilim 1)
+  offer: { itemId: string; discountPct: number; daysLeft: number } | null; // Dilim 3-3: markette aktif fırsat
   balance: number;
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
@@ -992,6 +993,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
     equipmentLevel: human.equipmentLevel,
     ownedEquipment: parseOwned(human.ownedEquipment),
     kit: resolveKit(human.equipmentState, human.weapon as Weapon),
+    offer: (() => {
+      const o = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
+      const today = serverWorldDay();
+      return offerActive(o, today) ? { itemId: o.itemId, discountPct: o.discountPct, daysLeft: o.expiresDay - today + 1 } : null;
+    })(),
     balance: roundSkill(human.balance),
     equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
     canUpgradeEquipment:
@@ -1751,6 +1757,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   }
   const harclik = matEvents.reduce((s, e) => s + (e.denar ?? 0), 0);
   const allEventKeys = [...weekEvents.map((e) => e.key), ...matEvents.map((e) => e.key)];
+  // 3-3: markette süreli fırsat/indirim. Mevcut teklif süresi geçtiyse düşer; yoksa son hafta için yeni teklif denenir.
+  let offer: GearOffer | null = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
+  if (offer && d > offer.expiresDay) offer = null;
+  if (!offer && toWeek > fromWeek) offer = rollOffer(createRng(`offer:${human.id}:${toWeek - 1}`), human.weapon as Weapon, d);
 
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
@@ -1802,7 +1812,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       },
     });
     await worldAdvanceTx(tx, gs, d);
-    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase) } });
+    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase), pendingOffer: offer ? JSON.stringify(offer) : null } });
   });
 
   // M11.2: geçmiş bir turnuvaya kayıtlıysak, güncel durumu tazeleyip offline oynat.
@@ -1949,18 +1959,23 @@ export async function buyEquipment(itemId: string): Promise<void> {
   const curKit = resolveKit(human.equipmentState, human.weapon as Weapon);
   // Her parçadan 3'e kadar (yedek). Slot doluysa alma (çöp at'la yer aç).
   if (itemsInSlot(curKit, item.slot).length >= MAX_PER_SLOT) throw new GameError("slot_full", "Bu parçadan en fazla 3 tanesine sahip olabilirsin.");
-  if (human.balance < item.denar) throw new Error("Yeterli Denar yok.");
+  // 3-3: bu ürün için aktif fırsat varsa indirimli fiyat; satın alınca teklif tükenir.
+  const offer = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
+  const onOffer = offerActive(offer, serverWorldDay()) && offer!.itemId === item.id;
+  const price = onOffer ? discountedPrice(item.denar, offer!.discountPct) : item.denar;
+  if (human.balance < price) throw new Error("Yeterli Denar yok.");
   // Çantayı güncelle: parça yeni ürünle, oyuncunun YAŞINA uygun bedenle (silah→kategori, kıyafet→gövde). Silah → yedek ekler.
   const ident = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
   const kit = applyKitPurchase(curKit, item, requiredSize(item.slot, ident.age, ident.ageCategory));
   await prisma.player.update({
     where: { id: human.id },
     data: {
-      balance: { decrement: item.denar },
+      balance: { decrement: price },
       ownedEquipment: encodeOwned([...owned, item.id]),
       equipmentState: encodeKit(kit),
     },
   });
+  if (onOffer) await prisma.gameState.update({ where: { id: gs.id }, data: { pendingOffer: null } });
 }
 
 /** Bir ekipman parçasını ÇÖP ATAR (slot + o slottaki sıra). İade yok. owned combat için çantadan tazelenir. */
