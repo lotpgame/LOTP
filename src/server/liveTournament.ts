@@ -26,6 +26,7 @@ import {
   type LiveStepOutcome,
 } from "@/engine/tournament/live";
 import { prizeFor } from "@/engine/economy";
+import { appendLedger, encodeLedger, parseLedger } from "@/engine/ledger";
 import { afterTournament as psychAfterTournament } from "@/engine/psychology";
 import { activeTraitKeys, parseTraitPlan, reputationAfterEvent } from "@/engine/trait";
 import { applyMatchWear, encodeKit, resolveKit } from "@/engine/equipment";
@@ -484,6 +485,15 @@ async function applyLiveEffectsTx(
         injuryDaysRemaining: injury.injured ? injury.days : 0,
       },
     });
+    // Kumbaram: turnuva ödülü (bu insanın KENDİ işlem kaydına). Ödül 0 ya da tarih yoksa kayıt yok.
+    const prize = prizeFor(level, position);
+    if (prize > 0 && t.worldDay != null) {
+      const phGs = await tx.gameState.findUnique({ where: { humanPlayerId: h.id }, select: { id: true, ledger: true } });
+      if (phGs) {
+        const next = appendLedger(parseLedger(phGs.ledger), { day: t.worldDay, key: "prize", amount: prize, arg: level });
+        await tx.gameState.update({ where: { id: phGs.id }, data: { ledger: encodeLedger(next) } });
+      }
+    }
   }
 
   // Ranking puanı → DOĞRU KAPSAMA: İl → ŞEHİR (CITY:<geo>), Ulusal → DOMESTIC, uluslararası → WORLD, Open → yok.

@@ -95,15 +95,16 @@ export async function setTrainingPlanAction(formData: FormData): Promise<void> {
   revalidatePath("/kariyer/antrenman");
 }
 
-/** Gladius mağazasından ürün satın alır (Denar ile). */
+/** Gladius mağazasından ürün satın alır (Denar ile). Market kendi sayfasında (/kariyer/market). */
 export async function buyEquipmentAction(formData: FormData): Promise<void> {
   try {
     await buyEquipment(String(formData.get("itemId") ?? ""));
   } catch (e) {
-    if (e instanceof GameError) redirect(`/kariyer/ekipman?err=${e.code}`);
+    if (e instanceof GameError) redirect(`/kariyer/market?err=${e.code}`);
     throw e;
   }
-  revalidatePath("/kariyer/ekipman");
+  revalidatePath("/kariyer/market");
+  revalidatePath("/kariyer/ekipman"); // dolap da (kit değişti)
 }
 
 /**

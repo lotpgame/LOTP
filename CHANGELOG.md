@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (06.11 — Ekipman sayfası yeniden düzenlendi: Kumbaram + ayrı Market sayfası)
+- **Kumbaram** (yeni panel, `src/engine/ledger.ts` + test): çocuğun **cebindeki para** + **"o hafta neye ne harcadı
+  ne aldı"** kalem kalem (kullanıcı kararı 06.11). Her Denar hareketi işlem kaydına yazılır: turnuva ödülü, harçlık/hediye,
+  kulüp aidatı, katılım ücreti/iadesi, **malzeme (ürün adıyla)**, reklam ödülü. Haftalık gelir/gider/net özeti + liste.
+- **Market artık ayrı sayfa** (`/kariyer/market`): çok ürün + marka paneli orada; ekipman sayfası sadeleşti
+  (Dolap + Kumbaram + Market linki + Denar köşesi en altta). Satın alma Market'ten; dolap combat için tazelenir.
+- **Eski "ekipman seviyesi" paneli kaldırıldı** (ekipman sayfasından). Veri/combat etkisi dokunulmadı (sabit kalır).
+- **Yeni alan `GameState.ledger`** (eklemeli şema → Neon migration gerekir). 241 test, tarayıcıda uçtan uca doğrulandı.
+
 ### Eklendi (06.11 — Monetization: Ödüllü reklam + Denar paketleri (Market'te "Denar" köşesi))
 - **Ödüllü reklam motoru** (`src/engine/ads.ts`, saf + test): 1 reklam → **+2 Denar**, günde en çok **3**
   (`AD_DAILY_CAP`; ekonomiyi korur — 1 silah ≈ 133 reklam, "reklamla silah alınmaz"). Sayaç günlük sıfırlanır.

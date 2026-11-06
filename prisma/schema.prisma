@@ -217,6 +217,9 @@ model GameState {
   traitReport String?
   // Dilim 3-3: markette süreli fırsat/indirim teklifi (JSON {itemId, discountPct, expiresDay}). Süre geçince temizlenir.
   pendingOffer String?
+  // Kumbaram: Denar işlem kaydı (JSON dizi {day, key, amount, arg?}) — "o hafta neye ne harcadı ne aldı".
+  // Her bakiye hareketi ekler; son LEDGER_MAX tutulur. Eklemeli alan (canlı veri korunur). src/engine/ledger.ts
+  ledger String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

@@ -222,6 +222,14 @@ import {
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
+import { appendLedger, encodeLedger, entriesForWeek, parseLedger, totals as ledgerTotals, type LedgerEntry } from "@/engine/ledger";
+
+/** Kumbaram: mevcut ledger JSON'una yeni kayıt(lar) ekleyip güncel JSON string döndürür (saf). */
+function nextLedgerJson(currentJson: string | null | undefined, ...newEntries: LedgerEntry[]): string {
+  let next = parseLedger(currentJson);
+  for (const e of newEntries) next = appendLedger(next, e);
+  return encodeLedger(next);
+}
 import { detectAchievements, type AchievementType } from "@/engine/memory";
 import {
   computePhysique,
@@ -509,6 +517,8 @@ export interface CareerDTO {
   adsLeftToday: number; // bugün kalan ödüllü reklam hakkı (Market "Denar" köşesi)
   adReward: number; // 1 reklam → kaç Denar
   adDailyCap: number; // günlük reklam tavanı
+  ledgerWeek: LedgerEntry[]; // Kumbaram: bu oyun-haftasının Denar hareketleri (eski→yeni)
+  ledgerWeekTotals: { income: number; expense: number; net: number }; // bu haftanın gelir/gider/net
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
@@ -1006,6 +1016,10 @@ export async function getCareer(): Promise<CareerDTO | null> {
     adsLeftToday: adsLeftToday({ lastAdDay: human.lastAdDay, adsToday: human.adsToday }, serverWorldDay()),
     adReward: AD_REWARD,
     adDailyCap: AD_DAILY_CAP,
+    ...(() => {
+      const week = entriesForWeek(parseLedger(gs.ledger), serverWorldDay());
+      return { ledgerWeek: week, ledgerWeekTotals: ledgerTotals(week) };
+    })(),
     equipmentUpgradeCost: equipmentUpgradeCost(human.equipmentLevel),
     canUpgradeEquipment:
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
@@ -1382,7 +1396,10 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   const fee = entryFee(level);
   if (fee > 0 && human.balance < fee) throw new GameError("entry_fee", `Katılım ücreti için ${fee} Denar gerekir.`);
   await prisma.$transaction(async (tx) => {
-    if (fee > 0) await tx.player.update({ where: { id: human.id }, data: { balance: { decrement: fee } } });
+    if (fee > 0) {
+      await tx.player.update({ where: { id: human.id }, data: { balance: { decrement: fee } } });
+      await tx.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day: today, key: "entry", amount: -fee, arg: level }) } });
+    }
     await tx.registration.create({ data: { playerId: gs.humanPlayerId, worldDay, level, categoryId: id.categoryId, tactic } });
   });
 }
@@ -1396,6 +1413,7 @@ export async function unregisterTournament(worldDay: number, level: TournamentLe
   const fee = entryFee(level);
   if (del.count > 0 && fee > 0) {
     await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { balance: { increment: fee } } });
+    await prisma.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "refund", amount: fee, arg: level }) } });
   }
 }
 
@@ -1819,7 +1837,14 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       },
     });
     await worldAdvanceTx(tx, gs, d);
-    await tx.gameState.update({ where: { id: gs.id }, data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase), pendingOffer: offer ? JSON.stringify(offer) : null } });
+    // Kumbaram: bu ilerlemenin Denar hareketleri (harçlık/hediye + kulüp aidatı) işlem kaydına.
+    const ledgerEntries: LedgerEntry[] = [];
+    if (harclik > 0) ledgerEntries.push({ day: d, key: "allowance", amount: harclik });
+    if (clubDues > 0) ledgerEntries.push({ day: d, key: "dues", amount: -clubDues });
+    await tx.gameState.update({
+      where: { id: gs.id },
+      data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase), pendingOffer: offer ? JSON.stringify(offer) : null, ledger: nextLedgerJson(gs.ledger, ...ledgerEntries) },
+    });
   });
 
   // M11.2: geçmiş bir turnuvaya kayıtlıysak, güncel durumu tazeleyip offline oynat.
@@ -1982,7 +2007,11 @@ export async function buyEquipment(itemId: string): Promise<void> {
       equipmentState: encodeKit(kit),
     },
   });
-  if (onOffer) await prisma.gameState.update({ where: { id: gs.id }, data: { pendingOffer: null } });
+  // Kumbaram kaydı (malzeme gideri) + fırsat kullanıldıysa teklifi temizle (tek update).
+  await prisma.gameState.update({
+    where: { id: gs.id },
+    data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "equipment", amount: -price, arg: item.id }), ...(onOffer ? { pendingOffer: null } : {}) },
+  });
 }
 
 /** Bir ekipman parçasını ÇÖP ATAR (slot + o slottaki sıra). İade yok. owned combat için çantadan tazelenir. */
@@ -2005,7 +2034,7 @@ export async function discardEquipment(slot: string, index: number): Promise<voi
 export async function watchRewardedAd(): Promise<{ balance: number; adsLeft: number }> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
-  const { human } = state;
+  const { gs, human } = state;
   const day = serverWorldDay();
   const adState: AdState = { lastAdDay: human.lastAdDay, adsToday: human.adsToday };
   if (!canWatchAd(adState, day)) throw new GameError("ad_cap", "Bugünkü reklam hakkın doldu.");
@@ -2015,6 +2044,7 @@ export async function watchRewardedAd(): Promise<{ balance: number; adsLeft: num
     data: { lastAdDay: next.lastAdDay, adsToday: next.adsToday, balance: { increment: reward } },
     select: { balance: true },
   });
+  await prisma.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day, key: "ad", amount: reward }) } });
   return { balance: roundSkill(updated.balance), adsLeft: adsLeftToday(next, day) };
 }
 
@@ -4102,6 +4132,11 @@ async function finalizeTournament(
           injuryDaysRemaining: ph.injury.injured ? ph.injury.days : 0,
         },
       });
+      // Kumbaram: turnuva ödülü (her insanın KENDİ işlem kaydına). Ödül 0 ise kayıt yok.
+      if (ph.prize > 0) {
+        const phGs = await tx.gameState.findUnique({ where: { humanPlayerId: ph.h.id }, select: { id: true, ledger: true } });
+        if (phGs) await tx.gameState.update({ where: { id: phGs.id }, data: { ledger: nextLedgerJson(phGs.ledger, { day: gs.dayIndex, key: "prize", amount: ph.prize, arg: level }) } });
+      }
     }
 
     // Ranking puanı → DOĞRU KAPSAMA: İl → ŞEHİR (CITY:<geo>), Ulusal → DOMESTIC, uluslararası → WORLD, Open → yok.

@@ -44,7 +44,7 @@ npm run db:migrate  # veritabanı şemasını uygula (ilk sefer / şema değişi
 npm run dev       # geliştirme sunucusu → http://localhost:3000
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Vitest testleri (235) — CI her PR'da lint + test + build çalıştırır
+npm test          # Vitest testleri (241) — CI her PR'da lint + test + build çalıştırır
 npm run sim       # başsız denge raporu (combat/gelişim/turnuva/sakatlık)
 npm run db:studio # veritabanını görsel incele (Prisma Studio)
 npm run db:backup # veritabanının zaman damgalı yedeğini al
