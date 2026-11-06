@@ -52,7 +52,6 @@ export function BrandPanel({
             <span key={i} className={`h-2 flex-1 rounded-[2px] ${i < ownedCount ? "bg-ink" : "bg-line"}`} />
           ))}
         </div>
-        <p className="mt-3 text-[13px] text-steel">{t(locale, "ekipman.prestigeNote")}</p>
         <div className="mt-4 space-y-6">{children}</div>
       </div>
     </details>

@@ -9,6 +9,9 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Kaldırıldı (06.11 — Market'teki "ekipman maçı kazandırmaz" notu)
+- Market marka panelindeki "Ekipman maçı kazandırmaz — prestij ve his içindir…" açıklaması kaldırıldı (kullanıcı kararı).
+
 ### Değişti (06.11 — Ekipman sayfası yeniden düzenlendi: Kumbaram + ayrı Market sayfası)
 - **Kumbaram** (yeni panel, `src/engine/ledger.ts` + test): çocuğun **cebindeki para** + **"o hafta neye ne harcadı
   ne aldı"** kalem kalem (kullanıcı kararı 06.11). Her Denar hareketi işlem kaydına yazılır: turnuva ödülü, harçlık/hediye,
