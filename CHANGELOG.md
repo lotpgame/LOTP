@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (07.11 — Özel menü ikonları + Kulüp sekmesinde kulüp logosu)
+- Navigasyon ikonları kullanıcının özel görselleriyle değiştirildi (`public/img/menu/*.webp`:
+  bugün/antrenman/ekipman/turnuvalar/klasman/kariyer-geçmişi/ayarlar). Aktif tam, pasif hafif soluk (`NavIcon`).
+- **Kulüp sekmesi** artık oyuncunun bağlı olduğu kulübün **LOGOSUNU** gösteriyor (dinamik, `clubLogoSrc(city)`).
+
 ### Eklendi (07.11 — Kulüp logosu havuzları: 18 ülke × 15 amblem, sabit-rastgele dağıtım)
 - Kullanıcının ürettiği **18 ülke ızgarası** (her biri 3×5 = 15 amblem; ulusal renk + yerel motif) tek tek kesildi
   (`scripts/slice-clublogos.mjs`): koyu zemin kenardan flood-fill ile şeffaf → `public/img/clubs/<cc>-1..15.webp` (**270 logo**).

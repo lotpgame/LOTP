@@ -14,9 +14,35 @@ import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
+import { clubLogoSrc } from "./clubLogo";
 import { DenarBadge } from "./DenarBadge";
 import { Flag } from "./Flag";
 import { WorldClockBadge } from "./WorldClockBadge";
+
+// Menü ikonları — kullanıcının özel görselleri (public/img/menu). Kulüp = oyuncunun kulüp logosu (dinamik).
+const MENU_IMG: Record<string, string> = {
+  "/kariyer": "bugun",
+  "/kariyer/antrenman": "antrenman",
+  "/kariyer/ekipman": "ekipman",
+  "/kariyer/turnuvalar": "turnuvalar",
+  "/kariyer/klasman": "klasman",
+  "/kariyer/gecmis": "kariyer-gecmisi",
+  "/kariyer/ayarlar": "ayarlar",
+};
+
+/** Menü ikonu: Kulüp → kulüp logosu; diğerleri → özel menü görseli. Aktifse tam, değilse hafif soluk. */
+function NavIcon({ href, size, city, active }: { href: string; size: number; city: string; active: boolean }) {
+  const src = href === "/kariyer/kulup" ? clubLogoSrc(city) : `/img/menu/${MENU_IMG[href]}.webp`;
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      className={`shrink-0 object-contain ${active ? "opacity-100" : "opacity-60"}`}
+      style={{ width: size, height: size }}
+    />
+  );
+}
 
 interface NavItem {
   href: string;
@@ -137,7 +163,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-x-5 bottom-0 h-[2px] rounded-t-full bg-sig-red" aria-hidden="true" />}
-                <Icon name={item.icon} size={16} className="shrink-0" />
+                <NavIcon href={item.href} size={16} city={city} active={on} />
                 <span className="truncate">{t(locale, item.key)}</span>
               </Link>
             );
@@ -173,7 +199,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-sig-red" aria-hidden="true" />}
-                <Icon name={item.icon} size={20} />
+                <NavIcon href={item.href} size={20} city={city} active={on} />
                 {t(locale, item.key)}
               </Link>
             );
@@ -202,7 +228,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                <Icon name={item.icon} size={24} />
+                <NavIcon href={item.href} size={24} city={city} active={on} />
                 <span className="max-w-full truncate px-1">{t(locale, item.key)}</span>
               </Link>
             );
@@ -239,7 +265,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                   }`}
                 >
                   {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                  <Icon name={item.icon} size={16} className="shrink-0" />
+                  <NavIcon href={item.href} size={16} city={city} active={on} />
                   <span className="truncate">{t(locale, item.key)}</span>
                 </Link>
               );
@@ -283,7 +309,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                   aria-current={on ? "page" : undefined}
                   className={`flex min-h-12 items-center gap-3 rounded-md px-3 text-[16px] ${on ? "bg-arena-1 font-semibold" : "active:bg-arena-1"}`}
                 >
-                  <Icon name={item.icon} size={22} className="text-steel" />
+                  <NavIcon href={item.href} size={22} city={city} active={on} />
                   <span className="flex-1">{t(locale, item.key)}</span>
                   <Icon name="chevron-right" size={18} className="text-steel" />
                 </Link>
