@@ -30,7 +30,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - 29 ürün × (thumbnail + tam görsel) → `public/img/equipment`. Not: kıyafet/göğüs/plastron beden görselleri henüz yok
   (tek görsel); silahlarda beden var. Gerçek şeffaf PNG ileride (remove.bg) eklenebilir. Migration yok.
 
-### Eklendi (07.11 — Karakter avatarları güncellendi (erkek + kadın, 77'şer set))
+### Eklendi (07.11 — Karakter avatarları güncellendi (erkek + kadın, 80'er set; b22 stil düzeltildi))
 - Kullanıcının `LOTP-HamGrafik/Karakterler` klasöründen **erkek (b) + kadın (g) yüz şeritleri** yeniden kesildi
   (`slice-avatars.mjs`): her set 4 yaş (8/12/16/20) → `public/img/avatars/<set>/<yaş>.webp`. Toplam **77 erkek + 77 kız**.
 - Eski setler yeni çizimlerle güncellendi (özellikle erkek 20–25 setlerindeki düzeltmeler); manifest (`src/data/avatarManifest.json`) tazelendi.
