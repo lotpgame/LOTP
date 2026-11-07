@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (07.11 — Karakter avatarları güncellendi (erkek + kadın, 77'şer set))
+- Kullanıcının `LOTP-HamGrafik/Karakterler` klasöründen **erkek (b) + kadın (g) yüz şeritleri** yeniden kesildi
+  (`slice-avatars.mjs`): her set 4 yaş (8/12/16/20) → `public/img/avatars/<set>/<yaş>.webp`. Toplam **77 erkek + 77 kız**.
+- Eski setler yeni çizimlerle güncellendi (özellikle erkek 20–25 setlerindeki düzeltmeler); manifest (`src/data/avatarManifest.json`) tazelendi.
+- Not: `b22` farklı stilde (3D/çizgi film); kota dönünce yeniden üretilip tek set olarak re-slice edilebilir.
+
 ### Değişti (06.11 — Denar rozeti sağ-alt köşeye (saat gibi) + daha güçlü dokunma flaşı)
 - **Denar rozeti** alt şeritte artık **sağ alt köşede** (üstteki saat rozetinin aynası; sol kenarlıkla ayrı). 4 nav
   düğmesi sola yayılıp ferahladı (Denar artık eşit sütun kaplamıyor).
