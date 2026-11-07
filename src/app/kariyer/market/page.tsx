@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction } from "@/app/actions";
-import type { AgeCategory, Weapon } from "@/engine/domain";
+import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
 import { itemsForWeapon, itemName, itemDesc, itemsInSlot, MAX_PER_SLOT, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
 import { discountedPrice } from "@/engine/lifeEvents";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
+import { EquipImage } from "../EquipImage";
+import { equipFull, equipImageName, equipThumb } from "../equipmentImage";
 import { DenarMark } from "../DenarMark";
 import { BrandPanel } from "../ekipman/BrandPanel";
 import { ErrorBanner } from "../ErrorBanner";
@@ -46,12 +48,24 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
     const price = onOffer ? discountedPrice(item.denar, c.offer!.discountPct) : item.denar;
     const missing = Math.max(0, Math.ceil(price - c.balance));
     const icon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot];
+    // Market'te silah yetişkin bedeniyle (5) temsil edilir; görsel yoksa generic ikona düşer.
+    const imgName = equipImageName(item.slot, c.weapon as Weapon, c.gender as Gender, item.slot === "WEAPON" ? 5 : 0);
     return (
       <li key={item.id} className={`panel flex flex-col p-3 ${isOwned ? "border-ink" : ""}`}>
         <div className="flex items-start gap-3">
-          <span className="mesh flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
-            <Icon name={icon} size={30} />
-          </span>
+          {imgName ? (
+            <EquipImage
+              thumbSrc={equipThumb(imgName)}
+              fullSrc={equipFull(imgName)}
+              alt={itemName(item, locale)}
+              closeLabel={t(locale, "common.close")}
+              className="press mesh h-14 w-14 shrink-0 overflow-hidden rounded-md border border-line bg-arena-2"
+            />
+          ) : (
+            <span className="mesh flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
+              <Icon name={icon} size={30} />
+            </span>
+          )}
           <div className="min-w-0 flex-1">
             <div className="text-[15px] font-semibold leading-snug">{itemName(item, locale)}</div>
             <div className="text-[13px] text-steel">{itemDesc(item, locale)}</div>

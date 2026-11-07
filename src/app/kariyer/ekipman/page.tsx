@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
-import type { AgeCategory } from "@/engine/domain";
+import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
 import { itemById, itemName, kitItemFits, weaponSizeLabel, type EquipmentSlot } from "@/engine/equipment";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
+import { EquipImage } from "../EquipImage";
+import { equipFull, equipImageName, equipThumb } from "../equipmentImage";
 import { DiscardButton } from "./DiscardButton";
 import { Kumbara } from "./Kumbara";
 import { ErrorBanner } from "../ErrorBanner";
@@ -54,15 +56,26 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
             const item = itemById(k.itemId);
             if (!item) return null;
             const kicon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot as Exclude<EquipmentSlot, "WEAPON">];
+            const imgName = equipImageName(item.slot, c.weapon as Weapon, c.gender as Gender, k.size);
             const tooSmall = !kitItemFits(k, c.age, ageCat);
             const slotItems = c.kit.filter((x) => x.slot === k.slot);
             const idxInSlot = slotItems.indexOf(k);
             const multiPrefix = slotItems.length > 1 ? `${idxInSlot + 1}. ` : "";
             return (
               <li key={`${k.slot}-${ki}`} className={`panel flex items-center gap-3 p-2.5 ${k.broken || tooSmall ? "border-sig-red" : ""}`}>
-                <span className="mesh flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
-                  <Icon name={kicon} size={24} />
-                </span>
+                {imgName ? (
+                  <EquipImage
+                    thumbSrc={equipThumb(imgName)}
+                    fullSrc={equipFull(imgName)}
+                    alt={itemName(item, locale)}
+                    closeLabel={t(locale, "common.close")}
+                    className="press mesh h-12 w-12 shrink-0 overflow-hidden rounded-md border border-line bg-arena-2"
+                  />
+                ) : (
+                  <span className="mesh flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-arena-2 text-ink">
+                    <Icon name={kicon} size={24} />
+                  </span>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-[14px] font-semibold">{multiPrefix}{itemName(item, locale)}</span>

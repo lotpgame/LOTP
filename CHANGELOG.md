@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (07.11 — Gladius ekipman görselleri: market + dolap + tıkla-büyüt)
+- Market kartları ve **Malzeme Dolabı** artık **Gladius ürün görselleri** gösteriyor (generic ikon yerine). Görseller
+  kullanıcının markalı kolajlarından kesildi (`scripts/slice-equipment.mjs`): kare ürünler ortalı (koyu zemin trim + cover),
+  silahlar kabza-merkezli kare + beden (0/2/5). Koyu stüdyo zemini koyu temayla kaynaşıyor (kesme gibi durur).
+- **Tıkla-büyüt (lightbox)**: thumbnail'e tıklayınca ürünün **tam kolajı** (tüm açılar + detaylar) pencerede açılır,
+  kapatılabilir (`EquipImage` + `equipmentImage` eşlemesi). Görsel eşleşmezse generic ikona düşer.
+- 29 ürün × (thumbnail + tam görsel) → `public/img/equipment`. Not: kıyafet/göğüs/plastron beden görselleri henüz yok
+  (tek görsel); silahlarda beden var. Gerçek şeffaf PNG ileride (remove.bg) eklenebilir. Migration yok.
+
 ### Eklendi (07.11 — Karakter avatarları güncellendi (erkek + kadın, 77'şer set))
 - Kullanıcının `LOTP-HamGrafik/Karakterler` klasöründen **erkek (b) + kadın (g) yüz şeritleri** yeniden kesildi
   (`slice-avatars.mjs`): her set 4 yaş (8/12/16/20) → `public/img/avatars/<set>/<yaş>.webp`. Toplam **77 erkek + 77 kız**.
