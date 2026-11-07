@@ -4,7 +4,7 @@
  * olumlu/olumsuz dengeli. 3-1: yalnız psikoloji; malzeme olayları + fırsat teklifleri sonraki dilimler.
  */
 import { clamp } from "./domain";
-import type { Weapon } from "./domain";
+import type { Gender, Weapon } from "./domain";
 import type { SeededRng } from "./probability";
 import type { Psychology } from "./psychology";
 import { itemsForWeapon } from "./equipment";
@@ -111,9 +111,9 @@ export interface GearOffer {
 export const OFFER_WEEK_CHANCE = 0.2; // haftada ~1/5 fırsat çıkar
 
 /** Bir hafta: olasılıkla, oyuncunun silahına uygun RASTGELE bir parça için süreli indirim teklifi (her malzeme). */
-export function rollOffer(rng: SeededRng, weapon: Weapon, currentDay: number): GearOffer | null {
+export function rollOffer(rng: SeededRng, weapon: Weapon, currentDay: number, gender?: Gender): GearOffer | null {
   if (rng.next() >= OFFER_WEEK_CHANCE) return null;
-  const items = itemsForWeapon(weapon);
+  const items = itemsForWeapon(weapon, gender);
   if (items.length === 0) return null;
   const item = rng.pick(items);
   return { itemId: item.id, discountPct: rng.pick([30, 40, 50]), expiresDay: currentDay + rng.int(2, 4) };

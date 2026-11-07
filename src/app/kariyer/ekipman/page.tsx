@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
-import { itemById, itemName, kitItemFits, weaponSizeLabel, type EquipmentSlot } from "@/engine/equipment";
+import { itemById, itemName, kitItemFits, sizeLabel, type EquipmentSlot } from "@/engine/equipment";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 // Yuva → ikon (silah yuvası oyuncunun silahına göre çizilir).
 const SLOT_ICON: Record<Exclude<EquipmentSlot, "WEAPON">, IconName> = {
-  MASK: "mask", CORD: "cord", MASK_CORD: "mask-cord", CLOTHING: "jacket", PLASTRON: "plastron",
+  MASK: "mask", CORD: "cord", MASK_CORD: "mask-cord", CLOTHING: "jacket", PANTS: "jacket", PLASTRON: "plastron",
   GLOVE: "glove", LAME: "lame", CHEST: "chest", SHOES: "shoes", SOCKS: "socks", BAG: "bag",
 };
 
@@ -79,8 +79,8 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-[14px] font-semibold">{multiPrefix}{itemName(item, locale)}</span>
-                    {item.slot === "WEAPON" && (
-                      <span className={`kicker shrink-0 rounded border px-1 text-[10px] ${tooSmall ? "border-sig-red text-sig-red" : "border-line text-steel"}`}>{weaponSizeLabel(k.size)}</span>
+                    {sizeLabel(item.slot, k.size) && (
+                      <span className={`kicker shrink-0 rounded border px-1 text-[10px] ${tooSmall ? "border-sig-red text-sig-red" : "border-line text-steel"}`}>{sizeLabel(item.slot, k.size)}</span>
                     )}
                     {tooSmall && <span className="kicker shrink-0 rounded bg-sig-red/20 px-1 text-[10px] text-sig-red">{t(locale, "ekipman.tooSmall")}</span>}
                     {k.broken && <span className="kicker shrink-0 rounded bg-sig-red/20 px-1 text-[10px] text-sig-red">{t(locale, "ekipman.broken")}</span>}

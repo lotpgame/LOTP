@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { buyEquipmentAction } from "@/app/actions";
 import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
-import { itemsForWeapon, itemName, itemDesc, itemsInSlot, MAX_PER_SLOT, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
+import { itemsForWeapon, itemName, itemDesc, itemsInSlot, MAX_PER_SLOT, requiredSize, sizeLabel, type EquipmentSlot, type GladiusItem } from "@/engine/equipment";
 import { discountedPrice } from "@/engine/lifeEvents";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -18,14 +18,14 @@ export const dynamic = "force-dynamic";
 
 // Yuva → ikon (silah yuvası oyuncunun silahına göre çizilir).
 const SLOT_ICON: Record<Exclude<EquipmentSlot, "WEAPON">, IconName> = {
-  MASK: "mask", CORD: "cord", MASK_CORD: "mask-cord", CLOTHING: "jacket", PLASTRON: "plastron",
+  MASK: "mask", CORD: "cord", MASK_CORD: "mask-cord", CLOTHING: "jacket", PANTS: "jacket", PLASTRON: "plastron",
   GLOVE: "glove", LAME: "lame", CHEST: "chest", SHOES: "shoes", SOCKS: "socks", BAG: "bag",
 };
 
 // Mağazada gruplama (gösterim sırası). Silaha uymayanlar itemsForWeapon ile elenir.
 const GROUPS: { key: string; slots: EquipmentSlot[] }[] = [
   { key: "weapon", slots: ["WEAPON", "CORD", "MASK_CORD"] },
-  { key: "protection", slots: ["MASK", "LAME", "CLOTHING", "PLASTRON", "GLOVE", "CHEST"] },
+  { key: "protection", slots: ["MASK", "LAME", "CLOTHING", "PANTS", "PLASTRON", "GLOVE", "CHEST"] },
   { key: "feet", slots: ["SHOES", "SOCKS"] },
   { key: "accessory", slots: ["BAG"] },
 ];
@@ -36,10 +36,9 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
   const locale = await getLocale();
   const { err } = await searchParams;
   const owned = new Set(c.kit.map((k) => k.itemId));
-  const catalog = itemsForWeapon(c.weapon as Weapon);
+  const catalog = itemsForWeapon(c.weapon as Weapon, c.gender as Gender);
   const ownedCount = catalog.filter((i) => owned.has(i.id)).length;
   const ageCat = (c.categoryId.split("-")[0] ?? "U10") as AgeCategory;
-  void ageCat; // (beden kontrolü dolap sayfasında; burada mağaza listesi)
 
   const card = (item: GladiusItem) => {
     const slotCount = itemsInSlot(c.kit, item.slot).length;
@@ -48,8 +47,10 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
     const price = onOffer ? discountedPrice(item.denar, c.offer!.discountPct) : item.denar;
     const missing = Math.max(0, Math.ceil(price - c.balance));
     const icon = item.slot === "WEAPON" ? weaponIcon(c.weapon) : SLOT_ICON[item.slot];
-    // Market'te silah yetişkin bedeniyle (5) temsil edilir; görsel yoksa generic ikona düşer.
-    const imgName = equipImageName(item.slot, c.weapon as Weapon, c.gender as Gender, item.slot === "WEAPON" ? 5 : 0);
+    // Market'te ürün oyuncunun KATEGORİ bedeniyle gösterilir (satın alınca o beden gelir). Görsel yoksa generic ikona düşer.
+    const reqSize = requiredSize(item.slot, c.age, ageCat);
+    const imgName = equipImageName(item.slot, c.weapon as Weapon, c.gender as Gender, reqSize);
+    const sizeBadge = sizeLabel(item.slot, reqSize);
     return (
       <li key={item.id} className={`panel flex flex-col p-3 ${isOwned ? "border-ink" : ""}`}>
         <div className="flex items-start gap-3">
@@ -67,7 +68,10 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-semibold leading-snug">{itemName(item, locale)}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[15px] font-semibold leading-snug">{itemName(item, locale)}</span>
+              {sizeBadge && <span className="kicker shrink-0 rounded border border-line px-1 text-[10px] text-steel">{sizeBadge}</span>}
+            </div>
             <div className="text-[13px] text-steel">{itemDesc(item, locale)}</div>
           </div>
         </div>

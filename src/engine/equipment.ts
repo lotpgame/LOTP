@@ -13,7 +13,7 @@
  * gl-maskcord) LEGACY_ITEMS'te gizli tutulur — daha önce alınmış eşya düşmesin diye. Ortak id'ler
  * (gl-clothing, gl-shoes, gl-socks, gl-plastron, gl-bag) AYNI kalır.
  */
-import type { AgeCategory, Weapon } from "@/engine/domain";
+import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
 
 export type EquipmentSlot =
   | "WEAPON"
@@ -21,6 +21,7 @@ export type EquipmentSlot =
   | "CORD"
   | "MASK_CORD"
   | "CLOTHING"
+  | "PANTS"
   | "PLASTRON"
   | "GLOVE"
   | "LAME"
@@ -38,6 +39,8 @@ export interface GladiusItem {
   denar: number;
   /** null/undefined → ortak (her silahta görünür). Belirliyse yalnız o silahta görünür. */
   weapon?: Weapon;
+  /** null/undefined → her cinsiyet. Belirliyse yalnız o cinsiyette (ör. göğüs koruyucu kadına özel). */
+  gender?: Gender;
   /** Maça katkı (effective strength). ŞİMDİLİK minik ve gizli. */
   combatBonus: number;
   cosmetic?: boolean;
@@ -46,7 +49,7 @@ export interface GladiusItem {
 
 /** ⭐ TUNABLE: slot başına minik combat katkısı (şimdilik ~0.003; gerçek "orta & adil" etki release'te). */
 const SLOT_BONUS: Record<EquipmentSlot, number> = {
-  WEAPON: 0.004, LAME: 0.003, SHOES: 0.004, MASK: 0.003, CLOTHING: 0.003,
+  WEAPON: 0.004, LAME: 0.003, SHOES: 0.004, MASK: 0.003, CLOTHING: 0.003, PANTS: 0.002,
   GLOVE: 0.003, CHEST: 0.003, PLASTRON: 0.002, CORD: 0.002, MASK_CORD: 0.002,
   SOCKS: 0.001, BAG: 0,
 };
@@ -54,9 +57,10 @@ const b = (s: EquipmentSlot) => SLOT_BONUS[s];
 
 /** Ortak malzemeler — her silahta görünür (weapon yok). Eski id'ler korunur. */
 const SHARED_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Ceket + Pantolon", desc: "Beyaz koruyucu takım (alt + üst)", icon: "jacket", denar: 420, combatBonus: b("CLOTHING") },
+  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Ceket", desc: "Beyaz koruyucu ceket (üst)", icon: "jacket", denar: 280, combatBonus: b("CLOTHING") },
+  { id: "gl-pants", slot: "PANTS", name: "Gladius Pantolon", desc: "Beyaz koruyucu pantolon (alt)", icon: "jacket", denar: 160, combatBonus: b("PANTS") },
   { id: "gl-shoes", slot: "SHOES", name: "Gladius Ayakkabı", desc: "Ayak tekniği / denge", icon: "shoes", denar: 280, combatBonus: b("SHOES") },
-  { id: "gl-chest", slot: "CHEST", name: "Gladius Göğüs Koruyucu", desc: "Darbe koruyucu (göğüs)", icon: "chest", denar: 90, combatBonus: b("CHEST") },
+  { id: "gl-chest", slot: "CHEST", name: "Gladius Göğüs Koruyucu", desc: "Darbe koruyucu (göğüs) — kadın sporcularda zorunlu", icon: "chest", denar: 90, combatBonus: b("CHEST"), gender: "FEMALE" },
   { id: "gl-plastron", slot: "PLASTRON", name: "Gladius Plastron", desc: "Kıyafet altına (koltuk altı koruyucu)", icon: "plastron", denar: 80, combatBonus: b("PLASTRON") },
   { id: "gl-socks", slot: "SOCKS", name: "Gladius Çorap", desc: "Uzun eskrim çorabı", icon: "socks", denar: 30, combatBonus: b("SOCKS") },
   { id: "gl-bag", slot: "BAG", name: "Gladius Çanta", desc: "Marka logolu taşıma çantası", icon: "bag", denar: 150, combatBonus: b("BAG"), cosmetic: true },
@@ -125,14 +129,24 @@ export function itemById(id: string): GladiusItem | undefined {
 type ItemLoc = { name: string; desc: string };
 const ITEM_I18N: Record<string, Partial<Record<string, ItemLoc>>> = {
   "gl-clothing": {
-    en: { name: "Gladius Jacket + Breeches", desc: "White protective uniform (top + bottom)" },
-    de: { name: "Gladius Jacke + Hose", desc: "Weiße Schutzkleidung (oben + unten)" },
-    fr: { name: "Gladius Veste + Pantalon", desc: "Tenue de protection blanche (haut + bas)" },
-    es: { name: "Gladius Chaqueta + Pantalón", desc: "Uniforme protector blanco (arriba + abajo)" },
-    it: { name: "Gladius Giacca + Pantaloni", desc: "Tenuta protettiva bianca (sopra + sotto)" },
-    ru: { name: "Gladius Куртка + Брюки", desc: "Белая защитная форма (верх + низ)" },
-    pt: { name: "Gladius Jaqueta + Calça", desc: "Uniforme protetor branco (cima + baixo)" },
-    zh: { name: "Gladius 上衣 + 护裤", desc: "白色防护服（上 + 下）" },
+    en: { name: "Gladius Jacket", desc: "White protective jacket (top)" },
+    de: { name: "Gladius Jacke", desc: "Weiße Schutzjacke (oben)" },
+    fr: { name: "Gladius Veste", desc: "Veste de protection blanche (haut)" },
+    es: { name: "Gladius Chaqueta", desc: "Chaqueta protectora blanca (arriba)" },
+    it: { name: "Gladius Giacca", desc: "Giacca protettiva bianca (sopra)" },
+    ru: { name: "Gladius Куртка", desc: "Белая защитная куртка (верх)" },
+    pt: { name: "Gladius Jaqueta", desc: "Jaqueta protetora branca (cima)" },
+    zh: { name: "Gladius 上衣", desc: "白色防护上衣" },
+  },
+  "gl-pants": {
+    en: { name: "Gladius Breeches", desc: "White protective breeches (bottom)" },
+    de: { name: "Gladius Hose", desc: "Weiße Schutzhose (unten)" },
+    fr: { name: "Gladius Pantalon", desc: "Pantalon de protection blanc (bas)" },
+    es: { name: "Gladius Pantalón", desc: "Pantalón protector blanco (abajo)" },
+    it: { name: "Gladius Pantaloni", desc: "Pantaloni protettivi bianchi (sotto)" },
+    ru: { name: "Gladius Брюки", desc: "Белые защитные брюки (низ)" },
+    pt: { name: "Gladius Calça", desc: "Calça protetora branca (baixo)" },
+    zh: { name: "Gladius 护裤", desc: "白色防护护裤（下）" },
   },
   "gl-shoes": {
     en: { name: "Gladius Shoes", desc: "Footwork / balance" },
@@ -356,11 +370,14 @@ export function itemDesc(item: GladiusItem, locale: string): string {
 }
 
 /**
- * Bir silaha uygun mağaza listesi: ortak malzemeler + yalnız o silaha özel malzemeler (legacy hariç).
- * Epe → yelek/maske kordonu otomatik dışarıda (o ürünler yalnız FOIL/SABRE'de tanımlı).
+ * Bir silaha (+ cinsiyete) uygun mağaza listesi: ortak malzemeler + yalnız o silaha özel malzemeler (legacy hariç).
+ * Epe → yelek/maske kordonu otomatik dışarıda. Cinsiyet verilirse cinsiyete özel ürün (göğüs koruyucu = kadın)
+ * diğer cinsiyette elenir. Cinsiyet verilmezse hepsi gelir.
  */
-export function itemsForWeapon(weapon: Weapon): GladiusItem[] {
-  return GLADIUS_ITEMS.filter((i) => !i.hidden && (i.weapon == null || i.weapon === weapon));
+export function itemsForWeapon(weapon: Weapon, gender?: Gender): GladiusItem[] {
+  return GLADIUS_ITEMS.filter(
+    (i) => !i.hidden && (i.weapon == null || i.weapon === weapon) && (gender == null || i.gender == null || i.gender === gender),
+  );
 }
 
 /** Sahip olunan ekipmanların toplam maç katkısı (küçük). Legacy dahil. */
@@ -388,25 +405,31 @@ export interface KitItemState {
   lastUsedDay?: number; // en son hangi gün maçta kullanıldı (2C-3 paslanma hesabı için)
 }
 
-// ——— Beden (Dilim 2A+2B): SİLAH → yaş kategorisi (U10→0, U12→2, U14+→5); KIYAFET/dış parça → gövde bedeni
-// (her 2 yılda +1, 20'ye kadar); kordon/çorap/plastron/göğüs/eldiven bedensiz. ———
-const WEAPON_SIZE_BY_CATEGORY: Record<AgeCategory, number> = { U10: 0, U12: 2, U14: 5, U17: 5, U21: 5, SENIOR: 5 };
-/** Gövde bedenli (büyümeyle değişen) parçalar — 2B: kıyafet/ayakkabı/maske/yelek. */
-const BODY_SLOTS: readonly EquipmentSlot[] = ["CLOTHING", "SHOES", "MASK", "LAME"];
+// ——— Beden (kullanıcı kararı 07.11): YAŞ KATEGORİSİNE göre (yaşa değil). İki şema: ———
+//  - CAT3 (0/2/5): silah + maske + çanta → U10→0, U12→2, U14+→5.
+//  - GARMENT (0..5): kıyafet grubu (ceket/pantolon/göğüs/plastron/ayakkabı/çorap/eldiven/yelek) → U10..SENIOR = 0..5.
+//  - Kordon/maske kordonu: bedensiz (0). Kategori atlayınca eski parça "küçük geldi" → yeni al (turnuva kontrolü).
+const CAT3_SIZE: Record<AgeCategory, number> = { U10: 0, U12: 2, U14: 5, U17: 5, U21: 5, SENIOR: 5 };
+const CAT3_SLOTS: readonly EquipmentSlot[] = ["WEAPON", "MASK", "BAG"];
+const CAT_INDEX: Record<AgeCategory, number> = { U10: 0, U12: 1, U14: 2, U17: 3, U21: 4, SENIOR: 5 };
+const GARMENT_SLOTS: readonly EquipmentSlot[] = ["CLOTHING", "PANTS", "CHEST", "PLASTRON", "SHOES", "SOCKS", "GLOVE", "LAME"];
+const CAT_ORDER: readonly AgeCategory[] = ["U10", "U12", "U14", "U17", "U21", "SENIOR"];
+const CAT_LABEL: Record<AgeCategory, string> = { U10: "U10", U12: "U12", U14: "U14", U17: "U17", U21: "U21", SENIOR: "Büyük" };
 
-/** Gövde bedeni: 8'den itibaren her 2 yılda +1 (20'de donar). 8→0, 10→1, 12→2 … 20→6. */
-export function bodySize(age: number): number {
-  return Math.max(0, Math.floor((Math.min(age, 20) - 8) / 2));
+/** Bir slotun o KATEGORİDE gereken bedeni (yaş kullanılmaz; kategori belirler). */
+export function requiredSize(slot: EquipmentSlot, _age: number, ageCategory: AgeCategory): number {
+  if (CAT3_SLOTS.includes(slot)) return CAT3_SIZE[ageCategory];
+  if (GARMENT_SLOTS.includes(slot)) return CAT_INDEX[ageCategory];
+  return 0; // CORD, MASK_CORD → bedensiz
 }
 
-/** Bir slotun o yaşta GEREKEN bedeni: silah → kategori; gövde parçaları → yaş/2; diğerleri bedensiz (0). */
-export function requiredSize(slot: EquipmentSlot, age: number, ageCategory: AgeCategory): number {
-  if (slot === "WEAPON") return WEAPON_SIZE_BY_CATEGORY[ageCategory];
-  if (BODY_SLOTS.includes(slot)) return bodySize(age);
-  return 0;
+/** Beden rozeti: kıyafet → kategori (U10..Büyük); silah/maske/çanta → 0/2/5 → U10/U12/U14+; bedensiz → "". */
+export function sizeLabel(slot: EquipmentSlot, size: number): string {
+  if (GARMENT_SLOTS.includes(slot)) return CAT_LABEL[CAT_ORDER[Math.max(0, Math.min(5, size))]];
+  if (CAT3_SLOTS.includes(slot)) return size >= 5 ? "U14+" : size >= 2 ? "U12" : "U10";
+  return "";
 }
-
-/** Silah beden rozeti (yalnız WEAPON): 0→U10, 2→U12, 5→U14+. */
+/** Geriye uyum (silah rozeti): 0→U10, 2→U12, 5→U14+. */
 export function weaponSizeLabel(size: number): string {
   return size >= 5 ? "U14+" : size >= 2 ? "U12" : "U10";
 }
@@ -430,8 +453,8 @@ export function weaponsInKit(kit: readonly KitItemState[]): KitItemState[] {
  * Maça katılım için takım geçerli mi? Her gerekli slotta EN AZ BİR geçerli (kırık değil + doğru beden) parça
  * yeter (yedekler sayesinde). Sorun → hata KODU (i18n err.<kod>), yoksa null.
  */
-export function validateKit(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory): "kit_incomplete" | "kit_broken" | "kit_small" | null {
-  const requiredSlots = new Set(itemsForWeapon(weapon).filter((i) => !i.cosmetic).map((i) => i.slot));
+export function validateKit(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory, gender?: Gender): "kit_incomplete" | "kit_broken" | "kit_small" | null {
+  const requiredSlots = new Set(itemsForWeapon(weapon, gender).filter((i) => !i.cosmetic).map((i) => i.slot));
   for (const slot of requiredSlots) {
     const items = itemsInSlot(kit, slot);
     if (items.length === 0) return "kit_incomplete";
@@ -442,14 +465,27 @@ export function validateKit(kit: readonly KitItemState[], weapon: Weapon, age: n
 }
 
 /** Başlangıç takımı (BEDAVA): gerekli parçalar (kozmetik hariç), doğru beden (varsayılan 8 yaş/U10), tam dayanıklılık. */
-export function starterKit(weapon: Weapon, age = 8, ageCategory: AgeCategory = "U10"): KitItemState[] {
-  return itemsForWeapon(weapon)
+export function starterKit(weapon: Weapon, age = 8, ageCategory: AgeCategory = "U10", gender?: Gender): KitItemState[] {
+  return itemsForWeapon(weapon, gender)
     .filter((i) => !i.cosmetic)
     .map((i) => ({ slot: i.slot, itemId: i.id, size: requiredSize(i.slot, age, ageCategory), durability: 100, broken: false }));
 }
 
 export function encodeKit(kit: readonly KitItemState[]): string {
   return JSON.stringify(kit);
+}
+
+/**
+ * Canlı veri grandfather (07.11 — ceket/pantolon ayrıldı): ceketi olup pantolonu olmayan (bölünmeden önceki)
+ * oyuncuya, verilen bedende ücretsiz pantolon ekler. Yalnız EKSİKSE ekler (bir kerelik) → mevcut kit korunur.
+ */
+export function grandfatherPants(kit: readonly KitItemState[], pantsSize: number): KitItemState[] {
+  const hasClothing = kit.some((k) => k.slot === "CLOTHING");
+  const hasPants = kit.some((k) => k.slot === "PANTS");
+  if (hasClothing && !hasPants) {
+    return [...kit, { slot: "PANTS", itemId: "gl-pants", size: pantsSize, durability: 100, broken: false }];
+  }
+  return [...kit];
 }
 
 /** equipmentState JSON'u çözer; yoksa/boşsa/bozuksa BAŞLANGIÇ takımına düşer (eski kayıtlar da tam çanta görür). */
@@ -487,8 +523,8 @@ export function activeInSlot(kit: readonly KitItemState[], slot: EquipmentSlot, 
 }
 
 /** Maç sonrası: her gerekli slotun AKTİF parçası aşınır (durability↓, lastUsedDay=day); 0'a inince KIRILIR. */
-export function applyMatchWear(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory, day: number): KitItemState[] {
-  const required = new Set(itemsForWeapon(weapon).filter((i) => !i.cosmetic).map((i) => i.slot));
+export function applyMatchWear(kit: readonly KitItemState[], weapon: Weapon, age: number, ageCategory: AgeCategory, day: number, gender?: Gender): KitItemState[] {
+  const required = new Set(itemsForWeapon(weapon, gender).filter((i) => !i.cosmetic).map((i) => i.slot));
   const actives = new Set<KitItemState>();
   for (const slot of required) {
     const a = activeInSlot(kit, slot, age, ageCategory);

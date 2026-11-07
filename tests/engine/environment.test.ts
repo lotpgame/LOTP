@@ -16,7 +16,7 @@ import {
   traitTrainingMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
-import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, bodySize, damageActive, discardKitItem, encodeKit, itemById, itemsInSlot, kitItemFits, requiredSize, resolveKit, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, damageActive, discardKitItem, encodeKit, itemById, itemsForWeapon, itemsInSlot, kitItemFits, requiredSize, resolveKit, sizeLabel, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
 import { clubMonthlyDues, entryFee } from "@/engine/economy";
 import { applyEventsToPsych, discountedPrice, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
 import {
@@ -190,35 +190,50 @@ describe("Malzeme çantası (equipmentState)", () => {
     const kit = starterKit("SABRE");
     expect(resolveKit(encodeKit(kit), "SABRE")).toEqual(kit);
   });
-  it("beden (2A silah + 2B kıyafet): silah kategoriye 0/2/5; kıyafet yaş/2; küçük gelince uymaz", () => {
-    // Silah: yaş kategorisi
+  it("beden (kategori, 07.11): silah/maske/çanta 0/2/5; kıyafet U10..SENIOR=0..5; küçük gelince uymaz", () => {
+    // Silah/maske/çanta: kategori 0/2/5
     expect(requiredSize("WEAPON", 9, "U10")).toBe(0);
     expect(requiredSize("WEAPON", 11, "U12")).toBe(2);
     expect(requiredSize("WEAPON", 13, "U14")).toBe(5);
+    expect(requiredSize("MASK", 11, "U12")).toBe(2);
+    expect(requiredSize("BAG", 13, "U14")).toBe(5);
     expect(weaponSizeLabel(0)).toBe("U10");
-    expect(weaponSizeLabel(2)).toBe("U12");
     expect(weaponSizeLabel(5)).toBe("U14+");
-    // Gövde bedeni: 8→0, 10→1, 12→2, 20→6 (20'de donar)
-    expect(bodySize(8)).toBe(0);
-    expect(bodySize(10)).toBe(1);
-    expect(bodySize(12)).toBe(2);
-    expect(bodySize(20)).toBe(6);
-    expect(bodySize(25)).toBe(6);
-    // Kıyafet gövde bedenli, kordon/çorap bedensiz
-    expect(requiredSize("CLOTHING", 12, "U12")).toBe(2);
+    // Kıyafet grubu: kategori indeksi (U10=0 … SENIOR=5)
+    expect(requiredSize("CLOTHING", 9, "U10")).toBe(0);
+    expect(requiredSize("CLOTHING", 11, "U12")).toBe(1);
+    expect(requiredSize("PANTS", 14, "U17")).toBe(3);
+    expect(requiredSize("GLOVE", 25, "SENIOR")).toBe(5);
+    // Kordon/maske kordonu bedensiz
     expect(requiredSize("CORD", 12, "U12")).toBe(0);
+    expect(requiredSize("MASK_CORD", 12, "U12")).toBe(0);
+    // Rozet etiketleri
+    expect(sizeLabel("CLOTHING", 0)).toBe("U10");
+    expect(sizeLabel("CLOTHING", 5)).toBe("Büyük");
+    expect(sizeLabel("MASK", 5)).toBe("U14+");
+    expect(sizeLabel("CORD", 0)).toBe("");
     // U10 silahı U10'da uyar, U12'de küçük gelir
     const w = { slot: "WEAPON" as const, itemId: "gl-weapon-foil", size: 0, durability: 100, broken: false };
     expect(kitItemFits(w, 9, "U10")).toBe(true);
     expect(kitItemFits(w, 11, "U12")).toBe(false);
-    // 8 yaş kıyafeti (beden 0), 12 yaşında küçük gelir
+    // U10 kıyafeti (beden 0) U12'de küçük gelir
     const cl = { slot: "CLOTHING" as const, itemId: "gl-clothing", size: 0, durability: 100, broken: false };
-    expect(kitItemFits(cl, 8, "U10")).toBe(true);
-    expect(kitItemFits(cl, 12, "U12")).toBe(false);
-    // starterKit yaşa göre doğru bedenler
+    expect(kitItemFits(cl, 9, "U10")).toBe(true);
+    expect(kitItemFits(cl, 11, "U12")).toBe(false);
+    // starterKit: kategoriye göre doğru bedenler + ceket/pantolon ayrı
     expect(starterKit("FOIL", 13, "U14").find((k) => k.slot === "WEAPON")?.size).toBe(5);
-    expect(starterKit("FOIL", 12, "U12").find((k) => k.slot === "CLOTHING")?.size).toBe(2);
+    expect(starterKit("FOIL", 11, "U12").find((k) => k.slot === "CLOTHING")?.size).toBe(1);
+    expect(starterKit("FOIL").some((k) => k.slot === "PANTS")).toBe(true);
     expect(starterKit("FOIL").find((k) => k.slot === "WEAPON")?.size).toBe(0); // varsayılan 8/U10
+  });
+
+  it("göğüs koruyucu kadına özel (07.11): erkekte yok, kadında var", () => {
+    expect(itemsForWeapon("FOIL", "MALE").some((i) => i.slot === "CHEST")).toBe(false);
+    expect(itemsForWeapon("FOIL", "FEMALE").some((i) => i.slot === "CHEST")).toBe(true);
+    expect(starterKit("FOIL", 8, "U10", "MALE").some((k) => k.slot === "CHEST")).toBe(false);
+    expect(starterKit("FOIL", 8, "U10", "FEMALE").some((k) => k.slot === "CHEST")).toBe(true);
+    // erkek, göğüs koruyucusu olmadan turnuvaya girebilir (eksik sayılmaz)
+    expect(validateKit(starterKit("FOIL", 8, "U10", "MALE"), "FOIL", 9, "U10", "MALE")).toBeNull();
   });
   it("yıpranma (2C-2): maçta AKTİF (en sağlam) parça aşınır; yedek korunur; 0'da kırılır", () => {
     // 2 silah: 100 ve 60 → aktif = 100 olan; o aşınır, 60'lık el değmez

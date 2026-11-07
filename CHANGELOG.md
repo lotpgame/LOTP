@@ -9,6 +9,18 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (07.11 — Ekipman beden modeli kategoriye göre + ceket/pantolon ayrıldı + bedenli görseller)
+- **Beden artık yaş KATEGORİSİNE göre** (yaşa değil): silah/maske/çanta 0/2/5 (U10/U12/U14+); kıyafet grubu
+  (ceket/pantolon/göğüs/plastron/ayakkabı/çorap/eldiven/yelek) U10..büyükler = **6 beden**. Kategori atlayınca
+  eski parça "küçük geldi" → yeni al; **turnuva kontrolü** (`validateKit`) yeni bedenlerle otomatik.
+- **Ceket + Pantolon ayrıldı** (yeni **PANTS** slotu, ayrı fiyat): Gladius Ceket **280 Đ** + Gladius Pantolon **160 Đ**.
+- **Göğüs koruyucu kadına özel** (`gender: "FEMALE"`): erkekte ne starter'da ne markette görünür; erkek oyuncunun
+  eski shared göğüs koruyucusu migration'da kaldırılır (turnuva kontrolünde erkekten istenmez).
+- **Bedenli ürün görselleri** (98 varyant, `slice-equipment.mjs`): dolap/market her parçayı **doğru bedeniyle** gösteriyor
+  + **kategori rozeti** (U10/U12/…/Büyük); tıkla-büyüt (tam kolaj) korunuyor.
+- **Canlı veri koruması**: ayrımdan önceki oyunculara güncel bedende **ücretsiz pantolon** verilir (grandfather, kalıcı;
+  getCareer + getCareerHeader). Migration yok (equipmentState JSON).
+
 ### Eklendi (07.11 — Gladius ekipman görselleri: market + dolap + tıkla-büyüt)
 - Market kartları ve **Malzeme Dolabı** artık **Gladius ürün görselleri** gösteriyor (generic ikon yerine). Görseller
   kullanıcının markalı kolajlarından kesildi (`scripts/slice-equipment.mjs`): kare ürünler ortalı (koyu zemin trim + cover),

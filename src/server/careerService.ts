@@ -220,7 +220,7 @@ import {
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
 import { BASE_COACH_SKILL, BASE_FACILITY, computeFacility, decideCoachUpgrade } from "@/engine/club";
-import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
+import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, grandfatherPants, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
 import { appendLedger, encodeLedger, entriesForWeek, parseLedger, totals as ledgerTotals, type LedgerEntry } from "@/engine/ledger";
@@ -786,8 +786,8 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
         traits: encodeTraitPlan(traitPlan),
         balance: STARTING_BALANCE,
         // Bedava başlangıç takımı (Yusuf): 8 yaşında tam Gladius takımı — herkes maça girebilir (paywall değil).
-        ownedEquipment: encodeOwned(starterKit(data.weapon as Weapon).map((k) => k.itemId)),
-        equipmentState: encodeKit(starterKit(data.weapon as Weapon)),
+        ownedEquipment: encodeOwned(starterKit(data.weapon as Weapon, identity.age, identity.ageCategory, data.gender as Gender).map((k) => k.itemId)),
+        equipmentState: encodeKit(starterKit(data.weapon as Weapon, identity.age, identity.ageCategory, data.gender as Gender)),
         clubId: humanClubId,
         ...geneticsData(humanGenetics),
         avatar: pickAvatar(data.gender, `${seed}:av:human`),
@@ -916,6 +916,25 @@ function psychologyOf(p: {
   return { morale: p.morale, motivation: p.motivation, confidence: p.confidence, stress: p.stress };
 }
 
+/**
+ * Ekipman grandfather (07.11 — ceket/pantolon ayrıldı): ceketi olup pantolonu olmayan (bölünmeden önceki)
+ * oyuncuya güncel kategori bedeninde ücretsiz pantolon verir + kalıcılaştırır. Grandfather'lı kiti döndürür.
+ */
+async function migratedKit(
+  human: { id: number; equipmentState: string | null; weapon: string; gender: string },
+  age: number,
+  ageCategory: AgeCategory,
+): Promise<KitItemState[]> {
+  const kit = resolveKit(human.equipmentState, human.weapon as Weapon);
+  let next = grandfatherPants(kit, requiredSize("PANTS", age, ageCategory));
+  // Göğüs koruyucu kadına özel → erkek oyuncunun (eski shared starter'dan kalan) göğüs koruyucusunu kaldır.
+  if (human.gender === "MALE") next = next.filter((k) => k.slot !== "CHEST");
+  if (encodeKit(next) !== encodeKit(kit)) {
+    await prisma.player.update({ where: { id: human.id }, data: { equipmentState: encodeKit(next) } }).catch(() => {});
+  }
+  return next;
+}
+
 /** Aktif kariyerin tam durumunu döndürür (UI için). */
 export async function getCareer(): Promise<CareerDTO | null> {
   const state = await loadState();
@@ -929,6 +948,8 @@ export async function getCareer(): Promise<CareerDTO | null> {
   const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay)); // yaş kariyer çıpasına göre
   const categoryId = cur.categoryId;
   const age = cur.age;
+  // Ekipman grandfather: ceketi olup pantolonu olmayan eski oyuncuya pantolon ver (bir kerelik, kalıcı).
+  const kitNow = await migratedKit(human, age, ageToCategory(age));
 
   // Yurt-içi (ülke) klasman sırası — milli takım + uluslararası uygunluk buradan (uluslararası puan karışmaz).
   const ranking = await buildRankingView(categoryId, quarter, human.id, { country: human.nationality?.code ?? "TR" });
@@ -1082,7 +1103,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       : null,
     equipmentLevel: human.equipmentLevel,
     ownedEquipment: parseOwned(human.ownedEquipment),
-    kit: resolveKit(human.equipmentState, human.weapon as Weapon),
+    kit: kitNow,
     offer: (() => {
       const o = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
       const today = serverWorldDay();
@@ -1259,6 +1280,8 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
   const locale = await getLocale();
   const quarter = quarterOf(gs.dayIndex);
   const cur = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  // Ekipman grandfather (her sayfa yüklemesinde): eski oyuncuya pantolon ver → turnuva kaydı/kontrolü güvenli.
+  await migratedKit(human, cur.age, ageToCategory(cur.age));
   const injured = human.injuryDaysRemaining > 0;
   const act = activityForDay(gs.dayIndex);
   const dayLabel = t(locale, `day.${dayOfWeek(gs.dayIndex)}`);
@@ -1476,7 +1499,7 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   }
 
   // YENİ kayıt: maça katılım kuralı (tam + doğru beden + kırık değil) + katılım ücreti (Dilim 2B).
-  const kitProblem = validateKit(resolveKit(human.equipmentState, human.weapon as Weapon), human.weapon as Weapon, id.age, id.ageCategory);
+  const kitProblem = validateKit(resolveKit(human.equipmentState, human.weapon as Weapon), human.weapon as Weapon, id.age, id.ageCategory, human.gender as Gender);
   if (kitProblem) throw new GameError(kitProblem, "Ekipmanın maça hazır değil — Ekipman sayfasından kontrol et.");
   const fee = entryFee(level);
   if (fee > 0 && human.balance < fee) throw new GameError("entry_fee", `Katılım ücreti için ${fee} Denar gerekir.`);
@@ -1870,7 +1893,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // 3-3: markette süreli fırsat/indirim. Mevcut teklif süresi geçtiyse düşer; yoksa son hafta için yeni teklif denenir.
   let offer: GearOffer | null = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
   if (offer && d > offer.expiresDay) offer = null;
-  if (!offer && toWeek > fromWeek) offer = rollOffer(createRng(`offer:${human.id}:${toWeek - 1}`), human.weapon as Weapon, d);
+  if (!offer && toWeek > fromWeek) offer = rollOffer(createRng(`offer:${human.id}:${toWeek - 1}`), human.weapon as Weapon, d, human.gender as Gender);
 
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
@@ -3920,6 +3943,7 @@ interface EffectHuman {
   clubId: number | null;
   equipmentState: string | null;
   weapon: string;
+  gender: string;
 }
 
 /** Combatant kurmak için gereken oyuncu alanları (insan veya AI). */
@@ -4146,7 +4170,7 @@ async function finalizeTournament(
       postPsych: psychAfterTournament(psychologyOf(h), position, outcome.pools.length),
       reputation: reputationAfterEvent(h.reputation, activeTraitsOf(h.traits, base.age)), // çirkef/hilekâr → düşer
       // 2C-2: maçta kullanılan aktif ekipman aşınır (0'da kırılır → yedek devreye girer).
-      wornKit: encodeKit(applyMatchWear(resolveKit(h.equipmentState, h.weapon as Weapon), h.weapon as Weapon, base.age, base.ageCategory, gs.dayIndex)),
+      wornKit: encodeKit(applyMatchWear(resolveKit(h.equipmentState, h.weapon as Weapon), h.weapon as Weapon, base.age, base.ageCategory, gs.dayIndex, h.gender as Gender)),
     };
   });
 
