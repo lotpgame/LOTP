@@ -5,16 +5,9 @@
  */
 import Link from "next/link";
 import { t, type Locale } from "@/i18n";
-import { Icon, type IconName } from "@/app/ui/Icon";
+import { Icon } from "@/app/ui/Icon";
+import { trainingImg } from "./trainingImage";
 import type { WeekDay } from "./week";
-
-const TRAINING_ICON: Record<string, IconName> = {
-  TECHNICAL: "technical",
-  PHYSICAL: "physical",
-  MENTAL: "mental",
-  TACTICAL: "tactical",
-  REST: "rest",
-};
 
 function statusKey(d: WeekDay): string {
   if (d.kind === "TRAINING") return "";
@@ -52,7 +45,7 @@ export function WeekStrip({ days, locale, countryCode }: { days: WeekDay[]; loca
                     {d.level === "TURKIYE" && countryCode ? countryCode : t(locale, `levelShort.${d.level}`)}
                   </span>
                 ) : (
-                  <Icon name={TRAINING_ICON[d.training ?? "REST"] ?? "rest"} size={18} className="text-ink/80" />
+                  <img src={trainingImg(d.training ?? "REST")} alt="" aria-hidden="true" className="object-contain" style={{ width: 22, height: 22 }} />
                 )}
                 <span className="flex h-3.5 items-center" aria-hidden="true">
                   {st === "week.registered" && <Icon name="check" size={14} className="text-ink" />}
