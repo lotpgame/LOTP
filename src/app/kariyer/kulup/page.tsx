@@ -3,8 +3,8 @@ import { ArenaPage } from "@/app/ArenaPage";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
-import { Icon } from "@/app/ui/Icon";
 import { Segments } from "@/app/ui/Piste";
+import { clubLogoSrc } from "../clubLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +19,8 @@ export default async function KulupPage() {
       {c.club ? (
         <section className="panel mt-3 p-4">
           <div className="flex items-center gap-3">
-            {/* Nötr arma — kulüplerin kendi arması yok (gerçek kulüp logosu kullanılmaz) */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-line bg-arena-0">
-              <Icon name="club" size={26} />
-            </div>
+            {/* Kulüp logosu — şehre özel yoksa varsayılan Gladius-tarzı amblem (clubLogo.ts). */}
+            <img src={clubLogoSrc(c.club.city)} alt={c.club.name} width={60} height={60} className="shrink-0" />
             <div className="min-w-0">
               <div className="truncate text-[18px] font-semibold">{c.club.name}</div>
               <div className="text-[14px] text-steel">{c.club.city}</div>

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (07.11 — Kulüp logosu (varsayılan amblem) + eşleme sistemi)
+- Kulüp sayfası nötr ikon yerine **kulüp logosu** gösteriyor. Kullanıcının ürettiği Gladius-tarzı kırmızı/gümüş amblem
+  **varsayılan logo** (`public/img/clubs/default.webp`; beyaz zemin kenardan flood-fill ile şeffaflaştırıldı).
+- **`clubLogo.ts`**: şehir → logo eşlemesi (özel yoksa varsayılan). Şehre özel logo (İzmit vb.) geldikçe
+  `public/img/clubs/<slug>.webp` konur + `CLUB_LOGO_CITIES`'e slug eklenir.
+
 ### Değişti (07.11 — Ekipman beden modeli kategoriye göre + ceket/pantolon ayrıldı + bedenli görseller)
 - **Beden artık yaş KATEGORİSİNE göre** (yaşa değil): silah/maske/çanta 0/2/5 (U10/U12/U14+); kıyafet grubu
   (ceket/pantolon/göğüs/plastron/ayakkabı/çorap/eldiven/yelek) U10..büyükler = **6 beden**. Kategori atlayınca
