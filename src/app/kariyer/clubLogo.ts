@@ -11,8 +11,11 @@
  */
 import { countryCodeOfCity } from "@/engine/geo";
 
-/** Ülke başına mevcut logo sayısı. Logo gelince buraya eklenir (yoksa o ülke default'a düşer). */
-const COUNTRY_LOGO_COUNT: Record<string, number> = {};
+/** Ülke başına mevcut logo sayısı (public/img/clubs/<cc>-1..n.webp). Yoksa o ülke default'a düşer. */
+const COUNTRY_LOGO_COUNT: Record<string, number> = {
+  TR: 15, FR: 15, IT: 15, DE: 15, HU: 15, RU: 15, PL: 15, ES: 15, GB: 15,
+  UA: 15, US: 15, BR: 15, JP: 15, KR: 15, CN: 15, AU: 15, EG: 15, TN: 15,
+};
 
 /** Şehre özel logo override (slug → dosya adı). İzmit/Kocaeli sonra eklenecek. */
 const CITY_OVERRIDE: Record<string, string> = {};

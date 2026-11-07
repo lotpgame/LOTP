@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (07.11 — Kulüp logosu havuzları: 18 ülke × 15 amblem, sabit-rastgele dağıtım)
+- Kullanıcının ürettiği **18 ülke ızgarası** (her biri 3×5 = 15 amblem; ulusal renk + yerel motif) tek tek kesildi
+  (`scripts/slice-clublogos.mjs`): koyu zemin kenardan flood-fill ile şeffaf → `public/img/clubs/<cc>-1..15.webp` (**270 logo**).
+- Her kulübe ülkesinin havuzundan **şehir-hash'iyle sabit-rastgele** logo atanır (`COUNTRY_LOGO_COUNT=15`).
+- Not: bazı amblemlerde şehir landmark'ı var (Galata→İstanbul, Eyfel→Paris…); rastgele dağıtıldığı için landmark
+  şehre birebir oturmayabilir — istenirse `CITY_OVERRIDE` ile tek tek bağlanır (İzmit/Kocaeli en son).
+
 ### Eklendi (07.11 — Kulüp logosu (varsayılan amblem) + eşleme sistemi)
 - Kulüp sayfası nötr ikon yerine **kulüp logosu** gösteriyor. Kullanıcının ürettiği Gladius-tarzı kırmızı/gümüş amblem
   **varsayılan logo** (`public/img/clubs/default.webp`; beyaz zemin kenardan flood-fill ile şeffaflaştırıldı).
