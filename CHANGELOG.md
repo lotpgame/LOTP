@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (07.11 — Denar rozeti masaüstüne + antrenman türü görselleri)
+- **Denar rozeti masaüstü sidebar'a eklendi** (kimlik kartının altında). Daha önce yalnız telefon-yatay alt şeritteydi;
+  masaüstünde Denar Kazan/Al erişimi kapalıydı — artık her iki görünümde var.
+- **Antrenman türü görselleri** kullanıcının özel görselleriyle değişti (`public/img/training/*.webp`:
+  technical/physical/mental/tactical/rest) — haftalık plan segmentleri + antrenman tür kartları. `trainingImage.ts`.
+
 ### Eklendi (07.11 — Özel menü ikonları + Kulüp sekmesinde kulüp logosu)
 - Navigasyon ikonları kullanıcının özel görselleriyle değiştirildi (`public/img/menu/*.webp`:
   bugün/antrenman/ekipman/turnuvalar/klasman/kariyer-geçmişi/ayarlar). Aktif tam, pasif hafif soluk (`NavIcon`).

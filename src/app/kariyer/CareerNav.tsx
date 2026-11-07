@@ -186,6 +186,17 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
             {nationalBadge && <div className="mt-1">{nationalBadge}</div>}
           </div>
         </div>
+        {/* Denar rozeti — masaüstü sidebar (telefon-yatayda alt şeritte; burada kimlik altında). */}
+        <div className="mx-4 mt-3">
+          <DenarBadge
+            locale={locale}
+            balance={balance}
+            adsLeft={adsLeft}
+            adDailyCap={adDailyCap}
+            adReward={adReward}
+            className="press flex w-full items-center justify-center gap-2 rounded-md border border-line bg-arena-0 py-2 text-[15px] font-semibold text-ink"
+          />
+        </div>
         <nav className="mt-4 flex flex-col gap-0.5 px-3" aria-label={t(locale, "nav.menu")}>
           {ALL.map((item) => {
             const on = item.href === current;

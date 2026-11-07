@@ -11,17 +11,10 @@ import { useState, useTransition } from "react";
 import { setTrainingPlanAction } from "@/app/actions";
 import { TRAINING_TYPES, type TrainingType } from "@/engine/training";
 import { t, type Locale } from "@/i18n";
-import { Icon, type IconName } from "@/app/ui/Icon";
+import { Icon } from "@/app/ui/Icon";
+import { trainingImg } from "../trainingImage";
 
 const TOURNAMENT_DAYS = new Set([1, 3, 5]); // Salı / Perşembe / Cumartesi
-
-const TYPE_ICON: Record<TrainingType, IconName> = {
-  TECHNICAL: "technical",
-  PHYSICAL: "physical",
-  MENTAL: "mental",
-  TACTICAL: "tactical",
-  REST: "rest",
-};
 
 export function TrainingPlanForm({ initial, locale }: { initial: string[]; locale: Locale }) {
   const normalized = () =>
@@ -76,7 +69,7 @@ export function TrainingPlanForm({ initial, locale }: { initial: string[]; local
                       className="peer sr-only"
                     />
                     <span className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-[5px] px-0.5 text-center text-[12px] leading-tight text-ink/75 transition-colors peer-checked:bg-ink peer-checked:font-semibold peer-checked:text-arena-0 peer-focus-visible:ring-2 peer-focus-visible:ring-ink">
-                      <Icon name={TYPE_ICON[tt]} size={18} />
+                      <img src={trainingImg(tt)} alt="" aria-hidden="true" className="object-contain" style={{ width: 18, height: 18 }} />
                       {t(locale, `plan.short.${tt}`)}
                     </span>
                   </label>

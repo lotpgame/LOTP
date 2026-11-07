@@ -5,7 +5,8 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
-import { CATEGORY_ICON, SkillsByCategory } from "../parts";
+import { SkillsByCategory } from "../parts";
+import { trainingImg } from "../trainingImage";
 import { InfoNote } from "../InfoNote";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { ArenaPage } from "@/app/ArenaPage";
@@ -98,7 +99,7 @@ export default async function AntrenmanPage() {
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                     style={{ background: `${info.color}1f`, color: info.color }}
                   >
-                    <Icon name={CATEGORY_ICON[info.cat]} size={20} />
+                    <img src={trainingImg(info.cat)} alt="" aria-hidden="true" className="object-contain" style={{ width: 22, height: 22 }} />
                   </span>
                   {t(locale, `category.${info.cat}`)}
                 </div>
@@ -120,7 +121,7 @@ export default async function AntrenmanPage() {
           <div className="panel p-3 pl-4" style={{ borderLeft: "4px solid var(--steel)" }}>
             <div className="flex items-center gap-2 font-display text-[17px] font-bold">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-arena-2 text-steel">
-                <Icon name="rest" size={20} />
+                <img src={trainingImg("REST")} alt="" aria-hidden="true" className="object-contain" style={{ width: 22, height: 22 }} />
               </span>
               {t(locale, "antrenman.restTitle")}
             </div>
