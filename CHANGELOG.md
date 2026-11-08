@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Kondisyon/Form altın rozet görselleri)
+- **Kondisyon** (maske + yeşil pil + nabız) ve **Form** (maske + yükselen bar + yıldız) için kullanıcının altın
+  madalya rozetleri işlendi (siyah köşeler daire-kırpmayla temizlendi → `public/img/ui/{kondisyon,form}.webp`).
+- **Bugün** sayfasındaki Kondisyon/Form kutuları ve **canlı turnuva** MiniStat'ı artık generic ikon yerine bu
+  rozetleri kullanıyor (`Stat` ve `MiniStat` artık `img` prop'u alıyor).
+
 ### Değişti (08.11 — Antrenman görselleri yetenek/fizik/psikoloji başlıklarında)
 - **Bugün** ve **Antrenman** sayfalarında yetenek kategori başlıkları (Teknik/Fiziksel/Mental/Taktik) artık generic
   ikon yerine **antrenman türü görsellerini** kullanıyor (`SkillsByCategory`, 28px yuvarlak küçük görsel).

@@ -222,8 +222,8 @@ export default async function CanliTurnuvaPage() {
 
       {/* Oyuncu durumu — turnuva boyunca güncel */}
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <MiniStat icon="condition" label={t(locale, "profil.condition")} value={`%${tour.player.condition}`} />
-        <MiniStat icon="form" label={t(locale, "profil.form")} value={`%${tour.player.sharpness}`} />
+        <MiniStat img="/img/ui/kondisyon.webp" label={t(locale, "profil.condition")} value={`%${tour.player.condition}`} />
+        <MiniStat img="/img/ui/form.webp" label={t(locale, "profil.form")} value={`%${tour.player.sharpness}`} />
         <MiniStat icon="rating" label={t(locale, "profil.overall")} value={tour.player.overall.toFixed(1)} />
       </div>
 
@@ -252,11 +252,16 @@ export default async function CanliTurnuvaPage() {
   );
 }
 
-function MiniStat({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+function MiniStat({ icon, img, label, value }: { icon?: IconName; img?: string; label: string; value: string }) {
   return (
     <div className="panel px-2.5 py-2">
       <div className="flex items-center gap-1 text-[12px] text-steel">
-        <Icon name={icon} size={14} /> {label}
+        {img ? (
+          <img src={img} alt="" aria-hidden="true" className="shrink-0 object-contain" style={{ width: 18, height: 18 }} />
+        ) : (
+          icon && <Icon name={icon} size={14} />
+        )}{" "}
+        {label}
       </div>
       <div className="num mt-0.5 text-[17px]">{value}</div>
     </div>

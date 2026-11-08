@@ -185,7 +185,7 @@ export default async function BugunPage({
       {/* 3 · Kondisyon + form (reyting büyük başlıkta) — yüksekken çubuklar hafifçe parlar (GORSEL §8) */}
       <section className="grid grid-cols-2 gap-2.5">
         <Stat
-          icon="condition"
+          img="/img/ui/kondisyon.webp"
           label={t(locale, "profil.condition")}
           value={`%${condition.toFixed(0)}`}
           gauge={condition}
@@ -194,7 +194,7 @@ export default async function BugunPage({
           state={conditionState(locale, condition)}
         />
         <Stat
-          icon="form"
+          img="/img/ui/form.webp"
           label={t(locale, "profil.form")}
           value={`%${c.sharpness.toFixed(0)}`}
           gauge={c.sharpness}

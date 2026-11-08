@@ -58,6 +58,7 @@ export function Stat({
   glow,
   traffic,
   icon,
+  img,
   state,
   word,
 }: {
@@ -69,6 +70,8 @@ export function Stat({
   /** Dolu parçalar değere göre kırmızı/sarı/yeşil (kondisyon/form — kullanıcı 11.10). */
   traffic?: boolean;
   icon?: IconName;
+  /** Verilirse etikette ikon yerine bu görsel (ör. kondisyon/form altın rozeti). */
+  img?: string;
   state?: string;
   /** Değer sayı değil kelime (örn. gün adı): dar başlık fontu — mono'da "Cumartesi" kartı taşırıyordu. */
   word?: boolean;
@@ -76,7 +79,11 @@ export function Stat({
   return (
     <div className="panel px-3 py-2.5">
       <div className="flex items-center gap-1.5 text-[13px] text-steel">
-        {icon && <Icon name={icon} size={16} />}
+        {img ? (
+          <img src={img} alt="" aria-hidden="true" className="shrink-0 object-contain" style={{ width: 22, height: 22 }} />
+        ) : (
+          icon && <Icon name={icon} size={16} />
+        )}
         {label}
       </div>
       <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
