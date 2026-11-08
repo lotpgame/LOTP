@@ -10,6 +10,7 @@ import { Icon, type IconName } from "@/app/ui/Icon";
 
 export function BrandPanel({
   icon,
+  logo,
   name,
   sub,
   ownedCount,
@@ -19,6 +20,7 @@ export function BrandPanel({
   children,
 }: {
   icon: IconName;
+  logo?: string; // verilirse marka logosu görseli (ikon + ad metni yerine; logoda ad zaten var)
   name: string;
   sub: string;
   ownedCount: number;
@@ -30,10 +32,14 @@ export function BrandPanel({
   return (
     <details className="panel group" open={defaultOpen}>
       <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-        <Icon name={icon} size={32} className="shrink-0" />
+        {logo ? (
+          <img src={logo} alt={name} className="shrink-0 object-contain" style={{ height: 30, width: "auto" }} />
+        ) : (
+          <Icon name={icon} size={32} className="shrink-0" />
+        )}
         <div className="min-w-0 flex-1">
-          <div className="font-display text-[20px] font-bold leading-none tracking-[0.25em]">{name}</div>
-          <div className="mt-1 text-[13px] text-steel">{sub}</div>
+          {!logo && <div className="font-display text-[20px] font-bold leading-none tracking-[0.25em]">{name}</div>}
+          <div className={logo ? "text-[13px] text-steel" : "mt-1 text-[13px] text-steel"}>{sub}</div>
         </div>
         <span className="num shrink-0 text-[14px] text-steel">
           {ownedCount}/{total}

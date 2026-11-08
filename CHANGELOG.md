@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Denar sikke logosu + Dolap/Market/Gladius marka görselleri)
+- **DenarMark** artık kullanıcının altın **"Đ" sikkesi** (`public/img/ui/denar.webp`; checker zemin daire kırpmayla
+  temizlendi) — ◈ glifi yerine her yerde (fiyatlar, Denar rozeti, Kumbaram).
+- **Malzeme Dolabım** başlığı → dolap illüstrasyonu; **Market** linki → tezgah illüstrasyonu; market **GLADIUS**
+  marka paneli → marka logosu (`BrandPanel` artık `logo` prop'u alıyor).
+
 ### Değişti (08.11 — Kulüp logoları: 300 abstract crest, global havuz (landmark yok))
 - Önceki ülke-landmark logoları (Galata→İstanbul, Eyfel→Paris… → şehir-mismatch sorunu, ör. "Birmingham kulübünde
   Londra figürü") **kaldırıldı**. Yerine kullanıcının **300 abstract renkli crest**'i (şehir/ülke figürü yok) işlendi.

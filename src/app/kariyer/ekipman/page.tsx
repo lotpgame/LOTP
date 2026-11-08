@@ -45,7 +45,7 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
       {/* Malzeme Dolabım — oyuncunun takımı: parça + beden + dayanıklılık + KIRIK. */}
       <details className="panel group mt-4" open>
         <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-          <Icon name="bag" size={28} className="shrink-0" />
+          <img src="/img/ui/dolap.webp" alt="" aria-hidden="true" className="shrink-0 object-contain" style={{ width: 36, height: 36 }} />
           <div className="min-w-0 flex-1">
             <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "ekipman.myKit")}</div>
           </div>
@@ -117,7 +117,7 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
         href="/kariyer/market"
         className="press mt-4 flex min-h-16 items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
       >
-        <Icon name="shop" size={28} className="shrink-0" />
+        <img src="/img/ui/market.webp" alt="" aria-hidden="true" className="shrink-0 object-contain" style={{ width: 40, height: 40 }} />
         <div className="min-w-0 flex-1">
           <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "ekipman.market")}</div>
           <div className="mt-1 text-[13px] text-steel">{t(locale, "ekipman.goMarketSub")}</div>

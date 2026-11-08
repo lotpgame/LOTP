@@ -126,7 +126,7 @@ export default async function MarketPage({ searchParams }: { searchParams: Promi
       </div>
 
       <div className="mt-4">
-        <BrandPanel icon="gladius" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={catalog.length} locale={locale}>
+        <BrandPanel icon="gladius" logo="/img/ui/gladius-logo.webp" name="GLADIUS" sub={t(locale, "ekipman.brandSub")} ownedCount={ownedCount} total={catalog.length} locale={locale}>
           {GROUPS.map((g) => {
             const items = catalog.filter((i) => g.slots.includes(i.slot));
             if (items.length === 0) return null;
