@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (08.11 — Kulüp logosu kesim hizası)
+- Bazı kesilmiş kulüp logoları komşu logonun bir dilimini kapıyordu ("2 logo arası düşmüş"). Neden: hücre sınırları
+  `Math.floor` ile kayıyordu (1536/10=153.6 → sütun sütun kayma). Düzeltme: **tam ondalık sınır** (`round(i*tot/n)`,
+  kayma yok) + kenardan %3 pay + **bağlı-bileşen filtresi** (sadece ≥%12 büyük parçaları tut → komşu dilimini at).
+- 300 logo yeniden kesildi (`slice-clublogos.mjs`); 5 ızgara da montajla doğrulandı (bölünme yok, logo parçası düşmedi).
+
 ### Değişti (08.11 — Denar sikke logosu + Dolap/Market/Gladius marka görselleri)
 - **DenarMark** artık kullanıcının altın **"Đ" sikkesi** (`public/img/ui/denar.webp`; checker zemin daire kırpmayla
   temizlendi) — ◈ glifi yerine her yerde (fiyatlar, Denar rozeti, Kumbaram).
