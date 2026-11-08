@@ -27,6 +27,26 @@ const OUT_H = 512; // 3:4
 const CROP_RATIO = OUT_H / OUT_W; // 1.333…
 const OUT_ROOT = resolve("public/img/avatars");
 
+/**
+ * Bir panelde KAFANIN TEPESİNİ bulur (üstteki boşluğu kırpmak için — 8 yaşta kafa küçük/aşağıda olunca
+ * sabit kırpım üstte mavi boşluk bırakıyordu). Backdrop düz renk (mavi/gri): y=12..28'den medyan alınır
+ * (y0'da ince beyaz kenar olabilir, atlanır); sonra üstten ilk "backdrop'tan belirgin sapan" satır = kafa tepesi.
+ */
+async function detectHeadTop(src, left, w, H) {
+  const { data, info } = await sharp(src).extract({ left, top: 0, width: w, height: H }).raw().toBuffer({ resolveWithObject: true });
+  const W = info.width, ch = info.channels;
+  const med = (a) => { a.sort((x, y) => x - y); return a[a.length >> 1]; };
+  const rs = [], gs = [], bs = [];
+  for (let y = 12; y < 28; y++) for (let x = 0; x < W; x += 3) { const p = (y * W + x) * ch; rs.push(data[p]); gs.push(data[p + 1]); bs.push(data[p + 2]); }
+  const br = med(rs), bg = med(gs), bb = med(bs);
+  for (let y = 28; y < H; y++) {
+    let c = 0;
+    for (let x = 0; x < W; x++) { const p = (y * W + x) * ch; if (Math.abs(data[p] - br) + Math.abs(data[p + 1] - bg) + Math.abs(data[p + 2] - bb) > 90) c++; }
+    if (c > W * 0.1) return y;
+  }
+  return 0;
+}
+
 const [, , srcArg, prefix] = process.argv;
 if (!srcArg || !prefix) {
   console.error('Kullanım: node scripts/slice-avatars.mjs "<kaynakKlasör>" <prefix: b|g>');
@@ -55,13 +75,17 @@ for (const file of files) {
   const inset = Math.round(panelW * 0.03); // ayraç çizgilerinden kaçın
   const cw = Math.floor(panelW) - inset * 2; // kesim genişliği (panele sığar)
   const ch = Math.min(Math.round(cw * CROP_RATIO), H); // 3:4 yükseklik
-  const top = Math.round(H * 0.05); // üstten az boşluk → saç tepesi girsin, alt etiket dışarıda
+  const headroom = Math.round(ch * 0.08); // kafanın üstünde bırakılacak küçük pay
 
   const dir = join(OUT_ROOT, setId);
   mkdirSync(dir, { recursive: true });
 
   for (let i = 0; i < AGES.length; i++) {
     const left = Math.round(i * panelW) + inset;
+    // Kafa tepesine göre kırpım (sabit değil): 8 yaşta kafa aşağıda → üstteki boşluk gider; her yaşta kafa üstte.
+    const ht = await detectHeadTop(src, left, cw, H);
+    let top = Math.max(0, ht - headroom);
+    if (top + ch > H) top = H - ch;
     await sharp(src)
       .extract({ left, top, width: cw, height: ch })
       .resize(OUT_W, OUT_H)

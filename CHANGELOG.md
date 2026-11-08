@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (09.11 — Avatar kırpımı kafaya göre hizalanır)
+- 8 yaş panellerinde kafa küçük/aşağıda olduğu için üstte boşluk kalıyordu (sabit %5 üst kırpım). `slice-avatars.mjs`
+  artık her panelde **kafanın tepesini tespit edip** (düz backdrop'tan sapan ilk satır) kırpımı oraya sabitliyor →
+  her yaşta kafa üstte, boşluk yok. 200 set yeniden kesildi.
+
 ### Değişti (08.11 — Avatar havuzu yenilendi (200 set, hepsi fotogerçekçi))
 - Tüm avatar havuzu yeniden kesildi: **Erkek 100 + Kadın 100 set** (her biri 8/12/16/20 yaş). Eski karışık set
   (çizgi-film + gerçekçi) gitti; **hepsi fotogerçekçi** artık. `slice-avatars.mjs` → `public/img/avatars/<bg>NN/`,
