@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (08.11 — Kulüp logosu kesilmesi kökten giderildi (geniş kesim))
+- Bazı amblemler kaynak hücreden taşıyordu → 4×4 kesim üst/alt/yanı DÜZ kesiyordu (Kocaeli/Bursa üstten, Londra alttan).
+  `slice-clublogos.mjs` artık hücreyi boşluğa doğru **%9 genişleterek** kesiyor (tam amblem alınır) ve **centroid'li
+  bağlı-bileşen filtresiyle** taşan komşuyu atıyor → her logo TAM daire. 320→**282 benzersiz** (renumber).
+- `CLUB_LOGO_COUNT=282`. Logo havuzu değiştiği için `Club.logoFile` **sıfırlandı** → kulüpler yeni havuzdan yeniden
+  atanır (ilk okunduğunda lazy backfill ile sabitlenir, bir daha kaymaz). Eski in-place temizleme scripti kaldırıldı.
+- **Migration (Neon'da çalıştır):** `UPDATE "Club" SET "logoFile" = '';`
+
 ### Düzeltildi (08.11 — Kulüp logolarında komşu dilim temizliği)
 - Bazı logolarda komşu logonun kenara (sağ/üst) düşen İNCE bir dilimi kalmıştı (slice payı %1). `scripts/clean-club-logos.mjs`
   ile **yerinde** temizlendi: bağlı bileşenler → sadece büyükler (≥max %8) tutuldu (dilim atıldı, defne/ışın korundu),
