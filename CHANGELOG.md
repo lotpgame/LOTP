@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Kondisyon/Form ikonları yenilendi)
+- Kullanıcı kondisyon/form görsellerini değiştirdi (daire/maske yerine sade ikon: yeşil pil / yükselen bar+ok).
+  Siyah zemin kenardan flood-fill ile temizlendi → `public/img/ui/{kondisyon,form}.webp` güncellendi.
+
 ### Eklendi (08.11 — Klasmanda kulüp logosu)
 - Klasman satırlarında oyuncunun kulüp adının yanında **kulüp logosu** (16px) gösteriliyor (`RankingRowDTO` artık
   `clubCity` taşıyor → `clubLogoSrc`). Yerelde seed klasmanı boş olduğu için görsel canlıda/oyun ilerleyince görünür.
