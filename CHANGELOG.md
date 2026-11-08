@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Avatar havuzu yenilendi (200 set, hepsi fotogerçekçi))
+- Tüm avatar havuzu yeniden kesildi: **Erkek 100 + Kadın 100 set** (her biri 8/12/16/20 yaş). Eski karışık set
+  (çizgi-film + gerçekçi) gitti; **hepsi fotogerçekçi** artık. `slice-avatars.mjs` → `public/img/avatars/<bg>NN/`,
+  manifest 100+100. (Format doğrulandı: 1774×887, 4-panel, 1–100 eksiksiz; çizgi-film yok.)
+
 ### Değişti (08.11 — Menü/UI görselleri yenilendi)
 - Kullanıcı tüm menü ikonlarını (Bugün/Antrenman/Ekipman/Turnuvalar/Klasman/Kariyer/Ayarlar) + UI görsellerini
   (Kondisyon/Form/Dolap/Market/Denar) gold temalı yenileriyle değiştirdi. Siyah zemin flood-fill ile temizlendi;
