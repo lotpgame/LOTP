@@ -464,6 +464,7 @@ export interface RankingRowDTO {
   playerId: number;
   name: string;
   clubName: string;
+  clubCity: string; // kulüp logosu şehir-hash'iyle belirlenir (clubLogoSrc)
   points: number;
   position: number;
   isHuman: boolean;
@@ -1568,6 +1569,7 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
       playerId: r.playerId,
       name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
       clubName: p?.club?.name ?? "",
+      clubCity: p?.club?.city ?? "",
       points: roundSkill(r.points),
       position: narrowed ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,

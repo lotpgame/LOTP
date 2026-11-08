@@ -10,6 +10,7 @@ import { bandMax } from "@/app/ui/bands";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
 import { trainingImg } from "./trainingImage";
+import { clubLogoSrc } from "./clubLogo";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TECHNICAL: "Teknik",
@@ -213,7 +214,12 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
               <span className="min-w-0">
                 {/* Kendi adın "SEN" etiketi yerine kırmızı+kalın fontla ayırt edilir (satırdaki kırmızı kenarla uyumlu). */}
                 <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-me" : ""}`}>{r.name}</span>
-                {r.clubName && <span className="block truncate text-[13px] text-steel">{r.clubName}</span>}
+                {r.clubName && (
+                  <span className="flex min-w-0 items-center gap-1 text-[13px] text-steel">
+                    {r.clubCity && <img src={clubLogoSrc(r.clubCity)} alt="" aria-hidden="true" width={16} height={16} className="shrink-0" />}
+                    <span className="truncate">{r.clubName}</span>
+                  </span>
+                )}
               </span>
               <span className="num text-[15px]">{r.points.toFixed(1)}</span>
             </li>

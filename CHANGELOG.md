@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (08.11 — Klasmanda kulüp logosu)
+- Klasman satırlarında oyuncunun kulüp adının yanında **kulüp logosu** (16px) gösteriliyor (`RankingRowDTO` artık
+  `clubCity` taşıyor → `clubLogoSrc`). Yerelde seed klasmanı boş olduğu için görsel canlıda/oyun ilerleyince görünür.
+
 ### Değişti (08.11 — Kulüp logoları: yeni 4×4 set + tekrar ayıklama (283 benzersiz))
 - Kullanıcının yeni **20 sayfası** (beyaz zemin, 4×4 = her sayfa 16 dairesel eskrim crest'i) işlendi. Eski 300'lük set
   (kesim hizası sorunluydu) kaldırıldı.
