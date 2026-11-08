@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Menü/UI görselleri yenilendi)
+- Kullanıcı tüm menü ikonlarını (Bugün/Antrenman/Ekipman/Turnuvalar/Klasman/Kariyer/Ayarlar) + UI görsellerini
+  (Kondisyon/Form/Dolap/Market/Denar) gold temalı yenileriyle değiştirdi. Siyah zemin flood-fill ile temizlendi;
+  **Denar** checker fringe için dairesel kırpma. Aynı dosya adları → kod değişmeden devreye girdi.
+- **Yeni yetenekler rozeti** (maske + 3 kategori kartı) → Bugün "YETENEKLER" bölüm başlığına eklendi
+  (`CollapsibleSection` artık `icon` prop'u alıyor; `public/img/ui/yetenekler.webp`).
+
 ### Değişti (08.11 — Klasman filtresi: ülke/şehir alfabetik)
 - Klasman filtresinde **ülke** ve **şehir** dropdown'ları artık alfabetik sıralı (Türkçe collation, `localeCompare`).
   Önceden geo.ts tanım sırasıydı (Türkiye/Kocaeli başta). Seçili değer korunur; yalnız liste sırası düzeldi.

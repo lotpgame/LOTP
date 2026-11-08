@@ -207,7 +207,7 @@ export default async function BugunPage({
       <PisteLine className="my-1" />
 
       {/* 4 · Yetenekler — radar (şimdi / geçen çeyrek / +N), altında kategori çubukları */}
-      <CollapsibleSection title={t(locale, "profil.skills")} defaultOpen>
+      <CollapsibleSection title={t(locale, "profil.skills")} icon="/img/ui/yetenekler.webp" defaultOpen>
         <div className="flex flex-col gap-4">
           <SkillRadar skills={c.skills} base={c.skillBase?.values ?? null} max={bandMax(c.categoryId)} locale={locale} />
           <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
