@@ -93,8 +93,12 @@ export function KlasmanFilter({
   };
 
   const selCls = "mt-2 min-h-11 w-full rounded-md border border-line bg-arena-1 px-3 text-[15px] outline-none focus:border-ink";
+  // Dropdown'lar alfabetik (Türkçe sıralama — kullanıcı 08.11). Ülkeler görünen ada göre; şehirler ada göre.
+  const sortedCountries = [...COUNTRIES].sort((a, b) =>
+    t(locale, `country.${a.code}`).localeCompare(t(locale, `country.${b.code}`), locale),
+  );
   // Şehir sekmesindeki seçili ülkenin şehirleri (herhangi ülke + şehir görülebilir — kullanıcı 27.10).
-  const cityOptions = citiesForCountry(country);
+  const cityOptions = [...citiesForCountry(country)].sort((a, b) => a.localeCompare(b, locale));
 
   const setScopeLevel = (lv: ScopeLevel) => {
     setLevel(lv);
@@ -135,7 +139,7 @@ export function KlasmanFilter({
             className={`${selCls} sm:flex-1`}
             aria-label={t(locale, "klasman.country")}
           >
-            {COUNTRIES.map((co) => (
+            {sortedCountries.map((co) => (
               <option key={co.code} value={co.code}>
                 {t(locale, `country.${co.code}`)}
               </option>
@@ -185,7 +189,7 @@ export function KlasmanFilter({
           }}
           className={selCls}
         >
-          {COUNTRIES.map((c) => (
+          {sortedCountries.map((c) => (
             <option key={c.code} value={c.code}>
               {t(locale, `country.${c.code}`)}
             </option>

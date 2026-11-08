@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Klasman filtresi: ülke/şehir alfabetik)
+- Klasman filtresinde **ülke** ve **şehir** dropdown'ları artık alfabetik sıralı (Türkçe collation, `localeCompare`).
+  Önceden geo.ts tanım sırasıydı (Türkiye/Kocaeli başta). Seçili değer korunur; yalnız liste sırası düzeldi.
+
 ### Düzeltildi (08.11 — Kulüp logosu kesilmesi kökten giderildi (geniş kesim))
 - Bazı amblemler kaynak hücreden taşıyordu → 4×4 kesim üst/alt/yanı DÜZ kesiyordu (Kocaeli/Bursa üstten, Londra alttan).
   `slice-clublogos.mjs` artık hücreyi boşluğa doğru **%9 genişleterek** kesiyor (tam amblem alınır) ve **centroid'li
