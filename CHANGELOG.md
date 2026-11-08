@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Kulüp logoları: 300 abstract crest, global havuz (landmark yok))
+- Önceki ülke-landmark logoları (Galata→İstanbul, Eyfel→Paris… → şehir-mismatch sorunu, ör. "Birmingham kulübünde
+  Londra figürü") **kaldırıldı**. Yerine kullanıcının **300 abstract renkli crest**'i (şehir/ülke figürü yok) işlendi.
+- `slice-clublogos.mjs`: 5 ızgara (10×6) → açık degrade zemin flood-fill ile şeffaf → `club-1..300.webp`.
+- `clubLogo.ts` artık **global havuz** (ülke-bağımsız): her kulübe şehir-hash'iyle sabit-rastgele logo. 270 eski logo silindi.
+- İzmit/Kocaeli özel logosu `CITY_OVERRIDE` ile sonra bağlanacak.
+
 ### Değişti (07.11 — Denar rozeti masaüstüne + antrenman türü görselleri)
 - **Denar rozeti masaüstü sidebar'a eklendi** (kimlik kartının altında). Daha önce yalnız telefon-yatay alt şeritteydi;
   masaüstünde Denar Kazan/Al erişimi kapalıydı — artık her iki görünümde var.

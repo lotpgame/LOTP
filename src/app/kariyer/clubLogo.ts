@@ -1,21 +1,15 @@
 /**
- * Kulüp logosu (saf): her kulübe ÜLKESİNİN logo havuzundan sabit-rastgele bir logo atanır.
+ * Kulüp logosu (saf): her kulübe GLOBAL havuzdan sabit-rastgele bir logo atanır (ülke-bağımsız).
  *
- * Plan (kullanıcı 07.11): her ülke için ~10 ülkeye-özgü logo üretilir → kulüplere rastgele dağıtılır.
- * Atama ŞEHİR adının hash'inden türetilir → aynı kulüp HER ZAMAN aynı logoyu gösterir (stabil).
- * Ülkenin logosu yoksa veya şehir bilinmiyorsa → `default.webp`.
+ * Plan (kullanıcı 08.11): 300 abstract/renkli crest (şehir/ülke figürü YOK) → kulüplere rastgele dağıtılır.
+ * Böylece "Birmingham kulübünde Londra figürü" gibi landmark-mismatch olmaz. Atama ŞEHİR adının hash'inden
+ * türetilir → aynı kulüp HER ZAMAN aynı logoyu gösterir (stabil).
  *
- * Görseller: public/img/clubs/<cc>-<1..n>.webp (ör. tr-1.webp … tr-10.webp) + default.webp.
- * Yeni ülke logoları geldikçe: dosyaları koy + COUNTRY_LOGO_COUNT'a ülke sayısını yaz.
- * Şehre ÖZEL logo (İzmit/Kocaeli gibi) → CITY_OVERRIDE'a eklenir (kulüpler bitince kodlanacak).
+ * Görseller: public/img/clubs/club-1..300.webp (+ default.webp fallback). Üretim: scripts/slice-clublogos.mjs.
+ * Şehre ÖZEL logo (İzmit/Kocaeli gibi) → CITY_OVERRIDE'a eklenir (public/img/clubs/<dosya>.webp konur).
  */
-import { countryCodeOfCity } from "@/engine/geo";
 
-/** Ülke başına mevcut logo sayısı (public/img/clubs/<cc>-1..n.webp). Yoksa o ülke default'a düşer. */
-const COUNTRY_LOGO_COUNT: Record<string, number> = {
-  TR: 15, FR: 15, IT: 15, DE: 15, HU: 15, RU: 15, PL: 15, ES: 15, GB: 15,
-  UA: 15, US: 15, BR: 15, JP: 15, KR: 15, CN: 15, AU: 15, EG: 15, TN: 15,
-};
+const CLUB_LOGO_COUNT = 300; // global havuz
 
 /** Şehre özel logo override (slug → dosya adı). İzmit/Kocaeli sonra eklenecek. */
 const CITY_OVERRIDE: Record<string, string> = {};
@@ -44,15 +38,11 @@ function hashStr(s: string): number {
   return h >>> 0;
 }
 
-/** Bir kulübün (şehrine göre) logo yolu — şehre özel > ülke havuzundan sabit-rastgele > varsayılan. */
+/** Bir kulübün (şehrine göre) logo yolu — şehre özel > global havuzdan sabit-rastgele > varsayılan. */
 export function clubLogoSrc(city: string): string {
   const slug = citySlug(city);
-  if (slug && CITY_OVERRIDE[slug]) return `/img/clubs/${CITY_OVERRIDE[slug]}.webp`;
-  const cc = countryCodeOfCity(city);
-  const n = cc ? COUNTRY_LOGO_COUNT[cc] ?? 0 : 0;
-  if (cc && n > 0) {
-    const idx = (hashStr(slug) % n) + 1; // 1..n
-    return `/img/clubs/${cc.toLowerCase()}-${idx}.webp`;
-  }
-  return `/img/clubs/default.webp`;
+  if (!slug) return "/img/clubs/default.webp";
+  if (CITY_OVERRIDE[slug]) return `/img/clubs/${CITY_OVERRIDE[slug]}.webp`;
+  const idx = (hashStr(slug) % CLUB_LOGO_COUNT) + 1; // 1..300
+  return `/img/clubs/club-${idx}.webp`;
 }
