@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (08.11 — Kulüp logolarında komşu dilim temizliği)
+- Bazı logolarda komşu logonun kenara (sağ/üst) düşen İNCE bir dilimi kalmıştı (slice payı %1). `scripts/clean-club-logos.mjs`
+  ile **yerinde** temizlendi: bağlı bileşenler → sadece büyükler (≥max %8) tutuldu (dilim atıldı, defne/ışın korundu),
+  yeniden trim + ortala. **Re-slice YOK → numaralandırma birebir korundu** (club-N hep aynı kulüp → DB logoFile geçerli).
+  287 dosya tarandı, 124'ünde dilim atıldı; hepsi yeniden merkezlendi. Not: aynı dosyayı okuyup yazarken Windows kilidi
+  için input bellekten okunur (`sharp.cache(false)` + `readFileSync`).
+
 ### Eklendi (08.11 — Kulüp logosu DB'de kalıcı + tıkla-büyüt/pencere)
 - **Logo artık DB'de sabit** (`Club.logoFile`): kulüp kurulurken şehir-hash'iyle atanır ve yazılır → logo havuzu ilerde
   değişse bile **bir daha kaymaz**. Eski kulüpler ilk okunduğunda (getCareer / klasman) lazy backfill ile doldurulur.
