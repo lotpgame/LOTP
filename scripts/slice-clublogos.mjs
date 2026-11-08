@@ -40,14 +40,18 @@ async function cutEmblem(buf) {
   for (let p = 0; p < N; p++) if (bg[p]) data[p * 4 + 3] = 0;
   const raw = await sharp(data, { raw: { width: W, height: H, channels: 4 } }).png().toBuffer();
   let t; try { t = await sharp(raw).trim({ threshold: 10 }).toBuffer(); } catch { t = raw; }
+  // 214/256 → ~16% kenar payı: amblem çerçeveye yapışmasın, "büyük/kesik" görünmesin (kullanıcı 08.11).
   return sharp({ create: { width: 256, height: 256, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite([{ input: await sharp(t).resize(248, 248, { fit: "inside" }).toBuffer(), gravity: "center" }])
+    .composite([{ input: await sharp(t).resize(214, 214, { fit: "inside" }).toBuffer(), gravity: "center" }])
     .webp({ quality: 90 }).toBuffer();
 }
 
-// Beyaz zemine düzleştirilmiş SIG×SIG RGB imza (tekrar ayıklama için).
+// Beyaz zemine düzleştirilmiş SIG×SIG RGB imza (tekrar ayıklama için). ÖNCE trim → amblemin kendi içeriğine
+// göre imza (çerçeve payından bağımsız); aksi halde boşluk payı değişince ortak beyaz artıp mesafeyi bozuyor.
 async function signature(webp) {
-  return sharp(webp).flatten({ background: "#ffffff" }).resize(SIG, SIG, { fit: "fill" }).raw().toBuffer();
+  const flat = await sharp(webp).flatten({ background: "#ffffff" }).toBuffer();
+  let tight; try { tight = await sharp(flat).trim({ threshold: 10 }).toBuffer(); } catch { tight = flat; }
+  return sharp(tight).resize(SIG, SIG, { fit: "fill" }).raw().toBuffer();
 }
 const sigDist = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length; };
 
@@ -59,7 +63,8 @@ for (let g = 1; g <= SHEETS; g++) {
   const m = await sharp(f).metadata();
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const l0 = bound(c, COLS, m.width), l1 = bound(c + 1, COLS, m.width), t0 = bound(r, ROWS, m.height), t1 = bound(r + 1, ROWS, m.height);
-    const ins = Math.round((l1 - l0) * 0.03);
+    // pay %1: sayfalarda amblem araları bol beyaz → küçük pay yeter; büyük pay amblemin ucunu (kanat/defne) kesiyordu.
+    const ins = Math.round((l1 - l0) * 0.01);
     const region = await sharp(f).extract({ left: l0 + ins, top: t0 + ins, width: l1 - l0 - ins * 2, height: t1 - t0 - ins * 2 }).toBuffer();
     const emb = await cutEmblem(region);
     all.push({ emb, sig: await signature(emb) });

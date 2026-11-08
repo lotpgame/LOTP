@@ -20,7 +20,7 @@ export default async function KulupPage() {
         <section className="panel mt-3 p-4">
           <div className="flex items-center gap-3">
             {/* Kulüp logosu — şehre özel yoksa varsayılan Gladius-tarzı amblem (clubLogo.ts). */}
-            <img src={clubLogoSrc(c.club.city)} alt={c.club.name} width={60} height={60} className="shrink-0" />
+            <img src={clubLogoSrc(c.club.city)} alt={c.club.name} width={84} height={84} className="shrink-0" />
             <div className="min-w-0">
               <div className="truncate text-[18px] font-semibold">{c.club.name}</div>
               <div className="text-[14px] text-steel">{c.club.city}</div>

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (08.11 — Kulüp logosu kesilmesi + boyut)
+- Logolar çerçeveye yapışıp "büyük/kesik" görünüyordu (kulüp sayfası + klasman). Kesim payı %3→%1 (amblem ucu kesilmez)
+  ve webp içi margin artırıldı (248→214/256, ~%16 pay) → tam logo, kenarda boşluk. Dedup imzası artık ÖNCE trim'liyor
+  (margin'den bağımsız; aksi halde boşluk değişince sahte-birleşme oluyordu). Yeniden kesildi → **287 benzersiz** (COUNT=287).
+- **Kulüp sayfası** logosu büyütüldü (60→84px).
+
 ### Değişti (08.11 — Kondisyon/Form ikonları yenilendi)
 - Kullanıcı kondisyon/form görsellerini değiştirdi (daire/maske yerine sade ikon: yeşil pil / yükselen bar+ok).
   Siyah zemin kenardan flood-fill ile temizlendi → `public/img/ui/{kondisyon,form}.webp` güncellendi.
