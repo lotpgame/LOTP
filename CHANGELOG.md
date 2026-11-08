@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (08.11 — Kulüp logosu DB'de kalıcı + tıkla-büyüt/pencere)
+- **Logo artık DB'de sabit** (`Club.logoFile`): kulüp kurulurken şehir-hash'iyle atanır ve yazılır → logo havuzu ilerde
+  değişse bile **bir daha kaymaz**. Eski kulüpler ilk okunduğunda (getCareer / klasman) lazy backfill ile doldurulur.
+  `clubLogo.ts`: `assignClubLogo`/`resolveClubLogo`. CareerNav sidebar ikonu + kulüp sayfası + klasman hep DB logosunu kullanır.
+- **Kulüp sayfası logosu tıklanınca pencere** açılıyor (büyük logo + kulüp adı + şehir) — `ClubDialog`.
+- **Klasman** kulüp satırı tıklanınca aynı pencere (logo + ad + şehir).
+- **Migration (Neon'da çalıştır):** `ALTER TABLE "Club" ADD COLUMN "logoFile" TEXT NOT NULL DEFAULT '';`
+
 ### Düzeltildi (08.11 — Kulüp logosu kesilmesi + boyut)
 - Logolar çerçeveye yapışıp "büyük/kesik" görünüyordu (kulüp sayfası + klasman). Kesim payı %3→%1 (amblem ucu kesilmez)
   ve webp içi margin artırıldı (248→214/256, ~%16 pay) → tam logo, kenarda boşluk. Dedup imzası artık ÖNCE trim'liyor

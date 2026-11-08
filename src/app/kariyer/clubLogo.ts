@@ -38,11 +38,30 @@ function hashStr(s: string): number {
   return h >>> 0;
 }
 
-/** Bir kulübün (şehrine göre) logo yolu — şehre özel > global havuzdan sabit-rastgele > varsayılan. */
-export function clubLogoSrc(city: string): string {
+/**
+ * Bir kulübe ŞEHRİNE göre logo DOSYA ADI atar ("club-N" veya override adı; şehir boşsa "default").
+ * Kulüp KURULURKEN bir kez çağrılır ve sonuç DB'ye (Club.logoFile) yazılır → logo bir daha kaymaz
+ * (havuz sayısı değişse bile). Mevcut kulüpler ilk okunduğunda bununla doldurulur (lazy backfill).
+ */
+export function assignClubLogo(city: string): string {
   const slug = citySlug(city);
-  if (!slug) return "/img/clubs/default.webp";
-  if (CITY_OVERRIDE[slug]) return `/img/clubs/${CITY_OVERRIDE[slug]}.webp`;
+  if (!slug) return "default";
+  if (CITY_OVERRIDE[slug]) return CITY_OVERRIDE[slug];
   const idx = (hashStr(slug) % CLUB_LOGO_COUNT) + 1; // 1..287
-  return `/img/clubs/club-${idx}.webp`;
+  return `club-${idx}`;
+}
+
+/** Dosya adı → public yol. */
+export function clubLogoPath(file: string): string {
+  return `/img/clubs/${file || "default"}.webp`;
+}
+
+/** DB'de kayıtlı dosya adı varsa onu, yoksa şehirden hesaplananı kullan (stabil görüntü yolu). */
+export function resolveClubLogo(logoFile: string | null | undefined, city: string): string {
+  return clubLogoPath(logoFile || assignClubLogo(city));
+}
+
+/** Geriye-uyum: doğrudan şehirden logo yolu (DB'siz bağlamlar için). */
+export function clubLogoSrc(city: string): string {
+  return clubLogoPath(assignClubLogo(city));
 }

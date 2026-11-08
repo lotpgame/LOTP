@@ -169,6 +169,9 @@ model Club {
   coach2Specialty String  @default("") // 2. koç uzmanlığı (1.'den farklı)
   lastCoachFacility    Int @default(30) // antrenörlerin en son geldiği andaki tesis (+%20 eşiği buna göre)
   coachPendingSinceDay Int @default(-1) // +%20 eşiğinin ilk aşıldığı oyun günü (-1 = beklemede değil)
+  // Logo dosya adı ("club-N" / override) — kulüp kurulurken bir kez atanır (şehir hash'i), DB'de sabitlenir →
+  // havuz sayısı ilerde değişse bile logo KAYMAZ. Boş = eski kulüp, ilk okunduğunda doldurulur (src/app/kariyer/clubLogo.ts).
+  logoFile       String   @default("")
   players        Player[]
   createdAt      DateTime @default(now())
 }

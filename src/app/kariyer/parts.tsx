@@ -10,7 +10,7 @@ import { bandMax } from "@/app/ui/bands";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
 import { trainingImg } from "./trainingImage";
-import { clubLogoSrc } from "./clubLogo";
+import { ClubDialog } from "./ClubDialog";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TECHNICAL: "Teknik",
@@ -215,10 +215,16 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
                 {/* Kendi adın "SEN" etiketi yerine kırmızı+kalın fontla ayırt edilir (satırdaki kırmızı kenarla uyumlu). */}
                 <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-me" : ""}`}>{r.name}</span>
                 {r.clubName && (
-                  <span className="flex min-w-0 items-center gap-1 text-[13px] text-steel">
-                    {r.clubCity && <img src={clubLogoSrc(r.clubCity)} alt="" aria-hidden="true" width={16} height={16} className="shrink-0" />}
+                  <ClubDialog
+                    logo={r.clubLogo}
+                    name={r.clubName}
+                    city={r.clubCity}
+                    closeLabel={t(locale, "common.close")}
+                    triggerClassName="press flex min-w-0 max-w-full items-center gap-1 text-[13px] text-steel"
+                  >
+                    <img src={r.clubLogo} alt="" aria-hidden="true" width={16} height={16} className="shrink-0" />
                     <span className="truncate">{r.clubName}</span>
-                  </span>
+                  </ClubDialog>
                 )}
               </span>
               <span className="num text-[15px]">{r.points.toFixed(1)}</span>

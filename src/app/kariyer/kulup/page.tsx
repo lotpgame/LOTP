@@ -4,7 +4,7 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Segments } from "@/app/ui/Piste";
-import { clubLogoSrc } from "../clubLogo";
+import { ClubDialog } from "../ClubDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +19,10 @@ export default async function KulupPage() {
       {c.club ? (
         <section className="panel mt-3 p-4">
           <div className="flex items-center gap-3">
-            {/* Kulüp logosu — şehre özel yoksa varsayılan Gladius-tarzı amblem (clubLogo.ts). */}
-            <img src={clubLogoSrc(c.club.city)} alt={c.club.name} width={84} height={84} className="shrink-0" />
+            {/* Kulüp logosu — DB'de sabit (clubLogo.ts). Tıklayınca büyük görünüm + ad/şehir penceresi. */}
+            <ClubDialog logo={c.club.logo} name={c.club.name} city={c.club.city} closeLabel={t(locale, "common.close")} triggerClassName="press shrink-0">
+              <img src={c.club.logo} alt={c.club.name} width={84} height={84} className="shrink-0" />
+            </ClubDialog>
             <div className="min-w-0">
               <div className="truncate text-[18px] font-semibold">{c.club.name}</div>
               <div className="text-[14px] text-steel">{c.club.city}</div>

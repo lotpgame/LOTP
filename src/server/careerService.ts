@@ -38,6 +38,7 @@ import {
 } from "@/engine/domain";
 import { createRng } from "@/engine/probability";
 import { pickAvatar } from "@/engine/avatars";
+import { assignClubLogo, resolveClubLogo } from "@/app/kariyer/clubLogo";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import {
@@ -464,7 +465,8 @@ export interface RankingRowDTO {
   playerId: number;
   name: string;
   clubName: string;
-  clubCity: string; // kulüp logosu şehir-hash'iyle belirlenir (clubLogoSrc)
+  clubCity: string; // klasman detay penceresi için
+  clubLogo: string; // kulüp logosu yolu (DB'de sabit)
   points: number;
   position: number;
   isHuman: boolean;
@@ -504,6 +506,7 @@ export interface CareerDTO {
   club: {
     name: string;
     city: string;
+    logo: string; // kulüp logosu yolu (DB'de sabit; src/app/kariyer/clubLogo.ts)
     facility: number;
     members: number; // kulüpteki gerçek (bot olmayan) aktif sporcu sayısı
     nationals: number; // bunlardan milli takıma seçilmiş olanlar (NATIONAL_TEAM başarısı)
@@ -632,6 +635,7 @@ function makeClubData(city: string, rng: ReturnType<typeof createRng>, countryCo
   return {
     name: clubNameFor(city, countryCode),
     city,
+    logoFile: assignClubLogo(city), // logo DB'de sabitlenir → havuz değişse bile kaymaz
     baseFacility: BASE_FACILITY, // taban 30; tesis canlı hesaplanır (üye + başarılı mezun oranı)
     facility: BASE_FACILITY,
     coachName: coachFullName(),
@@ -964,6 +968,13 @@ export async function getCareer(): Promise<CareerDTO | null> {
     ? await refreshClubFacility(human.club.id, human.club.baseFacility, human.club.facility)
     : null;
 
+  // Logo lazy-backfill: eski kulübün logoFile'ı boşsa bir kez doldur → bir daha kaymaz (havuz değişse bile).
+  if (human.club && !human.club.logoFile) {
+    const lf = assignClubLogo(human.club.city);
+    human.club.logoFile = lf;
+    await prisma.club.update({ where: { id: human.club.id }, data: { logoFile: lf } }).catch(() => {});
+  }
+
   // Antrenör kalitesi: tesis son antrenör gelişine göre +%20 artıp 1 hafta sabit kalınca antrenörler yenilenir
   // (yeni isim + yetenek = güncel tesis; uzmanlıklar aynı kalır). Tesis tazelendikten SONRA kontrol edilir.
   if (human.club && clubStats) {
@@ -1092,6 +1103,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       ? {
           name: `${human.club.city} ${t(locale, "club.suffix")}`,
           city: human.club.city,
+          logo: resolveClubLogo(human.club.logoFile, human.club.city),
           facility: clubStats?.facility ?? human.club.facility,
           members: clubStats?.members ?? 0,
           nationals: clubStats?.nationals ?? 0,
@@ -1185,6 +1197,7 @@ export interface CareerHeaderDTO {
   categoryId: string;
   ageCategory: string; // "U21" (rozet)
   city: string; // kulübün şehri (rozet)
+  clubLogo: string; // sidebar "Kulüp" ikonu (DB'de sabit logo)
   countryCode: string; // oyuncunun ülkesi (bayrak rozeti)
   nationalTeam: boolean; // kategori sıralaması ilk 4 → milli takım rozeti
   avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
@@ -1329,6 +1342,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     categoryId: cur.categoryId,
     ageCategory: cur.ageCategory,
     city: human.club?.city ?? "",
+    clubLogo: resolveClubLogo(human.club?.logoFile, human.club?.city ?? ""),
     countryCode: human.nationality?.code ?? "TR",
     nationalTeam,
     avatar: human.avatar ?? null,
@@ -1551,6 +1565,16 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
     include: { club: true, nationality: true },
   });
   const byId = new Map(players.map((p) => [p.id, p]));
+  // Logo lazy-backfill: klasmanda görünen eski kulüplerin boş logoFile'ını bir kez doldur → bir daha kaymaz.
+  const toFix = new Map<number, string>();
+  for (const p of players) if (p.club && !p.club.logoFile) {
+    const lf = assignClubLogo(p.club.city);
+    p.club.logoFile = lf;
+    toFix.set(p.club.id, lf);
+  }
+  if (toFix.size > 0) {
+    await prisma.$transaction([...toFix].map(([id, lf]) => prisma.club.update({ where: { id }, data: { logoFile: lf } }))).catch(() => {});
+  }
   // Şehir satırları zaten o şehre ait (ek süzme yok). Ülke → o ülke; kıta → o kıta. Kapsam-içi 1..N sırası.
   const narrowByNat = (!!scope.country && !scope.city) || !!scope.continent;
   const narrowed = !!(scope.city || scope.country || scope.continent);
@@ -1570,6 +1594,7 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
       name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
       clubName: p?.club?.name ?? "",
       clubCity: p?.club?.city ?? "",
+      clubLogo: p?.club ? resolveClubLogo(p.club.logoFile, p.club.city) : "/img/clubs/default.webp",
       points: roundSkill(r.points),
       position: narrowed ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,

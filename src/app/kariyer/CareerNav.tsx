@@ -14,7 +14,6 @@ import { t, type Locale } from "@/i18n";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
-import { clubLogoSrc } from "./clubLogo";
 import { DenarBadge } from "./DenarBadge";
 import { Flag } from "./Flag";
 import { WorldClockBadge } from "./WorldClockBadge";
@@ -30,9 +29,9 @@ const MENU_IMG: Record<string, string> = {
   "/kariyer/ayarlar": "ayarlar",
 };
 
-/** Menü ikonu: Kulüp → kulüp logosu; diğerleri → özel menü görseli. Aktifse tam, değilse hafif soluk. */
-function NavIcon({ href, size, city, active }: { href: string; size: number; city: string; active: boolean }) {
-  const src = href === "/kariyer/kulup" ? clubLogoSrc(city) : `/img/menu/${MENU_IMG[href]}.webp`;
+/** Menü ikonu: Kulüp → kulüp logosu (DB'de sabit); diğerleri → özel menü görseli. Aktifse tam, değilse hafif soluk. */
+function NavIcon({ href, size, clubLogo, active }: { href: string; size: number; clubLogo: string; active: boolean }) {
+  const src = href === "/kariyer/kulup" ? clubLogo : `/img/menu/${MENU_IMG[href]}.webp`;
   return (
     <img
       src={src}
@@ -82,6 +81,7 @@ export interface CareerNavProps {
   ageCategory: string;
   age: number;
   city: string;
+  clubLogo: string; // kulüp logosu yolu (DB'de sabit) — sidebar "Kulüp" ikonu
   countryCode: string; // oyuncunun ülkesi (bayrak)
   nationalTeam: boolean;
   avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
@@ -94,7 +94,7 @@ export interface CareerNavProps {
   ticker: ReactNode;
 }
 
-export function CareerNav({ name, locale, weapon, ageCategory, age, city, countryCode, nationalTeam, avatar, balance, adsLeft, adDailyCap, adReward, ticker }: CareerNavProps) {
+export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLogo, countryCode, nationalTeam, avatar, balance, adsLeft, adDailyCap, adReward, ticker }: CareerNavProps) {
   const avatarUrl = avatarSrc(avatar, age);
   const pathname = usePathname();
   const current = activeHref(pathname);
@@ -163,7 +163,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-x-5 bottom-0 h-[2px] rounded-t-full bg-sig-red" aria-hidden="true" />}
-                <NavIcon href={item.href} size={16} city={city} active={on} />
+                <NavIcon href={item.href} size={16} clubLogo={clubLogo} active={on} />
                 <span className="truncate">{t(locale, item.key)}</span>
               </Link>
             );
@@ -210,7 +210,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-sig-red" aria-hidden="true" />}
-                <NavIcon href={item.href} size={20} city={city} active={on} />
+                <NavIcon href={item.href} size={20} clubLogo={clubLogo} active={on} />
                 {t(locale, item.key)}
               </Link>
             );
@@ -239,7 +239,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                 }`}
               >
                 {on && <span className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                <NavIcon href={item.href} size={24} city={city} active={on} />
+                <NavIcon href={item.href} size={24} clubLogo={clubLogo} active={on} />
                 <span className="max-w-full truncate px-1">{t(locale, item.key)}</span>
               </Link>
             );
@@ -276,7 +276,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                   }`}
                 >
                   {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                  <NavIcon href={item.href} size={16} city={city} active={on} />
+                  <NavIcon href={item.href} size={16} clubLogo={clubLogo} active={on} />
                   <span className="truncate">{t(locale, item.key)}</span>
                 </Link>
               );
@@ -320,7 +320,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, countr
                   aria-current={on ? "page" : undefined}
                   className={`flex min-h-12 items-center gap-3 rounded-md px-3 text-[16px] ${on ? "bg-arena-1 font-semibold" : "active:bg-arena-1"}`}
                 >
-                  <NavIcon href={item.href} size={22} city={city} active={on} />
+                  <NavIcon href={item.href} size={22} clubLogo={clubLogo} active={on} />
                   <span className="flex-1">{t(locale, item.key)}</span>
                   <Icon name="chevron-right" size={18} className="text-steel" />
                 </Link>
