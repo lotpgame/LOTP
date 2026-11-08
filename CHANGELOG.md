@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Kulüp logoları: yeni 4×4 set + tekrar ayıklama (283 benzersiz))
+- Kullanıcının yeni **20 sayfası** (beyaz zemin, 4×4 = her sayfa 16 dairesel eskrim crest'i) işlendi. Eski 300'lük set
+  (kesim hizası sorunluydu) kaldırıldı.
+- **Tekrar ayıklama:** ChatGPT aynı tasarımı çok sayfada tekrarlamış. 320 kesim → 24×24 RGB imza + greedy dedup
+  (TH=21) ile **37 birebir kopya** (aynı tasarım + aynı renk) atıldı → **283 benzersiz**. Farklı RENK varyantları
+  korundu (kullanıcı kararı: renk varyantı = farklı kulüp). 30+7 atılan tek tek görsel doğrulandı (yanlış eleme yok).
+- `slice-clublogos.mjs` artık kes+dedup+yaz yapıyor; `clubLogo.ts` CLUB_LOGO_COUNT=283.
+
 ### Değişti (08.11 — Kondisyon/Form altın rozet görselleri)
 - **Kondisyon** (maske + yeşil pil + nabız) ve **Form** (maske + yükselen bar + yıldız) için kullanıcının altın
   madalya rozetleri işlendi (siyah köşeler daire-kırpmayla temizlendi → `public/img/ui/{kondisyon,form}.webp`).

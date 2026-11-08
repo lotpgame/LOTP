@@ -9,7 +9,7 @@
  * Şehre ÖZEL logo (İzmit/Kocaeli gibi) → CITY_OVERRIDE'a eklenir (public/img/clubs/<dosya>.webp konur).
  */
 
-const CLUB_LOGO_COUNT = 300; // global havuz
+const CLUB_LOGO_COUNT = 283; // global havuz (320 kesildi − 37 birebir kopya ayıklandı)
 
 /** Şehre özel logo override (slug → dosya adı). İzmit/Kocaeli sonra eklenecek. */
 const CITY_OVERRIDE: Record<string, string> = {};
@@ -43,6 +43,6 @@ export function clubLogoSrc(city: string): string {
   const slug = citySlug(city);
   if (!slug) return "/img/clubs/default.webp";
   if (CITY_OVERRIDE[slug]) return `/img/clubs/${CITY_OVERRIDE[slug]}.webp`;
-  const idx = (hashStr(slug) % CLUB_LOGO_COUNT) + 1; // 1..300
+  const idx = (hashStr(slug) % CLUB_LOGO_COUNT) + 1; // 1..283
   return `/img/clubs/club-${idx}.webp`;
 }
