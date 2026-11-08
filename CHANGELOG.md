@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (08.11 — Antrenman görselleri yetenek/fizik/psikoloji başlıklarında)
+- **Bugün** ve **Antrenman** sayfalarında yetenek kategori başlıkları (Teknik/Fiziksel/Mental/Taktik) artık generic
+  ikon yerine **antrenman türü görsellerini** kullanıyor (`SkillsByCategory`, 28px yuvarlak küçük görsel).
+- **Bugün → Fizik** başlığı `physical.webp`, **Bugün → Psikoloji** başlığı `mental.webp` görseliyle. `trainingImg()` ortak.
+
 ### Düzeltildi (08.11 — Kulüp logosu kesim hizası)
 - Bazı kesilmiş kulüp logoları komşu logonun bir dilimini kapıyordu ("2 logo arası düşmüş"). Neden: hücre sınırları
   `Math.floor` ile kayıyordu (1536/10=153.6 → sütun sütun kayma). Düzeltme: **tam ondalık sınır** (`round(i*tot/n)`,

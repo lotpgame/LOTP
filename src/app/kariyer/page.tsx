@@ -15,6 +15,7 @@ import { KimlikKarti } from "./KimlikKarti";
 import { SkillRadar } from "./SkillRadar";
 import { WeekStrip } from "./WeekStrip";
 import { buildWeek, todayFromHeader } from "./week";
+import { trainingImg } from "./trainingImage";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
 import { ErrorBanner } from "./ErrorBanner";
 
@@ -219,7 +220,7 @@ export default async function BugunPage({
       <section className="flex flex-col gap-2.5">
         <details className="panel group">
           <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
-            <Icon name="physique" size={18} className="text-steel" />
+            <img src={trainingImg("PHYSICAL")} alt="" aria-hidden="true" className="shrink-0 rounded-md object-cover" style={{ width: 26, height: 26 }} />
             <span className="flex-1 font-display text-[17px] font-bold uppercase tracking-wide">{t(locale, "profil.physique")}</span>
             <span className="num text-[13px] text-steel">
               {c.physique.heightCm.toFixed(0)} cm · {c.physique.weightKg.toFixed(0)} kg
@@ -237,7 +238,7 @@ export default async function BugunPage({
 
         <details className="panel group">
           <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
-            <Icon name="mental" size={18} className="text-steel" />
+            <img src={trainingImg("MENTAL")} alt="" aria-hidden="true" className="shrink-0 rounded-md object-cover" style={{ width: 26, height: 26 }} />
             <span className="flex-1 font-display text-[17px] font-bold uppercase tracking-wide">{t(locale, "profil.psychology")}</span>
             <span className="text-[13px] text-steel">
               {t(locale, "profil.morale")} <span className="num">%{c.psychology.morale.toFixed(0)}</span>

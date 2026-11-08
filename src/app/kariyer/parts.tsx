@@ -9,6 +9,7 @@ import { PisteRail, Segments } from "@/app/ui/Piste";
 import { bandMax } from "@/app/ui/bands";
 import { Avatar } from "./Avatar";
 import { avatarSrc } from "./avatarImage";
+import { trainingImg } from "./trainingImage";
 
 export const CATEGORY_LABEL_TR: Record<SkillCategory, string> = {
   TECHNICAL: "Teknik",
@@ -156,8 +157,8 @@ export function SkillsByCategory({
           return (
             <div key={cat}>
               <div className="mb-2.5 flex items-center justify-between">
-                <h3 className="flex items-center gap-1.5 font-display text-[17px] font-bold uppercase tracking-wide">
-                  <Icon name={CATEGORY_ICON[cat]} size={18} className="text-steel" />
+                <h3 className="flex items-center gap-2 font-display text-[17px] font-bold uppercase tracking-wide">
+                  <img src={trainingImg(cat)} alt="" aria-hidden="true" className="shrink-0 rounded-md object-cover" style={{ width: 28, height: 28 }} />
                   {t(locale, `category.${cat}`)}
                 </h3>
                 <span className="num text-[22px] leading-none">{avg.toFixed(1)}</span>
