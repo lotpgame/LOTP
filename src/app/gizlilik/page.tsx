@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "Gizlilik Politikası · Legends of the Piste",
@@ -90,7 +91,7 @@ export default function GizlilikPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-7">
       <h2 className="font-display text-[20px] font-bold">{title}</h2>
