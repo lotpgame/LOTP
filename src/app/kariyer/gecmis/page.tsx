@@ -3,8 +3,8 @@ import { ArenaPage } from "@/app/ArenaPage";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareerHistory } from "@/server/careerService";
-import { Icon, type IconName } from "@/app/ui/Icon";
-import { ACH_ICON, METAL_BRONZE, METAL_GOLD, METAL_SILVER, PRIO_RING } from "@/app/ui/achievementBadge";
+import { Icon } from "@/app/ui/Icon";
+import { ACH_ICON } from "@/app/ui/achievementBadge";
 import { buildShowcase, buildTimeline, nextGoal, type Badge, type BadgeKey } from "@/app/ui/showcase";
 import { Stat } from "../parts";
 import { Avatar } from "../Avatar";
@@ -14,19 +14,20 @@ import { TournamentsFilter } from "./TournamentsFilter";
 
 export const dynamic = "force-dynamic";
 
-// Kupa vitrini (docs/GORSEL_ETKILESIM.md §7): rozet → ikon + renk. Altın/gümüş/bronz = metal renkleri (sinyal değil,
-// tema değiştirmez); milli takım = vurgu (--prio, tek prestij rengi). Üst kademe hedefleri açılınca altın.
-const BADGE: Record<BadgeKey, { icon: IconName; tone: string }> = {
-  champion: { icon: "trophy", tone: METAL_GOLD },
-  gold: { icon: "medal", tone: METAL_GOLD },
-  silver: { icon: "medal", tone: METAL_SILVER },
-  bronze: { icon: "medal", tone: METAL_BRONZE },
-  national: { icon: "flag", tone: PRIO_RING },
-  rankingOne: { icon: "crown", tone: METAL_GOLD },
-  european: { icon: "podium", tone: METAL_GOLD },
-  worldCup: { icon: "podium", tone: METAL_GOLD },
-  olympics: { icon: "podium", tone: METAL_GOLD },
+// Kupa vitrini (docs/GORSEL_ETKILESIM.md §7): rozet → kullanıcının özel gold görseli (public/img/career).
+// Kazanılmışsa tam renkli; henüz değilse soluk/gri; üst kademe kilitliyse kilit rozeti.
+const BADGE: Record<BadgeKey, string> = {
+  champion: "sampiyonluk",
+  gold: "altin-madalya",
+  silver: "gumus-madalya",
+  bronze: "bronz-madalya",
+  national: "milli-takim",
+  rankingOne: "klasman-birinciligi",
+  european: "avrupa-sampiyonasi",
+  worldCup: "dunya-kupasi",
+  olympics: "olimpiyat",
 };
+const careerImg = (name: string) => `/img/career/${name}.webp`;
 
 const DATE_LOCALE: Partial<Record<Locale, string>> = { en: "en-GB", de: "de-DE" };
 
@@ -43,14 +44,16 @@ function badgeLabel(locale: Locale, key: BadgeKey): string {
 }
 
 function BadgeTile({ b, locale }: { b: Badge; locale: Locale }) {
-  const { icon, tone } = BADGE[b.key];
   const earned = !b.locked && b.count > 0;
   return (
     <li className={`panel flex flex-col items-center px-2 py-3 text-center ${b.locked ? "opacity-60" : ""}`}>
-      <span
-        className={`flex h-12 w-12 items-center justify-center rounded-full border border-line ${earned ? tone : "bg-arena-2 text-steel"}`}
-      >
-        <Icon name={b.locked ? "lock" : icon} size={24} />
+      <span className="relative flex h-14 w-14 items-center justify-center">
+        <img src={careerImg(BADGE[b.key])} alt="" aria-hidden="true" className={`h-full w-full object-contain ${earned ? "" : "opacity-35 grayscale"}`} />
+        {b.locked && (
+          <span className="absolute inset-0 flex items-center justify-center text-steel">
+            <Icon name="lock" size={18} />
+          </span>
+        )}
       </span>
       <span className="mt-2 text-[13px] font-medium leading-tight">{badgeLabel(locale, b.key)}</span>
       {b.locked ? (
@@ -94,14 +97,14 @@ export default async function GecmisPage() {
 
       {/* İstatistikler */}
       <section className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        <Stat icon="tournament" label={t(locale, "gecmis.tournaments")} value={String(h.stats.totalTournaments)} />
-        <Stat icon="trophy" label={t(locale, "gecmis.championships")} value={String(h.stats.championships)} />
-        <Stat icon="podium" label={t(locale, "gecmis.medals")} value={String(h.stats.medals)} />
-        <Stat icon="medal" label={t(locale, "gecmis.finals")} value={String(h.stats.finals)} />
-        <Stat icon="mask" label={t(locale, "gecmis.matches")} value={String(h.stats.matchesPlayed)} />
+        <Stat img={careerImg("turnuva")} label={t(locale, "gecmis.tournaments")} value={String(h.stats.totalTournaments)} />
+        <Stat img={careerImg("kupa")} label={t(locale, "gecmis.championships")} value={String(h.stats.championships)} />
+        <Stat img={careerImg("madalya")} label={t(locale, "gecmis.medals")} value={String(h.stats.medals)} />
+        <Stat img={careerImg("final")} label={t(locale, "gecmis.finals")} value={String(h.stats.finals)} />
+        <Stat img={careerImg("mac")} label={t(locale, "gecmis.matches")} value={String(h.stats.matchesPlayed)} />
         <Stat icon="check" label={t(locale, "gecmis.wins")} value={String(h.stats.matchWins)} />
         <Stat
-          icon="ranking"
+          img={careerImg("en-iyi-ranking")}
           label={t(locale, "gecmis.bestRank")}
           value={h.stats.careerBestRank != null ? `#${h.stats.careerBestRank}` : "—"}
         />

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Kariyer sayfası: ikonlar + "Kariyer" adı)
+- "Kariyer Geçmişi" → **"Kariyer"** (nav + sayfa başlığı, tüm diller kısaltıldı).
+- Kupa vitrini rozetleri + istatistik kutuları artık kullanıcının **gold başarı görsellerini** kullanıyor
+  (`public/img/career/*.webp`: madalyalar, kupa, turnuva, maç, final, şampiyonluk, klasman birinciliği, en iyi
+  ranking, milli takım, Avrupa/Dünya/Olimpiyat). Kazanılmış = tam renk; henüz yok = soluk/gri; kilitli = kilit rozeti.
+
 ### Değişti (09.11 — Kulüp kartı penceresi (logo + tam bilgi))
 - Kulüp logosuna tıklayınca açılan pencere artık **kulüp kartı**: solda büyük logo, sağda kulüp adı, şehir + ülke
   (bayrak), **tesis kalitesi** (renkli bar), **oyuncu sayısı**, **antrenör isimleri** (+ uzmanlık). Kulüp sayfası +
