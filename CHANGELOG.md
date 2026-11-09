@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (09.11 — Microsoft ile giriş)
+- Google OAuth'un aynı mantığıyla **Microsoft girişi** eklendi (`microsoftAuth.ts` + `/api/auth/microsoft[/callback]`;
+  giriş panelinde ikinci buton). "common" tenant → kişisel + iş/okul hesapları. E-postayla `completeGoogleSignIn`
+  (sağlayıcı-bağımsız). **Env gerekli (Azure app):** `MICROSOFT_CLIENT_ID` + `MICROSOFT_CLIENT_SECRET` (.env + Vercel);
+  redirect URI: `<origin>/api/auth/microsoft/callback`.
+
 ### Değişti (09.11 — Sayfa arka planları yenilendi)
 - 8 sayfanın arka planı kullanıcının yeni temalı görselleriyle değiştirildi (Bugün/Kulüp/Antrenman/Ekipman/Turnuvalar/
   Klasman/Kariyer/Ayarlar → `public/img/bg-*.webp`). Eskrim amblemi + arena/masa sahneleri; tam-sayfa `object-cover`,
