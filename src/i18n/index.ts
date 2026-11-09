@@ -777,7 +777,6 @@ const TR: Dict = {
   "auth.signInTitle": "Oyuna Giriş",
   "auth.signInLead": "Devam etmek için Google ile giriş yap. Şifre yok, tek tık.",
   "auth.continueGoogle": "Google ile devam et",
-  "auth.continueMicrosoft": "Microsoft ile devam et",
   "auth.error": "Giriş tamamlanamadı. Lütfen tekrar dene.",
   "auth.unconfigured": "Google girişi şu an kullanılamıyor. Birazdan tekrar dene.",
 };
@@ -1512,7 +1511,6 @@ const EN: Dict = {
   "auth.signInTitle": "Sign in",
   "auth.signInLead": "Sign in with Google to continue. No password, one tap.",
   "auth.continueGoogle": "Continue with Google",
-  "auth.continueMicrosoft": "Continue with Microsoft",
   "auth.error": "Sign-in couldn't be completed. Please try again.",
   "auth.unconfigured": "Google sign-in isn't available right now. Please try again shortly.",
 };
@@ -2247,7 +2245,6 @@ const DE: Dict = {
   "auth.signInTitle": "Anmelden",
   "auth.signInLead": "Melde dich mit Google an, um fortzufahren. Kein Passwort, ein Tippen.",
   "auth.continueGoogle": "Mit Google fortfahren",
-  "auth.continueMicrosoft": "Mit Microsoft fortfahren",
   "auth.error": "Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
   "auth.unconfigured": "Google-Anmeldung ist gerade nicht verfügbar. Bitte versuche es gleich erneut.",
 };
@@ -2990,7 +2987,6 @@ const FR: Dict = {
   "auth.signInTitle": "Connexion",
   "auth.signInLead": "Connecte-toi avec Google pour continuer. Sans mot de passe, en un tap.",
   "auth.continueGoogle": "Continuer avec Google",
-  "auth.continueMicrosoft": "Continuer avec Microsoft",
   "auth.error": "La connexion n'a pas pu aboutir. Réessaie, s'il te plaît.",
   "auth.unconfigured": "La connexion Google n'est pas disponible pour le moment. Réessaie dans un instant.",
 };
@@ -3732,7 +3728,6 @@ const ES: Dict = {
   "auth.signInTitle": "Iniciar sesión",
   "auth.signInLead": "Inicia sesión con Google para continuar. Sin contraseña, un toque.",
   "auth.continueGoogle": "Continuar con Google",
-  "auth.continueMicrosoft": "Continuar con Microsoft",
   "auth.error": "No se pudo completar el inicio de sesión. Inténtalo de nuevo.",
   "auth.unconfigured": "El inicio de sesión con Google no está disponible ahora. Inténtalo en un momento.",
 };
@@ -4474,7 +4469,6 @@ const IT: Dict = {
   "auth.signInTitle": "Accedi",
   "auth.signInLead": "Accedi con Google per continuare. Senza password, un tocco.",
   "auth.continueGoogle": "Continua con Google",
-  "auth.continueMicrosoft": "Continua con Microsoft",
   "auth.error": "Impossibile completare l'accesso. Riprova.",
   "auth.unconfigured": "L'accesso con Google non è disponibile al momento. Riprova tra poco.",
 };
@@ -5216,7 +5210,6 @@ const RU: Dict = {
   "auth.signInTitle": "Вход",
   "auth.signInLead": "Войдите через Google, чтобы продолжить. Без пароля, в одно касание.",
   "auth.continueGoogle": "Продолжить с Google",
-  "auth.continueMicrosoft": "Продолжить с Microsoft",
   "auth.error": "Не удалось завершить вход. Попробуйте ещё раз.",
   "auth.unconfigured": "Вход через Google сейчас недоступен. Повторите попытку чуть позже.",
 };
@@ -5958,7 +5951,6 @@ const PT: Dict = {
   "auth.signInTitle": "Entrar",
   "auth.signInLead": "Entre com o Google para continuar. Sem senha, um toque.",
   "auth.continueGoogle": "Continuar com o Google",
-  "auth.continueMicrosoft": "Continuar com o Microsoft",
   "auth.error": "Não foi possível concluir o início de sessão. Tenta novamente.",
   "auth.unconfigured": "O início de sessão com o Google não está disponível neste momento. Tenta novamente daqui a pouco.",
 };
@@ -6700,7 +6692,6 @@ const ZH: Dict = {
   "auth.signInTitle": "登录",
   "auth.signInLead": "用 Google 登录以继续。无需密码，一键登录。",
   "auth.continueGoogle": "使用 Google 继续",
-  "auth.continueMicrosoft": "使用 Microsoft 继续",
   "auth.error": "登录未能完成。请重试。",
   "auth.unconfigured": "Google 登录暂时不可用。请稍后重试。",
 };

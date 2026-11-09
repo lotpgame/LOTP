@@ -10,7 +10,6 @@ import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { currentUser, hasCareer } from "@/server/careerService";
 import { GoogleSignIn } from "@/app/GoogleSignIn";
-import { microsoftConfigured } from "@/server/microsoftAuth";
 import { InstallPrompt } from "@/app/InstallPrompt";
 import { Icon, weaponIcon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
@@ -119,7 +118,7 @@ export default async function Home({
                 {t(locale, authMsg)}
               </p>
             )}
-            <GoogleSignIn locale={locale} showMicrosoft={microsoftConfigured()} />
+            <GoogleSignIn locale={locale} />
           </div>
         ) : (
           <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
