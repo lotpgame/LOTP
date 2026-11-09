@@ -11,17 +11,18 @@ import { getLocale } from "@/i18n/server";
 import { currentUser, hasCareer } from "@/server/careerService";
 import { GoogleSignIn } from "@/app/GoogleSignIn";
 import { InstallPrompt } from "@/app/InstallPrompt";
-import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
+import { Icon, weaponIcon } from "@/app/ui/Icon";
 import { PisteLine } from "@/app/ui/Piste";
 import { ScoreBug } from "@/app/ui/ScoreBug";
 
 // Veritabanı durumuna bağlı: her istekte taze render (statik önbelleğe alınmamalı).
 export const dynamic = "force-dynamic";
 
-const STEPS: { icon: IconName; key: string }[] = [
-  { icon: "train", key: "landing.step1" },
-  { icon: "tournament", key: "landing.step2" },
-  { icon: "ranking", key: "landing.step3" },
+// Giriş ekranı 3 adımı → oyundaki menü logolarıyla (antrenman / turnuvalar / klasman) — kullanıcı 09.11.
+const STEPS: { img: string; key: string }[] = [
+  { img: "/img/menu/antrenman.webp", key: "landing.step1" },
+  { img: "/img/menu/turnuvalar.webp", key: "landing.step2" },
+  { img: "/img/menu/klasman.webp", key: "landing.step3" },
 ];
 
 /**
@@ -210,7 +211,7 @@ function Steps({ locale, className }: { locale: Locale; className: string }) {
       {STEPS.map((s, i) => (
         <li key={s.key} className="flex flex-col items-center gap-1.5 text-center">
           <span className="flex h-11 w-11 items-center justify-center rounded-md border border-line bg-arena-1">
-            <Icon name={s.icon} size={22} />
+            <img src={s.img} alt="" aria-hidden="true" className="h-8 w-8 object-contain" />
           </span>
           <span className="num text-[12px] text-steel">0{i + 1}</span>
           <span className="text-[13px] leading-snug">{t(locale, s.key)}</span>

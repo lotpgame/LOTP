@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Giriş ekranı 3 adım ikonları)
+- Giriş ekranındaki 3 adım (Antrenmanı planla / Turnuva / Klasmanda yüksel) artık oyundaki **menü logolarını**
+  kullanıyor (antrenman / turnuvalar / klasman) — vektör ikon yerine.
+
 ### Eklendi (09.11 — Microsoft ile giriş)
 - Google OAuth'un aynı mantığıyla **Microsoft girişi** eklendi (`microsoftAuth.ts` + `/api/auth/microsoft[/callback]`;
   giriş panelinde ikinci buton). "common" tenant → kişisel + iş/okul hesapları. E-postayla `completeGoogleSignIn`
