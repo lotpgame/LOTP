@@ -17,7 +17,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 - Google OAuth'un aynı mantığıyla **Microsoft girişi** eklendi (`microsoftAuth.ts` + `/api/auth/microsoft[/callback]`;
   giriş panelinde ikinci buton). "common" tenant → kişisel + iş/okul hesapları. E-postayla `completeGoogleSignIn`
   (sağlayıcı-bağımsız). **Env gerekli (Azure app):** `MICROSOFT_CLIENT_ID` + `MICROSOFT_CLIENT_SECRET` (.env + Vercel);
-  redirect URI: `<origin>/api/auth/microsoft/callback`.
+  redirect URI: `<origin>/api/auth/microsoft/callback`. Buton **yalnız env tanımlıysa** gösterilir
+  (`microsoftConfigured`) → yapılandırılana kadar gizli, eklenince otomatik gelir.
 
 ### Değişti (09.11 — Sayfa arka planları yenilendi)
 - 8 sayfanın arka planı kullanıcının yeni temalı görselleriyle değiştirildi (Bugün/Kulüp/Antrenman/Ekipman/Turnuvalar/

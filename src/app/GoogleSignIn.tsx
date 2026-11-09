@@ -1,7 +1,11 @@
 import { t, type Locale } from "@/i18n";
 
-/** Giriş paneli (Google + Microsoft). Butonlar gerçek sayfa gezinmesi (OAuth yönlendirmesi) → düz <a>. */
-export function GoogleSignIn({ locale }: { locale: Locale }) {
+/**
+ * Giriş paneli (Google + opsiyonel Microsoft). Butonlar gerçek sayfa gezinmesi (OAuth yönlendirmesi) → düz <a>.
+ * `showMicrosoft`: MICROSOFT_CLIENT_ID/SECRET env'leri tanımlıysa (microsoftConfigured) Microsoft butonu gösterilir;
+ * yoksa gizlenir → kullanıcı "henüz hazır değil"e düşmez. Env eklenince otomatik görünür.
+ */
+export function GoogleSignIn({ locale, showMicrosoft = false }: { locale: Locale; showMicrosoft?: boolean }) {
   return (
     <div className="space-y-5 pb-10">
       <h2 className="display text-[28px]">{t(locale, "auth.signInTitle")}</h2>
@@ -13,13 +17,15 @@ export function GoogleSignIn({ locale }: { locale: Locale }) {
         <GoogleG />
         {t(locale, "auth.continueGoogle")}
       </a>
-      <a
-        href="/api/auth/microsoft"
-        className="press flex h-12 w-full items-center justify-center gap-3 rounded-md border border-line bg-white text-[16px] font-semibold text-[#1f1f1f] hover:bg-[#f7f7f7]"
-      >
-        <MicrosoftLogo />
-        {t(locale, "auth.continueMicrosoft")}
-      </a>
+      {showMicrosoft && (
+        <a
+          href="/api/auth/microsoft"
+          className="press flex h-12 w-full items-center justify-center gap-3 rounded-md border border-line bg-white text-[16px] font-semibold text-[#1f1f1f] hover:bg-[#f7f7f7]"
+        >
+          <MicrosoftLogo />
+          {t(locale, "auth.continueMicrosoft")}
+        </a>
+      )}
     </div>
   );
 }
