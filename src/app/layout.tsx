@@ -6,11 +6,12 @@ import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import "./globals.css";
 import { InstagramWarning } from "./InstagramWarning";
+import { OpenInBrowserGate } from "./OpenInBrowserGate";
 import { RotateGate } from "./RotateGate";
 import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 import { ThemeApplier } from "./ThemeApplier";
 import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY } from "./themeKeys";
-import { isInstagramBrowser } from "./ui/inAppBrowser";
+import { isInAppBrowser, isInstagramBrowser } from "./ui/inAppBrowser";
 
 // latin-ext: Türkçe karakterler (ş ğ ı İ) aynı fonttan gelsin.
 const geistSans = Geist({
@@ -56,7 +57,11 @@ const THEME_BOOT = `try{var h=/^#[0-9a-fA-F]{3,8}$/,d=document.documentElement.s
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
-  const isInstagram = isInstagramBrowser((await headers()).get("user-agent"));
+  const userAgent = (await headers()).get("user-agent");
+  const isInstagram = isInstagramBrowser(userAgent);
+  // Uygulama içi tarayıcı (IG/FB/TikTok) ekranı dikey kilitler → yatay oyun RotateGate'te sıkışır.
+  // Bu durumda "çevir" demek yerine "tarayıcıda aç" yönlendirmesini gösteririz (RotateGate'i değil).
+  const inApp = isInAppBrowser(userAgent);
   return (
     <html
       lang={locale}
@@ -74,7 +79,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeApplier />
         <ServiceWorkerRegister />
         <InstagramWarning show={isInstagram} locale={locale} />
-        <RotateGate locale={locale} />
+        {/* İç tarayıcıda → "tarayıcıda aç" kapısı (çevirmek işe yaramaz). Değilse → normal "yan çevir". */}
+        {inApp ? <OpenInBrowserGate locale={locale} /> : <RotateGate locale={locale} />}
         <div className="flex-1">{children}</div>
         <footer className="border-t border-line py-3 text-center text-[13px] text-steel">
           {t(locale, "footer.tagline")}

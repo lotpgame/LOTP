@@ -146,7 +146,9 @@ ve **antrenman sonrası haber kartı** (skill kazanımı + kondisyon/keskinlik d
 **geçmiş turnuvalar** Kariyer Geçmişi'nden yeniden izlenebilir; **görsel cila** (Profil kimlik afişi,
 kartlar) sürüyor; **her sayfaya temalı tam-sayfa arka plan** (Champ Manager tarzı; `ArenaPage` bileşeni +
 `public/img/bg-*.webp`, her sayfanın anlamına göre özgün görsel); **oyun yalnız yatay oynanır** (app
-kararı; dik tutunca "telefonu yan çevir" uyarısı — `RotateGate`); **Ayarlar sayfası** (dil/ses/kariyer) + **tam 9 dil desteği** (TR/EN/DE/FR/ES/IT/RU/PT/ZH;
+kararı; dik tutunca "telefonu yan çevir" uyarısı — `RotateGate`; **Instagram/TikTok iç tarayıcısından** gelen —
+ekranı döndüremeyen — kullanıcıya bunun yerine "Oyunu tarayıcıda aç" + linki kopyala yönlendirmesi, `OpenInBrowserGate`);
+**Ayarlar sayfası** (dil/ses/kariyer) + **tam 9 dil desteği** (TR/EN/DE/FR/ES/IT/RU/PT/ZH;
 arayüz + maç anlatımları + hata mesajları; cookie tabanlı, oluşturma ekranından seçilebilir);
 **ekipman yaşam döngüsü** (bedava başlangıç takımı, beden/büyüme, dayanıklılık + yıpranma/kırılma, dolap + market,
 yedekler, çöp at); **hayat & malzeme olayları** (haftada dengeli 1 olumlu + 1 olumsuz; harçlık/kırılma; süreli

@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (09.11 — Uygulama içi tarayıcı tuzağı (Instagram/TikTok "yan çevir" sıkışması))
+- **Sorun:** Instagram/Facebook/TikTok linki kendi iç tarayıcısında DİKEY kilitli açar; yatay oyun "telefonu yan çevir"
+  (`RotateGate`) tam ekranında sonsuza kadar sıkışıyordu (telefon dönmüyor) ve bu ekran "Tarayıcıda Aç" ipucunu örtüyordu.
+- **Çözüm:** İç tarayıcı tespit edilince (`isInAppBrowser` — IG/FB/TikTok UA) "çevir" yerine yeni `OpenInBrowserGate`
+  gösterilir: "Oyunu tarayıcıda aç" + **Linki kopyala** butonu + ⋯ menü yönergesi (9 dil). Gerçek tarayıcıya geçince
+  mevcut `InstallPrompt` "ana ekrana ekle" ile uygulama gibi kurulumu sunar. Normal Chrome/Safari'de davranış değişmedi.
+- Tespit testleri genişletildi (Instagram + Facebook/FBAN + TikTok/BytedanceWebview; yanlış pozitif yok).
+
 ### Eklendi (09.11 — Gizlilik politikası sayfası)
 - `/gizlilik` eklendi (Google OAuth "Publish" için gerekli gizlilik politikası). Hangi veri toplanıyor (e-posta +
   oyun verisi), neden, altyapı (Vercel/Neon/Google), çerez, çocuklar, veri silme, iletişim (lotpgame@gmail.com).
