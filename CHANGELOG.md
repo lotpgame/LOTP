@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Dil seçici alfabetik)
+- Dil açılır menüsü (giriş ekranı + her yer) artık görünen ada göre alfabetik: Deutsch, English, Español, Français,
+  Italiano, Português, Türkçe, Русский, 中文 (`LangSelect`, `localeCompare`).
+
 ### Değişti (09.11 — Giriş ekranı 3 adım ikonları)
 - Giriş ekranındaki 3 adım (Antrenmanı planla / Turnuva / Klasmanda yüksel) artık oyundaki **menü logolarını**
   kullanıyor (antrenman / turnuvalar / klasman) — vektör ikon yerine.

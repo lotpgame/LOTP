@@ -24,7 +24,8 @@ export function LangSelect({ current }: { current: Locale }) {
       }}
       className="min-h-11 rounded-md border border-line bg-arena-1 px-2.5 text-[14px] outline-none focus:border-ink disabled:opacity-50"
     >
-      {LOCALES.map((l) => (
+      {/* Diller görünen ada göre alfabetik (kullanıcı 09.11). */}
+      {[...LOCALES].sort((a, b) => LOCALE_LABEL[a].localeCompare(LOCALE_LABEL[b])).map((l) => (
         <option key={l} value={l}>
           {LOCALE_LABEL[l]}
         </option>
