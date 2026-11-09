@@ -6,7 +6,7 @@
  * dilim akışı: kariyer oluştur → gün/antrenman → turnuva → ranking.
  */
 import { cookies } from "next/headers";
-import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor, countryCodeOfCity } from "@/engine/geo";
+import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor, clubCityLabel, countryCodeOfCity } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
   createLiveTournament,
@@ -1101,7 +1101,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     },
     club: human.club
       ? {
-          name: `${human.club.city} ${t(locale, "club.suffix")}`,
+          name: `${clubCityLabel(human.club.city)} ${t(locale, "club.suffix")}`,
           city: human.club.city,
           logo: resolveClubLogo(human.club.logoFile, human.club.city),
           facility: clubStats?.facility ?? human.club.facility,
@@ -1592,7 +1592,8 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
     return {
       playerId: r.playerId,
       name: p ? `${p.firstName} ${p.lastName}` : formatPlayerCode(r.playerId),
-      clubName: p?.club?.name ?? "",
+      // Ad şehirden yeniden hesaplanır (Kocaeli→İzmit etiketi mevcut kulüpler için de geçerli olsun).
+      clubName: p?.club ? clubNameFor(p.club.city, countryCodeOfCity(p.club.city) ?? "TR") : "",
       clubCity: p?.club?.city ?? "",
       clubLogo: p?.club ? resolveClubLogo(p.club.logoFile, p.club.city) : "/img/clubs/default.webp",
       points: roundSkill(r.points),

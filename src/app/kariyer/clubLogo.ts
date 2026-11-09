@@ -11,8 +11,8 @@
 
 const CLUB_LOGO_COUNT = 282; // global havuz (320 kesildi − 38 birebir kopya; geniş kesimle kesilme giderildi 08.11)
 
-/** Şehre özel logo override (slug → dosya adı). İzmit/Kocaeli sonra eklenecek. */
-const CITY_OVERRIDE: Record<string, string> = {};
+/** Şehre özel logo override (slug → dosya adı). Kocaeli şehri → İzmit Eskrim Kulübü özel logosu (kullanıcı 09.11). */
+const CITY_OVERRIDE: Record<string, string> = { kocaeli: "izmit" };
 
 /** Türkçe şehir adı → dosya-güvenli slug (İstanbul → istanbul, Kocaeli → kocaeli). */
 export function citySlug(city: string): string {
@@ -56,8 +56,10 @@ export function clubLogoPath(file: string): string {
   return `/img/clubs/${file || "default"}.webp`;
 }
 
-/** DB'de kayıtlı dosya adı varsa onu, yoksa şehirden hesaplananı kullan (stabil görüntü yolu). */
+/** Şehre özel logo (CITY_OVERRIDE) HER ZAMAN kazanır (DB'de eski logoFile olsa bile); yoksa kayıtlı, o da yoksa hesaplanan. */
 export function resolveClubLogo(logoFile: string | null | undefined, city: string): string {
+  const slug = citySlug(city);
+  if (slug && CITY_OVERRIDE[slug]) return clubLogoPath(CITY_OVERRIDE[slug]);
   return clubLogoPath(logoFile || assignClubLogo(city));
 }
 

@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (09.11 — İzmit Eskrim Kulübü (Kocaeli özel ad + logo))
+- **Kocaeli** şehrindeki kulübün ADI artık **"İzmit Eskrim Kulübü"** (şehir Kocaeli olarak kalır — logo/coğrafya
+  aynı). `geo.ts` `clubCityLabel` (Kocaeli→İzmit); kulüp sayfası + klasman adı şehirden yeniden hesaplanır → mevcut
+  kulüpler için de geçerli.
+- **Özel logo** `logo1.png` → beyaz dairesel rozet olarak işlendi (`public/img/clubs/izmit.webp`). `CITY_OVERRIDE`'a
+  `kocaeli→izmit` eklendi; `resolveClubLogo` artık override'ı DB'deki eski logoFile'dan önce uygular → mevcut Kocaeli
+  kulüpleri de özel logoyu gösterir (DB sıfırlamaya gerek yok).
+
 ### Değişti (09.11 — Antrenman türü görselleri yenilendi)
 - Teknik/Fiziksel/Mental/Taktik/Dinlenme görselleri gold temalı yenileriyle değiştirildi (siyah zemin flood-fill ile
   temizlendi → `public/img/training/*.webp`). Aynı dosya adları → kod değişmedi (yetenek/fizik/psikoloji başlıkları,

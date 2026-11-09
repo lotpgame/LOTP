@@ -103,9 +103,18 @@ const CLUB_SUFFIX: Record<string, string> = {
   EG: "نادي المبارزة",
 };
 
-/** Bir şehir+ülke için kulüp adı (ülkenin kendi dilinde eki ile). */
+/**
+ * Kulüp adında şehir yerine kullanılacak ETİKET (şehir kimliği aynı kalır, yalnız ad değişir).
+ * Kocaeli → "İzmit": şehir Kocaeli kalır (logo/coğrafya), ama kulüp adı "İzmit Eskrim Kulübü" (kullanıcı 09.11).
+ */
+const CLUB_CITY_LABEL: Record<string, string> = { Kocaeli: "İzmit" };
+export function clubCityLabel(city: string): string {
+  return CLUB_CITY_LABEL[city] ?? city;
+}
+
+/** Bir şehir+ülke için kulüp adı (ülkenin kendi dilinde eki ile; Kocaeli→İzmit etiketi uygulanır). */
 export function clubNameFor(city: string, countryCode: string): string {
-  return `${city} ${CLUB_SUFFIX[countryCode.toUpperCase()] ?? CLUB_SUFFIX.TR}`;
+  return `${clubCityLabel(city)} ${CLUB_SUFFIX[countryCode.toUpperCase()] ?? CLUB_SUFFIX.TR}`;
 }
 
 /** Bir ülkenin kıtası (kod). Bilinmeyen ülke → undefined. */
