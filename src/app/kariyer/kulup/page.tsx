@@ -19,8 +19,24 @@ export default async function KulupPage() {
       {c.club ? (
         <section className="panel mt-3 p-4">
           <div className="flex items-center gap-3">
-            {/* Kulüp logosu — DB'de sabit (clubLogo.ts). Tıklayınca büyük görünüm + ad/şehir penceresi. */}
-            <ClubDialog logo={c.club.logo} name={c.club.name} city={c.club.city} closeLabel={t(locale, "common.close")} triggerClassName="press shrink-0">
+            {/* Kulüp logosu — DB'de sabit (clubLogo.ts). Tıklayınca kulüp kartı penceresi. */}
+            <ClubDialog
+              locale={locale}
+              closeLabel={t(locale, "common.close")}
+              triggerClassName="press shrink-0"
+              club={{
+                logo: c.club.logo,
+                name: c.club.name,
+                city: c.club.city,
+                country: c.club.country,
+                facility: c.club.facility,
+                members: c.club.members,
+                coaches: [
+                  { name: c.club.coachName, specialty: c.club.coachSpecialty },
+                  { name: c.club.coach2Name, specialty: c.club.coach2Specialty },
+                ].filter((co) => co.name),
+              }}
+            >
               <img src={c.club.logo} alt={c.club.name} width={84} height={84} className="shrink-0" />
             </ClubDialog>
             <div className="min-w-0">

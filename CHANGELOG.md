@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Kulüp kartı penceresi (logo + tam bilgi))
+- Kulüp logosuna tıklayınca açılan pencere artık **kulüp kartı**: solda büyük logo, sağda kulüp adı, şehir + ülke
+  (bayrak), **tesis kalitesi** (renkli bar), **oyuncu sayısı**, **antrenör isimleri** (+ uzmanlık). Kulüp sayfası +
+  klasman. `RankingRowDTO` zenginleştirildi (ülke/kalite/üye/antrenör); üye sayısı tek grouped sorgu. `ClubDialog` yeni.
+
 ### Eklendi (09.11 — İzmit Eskrim Kulübü (Kocaeli özel ad + logo))
 - **Kocaeli** şehrindeki kulübün ADI artık **"İzmit Eskrim Kulübü"** (şehir Kocaeli olarak kalır — logo/coğrafya
   aynı). `geo.ts` `clubCityLabel` (Kocaeli→İzmit); kulüp sayfası + klasman adı şehirden yeniden hesaplanır → mevcut

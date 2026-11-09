@@ -216,11 +216,18 @@ export function RankingTower({ rows, locale }: { rows: RankingRowDTO[]; locale: 
                 <span className={`block truncate text-[15px] ${r.isHuman ? "font-semibold text-me" : ""}`}>{r.name}</span>
                 {r.clubName && (
                   <ClubDialog
-                    logo={r.clubLogo}
-                    name={r.clubName}
-                    city={r.clubCity}
+                    locale={locale}
                     closeLabel={t(locale, "common.close")}
                     triggerClassName="press flex min-w-0 max-w-full items-center gap-1 text-[13px] text-steel"
+                    club={{
+                      logo: r.clubLogo,
+                      name: r.clubName,
+                      city: r.clubCity,
+                      country: r.clubCountry,
+                      facility: r.clubFacility,
+                      members: r.clubMembers,
+                      coaches: r.clubCoaches,
+                    }}
                   >
                     <img src={r.clubLogo} alt="" aria-hidden="true" width={16} height={16} className="shrink-0" />
                     <span className="truncate">{r.clubName}</span>

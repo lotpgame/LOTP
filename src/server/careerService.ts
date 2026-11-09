@@ -466,7 +466,11 @@ export interface RankingRowDTO {
   name: string;
   clubName: string;
   clubCity: string; // klasman detay penceresi için
+  clubCountry: string; // ülke kodu (kulüp kartı)
   clubLogo: string; // kulüp logosu yolu (DB'de sabit)
+  clubFacility: number; // tesis/kalite 0–100
+  clubMembers: number; // gerçek (bot olmayan) aktif sporcu sayısı
+  clubCoaches: { name: string; specialty: string }[]; // antrenör(ler)
   points: number;
   position: number;
   isHuman: boolean;
@@ -506,6 +510,7 @@ export interface CareerDTO {
   club: {
     name: string;
     city: string;
+    country: string; // ülke kodu (kulüp kartı)
     logo: string; // kulüp logosu yolu (DB'de sabit; src/app/kariyer/clubLogo.ts)
     facility: number;
     members: number; // kulüpteki gerçek (bot olmayan) aktif sporcu sayısı
@@ -1103,6 +1108,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       ? {
           name: `${clubCityLabel(human.club.city)} ${t(locale, "club.suffix")}`,
           city: human.club.city,
+          country: countryCodeOfCity(human.club.city) ?? human.nationality?.code ?? "TR",
           logo: resolveClubLogo(human.club.logoFile, human.club.city),
           facility: clubStats?.facility ?? human.club.facility,
           members: clubStats?.members ?? 0,
@@ -1575,6 +1581,12 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
   if (toFix.size > 0) {
     await prisma.$transaction([...toFix].map(([id, lf]) => prisma.club.update({ where: { id }, data: { logoFile: lf } }))).catch(() => {});
   }
+  // Kulüp başına gerçek (bot olmayan) aktif üye sayısı — tek grouped sorgu (kulüp kartı penceresi için).
+  const clubIds = [...new Set(players.map((p) => p.club?.id).filter((x): x is number => !!x))];
+  const memberGroups = clubIds.length
+    ? await prisma.player.groupBy({ by: ["clubId"], where: { clubId: { in: clubIds }, isAI: false, status: { not: "RETIRED" } }, _count: { _all: true } })
+    : [];
+  const memberOf = new Map(memberGroups.map((g) => [g.clubId ?? 0, g._count._all]));
   // Şehir satırları zaten o şehre ait (ek süzme yok). Ülke → o ülke; kıta → o kıta. Kapsam-içi 1..N sırası.
   const narrowByNat = (!!scope.country && !scope.city) || !!scope.continent;
   const narrowed = !!(scope.city || scope.country || scope.continent);
@@ -1595,7 +1607,13 @@ async function buildRankingView(categoryId: string, quarter: number, humanId: nu
       // Ad şehirden yeniden hesaplanır (Kocaeli→İzmit etiketi mevcut kulüpler için de geçerli olsun).
       clubName: p?.club ? clubNameFor(p.club.city, countryCodeOfCity(p.club.city) ?? "TR") : "",
       clubCity: p?.club?.city ?? "",
+      clubCountry: p?.club ? (countryCodeOfCity(p.club.city) ?? "TR") : "TR",
       clubLogo: p?.club ? resolveClubLogo(p.club.logoFile, p.club.city) : "/img/clubs/default.webp",
+      clubFacility: p?.club?.facility ?? 0,
+      clubMembers: p?.club ? (memberOf.get(p.club.id) ?? 0) : 0,
+      clubCoaches: p?.club
+        ? [{ name: p.club.coachName, specialty: p.club.coachSpecialty }, { name: p.club.coach2Name, specialty: p.club.coach2Specialty }].filter((co) => co.name)
+        : [],
       points: roundSkill(r.points),
       position: narrowed ? i + 1 : (r.position ?? i + 1),
       isHuman: r.playerId === humanId,
