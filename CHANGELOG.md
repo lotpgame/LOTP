@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Sayfa arka planları yenilendi)
+- 8 sayfanın arka planı kullanıcının yeni temalı görselleriyle değiştirildi (Bugün/Kulüp/Antrenman/Ekipman/Turnuvalar/
+  Klasman/Kariyer/Ayarlar → `public/img/bg-*.webp`). Eskrim amblemi + arena/masa sahneleri; tam-sayfa `object-cover`,
+  %60 karartma (ArenaPage değişmedi). Sözlük/geri bildirim arka planı aynı kaldı.
+
 ### Değişti (09.11 — Kariyer sayfası: ikonlar + "Kariyer" adı)
 - "Kariyer Geçmişi" → **"Kariyer"** (nav + sayfa başlığı, tüm diller kısaltıldı).
 - Kupa vitrini rozetleri + istatistik kutuları artık kullanıcının **gold başarı görsellerini** kullanıyor
