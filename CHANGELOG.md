@@ -9,6 +9,10 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (09.11 — Gizlilik politikası sayfası)
+- `/gizlilik` eklendi (Google OAuth "Publish" için gerekli gizlilik politikası). Hangi veri toplanıyor (e-posta +
+  oyun verisi), neden, altyapı (Vercel/Neon/Google), çerez, çocuklar, veri silme, iletişim (lotpgame@gmail.com).
+
 ### Değişti (09.11 — Dil seçici alfabetik)
 - Dil açılır menüsü (giriş ekranı + her yer) artık görünen ada göre alfabetik: Deutsch, English, Español, Français,
   Italiano, Português, Türkçe, Русский, 中文 (`LangSelect`, `localeCompare`).
