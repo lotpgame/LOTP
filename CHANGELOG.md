@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (09.11 — Antrenman türü görselleri yenilendi)
+- Teknik/Fiziksel/Mental/Taktik/Dinlenme görselleri gold temalı yenileriyle değiştirildi (siyah zemin flood-fill ile
+  temizlendi → `public/img/training/*.webp`). Aynı dosya adları → kod değişmedi (yetenek/fizik/psikoloji başlıkları,
+  haftalık plan, WeekStrip hepsi otomatik güncellendi).
+
 ### Düzeltildi (09.11 — Avatar kırpımı kafaya göre hizalanır)
 - 8 yaş panellerinde kafa küçük/aşağıda olduğu için üstte boşluk kalıyordu (sabit %5 üst kırpım). `slice-avatars.mjs`
   artık her panelde **kafanın tepesini tespit edip** (düz backdrop'tan sapan ilk satır) kırpımı oraya sabitliyor →
