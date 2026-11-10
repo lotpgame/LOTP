@@ -86,9 +86,15 @@ export const MATERIAL_EVENTS: readonly MaterialEvent[] = [
   // — Olumsuz (silah) —
   { key: "weaponBroke", tone: "neg", weight: 4, effect: "breakWeapon" },
   { key: "gearChipped", tone: "neg", weight: 7, effect: "wearWeapon", durabilityHit: 15 },
-  // — Olumlu (Denar) —
+  // — Olumlu (Denar harçlığı) — çeşitli, sıcak küçük anlar (kullanıcı 10.11): oyuncuyu gülümsetsin.
   { key: "pocketMoney", tone: "pos", weight: 8, denar: 8 },
   { key: "clubGift", tone: "pos", weight: 4, denar: 12 },
+  { key: "mowedLawn", tone: "pos", weight: 6, denar: 6 },
+  { key: "groceryRun", tone: "pos", weight: 6, denar: 5 },
+  { key: "grandmaGift", tone: "pos", weight: 5, denar: 10 },
+  { key: "washedCar", tone: "pos", weight: 5, denar: 6 },
+  { key: "birthdayMoney", tone: "pos", weight: 3, denar: 15 },
+  { key: "foundMoney", tone: "pos", weight: 4, denar: 4 },
 ] as const;
 
 /** Haftada malzeme olayı olasılığı (nadir). Olduğunda 1 olumsuz + 1 olumlu birlikte gelir (denge). */
