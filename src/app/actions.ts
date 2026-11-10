@@ -51,7 +51,7 @@ export async function createCareerAction(formData: FormData): Promise<void> {
     country: String(formData.get("country") ?? ""), // 18-ülke: formdaki ülke seçimini ilet (yoksa Zod patlar)
     city: String(formData.get("city") ?? ""),
   });
-  redirect("/kariyer");
+  redirect("/kariyer?welcome=1"); // kayıt sonrası antrenör "hoş geldin" + ekipman hediyesi ekranı
 }
 
 /**

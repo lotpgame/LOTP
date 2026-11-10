@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (10.11 — "Hoş geldin" karşılama ekranı (antrenör + ekipman hediyesi))
+- Kayıt tamamlanınca (create → `/kariyer?welcome=1`) BİR KEZ çıkan karşılama modalı: **baş antrenör** çocuğu adıyla
+  karşılar ("Hoş Geldin, {name}!" · {coach} · Baş Antrenör), **başlangıç ekipmanını hediye eder** ve **dikkatli
+  kullanım ipucu** verir (yıpranma/kırılma, yaş-beden değişimi, Denar'ı akıllı harca + reklamla Denar). Kapatınca
+  `?welcome=1` URL'den düşer (reload'da tekrar çıkmaz). `WelcomeDialog`; 9 dil (`welcome.*`).
+
 ### Değişti (10.11 — Ekonomi dengesi revizyonu (kullanıcı kararı))
 - **Ödüllü reklam:** 2 Đ×3/gün → **2 Đ×5/gün** (max 10 Đ). Gerçek reklam entegrasyonu: AdSense/H5 Games Ads (web) — publisher ID gelince bağlanır.
 - **Turnuva ödülleri:** İLK 4 derece ödül alır (4. de). İl/Open 10/6/3/3 · Türkiye 20/12/6/6 · Satellite 30/20/15/15 ·

@@ -18,6 +18,7 @@ import { buildWeek, todayFromHeader } from "./week";
 import { trainingImg } from "./trainingImage";
 import { SkillsByCategory, Stat, StatBar, conditionState, formState } from "./parts";
 import { ErrorBanner } from "./ErrorBanner";
+import { WelcomeDialog } from "./WelcomeDialog";
 
 const GLOW_FROM = 70; // form/kondisyon ışıltısı eşiği (GORSEL §8: "ör. ≥%70")
 
@@ -32,14 +33,14 @@ const fmtDelta = (d: number) => (d >= 0 ? `+${d}` : `${d}`);
 export default async function BugunPage({
   searchParams,
 }: {
-  searchParams: Promise<{ err?: string }>;
+  searchParams: Promise<{ err?: string; welcome?: string }>;
 }) {
   const c = await getCareer();
   if (!c) redirect("/");
   const [h, upcoming] = await Promise.all([getCareerHeader(), getUpcomingTournaments()]);
   if (!h) redirect("/");
   const locale = await getLocale();
-  const { err } = await searchParams;
+  const { err, welcome } = await searchParams;
 
   const condition = 100 - c.fatigue;
 
@@ -49,6 +50,15 @@ export default async function BugunPage({
 
   return (
     <ArenaPage bg="/img/bg-bugun.webp" className="flex flex-col gap-4">
+      {welcome === "1" && (
+        <WelcomeDialog
+          locale={locale}
+          name={c.name.split(" ")[0] || c.name}
+          coach={c.club?.coachName ?? ""}
+          club={c.club?.name ?? ""}
+          weapon={t(locale, `weapon.${c.weapon}`)}
+        />
+      )}
       <ErrorBanner code={err} locale={locale} dismissHref="/kariyer" />
       {/* 0 · KİMLİK KARTI */}
       <KimlikKarti
