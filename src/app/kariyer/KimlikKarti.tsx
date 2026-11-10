@@ -23,11 +23,13 @@ export interface KimlikKartiProps {
   rating: number;
   nationalTeam: boolean;
   seasonNo: number;
+  profile: string; // yaratılış profili (BALANCED/TECHNICAL/…) — güçlü yön rozeti
   avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
   locale: Locale;
 }
 
-export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, countryCode, rating, nationalTeam, seasonNo, avatar, locale }: KimlikKartiProps) {
+export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, countryCode, rating, nationalTeam, seasonNo, profile, avatar, locale }: KimlikKartiProps) {
+  const strongSide = profile && profile !== "BALANCED" ? profile : null;
   return (
     <section className="panel overflow-hidden border-t-2 border-t-ink p-4">
       <div className="flex items-center gap-3">
@@ -50,6 +52,11 @@ export function KimlikKarti({ name, code, weapon, ageCategory, age, city, club, 
               <Flag code={countryCode} />
               <span className="min-w-0">{club ?? city}</span>
             </div>
+          )}
+          {strongSide && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-md border border-ink/25 bg-arena-1 px-1.5 py-0.5 text-[12px] font-semibold">
+              ✨ {t(locale, "profil.strongSide", { side: t(locale, `profile.${strongSide}`) })}
+            </span>
           )}
         </div>
         <div className="shrink-0 text-right">

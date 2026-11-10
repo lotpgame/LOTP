@@ -20,8 +20,8 @@ import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, damageA
 import { clubWeeklyDues, entryFee } from "@/engine/economy";
 import { applyEventsToPsych, discountedPrice, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
 import {
-  clubTrainingMultiplier,
-  coachTrainingMultiplier,
+  clubTrainingBase,
+  coachSpecialtyBonus,
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
@@ -409,15 +409,16 @@ describe("Economy Engine", () => {
 });
 
 describe("Environment (kulüp/koç/ekipman) modifier'ları", () => {
-  it("kulüp tesisi verimi 0.9–1.1 arası etkiler", () => {
-    expect(clubTrainingMultiplier(100)).toBeGreaterThan(clubTrainingMultiplier(0));
-    expect(clubTrainingMultiplier(100)).toBeLessThanOrEqual(1.1);
-    expect(clubTrainingMultiplier(0)).toBeGreaterThanOrEqual(0.9);
+  it("kulüp tesis kademesi seans tabanını belirler (0.05–0.09)", () => {
+    expect(clubTrainingBase(10)).toBe(0.05); // 0–20
+    expect(clubTrainingBase(50)).toBe(0.07); // 40–60
+    expect(clubTrainingBase(100)).toBe(0.09); // 80–100
+    expect(clubTrainingBase(100)).toBeGreaterThan(clubTrainingBase(0));
   });
-  it("koç uzmanlığı uyumlu antrenmanı güçlendirir", () => {
-    const match = coachTrainingMultiplier(80, "TECHNICAL", "TECHNICAL");
-    const noMatch = coachTrainingMultiplier(80, "TECHNICAL", "PHYSICAL");
-    expect(match).toBeGreaterThan(noMatch);
+  it("koç uzmanlığı uyumlu antrenmana küçük ek (+%20) verir", () => {
+    expect(coachSpecialtyBonus("TECHNICAL", "TECHNICAL")).toBe(1.2);
+    expect(coachSpecialtyBonus("TECHNICAL", "PHYSICAL")).toBe(1);
+    expect(coachSpecialtyBonus(null, "TECHNICAL")).toBe(1);
   });
   it("ekipman seviyesi küçük antrenman + combat etkisi", () => {
     expect(equipmentTrainingMultiplier(5)).toBeGreaterThan(equipmentTrainingMultiplier(1));

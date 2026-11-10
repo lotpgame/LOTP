@@ -62,8 +62,10 @@ export function applyTraining(
     type: TrainingType;
     age: number;
     currentFatigue: number;
-    /** Çevre çarpanı (trait × psikoloji × kulüp × koç × ekipman). Varsayılan 1. */
+    /** Çevre çarpanı (trait × psikoloji × koç × ekipman × profil). Varsayılan 1. */
     efficiencyMultiplier?: number;
+    /** Seans tabanı (kulüp tesis kademesi: 0.05–0.09). Verilmezse PRIMARY_STIMULUS (test/yedek). */
+    baseStimulus?: number;
     /** Skill'e özel çarpan (ör. ağırlık → hız gelişimi). Varsayılan 1. */
     skillMultipliers?: Partial<Record<SkillKey, number>>;
   },
@@ -77,7 +79,7 @@ export function applyTraining(
 
   const factor = ageFactor(age);
   const efficiency = fatigueEfficiency(currentFatigue);
-  const stimulus = PRIMARY_STIMULUS * efficiency * (opts.efficiencyMultiplier ?? 1);
+  const stimulus = (opts.baseStimulus ?? PRIMARY_STIMULUS) * efficiency * (opts.efficiencyMultiplier ?? 1);
 
   const next: PlayerSkills = { ...skills };
   const gains: Partial<Record<SkillKey, number>> = {};

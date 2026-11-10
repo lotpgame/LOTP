@@ -216,8 +216,8 @@ import {
   prizeFor,
 } from "@/engine/economy";
 import {
-  clubTrainingMultiplier,
-  coachTrainingMultiplier,
+  clubTrainingBase,
+  coachSpecialtyBonus,
   equipmentCombatModifier,
   equipmentTrainingMultiplier,
 } from "@/engine/environment";
@@ -488,6 +488,7 @@ export interface CareerDTO {
   name: string;
   gender: string;
   weapon: string;
+  profile: string; // yaratılış profili (BALANCED/TECHNICAL/… ) — güçlü yön rozeti
   age: number;
   categoryId: string;
   status: string;
@@ -1073,6 +1074,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     name: `${human.firstName} ${human.lastName}`,
     gender: human.gender,
     weapon: human.weapon,
+    profile: human.profile, // yaratılış profili (güçlü yön rozeti için)
     age,
     categoryId,
     status: human.status,
@@ -1796,14 +1798,20 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     if (!regByDay.has(key)) regByDay.set(key, p);
   }
 
-  // Çevre çarpanları (GDD 14.60): trait × psikoloji × kulüp × ekipman.
+  // Çevre çarpanları (GDD 14.60): trait × psikoloji × ekipman. (Kulüp artık ÇARPAN değil, seans TABANI
+  // — clubTrainingBase, aşağıda.) Kullanıcı 10.11.
   const psych = psychologyOf(human);
   const envMult =
     traitTrainingMultiplier(activeTraitsOf(human.traits, age)) *
     psychologyTrainingMultiplier(psych) *
-    (human.club ? clubTrainingMultiplier(human.club.facility) : 1) *
     equipmentTrainingMultiplier(human.equipmentLevel);
   const speedMult = speedTrainingMultiplier(human.buildFactor);
+  // Seans tabanı = kulüp tesis kademesi (0.05–0.09). Kulüp yoksa taban tesis (BASE_FACILITY).
+  const trainingBase = clubTrainingBase(human.club?.facility ?? BASE_FACILITY);
+  // Profil afinitesi (kullanıcı 10.11): oyuncu o kategoriyle yaratıldıysa o türde ÇOK küçük ek (+%0.1).
+  const profileCat = (["TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"] as const).includes(human.profile as never)
+    ? (human.profile as SkillCategory)
+    : null;
 
   let skills = rowsToSkills(human.skills);
   let fatigue = human.fatigue;
@@ -1845,14 +1853,14 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         ? `${human.club.coachSpecialty},${human.club.coach2Specialty}`.split(",")
         : [];
       const coachSpec = clubSpecs.includes(type) ? (type as SkillCategory) : null;
-      const coachMult = human.club
-        ? coachTrainingMultiplier(human.club.coachSkill, coachSpec, type)
-        : 1;
+      const coachMult = human.club ? coachSpecialtyBonus(coachSpec, type) : 1; // uzman koç → +%20
+      const profileMult = profileCat && type === profileCat ? 1.001 : 1; // profil afinitesi (+%0.1)
       const res = applyTraining(skills, {
         type,
         age,
         currentFatigue: fatigue,
-        efficiencyMultiplier: envMult * coachMult,
+        baseStimulus: trainingBase,
+        efficiencyMultiplier: envMult * coachMult * profileMult,
         skillMultipliers: { speed: speedMult },
       });
       skills = res.skills;
@@ -1969,11 +1977,12 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
   const days = d - startDay;
+  // Kazançlar artık küçük (0.05–0.09/seans) → 2 ondalık + daha düşük eşik ki görünsün (kullanıcı 10.11).
   const gains = SKILLS.map((def) => ({
     key: def.key,
-    delta: Math.round((skills[def.key].current - beforeSkills[def.key]) * 10) / 10,
+    delta: Math.round((skills[def.key].current - beforeSkills[def.key]) * 100) / 100,
   }))
-    .filter((g) => g.delta >= 0.1)
+    .filter((g) => g.delta >= 0.01)
     .sort((a, b) => b.delta - a.delta);
   const report =
     days > 0

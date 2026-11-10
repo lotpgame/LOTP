@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (10.11 — Antrenman dengesi: çok daha kademeli (kullanıcı kararı))
+- **Gelişim yavaşlatıldı** (uzun yolculuk): seans tabanı artık **kulüp tesis kademesine** bağlı —
+  `clubTrainingBase`: 0–20→0.05 · 20–40→0.06 · 40–60→0.07 · 60–80→0.08 · 80–100→**0.09**/seans. Eski 0.36
+  sabit taban + çarpan modeli kalktı. (5 Teknik seans/hafta: ~1.85 → **~0.25–0.45**.)
+- **Başlangıç tesisi 30→20** (kötü başlangıç; antrenör tesise paralel, `BASE_COACH_SKILL` 20).
+- **Antrenör uzmanlık eki küçültüldü:** `coachSpecialtyBonus` — o kategoride uzman koç → **+%20** (eski ±%15 skill-ölçekli yerine).
+- **Profil afinitesi (yeni, çok küçük):** oyuncu o kategoriyle yaratıldıysa o türde **+%0.1**.
+- **Kimlik kartında "✨ Güçlü yön" rozeti:** yaratılış profiline göre (BALANCED hariç). `CareerDTO.profile`, 9 dil (`profil.strongSide`).
+- Rapor kazançları 2 ondalık + eşik 0.01 (küçük artışlar görünsün). Testler güncellendi.
+
 ### Eklendi (10.11 — Daha fazla harçlık olayı (sıcak/sevimli))
 - Malzeme olaylarının para tarafına **6 yeni harçlık çeşidi** eklendi (kullanıcı 10.11): komşunun çimlerini biçtin
   (+6), yaşlı komşu için markete gittin (+5), büyükanne harçlığı (+10), babanın arabasını yıkadın (+6), doğum günü

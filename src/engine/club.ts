@@ -13,7 +13,7 @@
  */
 import { clamp } from "./domain";
 
-export const BASE_FACILITY = 30; // kuruluş tabanı (kullanıcı: "taban 30'dan başlasın")
+export const BASE_FACILITY = 20; // kuruluş tabanı (kullanıcı 10.11: kötü başlangıç, 20'den başlasın)
 export const MEMBER_WEIGHT = 1.5; // her gerçek üye
 export const GRADUATE_WEIGHT = 4; // her başarılı mezun
 export const MAX_FACILITY = 100;
@@ -36,7 +36,7 @@ export function computeFacility(baseFacility: number, members: number, graduates
  * tesis, son antrenör gelişinden bu yana %20 artıp 1 hafta o seviyede sabit kaldığında eski antrenörler ayrılır,
  * yeni (daha yetenekli) antrenörler gelir (yeni isim, yetenek = güncel tesis; uzmanlıklar aynı kalır).
  * Böylece büyüyen kulüp daha iyi hoca çeker; küçük/yeni kulüpte mütevazı hocalar. */
-export const BASE_COACH_SKILL = 30;
+export const BASE_COACH_SKILL = 20; // antrenör tabanı tesise paralel (kullanıcı 10.11: 20)
 export const COACH_UPGRADE_RATIO = 1.2; // tetik: tesis son antrenör gelişine göre +%20
 export const COACH_STABLE_DAYS = 7; // bu artış 1 hafta (7 oyun günü) sabit kalmalı
 

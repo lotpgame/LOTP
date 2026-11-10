@@ -73,6 +73,7 @@ export default async function BugunPage({
         rating={c.overall}
         nationalTeam={c.nationalTeam}
         seasonNo={c.seasonNo}
+        profile={c.profile}
         avatar={h.avatar}
         locale={locale}
       />

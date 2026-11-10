@@ -9,8 +9,8 @@ import {
 } from "@/engine/club";
 
 describe("club facility — tesis büyüme modeli", () => {
-  it("taban 30'dan başlar", () => {
-    expect(BASE_FACILITY).toBe(30);
+  it("taban 20'den başlar (kötü başlangıç)", () => {
+    expect(BASE_FACILITY).toBe(20);
   });
 
   it("üye yoksa taban döner (botlar sayılmaz → 0 gerçek üye)", () => {
@@ -53,12 +53,12 @@ describe("club facility — tesis büyüme modeli", () => {
 });
 
 describe("club coach — antrenör kalitesi (tesisi takip eder, olay olarak yükselir)", () => {
-  it("antrenör de 30'dan başlar; yetenek = tesis (1:1), [30,100]", () => {
-    expect(BASE_COACH_SKILL).toBe(30);
-    expect(coachSkillForFacility(30)).toBe(30);
+  it("antrenör de 20'den başlar; yetenek = tesis (1:1), [20,100]", () => {
+    expect(BASE_COACH_SKILL).toBe(20);
+    expect(coachSkillForFacility(20)).toBe(20);
     expect(coachSkillForFacility(36)).toBe(36);
     expect(coachSkillForFacility(80)).toBe(80);
-    expect(coachSkillForFacility(20)).toBe(30); // alt sınır
+    expect(coachSkillForFacility(10)).toBe(20); // alt sınır
     expect(coachSkillForFacility(150)).toBe(100); // tavan
   });
 

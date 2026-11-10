@@ -6,23 +6,23 @@
  * M6: kulüp tesis seviyesi + koç (uzmanlık) + ekipman seviyesi antrenman verimini; ekipman
  * combat'ı hafifçe etkiler. Tam kulüp/koç transferi ve ekipman dükkânı derinliği M7+.
  */
-import { clamp, type SkillCategory } from "./domain";
+import type { SkillCategory } from "./domain";
 import type { TrainingType } from "./training";
 
-/** Kulüp tesisi (0–100) → antrenman çarpanı ~0.9–1.1 (GDD 14.45). */
-export function clubTrainingMultiplier(facility: number): number {
-  return clamp(0.9 + (facility / 100) * 0.2, 0.9, 1.1);
+/**
+ * Kulüp tesisi (0–100) → antrenman SEANS TABANI (kullanıcı kararı 10.11): doğrudan kademeli taban.
+ * 0–20 → 0.05 · 20–40 → 0.06 · 40–60 → 0.07 · 60–80 → 0.08 · 80–100 → 0.09 Đ-değil-skill/seans.
+ * Taban budur; yaş + tavan-yakınlığı + ufak antrenör/profil ekleri modüle eder (careerService advanceDay).
+ * (Eski 0.36 sabit taban + çarpan modeli kaldırıldı — gelişim artık çok daha kademeli/uzun.)
+ */
+export function clubTrainingBase(facility: number): number {
+  const tier = Math.min(4, Math.floor(Math.max(0, facility) / 20)); // 0..4 (80–100 dahil en üst)
+  return 0.05 + tier * 0.01; // 0.05,0.06,0.07,0.08,0.09
 }
 
-/** Koç: yeteneği + uzmanlığı ilgili antrenmanı güçlendirir (GDD 14.43–14.44). */
-export function coachTrainingMultiplier(
-  coachSkill: number,
-  coachSpecialty: SkillCategory | null,
-  type: TrainingType,
-): number {
-  let m = 0.95 + (coachSkill / 100) * 0.15; // 0.95–1.10
-  if (coachSpecialty && type === coachSpecialty) m += 0.05; // uzmanlık uyumu
-  return clamp(m, 0.9, 1.2);
+/** Antrenör uzmanlık uyumu → küçük ek (kullanıcı 10.11): o kategoride uzman koç varsa +%20, yoksa yok. */
+export function coachSpecialtyBonus(coachSpecialty: SkillCategory | null, type: TrainingType): number {
+  return coachSpecialty && type === coachSpecialty ? 1.2 : 1;
 }
 
 /** Ekipman seviyesi (1–5) → küçük antrenman çarpanı (GDD 14.46). */
