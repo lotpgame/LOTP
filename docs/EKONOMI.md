@@ -2,7 +2,38 @@
 
 > Oyunun iç ekonomisi (Denar akışı) ve gerçek para kazanma (monetization) modeli.
 > Kod yazmadan önce ilgili bölüm buradan okunur. Kaynak: kullanıcı (Yusuf) kararları + GDD 16.
-> Son güncelleme: 2026-09-28.
+> Son güncelleme: 2026-11-10.
+
+---
+
+## 🔄 REVİZYON (10.11, Yusuf) — güncel sayılar bunlar (aşağıdaki 28.09 bölümü tarihsel)
+
+Önceki model aşırı sıkıydı (gelir:gider ~1:50, çocuk kırık gear'ı karşılayamıyordu). Launch için
+hayatta kalınabilir ama monetization'lı yeni denge:
+
+**Gelir**
+- **Ödüllü reklam:** 5 Đ × günde 5 = **max 25 Đ/gün** (`AD_REWARD`, `AD_DAILY_CAP`).
+- **Turnuva ödülü (İLK 4 derece ödül alır):** İl 10/6/3/3 · Open 10/6/3/3 · Türkiye 20/12/6/6 ·
+  Satellite 30/20/15/15 · Grand Prix 40/30/20/20 · Avrupa 50/40/30/30 · Dünya K. 100/80/60/60.
+- **Harçlık event'leri:** pocketMoney +8 · clubGift +12 (haftada ~%22 ihtimal).
+- **Sezonluk yurt içi şampiyon (yeni):** İl 12×10 (120) + Türkiye 12×20 (240) + Open 6×10 (60) ≈ **~420 Đ**
+  (2. ~280 · 3. ~130). Üst segment + uluslararası ayrı. (Takvim değişmedi: 1 sezon=12 hafta.)
+
+**Gider**
+- **Katılım:** İl 0 · Open 2 · Türkiye 2 · Satellite 5 · Grand Prix 10 · Avrupa 15 · Dünya K. 20.
+- **Kulüp aidatı — HAFTALIK, Pazar günü, tesis kalitesine (facility) göre kademeli:**
+  0–20→2 · 20–40→4 · 40–60→6 · 60–80→8 · 80–100→10 Đ/hafta (`clubWeeklyDues`). **Ödenemezse** (bakiye
+  yetmez) o hafta(lar)ın antrenman kazancı **×0.8 (%20 düşüş)** + "aidat ödenmedi" olayı (`event.duesUnpaid`).
+- **Market (ucuzlatıldı):** silah **120** · elektrikli yelek **150** · maske **150** · ceket/pantolon **150** ·
+  ayakkabı/göğüs/plastron **100** · eldiven/kordon **50** · çorap **50** · maske kordonu **20** · çanta 150.
+  Tam yeni takım ≈ **~720 Đ** (flöre).
+- **Ekipman yükseltme:** seviye×500 (değişmedi).
+
+**Ekipman eskime:** turnuva başına (maç başına DEĞİL) silah −5 / diğer −2 → silah ~20, gear ~50 turnuva.
+Asıl yenileme sebebi **yaş-beden değişimi** (U10→U12→U14+; kıyafet+silah+maske). Bu zaten var.
+
+**Reklam entegrasyonu:** Web PWA'da gerçek ödüllü video pratik değil; "+Denar butonu" ödülü verir,
+gerçek SDK (AdMob) **Android sarmalayıcıyla sonra** bağlanır. Gelir ölçek işi (eCPM ~$2–6/1000 izlenme).
 
 ---
 

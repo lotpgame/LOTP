@@ -13,9 +13,9 @@ import {
 const fresh: AdState = { lastAdDay: 0, adsToday: 0 };
 
 describe("ads — ödüllü reklam sayacı", () => {
-  it("sabitler makul (ödül 2, günlük tavan 3)", () => {
-    expect(AD_REWARD).toBe(2);
-    expect(AD_DAILY_CAP).toBe(3);
+  it("sabitler makul (ödül 5, günlük tavan 5 → max 25/gün)", () => {
+    expect(AD_REWARD).toBe(5);
+    expect(AD_DAILY_CAP).toBe(5);
   });
 
   it("yeni günde sayaç sıfırlanır (adsWatchedToday)", () => {

@@ -17,7 +17,7 @@ import {
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
 import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, damageActive, discardKitItem, encodeKit, itemById, itemsForWeapon, itemsInSlot, kitItemFits, requiredSize, resolveKit, sizeLabel, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
-import { clubMonthlyDues, entryFee } from "@/engine/economy";
+import { clubWeeklyDues, entryFee } from "@/engine/economy";
 import { applyEventsToPsych, discountedPrice, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial } from "@/engine/lifeEvents";
 import {
   clubTrainingMultiplier,
@@ -281,10 +281,11 @@ describe("Malzeme çantası (equipmentState)", () => {
     expect(entryFee("IL")).toBe(0);
     expect(entryFee("TURKIYE")).toBeGreaterThan(0);
     expect(entryFee("WORLD_CUP")).toBeGreaterThan(entryFee("TURKIYE"));
-    // Kulüp aidatı: iyi kulüp daha pahalı; küçük tutulur (ay=hafta)
-    expect(clubMonthlyDues(100)).toBeGreaterThan(clubMonthlyDues(40));
-    expect(clubMonthlyDues(60)).toBeLessThanOrEqual(4);
-    expect(clubMonthlyDues(0)).toBeGreaterThanOrEqual(1);
+    // Kulüp HAFTALIK aidatı (facility tier): iyi tesis daha pahalı; 2–10 Đ/hafta aralığı
+    expect(clubWeeklyDues(100)).toBeGreaterThan(clubWeeklyDues(40));
+    expect(clubWeeklyDues(0)).toBe(2); // 0–20 → 2
+    expect(clubWeeklyDues(50)).toBe(6); // 40–60 → 6
+    expect(clubWeeklyDues(100)).toBe(10); // 80–100 → 10
   });
   it("çoklu silah (2C): 3'e kadar yedek; en az bir sağlam silah yeterli; dolu→en kötüyü değiştirir", () => {
     const foilWeapon = itemById("gl-weapon-foil")!;
@@ -395,9 +396,11 @@ describe("Hayat Olayları (Dilim 3-1)", () => {
 
 describe("Economy Engine", () => {
   it("ödül seviyeye ve dereceye göre; prestij arttıkça artar", () => {
-    expect(prizeFor("OPEN", 1)).toBeGreaterThan(prizeFor("IL", 1));
+    // İl ve Open taban (10) eşit; üst seviyeler daha yüksek (kullanıcı 10.11 ödül tablosu)
+    expect(prizeFor("TURKIYE", 1)).toBeGreaterThan(prizeFor("OPEN", 1));
     expect(prizeFor("WORLD_CUP", 1)).toBeGreaterThan(prizeFor("TURKIYE", 1));
     expect(prizeFor("OPEN", 1)).toBeGreaterThan(prizeFor("OPEN", 3));
+    expect(prizeFor("IL", 4)).toBe(3); // 4. derece artık ödül alır
     expect(prizeFor("IL", 9)).toBe(0);
   });
   it("ekipman yükseltme maliyeti seviyeyle artar", () => {

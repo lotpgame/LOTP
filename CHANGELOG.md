@@ -9,6 +9,18 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (10.11 — Ekonomi dengesi revizyonu (kullanıcı kararı))
+- **Ödüllü reklam:** 2 Đ×3/gün → **5 Đ×5/gün** (max 25 Đ). Gerçek reklam SDK'sı (AdMob) Android sarmalayıcıyla sonra.
+- **Turnuva ödülleri:** İLK 4 derece ödül alır (4. de). İl/Open 10/6/3/3 · Türkiye 20/12/6/6 · Satellite 30/20/15/15 ·
+  GP 40/30/20/20 · Avrupa 50/40/30/30 · Dünya 100/80/60/60. Sezon şampiyonu yurt içi ~300→~420 Đ.
+- **Katılım ücretleri:** Türkiye 3→2 · Grand Prix 8→10 · Avrupa 12→15 · Dünya 15→20 (İl bedava, Open 2 aynı).
+- **Kulüp aidatı → HAFTALIK + ceza:** `clubMonthlyDues(coachSkill)` → **`clubWeeklyDues(facility)`**; Pazar günü
+  tesis kalitesine göre 2/4/6/8/10 Đ kesilir. Bakiye yetmezse o haftanın antrenmanı **×0.8 (%20)** + yeni
+  **`event.duesUnpaid`** olayı (9 dil). (coachSkill = facility olduğu için metrik tutarlı.)
+- **Market fiyatları ucuzlatıldı:** silah 400→120 · elektrikli yelek 500/550→150 · maske 260/320→150 ·
+  ceket 280→150 · ayakkabı 280→100 · eldiven/kordon 150/100→50 · vb. (tam takım ~2.290→~720 Đ).
+- `docs/EKONOMI.md`'ye "10.11 revizyon" bölümü eklendi; testler güncellendi (ads/economy/environment).
+
 ### Değişti (10.11 — Kariyer silme: Denar bedeli kaldırıldı, çift onay geldi)
 - "Yeni Başla" (kariyer silme) artık **ücretsiz** — 250 Denar şartı kaldırıldı (`CAREER_RESET_COST` silindi,
   `resetCareer` kapısı kalktı). Yerine kazara silmeyi önlemek için **iki aşamalı onay**: "Emin misin? Devam et"

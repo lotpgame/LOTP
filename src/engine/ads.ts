@@ -12,10 +12,10 @@
  * app/sunucu katmanında; burası yalnız "hak/ödül" kuralı.
  */
 
-/** Bir ödüllü reklamın Denar ödülü. ⭐ TUNABLE (Finans/HESAP: 2–5 aralığı, 2 seçildi). */
-export const AD_REWARD = 2;
-/** Günlük reklam tavanı (ekonomi koruması + çocuk için makul). ⭐ TUNABLE. */
-export const AD_DAILY_CAP = 3;
+/** Bir ödüllü reklamın Denar ödülü. ⭐ TUNABLE (kullanıcı kararı 10.11: 5 Đ). */
+export const AD_REWARD = 5;
+/** Günlük reklam tavanı (ekonomi koruması + çocuk için makul). ⭐ TUNABLE (kullanıcı kararı 10.11: 5/gün → max 25 Đ). */
+export const AD_DAILY_CAP = 5;
 
 /** Oyuncunun reklam sayacı durumu (Player.lastAdDay + Player.adsToday). */
 export interface AdState {

@@ -207,9 +207,10 @@ import {
   type Psychology,
 } from "@/engine/psychology";
 import {
+  DUES_UNPAID_TRAINING_MULT,
   MAX_EQUIPMENT_LEVEL,
   STARTING_BALANCE,
-  clubMonthlyDues,
+  clubWeeklyDues,
   entryFee,
   equipmentUpgradeCost,
   prizeFor,
@@ -1935,7 +1936,31 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     else if (mv.effect === "wearWeapon") eventKit = damageActive(eventKit, "WEAPON", cur.age, cur.ageCategory, { hit: mv.durabilityHit });
   }
   const harclik = matEvents.reduce((s, e) => s + (e.denar ?? 0), 0);
-  const allEventKeys = [...weekEvents.map((e) => e.key), ...matEvents.map((e) => e.key)];
+
+  // Kulüp HAFTALIK aidatı (kullanıcı 10.11): her geçilen Pazar'da facility tier'ına göre kesilir
+  // (clubWeeklyDues). Bakiye (+harçlık) yetmezse o hafta(lar) ÖDENMEZ → o hafta(lar)ın antrenman kazancı
+  // oransal %20 düşer + "aidat ödenmedi" olayı "Sen yokken"de gösterilir. Borç biriktirmez.
+  const facility = human.club?.facility ?? 60;
+  const weekDue = clubWeeklyDues(facility);
+  let sundays = 0;
+  for (let dd = startDay; dd < d; dd++) if (dayOfWeek(dd) === 6) sundays++;
+  const duesPool = Math.max(0, human.balance + harclik);
+  const paidWeeks = weekDue > 0 ? Math.min(sundays, Math.floor(duesPool / weekDue)) : sundays;
+  const duesPaid = paidWeeks * weekDue;
+  const unpaidWeeks = sundays - paidWeeks;
+  if (unpaidWeeks > 0 && sundays > 0) {
+    // Ödenmeyen haftaların payı kadar bu ilerlemenin antrenman kazancını kıs (0.8 = %20 düşüş).
+    const scale = 1 - (1 - DUES_UNPAID_TRAINING_MULT) * (unpaidWeeks / sundays);
+    for (const def of SKILLS) {
+      skills[def.key].current = beforeSkills[def.key] + (skills[def.key].current - beforeSkills[def.key]) * scale;
+    }
+  }
+
+  const allEventKeys = [
+    ...weekEvents.map((e) => e.key),
+    ...matEvents.map((e) => e.key),
+    ...(unpaidWeeks > 0 ? ["duesUnpaid"] : []),
+  ];
   // 3-3: markette süreli fırsat/indirim. Mevcut teklif süresi geçtiyse düşer; yoksa son hafta için yeni teklif denenir.
   let offer: GearOffer | null = gs.pendingOffer ? (JSON.parse(gs.pendingOffer) as GearOffer) : null;
   if (offer && d > offer.expiresDay) offer = null;
@@ -1969,17 +1994,15 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         data: { current: skills[def.key].current },
       });
     }
-    // Kulüp aidatı (Dilim 2B-3): geçilen her oyun-ayında (7 gün) küçük Denar; kulüp kalitesine bağlı.
-    // Yumuşak: bakiyeyi 0'ın altına indirmez (ödeyemezse elindeki kadar öder, ceza yok).
-    const monthsCrossed = Math.floor(d / DAYS_PER_MONTH) - Math.floor(startDay / DAYS_PER_MONTH);
-    const clubDues = Math.min(human.balance, clubMonthlyDues(human.club?.coachSkill ?? 60) * Math.max(0, monthsCrossed));
+    // Kulüp HAFTALIK aidatı (Pazar): yukarıda hesaplandı (duesPaid). Ödenemeyen hafta → antrenman %20 ceza
+    // (yukarıda uygulandı) + "aidat ödenmedi" olayı. Bakiye 0 altına inmez.
     await tx.player.update({
       where: { id: human.id },
       data: {
         fatigue,
         sharpness,
         experience: { increment: xpGained }, // #28: antrenman tecrübesi
-        balance: { increment: harclik - clubDues }, // 3-2 harçlık/hediye − kulüp aidatı (net; bakiye 0 altına inmez)
+        balance: { increment: harclik - duesPaid }, // 3-2 harçlık/hediye − haftalık kulüp aidatı (net; bakiye 0 altına inmez)
         // 2C-3 paslanma + 3-2 malzeme olayı hasarı uygulanmış kit.
         equipmentState: encodeKit(eventKit),
         morale: finalPsych.morale,
@@ -1994,7 +2017,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     // Kumbaram: bu ilerlemenin Denar hareketleri (harçlık/hediye + kulüp aidatı) işlem kaydına.
     const ledgerEntries: LedgerEntry[] = [];
     if (harclik > 0) ledgerEntries.push({ day: d, key: "allowance", amount: harclik });
-    if (clubDues > 0) ledgerEntries.push({ day: d, key: "dues", amount: -clubDues });
+    if (duesPaid > 0) ledgerEntries.push({ day: d, key: "dues", amount: -duesPaid });
     await tx.gameState.update({
       where: { id: gs.id },
       data: { lastReport: report, skillQuarterBase: JSON.stringify(skillBase), pendingOffer: offer ? JSON.stringify(offer) : null, ledger: nextLedgerJson(gs.ledger, ...ledgerEntries) },

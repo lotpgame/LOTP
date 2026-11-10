@@ -57,41 +57,41 @@ const b = (s: EquipmentSlot) => SLOT_BONUS[s];
 
 /** Ortak malzemeler — her silahta görünür (weapon yok). Eski id'ler korunur. */
 const SHARED_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Ceket", desc: "Beyaz koruyucu ceket (üst)", icon: "jacket", denar: 280, combatBonus: b("CLOTHING") },
-  { id: "gl-pants", slot: "PANTS", name: "Gladius Pantolon", desc: "Beyaz koruyucu pantolon (alt)", icon: "jacket", denar: 160, combatBonus: b("PANTS") },
-  { id: "gl-shoes", slot: "SHOES", name: "Gladius Ayakkabı", desc: "Ayak tekniği / denge", icon: "shoes", denar: 280, combatBonus: b("SHOES") },
-  { id: "gl-chest", slot: "CHEST", name: "Gladius Göğüs Koruyucu", desc: "Darbe koruyucu (göğüs) — kadın sporcularda zorunlu", icon: "chest", denar: 90, combatBonus: b("CHEST"), gender: "FEMALE" },
-  { id: "gl-plastron", slot: "PLASTRON", name: "Gladius Plastron", desc: "Kıyafet altına (koltuk altı koruyucu)", icon: "plastron", denar: 80, combatBonus: b("PLASTRON") },
-  { id: "gl-socks", slot: "SOCKS", name: "Gladius Çorap", desc: "Uzun eskrim çorabı", icon: "socks", denar: 30, combatBonus: b("SOCKS") },
+  { id: "gl-clothing", slot: "CLOTHING", name: "Gladius Ceket", desc: "Beyaz koruyucu ceket (üst)", icon: "jacket", denar: 150, combatBonus: b("CLOTHING") },
+  { id: "gl-pants", slot: "PANTS", name: "Gladius Pantolon", desc: "Beyaz koruyucu pantolon (alt)", icon: "jacket", denar: 150, combatBonus: b("PANTS") },
+  { id: "gl-shoes", slot: "SHOES", name: "Gladius Ayakkabı", desc: "Ayak tekniği / denge", icon: "shoes", denar: 100, combatBonus: b("SHOES") },
+  { id: "gl-chest", slot: "CHEST", name: "Gladius Göğüs Koruyucu", desc: "Darbe koruyucu (göğüs) — kadın sporcularda zorunlu", icon: "chest", denar: 100, combatBonus: b("CHEST"), gender: "FEMALE" },
+  { id: "gl-plastron", slot: "PLASTRON", name: "Gladius Plastron", desc: "Kıyafet altına (koltuk altı koruyucu)", icon: "plastron", denar: 100, combatBonus: b("PLASTRON") },
+  { id: "gl-socks", slot: "SOCKS", name: "Gladius Çorap", desc: "Uzun eskrim çorabı", icon: "socks", denar: 50, combatBonus: b("SOCKS") },
   { id: "gl-bag", slot: "BAG", name: "Gladius Çanta", desc: "Marka logolu taşıma çantası", icon: "bag", denar: 150, combatBonus: b("BAG"), cosmetic: true },
 ];
 
 /** Flöre — hedef gövde; çene iletken maske + gövde elektrikli yelek + vücut/maske kordonu. */
 const FOIL_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-lame-foil", slot: "LAME", name: "Gladius Elektrikli Yelek", desc: "Flöre için gerekli — gövdeyi kaplayan iletken yelek", icon: "lame", denar: 500, weapon: "FOIL", combatBonus: b("LAME") },
-  { id: "gl-weapon-foil", slot: "WEAPON", name: "Gladius Flöre", desc: "Elektrikli flöre silahı", icon: "sword", denar: 400, weapon: "FOIL", combatBonus: b("WEAPON") },
-  { id: "gl-mask-foil", slot: "MASK", name: "Gladius Flöre Maske", desc: "Çene altı iletken", icon: "mask", denar: 260, weapon: "FOIL", combatBonus: b("MASK") },
-  { id: "gl-glove-foil", slot: "GLOVE", name: "Gladius Eldiven", desc: "Koruyucu eldiven", icon: "glove", denar: 150, weapon: "FOIL", combatBonus: b("GLOVE") },
-  { id: "gl-cord-foil", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "Flöre soketli", icon: "cord", denar: 100, weapon: "FOIL", combatBonus: b("CORD") },
-  { id: "gl-maskcord-foil", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Maskeyi yeleğe bağlar", icon: "mask-cord", denar: 50, weapon: "FOIL", combatBonus: b("MASK_CORD") },
+  { id: "gl-lame-foil", slot: "LAME", name: "Gladius Elektrikli Yelek", desc: "Flöre için gerekli — gövdeyi kaplayan iletken yelek", icon: "lame", denar: 150, weapon: "FOIL", combatBonus: b("LAME") },
+  { id: "gl-weapon-foil", slot: "WEAPON", name: "Gladius Flöre", desc: "Elektrikli flöre silahı", icon: "sword", denar: 120, weapon: "FOIL", combatBonus: b("WEAPON") },
+  { id: "gl-mask-foil", slot: "MASK", name: "Gladius Flöre Maske", desc: "Çene altı iletken", icon: "mask", denar: 150, weapon: "FOIL", combatBonus: b("MASK") },
+  { id: "gl-glove-foil", slot: "GLOVE", name: "Gladius Eldiven", desc: "Koruyucu eldiven", icon: "glove", denar: 50, weapon: "FOIL", combatBonus: b("GLOVE") },
+  { id: "gl-cord-foil", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "Flöre soketli", icon: "cord", denar: 50, weapon: "FOIL", combatBonus: b("CORD") },
+  { id: "gl-maskcord-foil", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Maskeyi yeleğe bağlar", icon: "mask-cord", denar: 20, weapon: "FOIL", combatBonus: b("MASK_CORD") },
 ];
 
 /** Epe — tüm vücut hedef; YELEK YOK, MASKE KORDONU YOK; yalıtkan maske; 3 soketli kordon. */
 const EPEE_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-weapon-epee", slot: "WEAPON", name: "Gladius Epe", desc: "Elektrikli epe silahı", icon: "sword", denar: 400, weapon: "EPEE", combatBonus: b("WEAPON") },
-  { id: "gl-mask-epee", slot: "MASK", name: "Gladius Epe Maske", desc: "Yalıtkan, beyaz", icon: "mask", denar: 260, weapon: "EPEE", combatBonus: b("MASK") },
-  { id: "gl-glove-epee", slot: "GLOVE", name: "Gladius Eldiven", desc: "Koruyucu eldiven", icon: "glove", denar: 150, weapon: "EPEE", combatBonus: b("GLOVE") },
-  { id: "gl-cord-epee", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "3 soketli epe kordonu", icon: "cord", denar: 100, weapon: "EPEE", combatBonus: b("CORD") },
+  { id: "gl-weapon-epee", slot: "WEAPON", name: "Gladius Epe", desc: "Elektrikli epe silahı", icon: "sword", denar: 120, weapon: "EPEE", combatBonus: b("WEAPON") },
+  { id: "gl-mask-epee", slot: "MASK", name: "Gladius Epe Maske", desc: "Yalıtkan, beyaz", icon: "mask", denar: 150, weapon: "EPEE", combatBonus: b("MASK") },
+  { id: "gl-glove-epee", slot: "GLOVE", name: "Gladius Eldiven", desc: "Koruyucu eldiven", icon: "glove", denar: 50, weapon: "EPEE", combatBonus: b("GLOVE") },
+  { id: "gl-cord-epee", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "3 soketli epe kordonu", icon: "cord", denar: 50, weapon: "EPEE", combatBonus: b("CORD") },
 ];
 
 /** Kılıç — bel üstü + kol + kafa; iletken maske + gövde+kol yeleği + iletken eldiven; 2 soketli kordon + maske kordonu. */
 const SABRE_ITEMS: readonly GladiusItem[] = [
-  { id: "gl-lame-sabre", slot: "LAME", name: "Gladius Elektrikli Yelek", desc: "Kılıç için gerekli — gövde + kolları kaplayan iletken yelek", icon: "lame", denar: 550, weapon: "SABRE", combatBonus: b("LAME") },
-  { id: "gl-weapon-sabre", slot: "WEAPON", name: "Gladius Kılıç", desc: "Elektrikli kılıç silahı", icon: "sword", denar: 400, weapon: "SABRE", combatBonus: b("WEAPON") },
-  { id: "gl-mask-sabre", slot: "MASK", name: "Gladius Kılıç Maske", desc: "İçi-dışı iletken", icon: "mask", denar: 320, weapon: "SABRE", combatBonus: b("MASK") },
-  { id: "gl-glove-sabre", slot: "GLOVE", name: "Gladius Eldiven", desc: "Manşet kısmı iletken", icon: "glove", denar: 150, weapon: "SABRE", combatBonus: b("GLOVE") },
-  { id: "gl-cord-sabre", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "2 soketli kılıç kordonu", icon: "cord", denar: 100, weapon: "SABRE", combatBonus: b("CORD") },
-  { id: "gl-maskcord-sabre", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Maskeyi yeleğe bağlar", icon: "mask-cord", denar: 50, weapon: "SABRE", combatBonus: b("MASK_CORD") },
+  { id: "gl-lame-sabre", slot: "LAME", name: "Gladius Elektrikli Yelek", desc: "Kılıç için gerekli — gövde + kolları kaplayan iletken yelek", icon: "lame", denar: 150, weapon: "SABRE", combatBonus: b("LAME") },
+  { id: "gl-weapon-sabre", slot: "WEAPON", name: "Gladius Kılıç", desc: "Elektrikli kılıç silahı", icon: "sword", denar: 120, weapon: "SABRE", combatBonus: b("WEAPON") },
+  { id: "gl-mask-sabre", slot: "MASK", name: "Gladius Kılıç Maske", desc: "İçi-dışı iletken", icon: "mask", denar: 150, weapon: "SABRE", combatBonus: b("MASK") },
+  { id: "gl-glove-sabre", slot: "GLOVE", name: "Gladius Eldiven", desc: "Manşet kısmı iletken", icon: "glove", denar: 50, weapon: "SABRE", combatBonus: b("GLOVE") },
+  { id: "gl-cord-sabre", slot: "CORD", name: "Gladius Vücut Kordonu", desc: "2 soketli kılıç kordonu", icon: "cord", denar: 50, weapon: "SABRE", combatBonus: b("CORD") },
+  { id: "gl-maskcord-sabre", slot: "MASK_CORD", name: "Gladius Maske Kordonu", desc: "Maskeyi yeleğe bağlar", icon: "mask-cord", denar: 20, weapon: "SABRE", combatBonus: b("MASK_CORD") },
 ];
 
 /** Mağazada gösterilen tam katalog (ortak + silaha özel). UI silaha göre filtreler → itemsForWeapon(). */
