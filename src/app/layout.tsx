@@ -42,6 +42,8 @@ export const metadata: Metadata = {
   // PWA: iOS "Ana ekrana ekle" → tam ekran app, kısa ad, saydam durum çubuğu. (Android manifest'ten gelir.)
   appleWebApp: { capable: true, title: "LOTP", statusBarStyle: "black-translucent" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-180.png" },
+  // AdSense site doğrulaması (meta yöntemi) — <head>'e düzgün basılır.
+  other: { "google-adsense-account": "ca-pub-7563750911534744" },
   // Link önizleme görseli (og:image) `src/app/opengraph-image.tsx` dosya-kuralından gelir (1200×630 yatay).
 };
 
@@ -76,18 +78,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-boot" strategy="beforeInteractive">
           {THEME_BOOT}
         </Script>
-        {/* Google AdSense / H5 Games Ads doğrulama + reklam script'i. Yalnız NEXT_PUBLIC_ADSENSE_CLIENT
-            (ca-pub-…) tanımlıysa yüklenir → AdSense hesabı açılıp Vercel env'e ID girilince site anında
-            doğrulanır; ödüllü reklam (adBreak) onay sonrası bağlanır. Tanımlı değilse hiçbir şey yüklenmez. */}
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
-          <Script
-            id="adsense"
-            async
-            strategy="afterInteractive"
-            crossOrigin="anonymous"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-          />
-        )}
+        {/* Google AdSense / H5 Games Ads script'i (site doğrulama + ileride ödüllü adBreak). Publisher ID
+            gizli değil (sayfa kaynağında herkese görünür) → doğrudan gömülü. Ödüllü reklam onay sonrası bağlanır. */}
+        <Script
+          id="adsense"
+          async
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7563750911534744"
+        />
         <ThemeApplier />
         <ServiceWorkerRegister />
         <InstagramWarning show={isInstagram} locale={locale} />
