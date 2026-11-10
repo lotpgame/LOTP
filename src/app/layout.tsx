@@ -76,6 +76,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Script id="theme-boot" strategy="beforeInteractive">
           {THEME_BOOT}
         </Script>
+        {/* Google AdSense / H5 Games Ads doğrulama + reklam script'i. Yalnız NEXT_PUBLIC_ADSENSE_CLIENT
+            (ca-pub-…) tanımlıysa yüklenir → AdSense hesabı açılıp Vercel env'e ID girilince site anında
+            doğrulanır; ödüllü reklam (adBreak) onay sonrası bağlanır. Tanımlı değilse hiçbir şey yüklenmez. */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+          <Script
+            id="adsense"
+            async
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+          />
+        )}
         <ThemeApplier />
         <ServiceWorkerRegister />
         <InstagramWarning show={isInstagram} locale={locale} />

@@ -10,7 +10,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 `docs/NOTLAR.md`.
 
 ### Değişti (10.11 — Ekonomi dengesi revizyonu (kullanıcı kararı))
-- **Ödüllü reklam:** 2 Đ×3/gün → **5 Đ×5/gün** (max 25 Đ). Gerçek reklam SDK'sı (AdMob) Android sarmalayıcıyla sonra.
+- **Ödüllü reklam:** 2 Đ×3/gün → **2 Đ×5/gün** (max 10 Đ). Gerçek reklam entegrasyonu: AdSense/H5 Games Ads (web) — publisher ID gelince bağlanır.
 - **Turnuva ödülleri:** İLK 4 derece ödül alır (4. de). İl/Open 10/6/3/3 · Türkiye 20/12/6/6 · Satellite 30/20/15/15 ·
   GP 40/30/20/20 · Avrupa 50/40/30/30 · Dünya 100/80/60/60. Sezon şampiyonu yurt içi ~300→~420 Đ.
 - **Katılım ücretleri:** Türkiye 3→2 · Grand Prix 8→10 · Avrupa 12→15 · Dünya 15→20 (İl bedava, Open 2 aynı).

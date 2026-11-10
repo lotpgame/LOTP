@@ -12,7 +12,7 @@
 hayatta kalınabilir ama monetization'lı yeni denge:
 
 **Gelir**
-- **Ödüllü reklam:** 5 Đ × günde 5 = **max 25 Đ/gün** (`AD_REWARD`, `AD_DAILY_CAP`).
+- **Ödüllü reklam:** 2 Đ × günde 5 = **max 10 Đ/gün** (`AD_REWARD`, `AD_DAILY_CAP`).
 - **Turnuva ödülü (İLK 4 derece ödül alır):** İl 10/6/3/3 · Open 10/6/3/3 · Türkiye 20/12/6/6 ·
   Satellite 30/20/15/15 · Grand Prix 40/30/20/20 · Avrupa 50/40/30/30 · Dünya K. 100/80/60/60.
 - **Harçlık event'leri:** pocketMoney +8 · clubGift +12 (haftada ~%22 ihtimal).
