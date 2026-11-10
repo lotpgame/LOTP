@@ -3,7 +3,7 @@ import { ArenaPage } from "@/app/ArenaPage";
 import { LangSelect } from "@/app/LangSelect";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { CAREER_RESET_COST, getCareer } from "@/server/careerService";
+import { getCareer } from "@/server/careerService";
 import { CareerResetButton, SoundToggle } from "./AyarlarClient";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { FeedbackWidget } from "../FeedbackWidget";
@@ -16,7 +16,6 @@ export default async function AyarlarPage() {
   const locale = await getLocale();
   const c = await getCareer();
   if (!c) redirect("/");
-  const canAfford = c.balance >= CAREER_RESET_COST;
 
   return (
     <ArenaPage bg="/img/bg-ayarlar.webp">
@@ -51,8 +50,7 @@ export default async function AyarlarPage() {
               locale={locale}
               label={t(locale, "settings.newCareer")}
               warning={t(locale, "settings.deleteWarning")}
-              cost={CAREER_RESET_COST}
-              canAfford={canAfford}
+              warning2={t(locale, "settings.deleteWarning2")}
               danger
             />
             <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>

@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (10.11 — Kariyer silme: Denar bedeli kaldırıldı, çift onay geldi)
+- "Yeni Başla" (kariyer silme) artık **ücretsiz** — 250 Denar şartı kaldırıldı (`CAREER_RESET_COST` silindi,
+  `resetCareer` kapısı kalktı). Yerine kazara silmeyi önlemek için **iki aşamalı onay**: "Emin misin? Devam et"
+  → "Son uyarı… Evet, kalıcı olarak sil". Gerçek silme yalnız ikinci onayda çalışır (`CareerResetButton` step 0/1/2).
+- 9 dilde metin: `settings.deleteWarning2` + `settings.deleteConfirm2` eklendi; `newCareerNote`'tan ücret cümlesi çıktı.
+
 ### Düzeltildi (09.11 — Uygulama içi tarayıcı tuzağı (Instagram/TikTok "yan çevir" sıkışması))
 - **Sorun:** Instagram/Facebook/TikTok linki kendi iç tarayıcısında DİKEY kilitli açar; yatay oyun "telefonu yan çevir"
   (`RotateGate`) tam ekranında sonsuza kadar sıkışıyordu (telefon dönmüyor) ve bu ekran "Tarayıcıda Aç" ipucunu örtüyordu.
