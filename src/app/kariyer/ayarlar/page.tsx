@@ -1,82 +1,56 @@
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
-import { LangSelect } from "@/app/LangSelect";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
-import { CareerResetButton, SoundToggle } from "./AyarlarClient";
-import { CollapsibleSection } from "../CollapsibleSection";
+import { CareerResetButton } from "./AyarlarClient";
+import { LangModal } from "./LangModal";
+import { GorunumModal } from "./GorunumModal";
+import { SozlukModal } from "./SozlukModal";
 import { FeedbackWidget } from "../FeedbackWidget";
-import { ThemeSettings } from "../ThemeSettings";
-import { Icon } from "@/app/ui/Icon";
+import { glossaryFor } from "../sozluk/glossary";
 
 export const dynamic = "force-dynamic";
+
+// Ayarlar = tek-tık satırlar; her satır öne açılan bir pop-up (kullanıcı kararı 15.11). Ses kaldırıldı
+// (ses eklenince geri gelir). "Yeni Başla" (kariyer sıfırlama) en altta, kırmızı.
+const ROW = "press flex min-h-14 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]";
 
 export default async function AyarlarPage() {
   const locale = await getLocale();
   const c = await getCareer();
   if (!c) redirect("/");
+  const sections = glossaryFor(locale);
 
   return (
     <ArenaPage bg="/img/bg-ayarlar.webp">
       <h1 className="display text-[28px]">{t(locale, "settings.title")}</h1>
 
-      {/* Dil */}
-      <CollapsibleSection title={t(locale, "settings.language")} defaultOpen>
-        <p className="text-[13px] text-steel">{t(locale, "settings.languageNote")}</p>
-        <div className="mt-3">
-          <LangSelect current={locale} />
-        </div>
-      </CollapsibleSection>
+      <div className="mt-4 flex flex-col gap-2">
+        {/* Dil → pop-up (listeden seç) */}
+        <LangModal current={locale} rowClassName={ROW} />
 
-      {/* Görünüm — kişiye özel arka fon + yazı rengi (oyun düzeni YATAY sabittir; seçenek yok) */}
-      <CollapsibleSection title={t(locale, "settings.appearance")}>
-        <ThemeSettings locale={locale} />
-      </CollapsibleSection>
+        {/* Görünüm → pop-up (arka fon + yazı rengi) */}
+        <GorunumModal locale={locale} rowClassName={ROW} />
 
-      {/* Ses */}
-      <CollapsibleSection title={t(locale, "settings.sound")}>
-        <p className="text-[13px] text-steel">{t(locale, "settings.soundNote")}</p>
-        <div className="mt-3">
-          <SoundToggle locale={locale} />
-        </div>
-      </CollapsibleSection>
+        {/* Geri bildirim → tek tık doğrudan bildirim penceresi (ara adım yok) */}
+        <FeedbackWidget locale={locale} className={ROW} withChevron />
 
-      {/* Kariyer */}
-      <CollapsibleSection title={t(locale, "settings.career")}>
-        <div className="flex flex-col gap-3">
-          <div>
-            <CareerResetButton
-              locale={locale}
-              label={t(locale, "settings.newCareer")}
-              warning={t(locale, "settings.deleteWarning")}
-              warning2={t(locale, "settings.deleteWarning2")}
-              danger
-            />
-            <p className="mt-1 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
-          </div>
-        </div>
-      </CollapsibleSection>
+        {/* Sözlük → pop-up (arama + kaydırmalı) */}
+        <SozlukModal locale={locale} sections={sections} rowClassName={ROW} />
+      </div>
 
-      {/* Bildir — geri bildirim / hata (menüden Ayarlar'a taşındı 06.11, kullanıcı kararı). */}
-      <CollapsibleSection title={t(locale, "feedback.title")}>
-        <FeedbackWidget
+      {/* Yeni Başla — en altta, kırmızı (çift onaylı kariyer sıfırlama). */}
+      <div className="mt-8 border-t border-line pt-4">
+        <CareerResetButton
           locale={locale}
-          className="press flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]"
+          label={t(locale, "settings.newCareer")}
+          warning={t(locale, "settings.deleteWarning")}
+          warning2={t(locale, "settings.deleteWarning2")}
+          danger
         />
-      </CollapsibleSection>
-
-      {/* Sözlük — açılır/kapanır; içinden sözlük sayfasına git (Geri Bildirim gibi; kullanıcı kararı 06.11). */}
-      <CollapsibleSection title={t(locale, "nav.sozluk")}>
-        <a
-          href="/kariyer/sozluk"
-          className="press flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-arena-1 px-3 text-[15px]"
-        >
-          <Icon name="glossary" size={20} className="shrink-0 text-steel" />
-          <span className="flex-1">{t(locale, "nav.sozluk")}</span>
-          <Icon name="chevron-right" size={18} className="shrink-0 text-steel" />
-        </a>
-      </CollapsibleSection>
+        <p className="mt-1.5 text-[13px] text-steel">{t(locale, "settings.newCareerNote")}</p>
+      </div>
     </ArenaPage>
   );
 }

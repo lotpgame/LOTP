@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — Ayarlar tek-tık pop-up satırlar + saat pencereleri)
+- **Ayarlar** artık tek-tık satırlar; her satır öne açılan bir pencere (ara adım yok): **Dil** (listeden seç),
+  **Görünüm** (tema + renk), **Geri bildirim** (doğrudan bildir — eskiden iki tık), **Sözlük** (üstte **arama**,
+  altında kaydırmalı liste). **Ses** kaldırıldı (ses eklenince döner). **Yeni Başla** (kariyer sıfırlama) en altta,
+  kırmızı. Yeni: `LangModal`, `GorunumModal`, `SozlukModal`.
+- **Oyun saati rozetine tıklama → pencere**: büyük GMT saati + oyuncunun kendi yerel saati & zaman dilimi
+  (ör. Europe/Istanbul GMT+3) + "oyun dünyası GMT'de işler, turnuva 18:00 GMT" açıklaması (`WorldClockBadge`).
+- i18n: `sozluk.search/noResult`, `clock.title/note/local` — 9 dil.
+
 ### Değişti (15.11 — Telefon-yatay menü: tek yatay üst bar)
 - Telefon-yatay (oynanan mod) menüsü **tek yatay üst barda** birleşti (önceden üst 4 + alt 4 sekme iki şeride
   bölünüydü): **sol** oyun saati (GMT), **orta** tüm sekmeler tek sırada (Bugün · Kulüp · Antrenman · Ekipman ·
