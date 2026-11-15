@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.11 — Menü düzeni görsel denemesi `/menu-deneme` — GEÇİCİ)
+- Futbol oyunu tarzı **tek yatay üst menü** denemesi: tüm sekmeler tek sırada (Bugün · Kulüp · Antrenman ·
+  Ekipman · Turnuvalar(1) · Klasman · Kariyer), **sol üstte canlı GMT oyun saati**, sağ üstte **Denar kazan/al**
+  + ayar ikonu. Gerçek `CareerNav` **değişmedi**; bu yalnız telefonda bakmak için ayrı route. Beğenilirse
+  CareerNav'a uyarlanıp bu sayfa silinecek.
+
 ### Değişti (15.11 — Turnuva ödül etiketi kapsama göre netleşti)
 - Turnuva listesindeki **"Klasman puanı + tecrübe"** etiketi artık **hangi klasmanı** etkilediğini söylüyor:
   İl → **"İl klasmanı + tecrübe"**, Ulusal (Türkiye/ülke şampiyonası) → **"Ulusal klasman + tecrübe"**,
