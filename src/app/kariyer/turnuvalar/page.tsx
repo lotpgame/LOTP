@@ -86,7 +86,18 @@ export default async function TurnuvalarPage({
               {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <span className="rounded-md border border-line px-1.5 py-0.5 text-[12px] text-steel">
-                  {u.level === "OPEN" ? t(locale, "tour.rewardXp") : t(locale, "tour.rewardRank")}
+                  {u.level === "OPEN"
+                    ? t(locale, "tour.rewardXp")
+                    : t(locale, "tour.rewardRank", {
+                        scope: t(
+                          locale,
+                          u.level === "IL"
+                            ? "tour.scopeCity"
+                            : u.level === "TURKIYE"
+                              ? "tour.scopeNational"
+                              : "tour.scopeWorld",
+                        ),
+                      })}
                 </span>
                 {u.registered && (
                   <span className="flex items-center gap-1 text-[13px] font-semibold">

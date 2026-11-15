@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — Turnuva ödül etiketi kapsama göre netleşti)
+- Turnuva listesindeki **"Klasman puanı + tecrübe"** etiketi artık **hangi klasmanı** etkilediğini söylüyor:
+  İl → **"İl klasmanı + tecrübe"**, Ulusal (Türkiye/ülke şampiyonası) → **"Ulusal klasman + tecrübe"**,
+  uluslararası → **"Dünya klasmanı + tecrübe"**. (İl şampiyonu zaten il klasmanına puan veriyordu; bu yalnız
+  etiketi netleştirir — davranış değişmedi.)
+- Çeviri dostu kurulum: tek şablon `tour.rewardRank` = `"{scope} + tecrübe"` + 3 kapsam kelimesi
+  (`tour.scopeCity/scopeNational/scopeWorld`), 9 dil. Kapsam seçimi seviyeye göre (`turnuvalar/page.tsx`).
+
 ### Değişti (15.11 — Başlangıç 50 Đ + Denar satın-al ikonu)
 - **Başlangıç bakiyesi 0 → 50 Đ** (`STARTING_BALANCE`): yeni oyuncu ufak tamponla başlar (ilk aidat + kırılan
   gear için nefes; beta-dostu). Aidatlar aynen devam.
