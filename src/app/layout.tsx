@@ -9,6 +9,7 @@ import { InstagramWarning } from "./InstagramWarning";
 import { OpenInBrowserGate } from "./OpenInBrowserGate";
 import { RotateGate } from "./RotateGate";
 import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
+import { VersionWatcher } from "./VersionWatcher";
 import { ThemeApplier } from "./ThemeApplier";
 import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY } from "./themeKeys";
 import { isInAppBrowser, isInstagramBrowser } from "./ui/inAppBrowser";
@@ -97,6 +98,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
         <ThemeApplier />
         <ServiceWorkerRegister />
+        <VersionWatcher />
         <InstagramWarning show={isInstagram} locale={locale} />
         {/* İç tarayıcıda → "tarayıcıda aç" kapısı (çevirmek işe yaramaz). Değilse → "yan çevir" uyarısı
             (logo + hoş geldiniz; kullanıcı 15.11 CSS-döndürme yerine bunu tercih etti). */}

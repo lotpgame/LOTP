@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.11 — PWA otomatik güncelleme (iOS ana-ekran önbellek sorunu))
+- **Sorun:** iOS "ana ekrana ekle" (PWA) uygulamasını yeniden açınca sayfayı yeniden yüklemez → eski sürümde
+  donar, yeni deploy'lar görünmez (sil-yeniden kur gerekiyordu).
+- **Çözüm:** `VersionWatcher` — uygulama öne geldiğinde (visibilitychange) + periyodik olarak `/api/version`'dan
+  güncel dağıtım kimliğini (Vercel commit sha) sorar; değişmişse sayfayı bir kez otomatik yeniler. `/api/version`
+  önbelleğe alınmaz (no-store). Artık her deploy telefonda kendiliğinden güncellenir.
+
 ### Değişti (15.11 — Market okları kaldırıldı, B2B marka lead, menü fontu, e-posta)
 - **Market okları kaldırıldı:** ekipman'daki market tetik satırının sağ oku + modal içindeki geri ok gitti;
   markalara dönüş artık "Market" başlığına tıklayarak.
