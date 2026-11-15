@@ -573,3 +573,27 @@ dialog.modal {
   /* Bırakınca YAVAŞ geri döner (260ms) → "biraz basılı kaldı" hissi; basarken :active 40ms ile anında. */
   transition: transform 260ms ease, filter 260ms ease;
 }
+
+/* ───────────── CSS-DÖNDÜRME: dik tutuşta içeriği YATAY döndür (kullanıcı 15.11) ─────────────
+   Oyun yalnız yatay oynanır. iOS web yön kilidini desteklemediği için "telefonu yan çevir" uyarısı
+   yerine içeriği 90° döndürüp yatay doldururuz. Yalnız MOBİL (lg altı) + cihaz DİKEY iken. Yatay
+   tutunca / masaüstünde dokunmaz. #app-rotate = layout.tsx'teki sarmalayıcı. */
+@media (orientation: portrait) and (max-width: 1023px) {
+  html,
+  body {
+    overflow: hidden;
+    height: 100%;
+  }
+  #app-rotate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvh; /* cihazın UZUN kenarı → yeni genişlik (yatay) */
+    height: 100dvw; /* cihazın KISA kenarı → yeni yükseklik */
+    transform: rotate(90deg) translateY(-100%);
+    transform-origin: top left;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

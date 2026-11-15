@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — CSS-döndürme: "telefonu yan çevir" uyarısı kalktı)
+- Telefon DİK tutulsa bile içerik **90° dönüp yatay doluyor** (globals.css `#app-rotate`, yalnız mobil+dikey).
+  iOS web yön kilidini desteklemediği için uyarı yerine bu yöntem; iOS rotation-lock açık olsa bile çalışır.
+  **RotateGate ("yan çevir" uyarısı) kaldırıldı** (bileşen dosyası duruyor, gerekirse geri alınır). Yatayda /
+  masaüstünde dokunmaz, çift-dönme yok. Instagram vb. iç tarayıcı için `OpenInBrowserGate` kaldı (oturum).
+
 ### Değişti (10.11 — Antrenman dengesi: çok daha kademeli (kullanıcı kararı))
 - **Gelişim yavaşlatıldı** (uzun yolculuk): seans tabanı artık **kulüp tesis kademesine** bağlı —
   `clubTrainingBase`: 0–20→0.05 · 20–40→0.06 · 40–60→0.07 · 60–80→0.08 · 80–100→**0.09**/seans. Eski 0.36

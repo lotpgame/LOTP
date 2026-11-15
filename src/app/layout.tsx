@@ -7,7 +7,6 @@ import { getLocale } from "@/i18n/server";
 import "./globals.css";
 import { InstagramWarning } from "./InstagramWarning";
 import { OpenInBrowserGate } from "./OpenInBrowserGate";
-import { RotateGate } from "./RotateGate";
 import { ServiceWorkerRegister } from "./ServiceWorkerRegister";
 import { ThemeApplier } from "./ThemeApplier";
 import { THEME_BG_KEY, THEME_FG_KEY, THEME_ME_KEY } from "./themeKeys";
@@ -90,12 +89,16 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeApplier />
         <ServiceWorkerRegister />
         <InstagramWarning show={isInstagram} locale={locale} />
-        {/* İç tarayıcıda → "tarayıcıda aç" kapısı (çevirmek işe yaramaz). Değilse → normal "yan çevir". */}
-        {inApp ? <OpenInBrowserGate locale={locale} /> : <RotateGate locale={locale} />}
-        <div className="flex-1">{children}</div>
-        <footer className="border-t border-line py-3 text-center text-[13px] text-steel">
-          {t(locale, "footer.tagline")}
-        </footer>
+        {/* İç tarayıcıda (Instagram vb.) → "tarayıcıda aç" kapısı (oturum/çevirme sorunları). */}
+        {inApp && <OpenInBrowserGate locale={locale} />}
+        {/* CSS-döndürme (kullanıcı 15.11): telefon DİK tutulsa bile içerik YATAY döner (globals.css
+            #app-rotate). "Telefonu yan çevir" uyarısı (RotateGate) kaldırıldı — oyun kendiliğinden yatay. */}
+        <div id="app-rotate" className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1">{children}</div>
+          <footer className="border-t border-line py-3 text-center text-[13px] text-steel">
+            {t(locale, "footer.tagline")}
+          </footer>
+        </div>
       </body>
     </html>
   );
