@@ -73,7 +73,8 @@ Denar kıt → asıl ödül ranking/prestij; monetization böyle anlam kazanır.
 **Sonuç — sezonluk yurt içi:** Şampiyon ~**300 Đ** · 2. ~**200** · 3. ~**150**.
 Uluslararası (kota varsa, yılda 4): şampiyon +~190 (elit + prestij; yine küçük).
 
-**Başlangıç bakiyesi: 0 Đ** (`STARTING_BALANCE`, 28.09) — yeni oyuncu Denar'sız başlar (bedava para yok).
+**Başlangıç bakiyesi: 50 Đ** (`STARTING_BALANCE`, kullanıcı 15.11) — yeni oyuncu ufak tamponla başlar (ilk
+aidat + kırılan gear için nefes; beta-dostu, "parasız başlayıp reklam izle" ilk izlenimini önler).
 Şampiyon bile 1 sezonda 1 silah (400) alamaz → malzeme için Denar satın alma ihtiyacı doğar (monetization).
 
 **Sonra (release/V2):** sponsorluk (ranking'e bağlı hafif pasif gelir) + başarı primleri (ilk madalya/şampiyonluk/milli takım).

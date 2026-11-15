@@ -112,7 +112,7 @@ export function DenarPanel({
 
       {/* Denar paketleri (lansmanta açılacak — satın alma yok) */}
       <div className="panel flex flex-col gap-2 p-3" style={{ background: "color-mix(in srgb, var(--sig-red) 6%, transparent)" }}>
-        <div className="flex items-center gap-1.5 text-[15px] font-semibold">💎 {labels.buyTitle}</div>
+        <div className="flex items-center gap-1.5 text-[15px] font-semibold"><DenarMark size={16} /> {labels.buyTitle}</div>
         <ul className={`grid gap-2 ${packages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
           {packages.map((p) => (
             <li

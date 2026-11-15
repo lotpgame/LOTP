@@ -6,9 +6,9 @@
  */
 import type { TournamentLevel } from "./domain";
 
-// Başlangıç bakiyesi 0 (kullanıcı kararı, 28.09): yeni oyuncu Denar'sız başlar — kıt ekonomi +
-// monetization ile tutarlı (bedava başlangıç parası yok). Denar turnuvayla kazanılır / satın alınır.
-export const STARTING_BALANCE = 0;
+// Başlangıç bakiyesi 50 (kullanıcı kararı 15.11): yeni oyuncu ufak bir tamponla başlar — ilk haftaların
+// aidatı + kırılan gear için nefes alır. Parasız "para ver/reklam izle" ilk izlenimini önler (beta-dostu).
+export const STARTING_BALANCE = 50;
 
 /**
  * Seviye × derece → para ödülü (GDD 17.75). Prestij arttıkça ödül artar.
