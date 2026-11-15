@@ -103,10 +103,17 @@
   --font-display: var(--font-barlow);
 }
 
+/* Boydan boya (full-bleed) üst menü 100vw kullanıyor; kaydırma çubuğu olan cihazlarda yatay taşmayı
+   kök öğede kes (clip — sticky'yi bozmaz, hidden gibi scroll-container yaratmaz). */
+html {
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: clip;
 }
 
 /* Açılır liste (option) her temada okunur olsun — bazı tarayıcılarda native popup sistem rengini kullanıyor. */

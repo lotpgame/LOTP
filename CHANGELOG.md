@@ -18,6 +18,12 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (ör. Europe/Istanbul GMT+3) + "oyun dünyası GMT'de işler, turnuva 18:00 GMT" açıklaması (`WorldClockBadge`).
 - i18n: `sozluk.search/noResult`, `clock.title/note/local` — 9 dil.
 
+### Değişti (15.11 — Üst menü barı: boydan boya + sekmeler eşit dağıldı)
+- Telefon-yatay üst menü barı **boydan boya** (full-bleed, `w-screen`), biraz daha **yüksek** (h-16) ve
+  yazılar hafif aşağı; sekmeler artık **eşit dağılıyor** (`justify-between`) → sağdaki boşluk kalktı.
+  iPhone çentik/ada için **safe-area** yatay payı eklendi. Yatay taşma `overflow-x: clip` ile kesildi
+  (sticky korunur).
+
 ### Değişti (15.11 — Telefon-yatay menü: tek yatay üst bar)
 - Telefon-yatay (oynanan mod) menüsü **tek yatay üst barda** birleşti (önceden üst 4 + alt 4 sekme iki şeride
   bölünüydü): **sol** oyun saati (GMT), **orta** tüm sekmeler tek sırada (Bugün · Kulüp · Antrenman · Ekipman ·

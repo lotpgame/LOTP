@@ -152,11 +152,11 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
           Sol: oyun saati (GMT) · Orta: tüm sekmeler tek sırada (dar ekranda yatay kayar) · Sağ: Denar + Ayarlar dişlisi.
           Eskiden üst (4 sekme) + alt (4 sekme) iki şeride bölünüydü; tek barda birleşti (dikey alan kazancı). */}
       <nav
-        className="sticky top-0 z-20 -mx-4 mb-2 hidden h-12 items-center gap-2 border-b border-line bg-arena-0/90 px-2 backdrop-blur sm:-mx-6 vland:flex lg:!hidden"
+        className="sticky top-0 z-20 mb-2 hidden h-16 w-screen items-center gap-2 border-b border-line bg-arena-0/90 pt-3 pb-1 backdrop-blur ml-[calc(50%-50vw)] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] vland:flex lg:!hidden"
         aria-label={t(locale, "nav.menu")}
       >
         <WorldClockBadge locale={locale} />
-        <div className="flex flex-1 items-stretch gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex flex-1 items-stretch justify-between gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABBAR.map((item) => {
             const on = item.href === current;
             return (
