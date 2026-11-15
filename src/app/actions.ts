@@ -245,11 +245,26 @@ export async function submitClubLeadAction(formData: FormData): Promise<void> {
   const clubName = String(formData.get("clubName") ?? "").trim().slice(0, 120);
   const contact = String(formData.get("contact") ?? "").trim().slice(0, 120);
   const phone = String(formData.get("phone") ?? "").trim().slice(0, 60);
-  if (!clubName && !contact && !phone) return;
+  const email = String(formData.get("email") ?? "").trim().slice(0, 160);
+  if (!clubName && !contact && !phone && !email) return;
   await submitFeedback({
     kind: "club-lead",
-    message: `Kulüp: ${clubName} · İletişim: ${contact} · Tel: ${phone}`,
+    message: `Kulüp: ${clubName} · İletişim: ${contact} · Tel: ${phone} · E-posta: ${email}`,
     page: "/kariyer/kulup",
+  });
+}
+
+/** Market B2B lead — eskrim ürün markaları "ürünlerim burada olsun" (otomatik e-posta teklifi için). */
+export async function submitBrandLeadAction(formData: FormData): Promise<void> {
+  const brandName = String(formData.get("brandName") ?? "").trim().slice(0, 120);
+  const contact = String(formData.get("contact") ?? "").trim().slice(0, 120);
+  const phone = String(formData.get("phone") ?? "").trim().slice(0, 60);
+  const email = String(formData.get("email") ?? "").trim().slice(0, 160);
+  if (!brandName && !contact && !phone && !email) return;
+  await submitFeedback({
+    kind: "brand-lead",
+    message: `Marka: ${brandName} · İletişim: ${contact} · Tel: ${phone} · E-posta: ${email}`,
+    page: "/kariyer/ekipman",
   });
 }
 

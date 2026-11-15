@@ -43,6 +43,7 @@ export function ClubInterest({ locale }: { locale: Locale }) {
           <input name="clubName" required maxLength={120} placeholder={t(locale, "clubLead.clubName")} className={inputCls} />
           <input name="contact" required maxLength={120} placeholder={t(locale, "clubLead.contact")} autoComplete="name" className={inputCls} />
           <input name="phone" required maxLength={60} type="tel" inputMode="tel" placeholder={t(locale, "clubLead.phone")} autoComplete="tel" className={inputCls} />
+          <input name="email" required maxLength={160} type="email" inputMode="email" placeholder={t(locale, "clubLead.email")} autoComplete="email" className={inputCls} />
           <button type="submit" className="btn-ink press h-11 w-full text-[15px]">
             {t(locale, "clubLead.submit")}
           </button>

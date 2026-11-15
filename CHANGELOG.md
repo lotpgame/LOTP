@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — Market okları kaldırıldı, B2B marka lead, menü fontu, e-posta)
+- **Market okları kaldırıldı:** ekipman'daki market tetik satırının sağ oku + modal içindeki geri ok gitti;
+  markalara dönüş artık "Market" başlığına tıklayarak.
+- **Market B2B teaser** (ekipman): *"Eskrim markanız mı var?"* → marka adı + iletişim kişisi + telefon +
+  **e-posta** (otomatik teklif e-postası için). `kind="brand-lead"`; admin panosunda **🏷️ MARKA** rozeti.
+  `MarketInterest` + `submitBrandLeadAction`. 9 dil (`brandLead.*`).
+- **Kulüp B2B formuna e-posta** eklendi (`clubLead.email`) — aynı otomatik e-posta mantığı.
+- **Menü fontu**: üst sekmeler artık **Rajdhani** (teknik + zarif + genç, condensed) — `font-nav`.
+
 ### Değişti (15.11 — Market pop-up (marka → uygun eşyalar) + menü tap-highlight düzeltmesi)
 - **Market** artık ekipman sayfasında **tek tık pop-up** (ayrı sayfa yerine): (1) **marka logoları** ızgarası,
   (2) markaya girince o markanın oyuncuya **uygun eşyaları** (silah/cinsiyet/kategori bedeniyle), gruplu, 2 sütun,

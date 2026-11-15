@@ -12,6 +12,7 @@ import { equipFull, equipImageName, equipThumb } from "../equipmentImage";
 import { DiscardButton } from "./DiscardButton";
 import { Kumbara } from "./Kumbara";
 import { MarketModal } from "./MarketModal";
+import { MarketInterest } from "./MarketInterest";
 import { ErrorBanner } from "../ErrorBanner";
 
 export const dynamic = "force-dynamic";
@@ -125,6 +126,11 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
         offer={c.offer ?? null}
         triggerClassName="press mt-4 flex min-h-16 w-full items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
       />
+
+      {/* B2B teaser: gerçek eskrim ürün markaları ilgi/lead bırakır (otomatik e-posta teklifi için). */}
+      <div className="mt-4">
+        <MarketInterest locale={locale} />
+      </div>
 
     </ArenaPage>
   );

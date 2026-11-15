@@ -159,7 +159,6 @@ export function MarketModal({
           <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "ekipman.market")}</div>
           <div className="mt-1 text-[13px] text-steel">{t(locale, "ekipman.goMarketSub")}</div>
         </div>
-        <Icon name="chevron-down" size={18} className="shrink-0 -rotate-90 text-steel" />
       </button>
 
       {mounted &&
@@ -175,14 +174,15 @@ export function MarketModal({
           >
             <div className="flex max-h-[86svh] flex-col p-4">
               <div className="mb-3 flex items-center gap-2">
-                {brand ? (
-                  <button type="button" onClick={() => setBrand(null)} className="press -ml-1 flex h-9 w-9 items-center justify-center rounded-md text-steel" aria-label={t(locale, "common.close")}>
-                    <Icon name="chevron-down" size={20} className="rotate-90" />
-                  </button>
-                ) : null}
-                <span className="flex flex-1 items-center gap-2 font-display text-[19px] font-bold">
+                {/* Başlığa tıkla → markalara dön (ayrı geri oku yok). */}
+                <button
+                  type="button"
+                  onClick={() => brand && setBrand(null)}
+                  disabled={!brand}
+                  className="flex flex-1 items-center gap-2 font-display text-[19px] font-bold disabled:cursor-default"
+                >
                   <img src="/img/ui/market.webp" alt="" aria-hidden="true" className="h-6 w-6 object-contain" /> {t(locale, "ekipman.market")}
-                </span>
+                </button>
                 <span className="flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-[14px]">
                   <DenarMark size={15} /> <span className="num">{balance.toFixed(0)}</span>
                 </span>
