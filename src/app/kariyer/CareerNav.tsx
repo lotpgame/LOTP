@@ -156,7 +156,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
         aria-label={t(locale, "nav.menu")}
       >
         <WorldClockBadge locale={locale} />
-        <div className="flex flex-1 items-stretch justify-between gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex flex-1 items-stretch justify-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABBAR.map((item) => {
             const on = item.href === current;
             return (

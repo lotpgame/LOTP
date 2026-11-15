@@ -20,7 +20,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 
 ### Değişti (15.11 — Üst menü barı: boydan boya + sekmeler eşit dağıldı)
 - Telefon-yatay üst menü barı **boydan boya** (full-bleed, `w-screen`), biraz daha **yüksek** (h-16) ve
-  yazılar hafif aşağı; sekmeler artık **eşit dağılıyor** (`justify-between`) → sağdaki boşluk kalktı.
+  yazılar hafif aşağı; sekmeler **ortada gruplu ve birbirine yakın** (`justify-center`), sol köşede saat,
+  sağ köşede Denar+ayar → dengeli.
   iPhone çentik/ada için **safe-area** yatay payı eklendi. Yatay taşma `overflow-x: clip` ile kesildi
   (sticky korunur).
 
