@@ -11,6 +11,7 @@ import { EquipImage } from "../EquipImage";
 import { equipFull, equipImageName, equipThumb } from "../equipmentImage";
 import { DiscardButton } from "./DiscardButton";
 import { Kumbara } from "./Kumbara";
+import { MarketModal } from "./MarketModal";
 import { ErrorBanner } from "../ErrorBanner";
 
 export const dynamic = "force-dynamic";
@@ -112,18 +113,18 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
         <Kumbara balance={c.balance} entries={c.ledgerWeek} totals={c.ledgerWeekTotals} locale={locale} />
       </details>
 
-      {/* Market — ayrı sayfa (çok ürün + marka paneli orada). */}
-      <a
-        href="/kariyer/market"
-        className="press mt-4 flex min-h-16 items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
-      >
-        <img src="/img/ui/market.webp" alt="" aria-hidden="true" className="shrink-0 object-contain" style={{ width: 40, height: 40 }} />
-        <div className="min-w-0 flex-1">
-          <div className="font-display text-[18px] font-bold uppercase leading-none tracking-wide">{t(locale, "ekipman.market")}</div>
-          <div className="mt-1 text-[13px] text-steel">{t(locale, "ekipman.goMarketSub")}</div>
-        </div>
-        <Icon name="chevron-down" size={18} className="shrink-0 -rotate-90 text-steel" />
-      </a>
+      {/* Market — tek tık pop-up (marka logoları → markanın uygun eşyaları). */}
+      <MarketModal
+        locale={locale}
+        weapon={c.weapon}
+        gender={c.gender}
+        age={c.age}
+        categoryId={c.categoryId}
+        balance={c.balance}
+        kit={c.kit}
+        offer={c.offer ?? null}
+        triggerClassName="press mt-4 flex min-h-16 w-full items-center gap-3 rounded-lg border border-line bg-arena-1 px-4 py-3"
+      />
 
     </ArenaPage>
   );

@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — Market pop-up (marka → uygun eşyalar) + menü tap-highlight düzeltmesi)
+- **Market** artık ekipman sayfasında **tek tık pop-up** (ayrı sayfa yerine): (1) **marka logoları** ızgarası,
+  (2) markaya girince o markanın oyuncuya **uygun eşyaları** (silah/cinsiyet/kategori bedeniyle), gruplu, 2 sütun,
+  satın alma yerinde. Modal market için genişletildi (42rem). Yeni: `MarketModal`. (Eski `/kariyer/market`
+  sayfası derin-link olarak duruyor.)
+- **Menü bug:** sekmelerdeki kırmızı tap-highlight (`-webkit-tap-highlight-color`) şeffaf yapıldı; telefonda
+  dokununca kalan "ufak kırmızı" iz (aktif çizgiyle karışıyordu) kalktı.
+
 ### Eklendi (15.11 — Kulüp kadrosu: lisanslı oyuncular listesi)
 - Kulüp sayfasında **Lisanslı Oyuncular** (açılır/kapanır): kulüpteki sporcular (gerçek + AI) listesi.
   Satır: **online nokta** (yeşil=online, kırmızı=offline), lisans no, ad soyad, yaş, silah, güçlü yön,

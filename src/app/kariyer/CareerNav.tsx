@@ -164,7 +164,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
                 key={item.href}
                 href={item.href}
                 aria-current={on ? "page" : undefined}
-                className={`press relative flex shrink-0 items-center whitespace-nowrap px-2 font-display text-[13px] font-bold uppercase tracking-wide ${
+                className={`press relative flex shrink-0 items-center whitespace-nowrap px-2 font-display text-[13px] font-bold uppercase tracking-wide [-webkit-tap-highlight-color:transparent] ${
                   on ? "text-ink" : "text-steel"
                 }`}
               >
