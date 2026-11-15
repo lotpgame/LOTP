@@ -9,6 +9,9 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (15.11 — RotateGate logosu bir tık büyütüldü)
+- "Telefonunu yan çevir" açılış ekranındaki marka logosu `w-40/max-55vw` → `w-48/max-65vw`.
+
 ### Eklendi (15.11 — PWA otomatik güncelleme (iOS ana-ekran önbellek sorunu))
 - **Sorun:** iOS "ana ekrana ekle" (PWA) uygulamasını yeniden açınca sayfayı yeniden yüklemez → eski sürümde
   donar, yeni deploy'lar görünmez (sil-yeniden kur gerekiyordu).
