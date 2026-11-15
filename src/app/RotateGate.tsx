@@ -9,7 +9,7 @@ export function RotateGate({ locale }: { locale: Locale }) {
   return (
     <div className="fixed inset-0 z-[200] hidden flex-col items-center justify-center gap-4 bg-[#0b0e12] px-8 text-center portrait:flex lg:!hidden">
       {/* Marka logosu (saydam amblem) */}
-      <img src="/img/logo-mark.png" alt="Legends of the Piste" width={200} height={200} className="w-48 max-w-[65vw]" />
+      <img src="/img/logo-mark.png" alt="Legends of the Piste" width={200} height={200} className="w-56 max-w-[75vw]" />
       <p className="font-display text-[22px] font-bold text-[#c9a24a]">{t(locale, "rotate.welcome")}</p>
 
       {/* Dönen telefon ikonu */}
