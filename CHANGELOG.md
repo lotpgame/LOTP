@@ -24,6 +24,10 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (+6), yaşlı komşu için markete gittin (+5), büyükanne harçlığı (+10), babanın arabasını yıkadın (+6), doğum günü
   harçlığı (+15), eski ceket cebinde para buldun (+4). Her çıktığında farklı, oyuncuyu gülümseten an. 9 dil (`event.*`).
 
+### Düzeltildi (15.11 — Hoş geldin ekranı mobil/yatay)
+- Telefon yatayda (kısa ekran) modal taşıyor, kapatma butonu + metnin sonu görünmüyordu. Kart artık **yükseklik
+  sınırlı + kaydırılabilir** ve sağ üstte **her zaman görünür X kapat** eklendi (iPhone 16'da doğrulandı).
+
 ### Eklendi (10.11 — "Hoş geldin" karşılama ekranı (antrenör + ekipman hediyesi))
 - Kayıt tamamlanınca (create → `/kariyer?welcome=1`) BİR KEZ çıkan karşılama modalı: **baş antrenör** çocuğu adıyla
   karşılar ("Hoş Geldin, {name}!" · {coach} · Baş Antrenör), **başlangıç ekipmanını hediye eder** ve **dikkatli
