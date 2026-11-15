@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.11 — Premium kulüp abonelik tasarımı (`docs/KULUPLER.md`))
+- Launch sonrası gelir modeli planı: **sosyal/prestij premium kulüpler** (pay-to-win YOK), **B2B** — gerçek eskrim
+  kulüpleri kendi markalı dijital kulüplerini açar, öğrencileri katılır, **Stripe aylık abonelik** (£9.99/14.99/19.99 →
+  kadro 10/15/20 + marka + prestij). Vizyon, tier'lar, teknik gereksinimler, iptal politikası, build fazları, açık
+  kararlar belgede. (Kod YOK — launch sonrası.)
+
 ### Değişti (15.11 — "Yan çevir" uyarısına logo + hoş geldiniz)
 - Kısa süre denenen CSS-döndürme (dik tutuşta içeriği 90° çevirme) iPhone'da çalıştı ama kullanıcı **eski
   "telefonu yan çevir" uyarısını** tercih etti (geri alındı). Uyarı ekranı **güzelleştirildi:** marka **logosu**
