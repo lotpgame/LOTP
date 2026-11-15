@@ -9,11 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
-### Değişti (15.11 — CSS-döndürme: "telefonu yan çevir" uyarısı kalktı)
-- Telefon DİK tutulsa bile içerik **90° dönüp yatay doluyor** (globals.css `#app-rotate`, yalnız mobil+dikey).
-  iOS web yön kilidini desteklemediği için uyarı yerine bu yöntem; iOS rotation-lock açık olsa bile çalışır.
-  **RotateGate ("yan çevir" uyarısı) kaldırıldı** (bileşen dosyası duruyor, gerekirse geri alınır). Yatayda /
-  masaüstünde dokunmaz, çift-dönme yok. Instagram vb. iç tarayıcı için `OpenInBrowserGate` kaldı (oturum).
+### Değişti (15.11 — "Yan çevir" uyarısına logo + hoş geldiniz)
+- Kısa süre denenen CSS-döndürme (dik tutuşta içeriği 90° çevirme) iPhone'da çalıştı ama kullanıcı **eski
+  "telefonu yan çevir" uyarısını** tercih etti (geri alındı). Uyarı ekranı **güzelleştirildi:** marka **logosu**
+  + **"Hoş geldiniz!"** (`rotate.welcome`, 9 dil) + dönen telefon ikonu + "Telefonunu yan çevir / Oyun yatay
+  oynanır". `RotateGate`. (Masaüstünde çıkmaz; Instagram vb. iç tarayıcıda `OpenInBrowserGate`.)
 
 ### Değişti (10.11 — Antrenman dengesi: çok daha kademeli (kullanıcı kararı))
 - **Gelişim yavaşlatıldı** (uzun yolculuk): seans tabanı artık **kulüp tesis kademesine** bağlı —
