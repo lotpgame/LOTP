@@ -41,13 +41,17 @@ export default async function GeriBildirimPage({
               className={`rounded-xl border p-3 text-sm ${
                 f.kind === "error"
                   ? "border-red-500/30 bg-red-500/[0.06]"
-                  : "border-black/15 bg-black/[0.02] dark:border-white/15 dark:bg-white/[0.03]"
+                  : f.kind === "club-lead"
+                    ? "border-amber-500/40 bg-amber-500/[0.08]"
+                    : "border-black/15 bg-black/[0.02] dark:border-white/15 dark:bg-white/[0.03]"
               }`}
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs opacity-60">
-                <span className={`inline-flex items-center gap-1.5 ${f.kind === "error" ? "font-semibold text-sig-red" : ""}`}>
-                  <span className={`lamp h-2 w-2 ${f.kind === "error" ? "lamp-red" : "bg-steel"}`} aria-hidden="true" />
-                  {f.kind === "error" ? "HATA" : "fikir"}
+                <span
+                  className={`inline-flex items-center gap-1.5 ${f.kind === "error" ? "font-semibold text-sig-red" : f.kind === "club-lead" ? "font-semibold text-amber-600 opacity-100" : ""}`}
+                >
+                  <span className={`lamp h-2 w-2 ${f.kind === "error" ? "lamp-red" : f.kind === "club-lead" ? "bg-amber-500" : "bg-steel"}`} aria-hidden="true" />
+                  {f.kind === "error" ? "HATA" : f.kind === "club-lead" ? "🏛️ KULÜP" : "fikir"}
                 </span>
                 {f.playerName && <span>· {f.playerName}</span>}
                 {f.page && <span>· {f.page}</span>}

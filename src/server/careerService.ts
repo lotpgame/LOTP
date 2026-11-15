@@ -2071,7 +2071,7 @@ export async function clearTraitReport(): Promise<void> {
 export async function submitFeedback(input: { message: string; page?: string; kind?: string }): Promise<void> {
   const message = (input.message ?? "").trim().slice(0, 2000);
   if (!message) return;
-  const kind = input.kind === "error" ? "error" : "feedback";
+  const kind = input.kind === "error" ? "error" : input.kind === "club-lead" ? "club-lead" : "feedback";
   let userToken: string | null = null;
   let playerName: string | null = null;
   try {

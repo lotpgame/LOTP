@@ -239,6 +239,20 @@ export async function submitFeedbackAction(formData: FormData): Promise<void> {
   });
 }
 
+/** Premium kulüp İLGİ (lead) formu — gerçek kulüpler bilgi bırakır. Feedback tablosuna kind="club-lead"
+ * olarak kaydolur (migration yok); admin geri bildirim panelinden görülür. */
+export async function submitClubLeadAction(formData: FormData): Promise<void> {
+  const clubName = String(formData.get("clubName") ?? "").trim().slice(0, 120);
+  const contact = String(formData.get("contact") ?? "").trim().slice(0, 120);
+  const phone = String(formData.get("phone") ?? "").trim().slice(0, 60);
+  if (!clubName && !contact && !phone) return;
+  await submitFeedback({
+    kind: "club-lead",
+    message: `Kulüp: ${clubName} · İletişim: ${contact} · Tel: ${phone}`,
+    page: "/kariyer/kulup",
+  });
+}
+
 /** Arayüz dilini değiştirir (cookie'ye yazar). */
 export async function setLocaleAction(formData: FormData): Promise<void> {
   const raw = String(formData.get("locale") ?? "tr") as Locale;

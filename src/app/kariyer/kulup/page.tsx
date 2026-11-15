@@ -5,6 +5,7 @@ import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Segments } from "@/app/ui/Piste";
 import { ClubDialog } from "../ClubDialog";
+import { ClubInterest } from "./ClubInterest";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,11 @@ export default async function KulupPage() {
       ) : (
         <p className="mt-4 text-[14px] text-steel">{t(locale, "kulup.none")}</p>
       )}
+
+      {/* B2B teaser: gerçek eskrim kulüpleri ilgi/lead bırakır (docs/KULUPLER.md). */}
+      <div className="mt-3">
+        <ClubInterest locale={locale} />
+      </div>
     </ArenaPage>
   );
 }
