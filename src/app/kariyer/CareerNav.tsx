@@ -66,6 +66,9 @@ const PRIMARY = new Set(["/kariyer", "/kariyer/kulup", "/kariyer/antrenman", "/k
 const MAIN = NAV.filter((i) => PRIMARY.has(i.href)); // Bugün · Kulüp · Antrenman · Ekipman
 const MORE = NAV.filter((i) => !PRIMARY.has(i.href)); // Turnuvalar · Klasman · Geçmiş · Ayarlar
 const ALL = NAV;
+// Telefon-yatay tek yatay üst bar: Ayarlar hariç tüm sekmeler (Ayarlar = sağdaki dişli ikonu). Kullanıcı kararı 15.11.
+const TABBAR = NAV.filter((i) => i.href !== "/kariyer/ayarlar");
+const SETTINGS_HREF = "/kariyer/ayarlar";
 
 function activeHref(pathname: string): string | undefined {
   return [...ALL]
@@ -145,31 +148,48 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
         </div>
       </header>
 
-      {/* ——— Telefon YATAY: üst sekme şeridi (4 ana sayfa) + sağda canlı GMT saat (CLAUDE.md UI prototip) ——— */}
+      {/* ——— Telefon YATAY: TEK yatay üst menü barı (kullanıcı kararı 15.11, futbol-oyunu tarzı) ———
+          Sol: oyun saati (GMT) · Orta: tüm sekmeler tek sırada (dar ekranda yatay kayar) · Sağ: Denar + Ayarlar dişlisi.
+          Eskiden üst (4 sekme) + alt (4 sekme) iki şeride bölünüydü; tek barda birleşti (dikey alan kazancı). */}
       <nav
-        className="sticky top-0 z-20 -mx-4 mb-2 hidden items-stretch border-b border-line bg-arena-0/90 px-2 backdrop-blur sm:-mx-6 vland:flex lg:!hidden"
+        className="sticky top-0 z-20 -mx-4 mb-2 hidden h-12 items-center gap-2 border-b border-line bg-arena-0/90 px-2 backdrop-blur sm:-mx-6 vland:flex lg:!hidden"
         aria-label={t(locale, "nav.menu")}
       >
-        <div className="grid flex-1 grid-cols-4">
-          {MAIN.map((item) => {
+        <WorldClockBadge locale={locale} />
+        <div className="flex flex-1 items-stretch gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {TABBAR.map((item) => {
             const on = item.href === current;
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={on ? "page" : undefined}
-                className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
-                  on ? "font-semibold text-ink" : "text-steel"
+                className={`press relative flex shrink-0 items-center whitespace-nowrap px-2 font-display text-[13px] font-bold uppercase tracking-wide ${
+                  on ? "text-ink" : "text-steel"
                 }`}
               >
-                {on && <span className="absolute inset-x-5 bottom-0 h-[2px] rounded-t-full bg-sig-red" aria-hidden="true" />}
-                <NavIcon href={item.href} size={16} clubLogo={clubLogo} active={on} />
-                <span className="truncate">{t(locale, item.key)}</span>
+                {t(locale, item.key)}
+                {on && <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-t-full bg-sig-red" aria-hidden="true" />}
               </Link>
             );
           })}
         </div>
-        <WorldClockBadge locale={locale} />
+        <DenarBadge
+          locale={locale}
+          balance={balance}
+          adsLeft={adsLeft}
+          adDailyCap={adDailyCap}
+          adReward={adReward}
+          className="press flex shrink-0 items-center gap-1.5 rounded-md border border-line px-2 py-1 text-[13px] font-semibold text-ink"
+        />
+        <Link
+          href={SETTINGS_HREF}
+          aria-current={current === SETTINGS_HREF ? "page" : undefined}
+          aria-label={t(locale, "nav.ayarlar")}
+          className={`press flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${current === SETTINGS_HREF ? "text-ink" : "text-steel"}`}
+        >
+          <Icon name="settings" size={18} />
+        </Link>
       </nav>
 
       {/* ——— Masaüstü: sol sidebar ——— */}
@@ -258,40 +278,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
           </button>
         </nav>
 
-        {/* ——— Telefon YATAY: alt şerit = "Daha" sayfaları (sola, flex-1) + sağ köşede Denar rozeti (üstteki saat gibi) ——— */}
-        <nav
-          className="mx-auto hidden max-w-3xl items-stretch border-t border-line pb-[env(safe-area-inset-bottom)] vland:flex lg:!hidden"
-          aria-label={t(locale, "nav.menu")}
-        >
-          <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${MORE.length}, minmax(0, 1fr))` }}>
-            {MORE.map((item) => {
-              const on = item.href === current;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={on ? "page" : undefined}
-                  className={`press relative flex min-h-9 flex-row items-center justify-center gap-1.5 py-1.5 text-[12px] ${
-                    on ? "font-semibold text-ink" : "text-steel"
-                  }`}
-                >
-                  {on && <span className="absolute inset-x-5 top-0 h-[2px] rounded-b-full bg-sig-red" aria-hidden="true" />}
-                  <NavIcon href={item.href} size={16} clubLogo={clubLogo} active={on} />
-                  <span className="truncate">{t(locale, item.key)}</span>
-                </Link>
-              );
-            })}
-          </div>
-          {/* Denar rozeti — sağ alt köşe (üstteki saat gibi); tıklayınca "Denar Kazan & Al". */}
-          <DenarBadge
-            locale={locale}
-            balance={balance}
-            adsLeft={adsLeft}
-            adDailyCap={adDailyCap}
-            adReward={adReward}
-            className="press flex items-center gap-1.5 self-stretch border-l border-line px-3 text-[14px] font-semibold text-ink"
-          />
-        </nav>
+        {/* Telefon-yatay alt şerit kaldırıldı (15.11): tüm sekmeler + Denar + saat artık tek üst barda. */}
       </div>
 
       {/* "Daha fazla" alt sayfası (yalnız telefon) */}
