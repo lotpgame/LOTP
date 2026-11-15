@@ -1702,10 +1702,12 @@ const ONLINE_WINDOW_MS = 10 * 60 * 1000;
 /** Kulüp kadrosu — oyuncunun kulübündeki lisanslı sporcular (gerçek + AI), online durumuyla. Overall GÖSTERİLMEZ. */
 export async function getClubRoster(): Promise<ClubRosterPlayerDTO[]> {
   const state = await loadState();
-  if (!state || !state.human.club) return [];
+  if (!state) return [];
   const { human } = state;
+  const club = human.club;
+  if (!club) return [];
   const players = await prisma.player.findMany({
-    where: { clubId: human.club.id, status: { not: "RETIRED" } },
+    where: { clubId: club.id, status: { not: "RETIRED" } },
     select: {
       id: true,
       code: true,

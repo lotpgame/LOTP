@@ -23,7 +23,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   **e-posta** (otomatik teklif e-postası için). `kind="brand-lead"`; admin panosunda **🏷️ MARKA** rozeti.
   `MarketInterest` + `submitBrandLeadAction`. 9 dil (`brandLead.*`).
 - **Kulüp B2B formuna e-posta** eklendi (`clubLead.email`) — aynı otomatik e-posta mantığı.
-- **Menü fontu**: üst sekmeler artık **Rajdhani** (teknik + zarif + genç, condensed) — `font-nav`.
+- **Menü fontu**: `font-nav` hook'u eklendi (şimdilik Barlow). *Not: Rajdhani (Google Fonts) build-fetch'i
+  Vercel üretim build'ini patlattığı için geri alındı; menü fontu ileride self-host ile eklenecek.*
 
 ### Değişti (15.11 — Market pop-up (marka → uygun eşyalar) + menü tap-highlight düzeltmesi)
 - **Market** artık ekipman sayfasında **tek tık pop-up** (ayrı sayfa yerine): (1) **marka logoları** ızgarası,

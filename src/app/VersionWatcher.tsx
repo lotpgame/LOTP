@@ -39,7 +39,7 @@ export function VersionWatcher() {
       if (document.visibilityState === "visible") check();
     };
     document.addEventListener("visibilitychange", onVisible);
-    const id = setInterval(check, 60_000);
+    const id = setInterval(check, 30_000); // yedek periyot; asıl tetik visibilitychange (öne gelince anında)
 
     return () => {
       alive = false;

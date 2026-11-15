@@ -101,8 +101,9 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-barlow);
-  /* Menü sekmeleri: Rajdhani (next/font → --font-menu), yoksa Barlow. Tailwind utility = font-nav. */
-  --font-nav: var(--font-menu), var(--font-barlow), sans-serif;
+  /* Menü sekmeleri fontu (Tailwind utility = font-nav). Şimdilik Barlow; ileride self-host bir menü fontu
+     eklenirse --font-menu tanımlanıp başa alınır (Google Fonts build-fetch'i Vercel'i patlattığı için geri alındı). */
+  --font-nav: var(--font-barlow), sans-serif;
 }
 
 /* Boydan boya (full-bleed) üst menü 100vw kullanıyor; kaydırma çubuğu olan cihazlarda yatay taşmayı

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Barlow_Condensed, Geist, Geist_Mono, Rajdhani } from "next/font/google";
+import { Barlow_Condensed, Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
@@ -28,14 +28,6 @@ const geistMono = Geist_Mono({
 // Başlık/kicker/marka yazısı için tek ek font (dar, sporcu tabelası hissi).
 const barlow = Barlow_Condensed({
   variable: "--font-barlow",
-  weight: ["600", "700"],
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-});
-
-// Menü (üst sekmeler) için: teknik + zarif + genç (condensed, sporcu/dijital his). Türkçe latin-ext destekli.
-const rajdhani = Rajdhani({
-  variable: "--font-menu",
   weight: ["600", "700"],
   subsets: ["latin", "latin-ext"],
   display: "swap",
@@ -81,7 +73,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       // yine <html> style'ına kişisel tema renklerini yazar (sığ kapsam: yalnız <html>).
       data-view="landscape"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} ${rajdhani.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Script id="theme-boot" strategy="beforeInteractive">
