@@ -1707,7 +1707,8 @@ export async function getClubRoster(): Promise<ClubRosterPlayerDTO[]> {
   const club = human.club;
   if (!club) return [];
   const players = await prisma.player.findMany({
-    where: { clubId: club.id, status: { not: "RETIRED" } },
+    // Sadece GERÇEK oyuncular (botlar/AI hariç — kullanıcı kararı 15.11). members sayımıyla aynı kural.
+    where: { clubId: club.id, isAI: false, status: { not: "RETIRED" } },
     select: {
       id: true,
       code: true,
