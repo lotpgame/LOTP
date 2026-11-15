@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (15.11 — Kulüp kadrosu: lisanslı oyuncular listesi)
+- Kulüp sayfasında **Lisanslı Oyuncular** (açılır/kapanır): kulüpteki sporcular (gerçek + AI) listesi.
+  Satır: **online nokta** (yeşil=online, kırmızı=offline), lisans no, ad soyad, yaş, silah, güçlü yön,
+  cinsiyet (kısaltma). **Overall gösterilmez.** Üstte **cinsiyet + silah filtresi**. Kulüp bilgisi (tesis+
+  antrenörler) de artık açılır/kapanır. Yeni: `getClubRoster` + `ClubRoster`. 9 dil (`roster.*`, `kulup.info/roster`).
+- Online yaklaşık: ayrı presence sistemi yok → son etkinlik (`updatedAt`) 10 dk içindeyse online; AI hep offline;
+  oyuncunun kendisi hep online.
+
 ### Değişti (15.11 — Ayarlar tek-tık pop-up satırlar + saat pencereleri)
 - **Ayarlar** artık tek-tık satırlar; her satır öne açılan bir pencere (ara adım yok): **Dil** (listeden seç),
   **Görünüm** (tema + renk), **Geri bildirim** (doğrudan bildir — eskiden iki tık), **Sözlük** (üstte **arama**,

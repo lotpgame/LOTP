@@ -1683,6 +1683,65 @@ export async function getNationalTeam(categoryId: string): Promise<NationalTeamM
   });
 }
 
+export interface ClubRosterPlayerDTO {
+  code: string; // lisans no (P-xxx)
+  name: string; // ad soyad
+  age: number;
+  weapon: string; // FOIL | EPEE | SABRE
+  gender: string; // MALE | FEMALE
+  profile: string; // güçlü yön: BALANCED | TECHNICAL | PHYSICAL | MENTAL | TACTICAL
+  online: boolean; // yeşil nokta = online (yaklaşık)
+  isMe: boolean; // oyuncunun kendi kaydı
+  avatar: string | null;
+}
+
+// "Online" için ayrı presence sistemi yok; son etkinlik (updatedAt) bu pencere içindeyse online say (yaklaşık).
+// AI oyuncular (bot) asla online değil; oyuncunun KENDİSİ her zaman online (sayfayı o an açtı).
+const ONLINE_WINDOW_MS = 10 * 60 * 1000;
+
+/** Kulüp kadrosu — oyuncunun kulübündeki lisanslı sporcular (gerçek + AI), online durumuyla. Overall GÖSTERİLMEZ. */
+export async function getClubRoster(): Promise<ClubRosterPlayerDTO[]> {
+  const state = await loadState();
+  if (!state || !state.human.club) return [];
+  const { human } = state;
+  const players = await prisma.player.findMany({
+    where: { clubId: human.club.id, status: { not: "RETIRED" } },
+    select: {
+      id: true,
+      code: true,
+      firstName: true,
+      lastName: true,
+      birthDate: true,
+      weapon: true,
+      gender: true,
+      profile: true,
+      isAI: true,
+      avatar: true,
+      updatedAt: true,
+    },
+  });
+  const gameDate = new Date(worldDayStartMs(serverWorldDay(), worldClockConfig()));
+  const now = Date.now();
+  const rows: ClubRosterPlayerDTO[] = players.map((p) => {
+    const isMe = p.id === human.id;
+    const online = isMe || (!p.isAI && now - p.updatedAt.getTime() < ONLINE_WINDOW_MS);
+    return {
+      code: p.code,
+      name: `${p.firstName} ${p.lastName}`,
+      age: computeAge(p.birthDate, gameDate),
+      weapon: p.weapon,
+      gender: p.gender,
+      profile: p.profile,
+      online,
+      isMe,
+      avatar: p.avatar ?? null,
+    };
+  });
+  // Önce ben, sonra online olanlar, sonra ada göre.
+  rows.sort((a, b) => Number(b.isMe) - Number(a.isMe) || Number(b.online) - Number(a.online) || a.name.localeCompare(b.name, "tr"));
+  return rows;
+}
+
 // Kondisyon modeli (A, #35, kullanıcı 29.09): GECE TAM TOPARLANMA — her sabah ~%99 kondisyonla başlanır.
 // O günkü antrenman/maç akşam yorar, uyku ertesi sabah toparlar. Yorgunluk günler arası BİRİKMEZ
 // (antrenman aşırı-yük sakatlığı pratikte kalkar; maç-içi/turnuva-günü yorgunluğu ve sakatlığı KALIR).

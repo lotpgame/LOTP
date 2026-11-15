@@ -2,10 +2,12 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer } from "@/server/careerService";
+import { getCareer, getClubRoster } from "@/server/careerService";
 import { Segments } from "@/app/ui/Piste";
 import { ClubDialog } from "../ClubDialog";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { ClubInterest } from "./ClubInterest";
+import { ClubRoster } from "./ClubRoster";
 
 export const dynamic = "force-dynamic";
 
@@ -13,91 +15,109 @@ export default async function KulupPage() {
   const c = await getCareer();
   if (!c) redirect("/");
   const locale = await getLocale();
+  const roster = c.club ? await getClubRoster() : [];
 
   return (
     <ArenaPage bg="/img/bg-kulup.webp">
       <h1 className="display text-[28px]">{t(locale, "kulup.title")}</h1>
       {c.club ? (
-        <section className="panel mt-3 p-4">
-          <div className="flex items-center gap-3">
-            {/* Kulüp logosu — DB'de sabit (clubLogo.ts). Tıklayınca kulüp kartı penceresi. */}
-            <ClubDialog
-              locale={locale}
-              closeLabel={t(locale, "common.close")}
-              triggerClassName="press shrink-0"
-              club={{
-                logo: c.club.logo,
-                name: c.club.name,
-                city: c.club.city,
-                country: c.club.country,
-                facility: c.club.facility,
-                members: c.club.members,
-                coaches: [
-                  { name: c.club.coachName, specialty: c.club.coachSpecialty },
-                  { name: c.club.coach2Name, specialty: c.club.coach2Specialty },
-                ].filter((co) => co.name),
-              }}
-            >
-              <img src={c.club.logo} alt={c.club.name} width={84} height={84} className="shrink-0" />
-            </ClubDialog>
-            <div className="min-w-0">
-              <div className="truncate text-[18px] font-semibold">{c.club.name}</div>
-              <div className="text-[14px] text-steel">{c.club.city}</div>
+        <>
+          {/* Kulüp kimliği — logo + ad + şehir (her zaman görünür) */}
+          <section className="panel mt-3 p-4">
+            <div className="flex items-center gap-3">
+              {/* Kulüp logosu — DB'de sabit (clubLogo.ts). Tıklayınca kulüp kartı penceresi. */}
+              <ClubDialog
+                locale={locale}
+                closeLabel={t(locale, "common.close")}
+                triggerClassName="press shrink-0"
+                club={{
+                  logo: c.club.logo,
+                  name: c.club.name,
+                  city: c.club.city,
+                  country: c.club.country,
+                  facility: c.club.facility,
+                  members: c.club.members,
+                  coaches: [
+                    { name: c.club.coachName, specialty: c.club.coachSpecialty },
+                    { name: c.club.coach2Name, specialty: c.club.coach2Specialty },
+                  ].filter((co) => co.name),
+                }}
+              >
+                <img src={c.club.logo} alt={c.club.name} width={84} height={84} className="shrink-0" />
+              </ClubDialog>
+              <div className="min-w-0">
+                <div className="truncate text-[18px] font-semibold">{c.club.name}</div>
+                <div className="text-[14px] text-steel">{c.club.city}</div>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div className="mt-4">
-            <div className="flex items-baseline justify-between text-[14px]">
-              <span>{t(locale, "kulup.facility")}</span>
-              <span className="num text-[15px]">{c.club.facility}/100</span>
-            </div>
-            <Segments value={c.club.facility} traffic className="mt-2" />
-            {/* Kulüp sporcu sayısı (gerçek) + varsa milli sporcu sayısı. */}
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-steel">
-              <span>
-                {t(locale, "kulup.members")}: <span className="num text-ink">{c.club.members}</span>
-              </span>
-              {c.club.nationals > 0 && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="text-prio">
-                    {t(locale, "kulup.nationals")}: <span className="num">{c.club.nationals}</span>
-                  </span>
-                </>
-              )}
-            </div>
-            <p className="mt-1.5 text-[12px] text-steel">{t(locale, "kulup.facilityHelp")}</p>
-          </div>
+          {/* Kulüp Bilgisi — açılır/kapanır (tesis + üye + antrenörler) */}
+          <div className="mt-3">
+            <CollapsibleSection title={t(locale, "kulup.info")} defaultOpen>
+              <div className="panel p-4">
+                <div>
+                  <div className="flex items-baseline justify-between text-[14px]">
+                    <span>{t(locale, "kulup.facility")}</span>
+                    <span className="num text-[15px]">{c.club.facility}/100</span>
+                  </div>
+                  <Segments value={c.club.facility} traffic className="mt-2" />
+                  {/* Kulüp sporcu sayısı (gerçek) + varsa milli sporcu sayısı. */}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-steel">
+                    <span>
+                      {t(locale, "kulup.members")}: <span className="num text-ink">{c.club.members}</span>
+                    </span>
+                    {c.club.nationals > 0 && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="text-prio">
+                          {t(locale, "kulup.nationals")}: <span className="num">{c.club.nationals}</span>
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[12px] text-steel">{t(locale, "kulup.facilityHelp")}</p>
+                </div>
 
-          {/* İki antrenör — eşit yetenek, farklı uzmanlık (GDD 13). */}
-          <div className="mt-5">
-            <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="kicker">{t(locale, "kulup.coaches")}</h2>
-              <span className="text-[13px] text-steel">
-                {t(locale, "kulup.skill")} <span className="num text-ink">{c.club.coachSkill}/100</span>
-              </span>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {[
-                { name: c.club.coachName, spec: c.club.coachSpecialty },
-                { name: c.club.coach2Name, spec: c.club.coach2Specialty },
-              ].map((co, i) => (
-                <div key={i} className="rounded-md border border-line bg-arena-0 p-3">
-                  <div className="text-[13px] text-steel">{t(locale, "kulup.coach")}</div>
-                  <div className="text-[15px] font-medium">{co.name}</div>
-                  <div className="mt-0.5 text-[13px] text-steel">
-                    {t(locale, "kulup.specialty")}:{" "}
-                    {co.spec
-                      .split(",")
-                      .filter(Boolean)
-                      .map((s) => t(locale, `category.${s}`))
-                      .join(", ") || "—"}
+                {/* İki antrenör — eşit yetenek, farklı uzmanlık (GDD 13). */}
+                <div className="mt-5">
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <h2 className="kicker">{t(locale, "kulup.coaches")}</h2>
+                    <span className="text-[13px] text-steel">
+                      {t(locale, "kulup.skill")} <span className="num text-ink">{c.club.coachSkill}/100</span>
+                    </span>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {[
+                      { name: c.club.coachName, spec: c.club.coachSpecialty },
+                      { name: c.club.coach2Name, spec: c.club.coach2Specialty },
+                    ].map((co, i) => (
+                      <div key={i} className="rounded-md border border-line bg-arena-0 p-3">
+                        <div className="text-[13px] text-steel">{t(locale, "kulup.coach")}</div>
+                        <div className="text-[15px] font-medium">{co.name}</div>
+                        <div className="mt-0.5 text-[13px] text-steel">
+                          {t(locale, "kulup.specialty")}:{" "}
+                          {co.spec
+                            .split(",")
+                            .filter(Boolean)
+                            .map((s) => t(locale, `category.${s}`))
+                            .join(", ") || "—"}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            </CollapsibleSection>
           </div>
-        </section>
+
+          {/* Lisanslı Oyuncular — açılır/kapanır; kulüpteki sporcular (online durumuyla). */}
+          <div className="mt-3">
+            <CollapsibleSection title={t(locale, "kulup.roster")}>
+              <ClubRoster locale={locale} players={roster} />
+            </CollapsibleSection>
+          </div>
+        </>
       ) : (
         <p className="mt-4 text-[14px] text-steel">{t(locale, "kulup.none")}</p>
       )}
