@@ -99,8 +99,7 @@ export default async function KariyerLayout({ children }: LayoutProps<"/kariyer"
           nationalTeam={h.nationalTeam}
           avatar={h.avatar}
           balance={h.balance}
-          adsLeft={h.adsLeftToday}
-          adDailyCap={h.adDailyCap}
+          adReadyAtMs={h.adReadyAtMs}
           adReward={h.adReward}
           ticker={ticker}
         />

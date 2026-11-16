@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (16.11 — Ödüllü reklam: günlük tavan → 2 saat cooldown + log; menü fontu geri)
+- **Ödüllü reklam modeli değişti:** eski "günde 5 hak" tavanı yerine **gerçek-zaman cooldown (2 saat)** —
+  her reklamdan sonra yeni hak 2 **gerçek** saat sonra açılır (oyuna geri-dönüş kancası). Ödül **2 Đ**. UI'da
+  "Sonraki reklam: 1:23:45" geri sayımı (DenarPanel). `AdState` artık `lastAdAt` (epoch) tabanlı.
+- **Ölçüm:** `Player.totalAdsWatched` sayacı eklendi → "ortalama kullanıcı kaç reklam izliyor" görülüp gerekirse
+  cooldown 1 saate indirilecek (plan). Ödüllü reklam hâlâ **opt-in simülasyon** (gerçek ağ = H5 Games Ads onayı).
+- **Şema (eklemeli):** `Player.lastAdAt DateTime?` + `Player.totalAdsWatched Int default 0`. **Migration gerek**
+  (Neon SQL aşağıda). Eski `lastAdDay/adsToday` kolonları bırakıldı (kullanılmıyor).
+- **Menü fontu geri alındı:** Barlow (`font-display`) — Rajdhani/`font-nav` deneyi tamamen kaldırıldı (sorunsuz hal).
+
 ### Değişti (15.11 — RotateGate logosu bir tık büyütüldü)
 - "Telefonunu yan çevir" açılış ekranındaki marka logosu `w-40/max-55vw` → `w-48/max-65vw`.
 

@@ -1,57 +1,53 @@
 import { describe, it, expect } from "vitest";
 import {
-  AD_DAILY_CAP,
+  AD_COOLDOWN_MS,
   AD_REWARD,
   DENAR_PACKAGES,
-  adsLeftToday,
-  adsWatchedToday,
+  adReadyAtMs,
   canWatchAd,
   watchAd,
   type AdState,
 } from "@/engine/ads";
 
-const fresh: AdState = { lastAdDay: 0, adsToday: 0 };
+const T0 = 1_700_000_000_000; // sabit referans zaman (epoch ms) — deterministik test
+const fresh: AdState = { lastAdAt: null };
 
-describe("ads — ödüllü reklam sayacı", () => {
-  it("sabitler makul (ödül 2, günlük tavan 5 → max 10/gün)", () => {
+describe("ads — ödüllü reklam (gerçek-zaman cooldown)", () => {
+  it("sabitler makul (ödül 2 Đ, cooldown 2 saat)", () => {
     expect(AD_REWARD).toBe(2);
-    expect(AD_DAILY_CAP).toBe(5);
+    expect(AD_COOLDOWN_MS).toBe(2 * 60 * 60 * 1000);
   });
 
-  it("yeni günde sayaç sıfırlanır (adsWatchedToday)", () => {
-    const used: AdState = { lastAdDay: 5, adsToday: 3 };
-    expect(adsWatchedToday(used, 5)).toBe(3); // aynı gün
-    expect(adsWatchedToday(used, 6)).toBe(0); // ertesi gün
-    expect(adsLeftToday(used, 6)).toBe(AD_DAILY_CAP);
+  it("hiç izlenmemişse hazır", () => {
+    expect(canWatchAd(fresh, T0)).toBe(true);
+    expect(adReadyAtMs(fresh, T0)).toBeNull(); // null = şu an hazır
   });
 
-  it("izlendikçe ödül verir ve sayaç artar", () => {
-    let s = fresh;
-    let total = 0;
-    for (let i = 0; i < AD_DAILY_CAP; i++) {
-      expect(canWatchAd(s, 10)).toBe(true);
-      const r = watchAd(s, 10);
-      s = r.state;
-      total += r.reward;
-    }
-    expect(total).toBe(AD_REWARD * AD_DAILY_CAP);
-    expect(adsLeftToday(s, 10)).toBe(0);
-  });
-
-  it("tavan dolunca ödül yok, durum değişmez", () => {
-    const capped: AdState = { lastAdDay: 10, adsToday: AD_DAILY_CAP };
-    expect(canWatchAd(capped, 10)).toBe(false);
-    const r = watchAd(capped, 10);
-    expect(r.reward).toBe(0);
-    expect(r.state).toEqual(capped);
-  });
-
-  it("gün değişince tavan tekrar dolar", () => {
-    const capped: AdState = { lastAdDay: 10, adsToday: AD_DAILY_CAP };
-    expect(canWatchAd(capped, 11)).toBe(true);
-    const r = watchAd(capped, 11);
+  it("izleyince ödül verir + cooldown başlar", () => {
+    const r = watchAd(fresh, T0);
     expect(r.reward).toBe(AD_REWARD);
-    expect(r.state).toEqual({ lastAdDay: 11, adsToday: 1 });
+    expect(r.state.lastAdAt).toBe(T0);
+    // Hemen ardından hazır değil, cooldown bitişini döner
+    expect(canWatchAd(r.state, T0)).toBe(false);
+    expect(adReadyAtMs(r.state, T0)).toBe(T0 + AD_COOLDOWN_MS);
+    // 1 ms önce hâlâ kilitli
+    expect(canWatchAd(r.state, T0 + AD_COOLDOWN_MS - 1)).toBe(false);
+  });
+
+  it("cooldown dolunca tekrar hazır", () => {
+    const s: AdState = { lastAdAt: T0 };
+    expect(canWatchAd(s, T0 + AD_COOLDOWN_MS)).toBe(true);
+    expect(adReadyAtMs(s, T0 + AD_COOLDOWN_MS)).toBeNull();
+    const r = watchAd(s, T0 + AD_COOLDOWN_MS);
+    expect(r.reward).toBe(AD_REWARD);
+    expect(r.state.lastAdAt).toBe(T0 + AD_COOLDOWN_MS);
+  });
+
+  it("cooldown dolmadan izleme ödül vermez, durum değişmez", () => {
+    const s: AdState = { lastAdAt: T0 };
+    const r = watchAd(s, T0 + 60_000); // 1 dk sonra
+    expect(r.reward).toBe(0);
+    expect(r.state).toEqual(s);
   });
 
   it("paket kataloğu: tek ürün — 1.000 Đ / £4.99 (kullanıcı kararı 06.11)", () => {

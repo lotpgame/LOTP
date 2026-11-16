@@ -90,14 +90,13 @@ export interface CareerNavProps {
   avatar: string | null; // seçilen avatar seti (yaşa göre portre); null → harf rozeti
   // Denar rozeti (alt menü): bakiye + ödüllü reklam durumu.
   balance: number;
-  adsLeft: number;
-  adDailyCap: number;
+  adReadyAtMs: number | null;
   adReward: number;
   /** Gün çubuğu (tarih · bugünkü etkinlik · sıradaki turnuva · Turnuvaya Git/Geç) — sunucuda render edilir. */
   ticker: ReactNode;
 }
 
-export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLogo, countryCode, nationalTeam, avatar, balance, adsLeft, adDailyCap, adReward, ticker }: CareerNavProps) {
+export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLogo, countryCode, nationalTeam, avatar, balance, adReadyAtMs, adReward, ticker }: CareerNavProps) {
   const avatarUrl = avatarSrc(avatar, age);
   const pathname = usePathname();
   const current = activeHref(pathname);
@@ -164,7 +163,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
                 key={item.href}
                 href={item.href}
                 aria-current={on ? "page" : undefined}
-                className={`press relative flex shrink-0 items-center whitespace-nowrap px-2 font-nav text-[14px] font-bold uppercase tracking-wide [-webkit-tap-highlight-color:transparent] ${
+                className={`press relative flex shrink-0 items-center whitespace-nowrap px-2 font-display text-[13px] font-bold uppercase tracking-wide [-webkit-tap-highlight-color:transparent] ${
                   on ? "text-ink" : "text-steel"
                 }`}
               >
@@ -177,8 +176,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
         <DenarBadge
           locale={locale}
           balance={balance}
-          adsLeft={adsLeft}
-          adDailyCap={adDailyCap}
+          adReadyAtMs={adReadyAtMs}
           adReward={adReward}
           className="press flex shrink-0 items-center gap-1.5 rounded-md border border-line px-2 py-1 text-[13px] font-semibold text-ink"
         />
@@ -211,8 +209,7 @@ export function CareerNav({ name, locale, weapon, ageCategory, age, city, clubLo
           <DenarBadge
             locale={locale}
             balance={balance}
-            adsLeft={adsLeft}
-            adDailyCap={adDailyCap}
+            adReadyAtMs={adReadyAtMs}
             adReward={adReward}
             className="press flex w-full items-center justify-center gap-2 rounded-md border border-line bg-arena-0 py-2 text-[15px] font-semibold text-ink"
           />

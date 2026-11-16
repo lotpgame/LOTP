@@ -108,11 +108,11 @@ export async function buyEquipmentAction(formData: FormData): Promise<void> {
 }
 
 /**
- * Ödüllü reklam izlendi → +Denar (günde en çok 3). İstenmeden açılmaz; Market'teki "Denar" köşesinde
- * oyuncu isteyerek çağırır. Sonuç client bileşenine döner (bakiye + kalan hak), sayfa tazelenir.
+ * Ödüllü reklam izlendi → +Denar. İstenmeden açılmaz; Market'teki "Denar" köşesinde oyuncu isteyerek çağırır.
+ * Sonuç client bileşenine döner (bakiye + reklamın tekrar hazır olacağı zaman = cooldown), sayfa tazelenir.
  */
 export async function watchAdAction(): Promise<
-  { ok: true; balance: number; adsLeft: number } | { ok: false; reason: string }
+  { ok: true; balance: number; adReadyAtMs: number | null } | { ok: false; reason: string }
 > {
   try {
     const r = await watchRewardedAd();

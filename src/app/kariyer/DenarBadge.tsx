@@ -15,15 +15,13 @@ import { DenarPanel } from "./ekipman/DenarPanel";
 export function DenarBadge({
   locale,
   balance,
-  adsLeft,
-  adDailyCap,
+  adReadyAtMs,
   adReward,
   className,
 }: {
   locale: Locale;
   balance: number;
-  adsLeft: number;
-  adDailyCap: number;
+  adReadyAtMs: number | null;
   adReward: number;
   className: string;
 }) {
@@ -62,17 +60,15 @@ export function DenarBadge({
                 </button>
               </div>
               <DenarPanel
-                adsLeft={adsLeft}
-                adDailyCap={adDailyCap}
+                adReadyAtMs={adReadyAtMs}
                 adReward={adReward}
                 packages={DENAR_PACKAGES}
                 labels={{
                   earnTitle: t(locale, "denar.earnTitle"),
                   watch: t(locale, "denar.watch"),
-                  left: t(locale, "denar.left"),
+                  cooldown: t(locale, "denar.cooldown"),
                   playing: t(locale, "denar.playing"),
                   earned: t(locale, "denar.earned"),
-                  capReached: t(locale, "denar.capReached"),
                   buyTitle: t(locale, "denar.buyTitle"),
                   best: t(locale, "denar.best"),
                   soon: t(locale, "denar.soon"),

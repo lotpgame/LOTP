@@ -224,7 +224,7 @@ import {
 import { BASE_COACH_SKILL, BASE_FACILITY, computeFacility, decideCoachUpgrade } from "@/engine/club";
 import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discardKitItem, encodeKit, encodeOwned, equipmentCombatBonus, grandfatherPants, itemById, itemsInSlot, MAX_PER_SLOT, parseOwned, requiredSize, resolveKit, starterKit, validateKit, type EquipmentSlot, type KitItemState } from "@/engine/equipment";
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
-import { AD_DAILY_CAP, AD_REWARD, adsLeftToday, canWatchAd, watchAd, type AdState } from "@/engine/ads";
+import { AD_REWARD, adReadyAtMs, canWatchAd, watchAd, type AdState } from "@/engine/ads";
 import { appendLedger, encodeLedger, entriesForWeek, parseLedger, totals as ledgerTotals, type LedgerEntry } from "@/engine/ledger";
 
 /** Kumbaram: mevcut ledger JSON'una yeni kayıt(lar) ekleyip güncel JSON string döndürür (saf). */
@@ -528,9 +528,8 @@ export interface CareerDTO {
   kit: KitItemState[]; // Malzeme çantası: her parçanın beden/dayanıklılık/kırık durumu (Dilim 1)
   offer: { itemId: string; discountPct: number; daysLeft: number } | null; // Dilim 3-3: markette aktif fırsat
   balance: number;
-  adsLeftToday: number; // bugün kalan ödüllü reklam hakkı (Market "Denar" köşesi)
+  adReadyAtMs: number | null; // ödüllü reklamın tekrar hazır olacağı gerçek zaman (epoch ms); null = şu an hazır
   adReward: number; // 1 reklam → kaç Denar
-  adDailyCap: number; // günlük reklam tavanı
   ledgerWeek: LedgerEntry[]; // Kumbaram: bu oyun-haftasının Denar hareketleri (eski→yeni)
   ledgerWeekTotals: { income: number; expense: number; net: number }; // bu haftanın gelir/gider/net
   equipmentUpgradeCost: number;
@@ -1132,9 +1131,8 @@ export async function getCareer(): Promise<CareerDTO | null> {
       return offerActive(o, today) ? { itemId: o.itemId, discountPct: o.discountPct, daysLeft: o.expiresDay - today + 1 } : null;
     })(),
     balance: roundSkill(human.balance),
-    adsLeftToday: adsLeftToday({ lastAdDay: human.lastAdDay, adsToday: human.adsToday }, serverWorldDay()),
+    adReadyAtMs: adReadyAtMs({ lastAdAt: human.lastAdAt?.getTime() ?? null }, Date.now()),
     adReward: AD_REWARD,
-    adDailyCap: AD_DAILY_CAP,
     ...(() => {
       const week = entriesForWeek(parseLedger(gs.ledger), serverWorldDay());
       return { ledgerWeek: week, ledgerWeekTotals: ledgerTotals(week) };
@@ -1231,9 +1229,8 @@ export interface CareerHeaderDTO {
   nextTournament: NextTournamentDTO | null; // sıradaki turnuva + gerçek başlama anı (bilgi/geri sayım)
   // Denar rozeti (alt menü): bakiye + ödüllü reklam durumu (tıklayınca "Denar kazan/satın al" menüsü açılır).
   balance: number;
-  adsLeftToday: number;
+  adReadyAtMs: number | null;
   adReward: number;
-  adDailyCap: number;
 }
 
 /** Sıradaki turnuva bilgisi (gösterim + canlı geri sayım). `startMs` = gerçek zamanda gün geçiş anı. */
@@ -1379,9 +1376,8 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     caughtUp: !arrived,
     nextTournament: findNextTournament(worldDay, gs.careerStartDay, human, humanRank, injured, locale, human.club?.city ?? "", human.nationality?.code ?? "TR"),
     balance: roundSkill(human.balance),
-    adsLeftToday: adsLeftToday({ lastAdDay: human.lastAdDay, adsToday: human.adsToday }, serverWorldDay()),
+    adReadyAtMs: adReadyAtMs({ lastAdAt: human.lastAdAt?.getTime() ?? null }, Date.now()),
     adReward: AD_REWARD,
-    adDailyCap: AD_DAILY_CAP,
   };
 }
 
@@ -2276,25 +2272,30 @@ export async function discardEquipment(slot: string, index: number): Promise<voi
 }
 
 /**
- * Ödüllü reklam izlendi → +AD_REWARD Denar (günde en çok AD_DAILY_CAP). İSTENMEDEN açılmaz; oyuncu
- * Market'teki "Denar" köşesinde isteyerek çağırır. Sayaç günlük sıfırlanır (serverWorldDay). Kota
- * dolmuşsa hata. Gerçek reklam ağı entegrasyonu lansmanta; bu fonksiyon yalnız ödülü verir.
+ * Ödüllü reklam izlendi → +AD_REWARD Denar. İSTENMEDEN açılmaz; oyuncu Market'teki "Denar" köşesinde
+ * isteyerek çağırır. GERÇEK-zaman cooldown (2 saat): süre dolmadıysa hata. totalAdsWatched artar (ortalama
+ * ölçümü). Gerçek reklam ağı (H5 Games Ads) lansmanta; bu fonksiyon yalnız ödülü verir + cooldown başlatır.
  */
-export async function watchRewardedAd(): Promise<{ balance: number; adsLeft: number }> {
+export async function watchRewardedAd(): Promise<{ balance: number; adReadyAtMs: number | null }> {
   const state = await loadState();
   if (!state) throw new Error("Aktif kariyer yok.");
   const { gs, human } = state;
-  const day = serverWorldDay();
-  const adState: AdState = { lastAdDay: human.lastAdDay, adsToday: human.adsToday };
-  if (!canWatchAd(adState, day)) throw new GameError("ad_cap", "Bugünkü reklam hakkın doldu.");
-  const { state: next, reward } = watchAd(adState, day);
+  const now = Date.now();
+  const adState: AdState = { lastAdAt: human.lastAdAt?.getTime() ?? null };
+  if (!canWatchAd(adState, now)) throw new GameError("ad_cooldown", "Reklam henüz hazır değil (bekleme süresi).");
+  const { state: next, reward } = watchAd(adState, now);
   const updated = await prisma.player.update({
     where: { id: human.id },
-    data: { lastAdDay: next.lastAdDay, adsToday: next.adsToday, balance: { increment: reward } },
+    data: {
+      lastAdAt: new Date(next.lastAdAt ?? now),
+      totalAdsWatched: { increment: 1 }, // ortalama izleme ölçümü (cooldown'u 1 saate düşürme kararı için)
+      balance: { increment: reward },
+    },
     select: { balance: true },
   });
+  const day = serverWorldDay();
   await prisma.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day, key: "ad", amount: reward }) } });
-  return { balance: roundSkill(updated.balance), adsLeft: adsLeftToday(next, day) };
+  return { balance: roundSkill(updated.balance), adReadyAtMs: adReadyAtMs(next, now) };
 }
 
 export interface CareerHistoryDTO {

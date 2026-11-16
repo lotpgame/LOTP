@@ -3,9 +3,9 @@
 /**
  * Market'teki "Denar Kazan & Al" paneli (monetization, src/engine/ads.ts).
  *
- * TASARIM (kullanıcı kararı): reklam İSTENMEDEN açılmaz. Oyuncu burada isteyerek "Reklam İzle" der →
- * kısa bir "reklam oynatılıyor" simülasyonu (gerçek reklam ağı lansmanta buraya bağlanır) → +Denar
- * (günde en çok adDailyCap). Paketler gösterilir ama satın alma lansmanta (sahte ödeme YOK).
+ * TASARIM (kullanıcı kararı 15.11): reklam İSTENMEDEN açılmaz. Oyuncu "Reklam İzle" der → kısa simülasyon
+ * (gerçek reklam ağı lansmanta buraya bağlanır) → +Denar, ardından GERÇEK-zaman cooldown (2 saat) başlar;
+ * geri sayım gösterilir, süre dolunca tekrar izlenebilir. Paketler gösterilir ama satın alma lansmanta.
  */
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { watchAdAction } from "@/app/actions";
@@ -14,13 +14,22 @@ import { DenarMark } from "../DenarMark";
 
 const AD_SECONDS = 5; // simüle reklam süresi (gerçek ödüllü video lansmanta)
 
+/** Kalan ms → dil-nötr saat biçimi: ≥1sa "1:59:30", yoksa "23:45". */
+function fmtRemaining(ms: number): string {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+}
+
 type Labels = {
   earnTitle: string;
   watch: string;
-  left: string;
+  cooldown: string; // "Sonraki reklam" (geri sayım ön eki)
   playing: string;
   earned: string;
-  capReached: string;
   buyTitle: string;
   best: string;
   soon: string;
@@ -28,37 +37,42 @@ type Labels = {
 };
 
 export function DenarPanel({
-  adsLeft,
-  adDailyCap,
+  adReadyAtMs,
   adReward,
   packages,
   labels,
 }: {
-  adsLeft: number;
-  adDailyCap: number;
+  adReadyAtMs: number | null; // null = şu an hazır; yoksa hazır olacağı gerçek zaman (epoch ms)
   adReward: number;
   packages: readonly DenarPackage[];
   labels: Labels;
 }) {
-  const [left, setLeft] = useState(adsLeft);
-  const [syncedAt, setSyncedAt] = useState(adsLeft);
-  const [count, setCount] = useState(0); // >0 → reklam oynuyor (geri sayım)
+  const [readyAt, setReadyAt] = useState<number | null>(adReadyAtMs);
+  const [syncedAt, setSyncedAt] = useState<number | null>(adReadyAtMs);
+  const [count, setCount] = useState(0); // >0 → reklam oynuyor (simülasyon geri sayımı)
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Sunucu tazelemesi yeni kalan hakkı getirirse senkron tut — effect yerine render-içi düzeltme (React önerisi).
-  if (syncedAt !== adsLeft) {
-    setSyncedAt(adsLeft);
-    setLeft(adsLeft);
+  // Sunucu tazelemesi yeni cooldown getirirse senkron tut — render-içi düzeltme (React önerisi).
+  if (syncedAt !== adReadyAtMs) {
+    setSyncedAt(adReadyAtMs);
+    setReadyAt(adReadyAtMs);
   }
+  // Cooldown geri sayımı: saniyede bir "şimdi"yi tazele (duvar saati).
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
   useEffect(() => () => void (timer.current && clearInterval(timer.current)), []);
 
   const playing = count > 0;
-  const done = left <= 0 && !playing;
+  const onCooldown = readyAt != null && readyAt > nowMs;
+  const remainingMs = onCooldown ? readyAt! - nowMs : 0;
 
   const watch = useCallback(() => {
-    if (playing || pending || left <= 0) return;
+    if (playing || pending || onCooldown) return;
     setMsg(null);
     // Geri sayım closure değişkeniyle (state updater SAF kalır; yan etki updater dışında → Strict Mode güvenli).
     let remaining = AD_SECONDS;
@@ -75,14 +89,12 @@ export function DenarPanel({
       start(async () => {
         const r = await watchAdAction();
         if (r.ok) {
-          setLeft(r.adsLeft);
+          setReadyAt(r.adReadyAtMs); // cooldown başladı → geri sayım görünür
           setMsg(labels.earned.replace("{n}", String(adReward)));
-        } else {
-          setMsg(labels.capReached);
         }
       });
     }, 1000);
-  }, [playing, pending, left, adReward, labels]);
+  }, [playing, pending, onCooldown, adReward, labels]);
 
   return (
     <div className="grid gap-2.5 border-t border-line px-4 pb-4 pt-3 sm:grid-cols-2">
@@ -93,19 +105,21 @@ export function DenarPanel({
           <span className="flex items-center gap-1 rounded bg-sig-green/20 px-1.5 py-px text-[12px] font-bold text-sig-green">
             +{adReward} <DenarMark size={12} />
           </span>
-          <span>
-            · {labels.left}: <span className="num">{left}/{adDailyCap}</span>
-          </span>
+          {onCooldown && (
+            <span>
+              · {labels.cooldown}: <span className="num tabular-nums">{fmtRemaining(remainingMs)}</span>
+            </span>
+          )}
         </div>
         <button
           onClick={watch}
-          disabled={playing || pending || done}
+          disabled={playing || pending || onCooldown}
           className={`press mt-1 flex min-h-11 items-center justify-center gap-2 rounded-md text-[14px] font-semibold ${
-            done ? "btn-ghost cursor-not-allowed text-steel" : "text-white"
+            onCooldown ? "btn-ghost cursor-not-allowed text-steel" : "text-white"
           }`}
-          style={done ? undefined : { background: "var(--sig-green)", boxShadow: "0 0 12px color-mix(in srgb, var(--sig-green) 55%, transparent)" }}
+          style={onCooldown ? undefined : { background: "var(--sig-green)", boxShadow: "0 0 12px color-mix(in srgb, var(--sig-green) 55%, transparent)" }}
         >
-          {playing ? `📺 ${labels.playing} ${count}` : `📺 ${labels.watch}`}
+          {playing ? `📺 ${labels.playing} ${count}` : onCooldown ? `⏳ ${fmtRemaining(remainingMs)}` : `📺 ${labels.watch}`}
         </button>
         {msg && <div className="text-[13px] font-bold text-sig-green">{msg}</div>}
       </div>
