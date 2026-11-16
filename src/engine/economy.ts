@@ -16,14 +16,19 @@ export const STARTING_BALANCE = 50;
  * Denar hâlâ kıt (asıl ödül ranking/prestij) ama çocuk kendi temel bakımını karşılayabilir.
  * Uluslararası (yılda 4, kotayla) daha büyük elit bonus.
  */
+// DENGE (kullanıcı kararı 16.11 — para-modeli analizi, docs/EKONOMI_DENGE.md): "A-hibrit". Önceki tabloda şehir
+// dışı/uluslararası turnuvada MADALİST (özellikle bronz) kayıt+yol masrafını çıkaramayıp zarar ediyordu. Artık
+// ödül(3.) ≥ entry + o seviyenin uzak yolu + küçük marj → hiçbir madalist zarar etmez; zamların çoğu BRONZA
+// gider (çoğu oyuncu bronza çıkamaz) → şişme minimal, asıl sink (podyum dışı + uluslararası katılım) korunur.
+// Eskrimde bronz maçı yok → 3. ve 4. aynı değer (iki yarı finalist de 3.).
 const PRIZE_TABLES: Record<TournamentLevel, Record<number, number>> = {
   IL: { 1: 10, 2: 6, 3: 3, 4: 3 },
-  OPEN: { 1: 10, 2: 6, 3: 3, 4: 3 },
-  TURKIYE: { 1: 20, 2: 12, 3: 6, 4: 6 },
-  SATELLITE: { 1: 30, 2: 20, 3: 15, 4: 15 },
-  GRAND_PRIX: { 1: 40, 2: 30, 3: 20, 4: 20 },
-  EUROPEAN: { 1: 50, 2: 40, 3: 30, 4: 30 },
-  WORLD_CUP: { 1: 100, 2: 80, 3: 60, 4: 60 },
+  OPEN: { 1: 12, 2: 9, 3: 8, 4: 8 },
+  TURKIYE: { 1: 22, 2: 14, 3: 9, 4: 9 },
+  SATELLITE: { 1: 36, 2: 26, 3: 19, 4: 19 },
+  GRAND_PRIX: { 1: 50, 2: 38, 3: 30, 4: 30 },
+  EUROPEAN: { 1: 64, 2: 52, 3: 42, 4: 42 },
+  WORLD_CUP: { 1: 100, 2: 80, 3: 64, 4: 64 },
 };
 
 export function prizeFor(level: TournamentLevel, position: number): number {

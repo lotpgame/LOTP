@@ -12,15 +12,20 @@
 hayatta kalınabilir ama monetization'lı yeni denge:
 
 **Gelir**
-- **Ödüllü reklam:** 2 Đ × günde 5 = **max 10 Đ/gün** (`AD_REWARD`, `AD_DAILY_CAP`).
-- **Turnuva ödülü (İLK 4 derece ödül alır):** İl 10/6/3/3 · Open 10/6/3/3 · Türkiye 20/12/6/6 ·
-  Satellite 30/20/15/15 · Grand Prix 40/30/20/20 · Avrupa 50/40/30/30 · Dünya K. 100/80/60/60.
+- **Ödüllü reklam (16.11):** 2 Đ, **gerçek-zaman 2 saat cooldown** (`AD_REWARD`, `AD_COOLDOWN_MS`) — eski
+  "günde 5 tavan" kalktı. Sezonda gerçekçi ~10–20 reklam. Opt-in (zorlama yok). `totalAdsWatched` ölçülür.
+- **Turnuva ödülü (16.11 — A-hibrit denge, eskrimde 3=4 çünkü bronz maçı yok):** İl 10/6/3 · Open 12/9/8 ·
+  Türkiye 22/14/9 · Satellite 36/26/19 · Grand Prix 50/38/30 · Avrupa 64/52/42 · Dünya K. 100/80/64.
+  Her madalist en az başabaş (ödül ≥ kayıt+uzak yol). Ayrıntı: `docs/EKONOMI_DENGE.md`.
 - **Harçlık event'leri:** pocketMoney +8 · clubGift +12 (haftada ~%22 ihtimal).
 - **Sezonluk yurt içi şampiyon (yeni):** İl 12×10 (120) + Türkiye 12×20 (240) + Open 6×10 (60) ≈ **~420 Đ**
   (2. ~280 · 3. ~130). Üst segment + uluslararası ayrı. (Takvim değişmedi: 1 sezon=12 hafta.)
 
 **Gider**
 - **Katılım:** İl 0 · Open 2 · Türkiye 2 · Satellite 5 · Grand Prix 10 · Avrupa 15 · Dünya K. 20.
+- **Yol + konaklama (16.11, `travelCost`):** ev sahibi şehir KENDİ şehrinse 0 (İl hep öyle); yurt-içi başka
+  şehir 5; uluslararası sabit Satellite 12 · Grand Prix 18 · Avrupa 25 · Dünya K. 40. Kayıtta peşin kesilir,
+  iptalde iade. Asıl Denar sink'i: podyuma giremeyen de kayıt+yol öder, ödül almaz.
 - **Kulüp aidatı — HAFTALIK, Pazar günü, tesis kalitesine (facility) göre kademeli:**
   0–20→2 · 20–40→4 · 40–60→6 · 60–80→8 · 80–100→10 Đ/hafta (`clubWeeklyDues`). **Ödenemezse** (bakiye
   yetmez) o hafta(lar)ın antrenman kazancı **×0.8 (%20 düşüş)** + "aidat ödenmedi" olayı (`event.duesUnpaid`).

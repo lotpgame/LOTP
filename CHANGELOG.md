@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (16.11 — Turnuva ödül dengesi: "A-hibrit" (madalist artık zarar etmez))
+- `PRIZE_TABLES` yeniden dengelendi (para-modeli analizi, `docs/EKONOMI_DENGE.md`): şehir dışı/uluslararası
+  turnuvada madalist (özellikle bronz) kayıt+yol masrafını çıkaramayıp **zarar ediyordu**; artık **ödül(3.) ≥
+  kayıt + o seviyenin uzak yolu + küçük marj** → hiçbir madalist zarar etmez. Zamların çoğu bronza gider
+  (çoğu oyuncu bronza çıkamaz) → şişme minimal, asıl sink (podyum dışı + uluslararası katılım) korunur.
+  Open 12/9/8 · Türkiye 22/14/9 · Satellite 36/26/19 · Grand Prix 50/38/30 · Avrupa 64/52/42 ·
+  Dünya K. 100/80/64 (İl 10/6/3 aynı). Yol/kayıt/aidat/reklam **değişmedi**. `docs/EKONOMI.md` senkronlandı.
+
 ### Eklendi (16.11 — Kayıt penceresinde turnuva ödülleri (eskrim-doğru derece))
 - Kayıt onay penceresinde **Ödüller** bölümü: **1. · 2. · 3.** derece Denar ödülü. Eskrim gerçeği: **bronz
   maçı yok** → yarı finalde elenen iki sporcu da **3.** olur (4. yok); pencerede bu not da var. `prizeFor`
