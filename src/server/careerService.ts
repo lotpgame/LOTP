@@ -214,6 +214,7 @@ import {
   entryFee,
   equipmentUpgradeCost,
   prizeFor,
+  travelCost,
 } from "@/engine/economy";
 import {
   clubTrainingBase,
@@ -1423,6 +1424,8 @@ export interface UpcomingTournamentDTO {
   tactic: string; // önceden verilen taktik (kayıtlıysa) ya da varsayılan
   isToday: boolean; // bugünün turnuvası (başlamadan önce listede: yeni kayıt kapalı, taktik 18:00 GMT'ye kadar değişir)
   registrationOpen: boolean; // yeni kayıt mümkün mü (turnuva gününün 00:00'ında kapanır)
+  entryFee: number; // kayıt ücreti (Denar)
+  travelCost: number; // yol+konaklama (Denar); ev sahibi şehir kendi şehrinse 0
 }
 
 /** Önümüzdeki turnuvalar + kayıt durumu (mevcut kullanıcının insanı için). */
@@ -1454,10 +1457,12 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
     const id = currentIdentity(human, careerQuarter(d, gs.careerStartDay)); // o günkü yaş kategorisi
     if (!levelAllowedForCategory(act.level, id.ageCategory)) continue; // uluslararası yalnız U17+
     const reg = regBy.get(`${d}:${act.level}`);
+    const pcity = human.club?.city ?? "";
+    const hostCity = tournamentHostCity(act.level, d, pcity, human.nationality?.code ?? "TR");
     out.push({
       worldDay: d,
       level: act.level,
-      label: tournamentDisplayName(locale, id.ageCategory, act.level, tournamentHostCity(act.level, d, human.club?.city ?? "", human.nationality?.code ?? "TR"), human.nationality?.code ?? "TR"),
+      label: tournamentDisplayName(locale, id.ageCategory, act.level, hostCity, human.nationality?.code ?? "TR"),
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
       dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
@@ -1476,6 +1481,8 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       tactic: reg?.tactic ?? human.tactic,
       isToday: d === today,
       registrationOpen: d > today,
+      entryFee: entryFee(act.level),
+      travelCost: travelCost(act.level, hostCity, pcity),
     });
   }
   return out;
@@ -1522,26 +1529,38 @@ export async function registerTournament(worldDay: number, level: TournamentLeve
   const kitProblem = validateKit(resolveKit(human.equipmentState, human.weapon as Weapon), human.weapon as Weapon, id.age, id.ageCategory, human.gender as Gender);
   if (kitProblem) throw new GameError(kitProblem, "Ekipmanın maça hazır değil — Ekipman sayfasından kontrol et.");
   const fee = entryFee(level);
-  if (fee > 0 && human.balance < fee) throw new GameError("entry_fee", `Katılım ücreti için ${fee} Denar gerekir.`);
+  // Yol+konaklama (Dilim: kullanıcı kararı 16.11): ev sahibi şehir kendi şehrinse 0, değilse yurt-içi/uluslararası.
+  const pcity = human.club?.city ?? "";
+  const hostCity = tournamentHostCity(level, worldDay, pcity, human.nationality?.code ?? "TR");
+  const travel = travelCost(level, hostCity, pcity);
+  const total = fee + travel;
+  if (total > 0 && human.balance < total) throw new GameError("entry_fee", `Kayıt + yol için ${total} Denar gerekir.`);
   await prisma.$transaction(async (tx) => {
-    if (fee > 0) {
-      await tx.player.update({ where: { id: human.id }, data: { balance: { decrement: fee } } });
-      await tx.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day: today, key: "entry", amount: -fee, arg: level }) } });
+    if (total > 0) {
+      await tx.player.update({ where: { id: human.id }, data: { balance: { decrement: total } } });
+      let ledger = gs.ledger;
+      if (fee > 0) ledger = nextLedgerJson(ledger, { day: today, key: "entry", amount: -fee, arg: level });
+      if (travel > 0) ledger = nextLedgerJson(ledger, { day: today, key: "travel", amount: -travel, arg: level });
+      await tx.gameState.update({ where: { id: gs.id }, data: { ledger } });
     }
     await tx.registration.create({ data: { playerId: gs.humanPlayerId, worldDay, level, categoryId: id.categoryId, tactic } });
   });
 }
 
-/** Turnuva kaydını iptal eder. */
+/** Turnuva kaydını iptal eder. Katılım + yol masrafı iade edilir (kayıtta kesilenle aynı; deterministik). */
 export async function unregisterTournament(worldDay: number, level: TournamentLevel): Promise<void> {
-  const gs = await currentGameState();
-  if (!gs) throw new Error("Aktif kariyer yok.");
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
   const del = await prisma.registration.deleteMany({ where: { playerId: gs.humanPlayerId, worldDay, level } });
-  // Katılım ücreti iade (kayıt vardıysa; İl ücretsiz → 0, no-op).
+  // Katılım + yol iadesi (kayıt vardıysa; İl ücretsiz + yerel → 0, no-op).
   const fee = entryFee(level);
-  if (del.count > 0 && fee > 0) {
-    await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { balance: { increment: fee } } });
-    await prisma.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "refund", amount: fee, arg: level }) } });
+  const pcity = human.club?.city ?? "";
+  const hostCity = tournamentHostCity(level, worldDay, pcity, human.nationality?.code ?? "TR");
+  const total = fee + travelCost(level, hostCity, pcity);
+  if (del.count > 0 && total > 0) {
+    await prisma.player.update({ where: { id: gs.humanPlayerId }, data: { balance: { increment: total } } });
+    await prisma.gameState.update({ where: { id: gs.id }, data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "refund", amount: total, arg: level }) } });
   }
 }
 

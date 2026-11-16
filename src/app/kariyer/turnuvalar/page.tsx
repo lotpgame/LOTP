@@ -7,6 +7,7 @@ import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { TacticSegment } from "@/app/ui/TacticSegment";
+import { DenarMark } from "../DenarMark";
 import { serverWorldDay } from "@/server/world";
 import { LevelTag, NextTournament } from "../NextTournament";
 import { levelColor } from "../levelColor";
@@ -99,6 +100,22 @@ export default async function TurnuvalarPage({
                         ),
                       })}
                 </span>
+                {/* Masraf: kayıt + yol/konaklama (ev sahibi şehir kendi şehrinse yol 0 → gizli). */}
+                {(u.entryFee > 0 || u.travelCost > 0) && (
+                  <span className="flex items-center gap-1 rounded-md border border-line px-1.5 py-0.5 text-[12px] text-steel">
+                    {u.entryFee > 0 && (
+                      <>
+                        {t(locale, "tour.entry")} <DenarMark size={11} /> <span className="num">{u.entryFee}</span>
+                      </>
+                    )}
+                    {u.entryFee > 0 && u.travelCost > 0 && <span aria-hidden="true">·</span>}
+                    {u.travelCost > 0 && (
+                      <>
+                        {t(locale, "tour.travel")} <DenarMark size={11} /> <span className="num">{u.travelCost}</span>
+                      </>
+                    )}
+                  </span>
+                )}
                 {u.registered && (
                   <span className="flex items-center gap-1 text-[13px] font-semibold">
                     <Icon name="check" size={16} className="anim-check" /> {t(locale, "turnuvalar.registered")} ·{" "}

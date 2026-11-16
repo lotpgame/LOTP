@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (16.11 — Turnuva yol/konaklama masrafı (Denar sink))
+- Turnuva kaydında **kayıt ücreti + yol/konaklama gideri**: ev sahibi şehir oyuncunun **kendi şehriyse 0**
+  (İl, ya da Türkiye şamp. tesadüfen kendi ilinde); **başka şehir (aynı ülke) → 5 Đ**; **uluslararası**
+  (Satellite 12 / GP 18 / Avrupa 25 / Dünya 40) her zaman uzak. Gerçek eskrim gibi; fazla Denar birikimini
+  dengeleyen gider. Kayıt iptalinde ikisi de iade. Turnuva kartında "Kayıt X · Yol Y" görünür; Kumbara'da
+  ayrı "Yol / konaklama" satırı. `travelCost` (economy.ts) + 5 birim test. ⭐ TUNABLE.
+
 ### Değişti (16.11 — Ödüllü reklam: günlük tavan → 2 saat cooldown + log; menü fontu geri)
 - **Ödüllü reklam modeli değişti:** eski "günde 5 hak" tavanı yerine **gerçek-zaman cooldown (2 saat)** —
   her reklamdan sonra yeni hak 2 **gerçek** saat sonra açılır (oyuna geri-dönüş kancası). Ödül **2 Đ**. UI'da

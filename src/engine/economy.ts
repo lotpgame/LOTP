@@ -38,6 +38,23 @@ export function entryFee(level: TournamentLevel): number {
   return ENTRY_FEES[level] ?? 0;
 }
 
+// Yol + konaklama gideri (kullanıcı kararı 16.11): gerçek eskrim gibi — ev sahibi şehir oyuncunun KENDİ şehriyse
+// masraf YOK (ör. İl, ya da Türkiye şamp. tesadüfen kendi ilinde). Başka şehir (aynı ülke) → yurt-içi masraf;
+// uluslararası seviyeler HER ZAMAN uzak (uçak+otel). Denar birikimini dengeleyen gider. ⭐ TUNABLE.
+const TRAVEL_DOMESTIC_AWAY = 5; // başka il/şehir, aynı ülke (Türkiye şamp. başka ilde, Open başka şehir)
+const TRAVEL_INTL: Partial<Record<TournamentLevel, number>> = {
+  SATELLITE: 12,
+  GRAND_PRIX: 18,
+  EUROPEAN: 25,
+  WORLD_CUP: 40,
+};
+export function travelCost(level: TournamentLevel, hostCity: string | null, playerCity: string): number {
+  const intl = TRAVEL_INTL[level];
+  if (intl != null) return intl; // uluslararası: her zaman uzak
+  if (!hostCity || hostCity === playerCity) return 0; // yerel (İl, ya da ev sahibi = kendi şehrin)
+  return TRAVEL_DOMESTIC_AWAY; // başka il/şehir, aynı ülke
+}
+
 /**
  * Kulüp HAFTALIK aidatı (kullanıcı kararı 10.11): her oyun-haftasında (7 gün, Pazar) kesilir; kulüp KALİTESİNE
  * (facility = tesis kalitesi 0–100; coachSkill bunu birebir takip eder) bağlı kademeli:
