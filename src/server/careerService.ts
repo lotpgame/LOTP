@@ -2319,6 +2319,50 @@ export async function watchRewardedAd(): Promise<{ balance: number; adReadyAtMs:
   return { balance: roundSkill(updated.balance), adReadyAtMs: adReadyAtMs(next, now) };
 }
 
+/** Mevcut oyuncunun lisans kodu (Paddle checkout customData için — ödeme bu oyuncuya bağlanır). */
+export async function currentPlayerCode(): Promise<string | null> {
+  const state = await loadState();
+  return state?.human.code ?? null;
+}
+
+/**
+ * Paddle (gerçek para) ödemesi tamamlandı → oyuncuya Denar ekle. İDEMPOTENT: aynı transactionId iki kez
+ * işlenmez (PaddlePurchase.transactionId unique). Webhook'tan çağrılır (imza doğrulandıktan SONRA).
+ */
+export async function creditPaddlePurchase(input: {
+  transactionId: string;
+  playerCode: string;
+  denar: number;
+  amount: string;
+}): Promise<{ credited: boolean; reason?: string }> {
+  const player = await prisma.player.findUnique({ where: { code: input.playerCode }, select: { id: true, userId: true } });
+  if (!player) return { credited: false, reason: "player_not_found" };
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Idempotency çıpası: aynı transactionId varsa unique ihlali → zaten işlenmiş (aşağıda yakalanır).
+      await tx.paddlePurchase.create({
+        data: { transactionId: input.transactionId, playerCode: input.playerCode, denar: input.denar, amount: input.amount },
+      });
+      await tx.player.update({ where: { id: player.id }, data: { balance: { increment: input.denar } } });
+      if (player.userId != null) {
+        const gs = await tx.gameState.findUnique({ where: { userId: player.userId }, select: { id: true, ledger: true } });
+        if (gs) {
+          await tx.gameState.update({
+            where: { id: gs.id },
+            data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "purchase", amount: input.denar, arg: input.amount }) },
+          });
+        }
+      }
+    });
+    return { credited: true };
+  } catch (e) {
+    if (e && typeof e === "object" && "code" in e && (e as { code?: string }).code === "P2002") {
+      return { credited: false, reason: "already_processed" }; // çift webhook → çift kredi YOK
+    }
+    throw e;
+  }
+}
+
 export interface CareerHistoryDTO {
   name: string;
   // Kronolojik (eskiden yeniye). dateMs = kazanıldığı dünya gününün GMT başlangıcı (eski kayıtta null → Q);

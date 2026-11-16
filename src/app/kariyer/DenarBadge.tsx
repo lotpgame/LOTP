@@ -60,6 +60,7 @@ export function DenarBadge({
                 </button>
               </div>
               <DenarPanel
+                locale={locale}
                 adReadyAtMs={adReadyAtMs}
                 adReward={adReward}
                 packages={DENAR_PACKAGES}

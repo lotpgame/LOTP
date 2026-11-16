@@ -10,7 +10,9 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { watchAdAction } from "@/app/actions";
 import type { DenarPackage } from "@/engine/ads";
+import type { Locale } from "@/i18n";
 import { DenarMark } from "../DenarMark";
+import { BuyDenar } from "./BuyDenar";
 
 const AD_SECONDS = 5; // simüle reklam süresi (gerçek ödüllü video lansmanta)
 
@@ -37,11 +39,13 @@ type Labels = {
 };
 
 export function DenarPanel({
+  locale,
   adReadyAtMs,
   adReward,
   packages,
   labels,
 }: {
+  locale: Locale;
   adReadyAtMs: number | null; // null = şu an hazır; yoksa hazır olacağı gerçek zaman (epoch ms)
   adReward: number;
   packages: readonly DenarPackage[];
@@ -139,7 +143,7 @@ export function DenarPanel({
                 <DenarMark size={17} /> <span className="num">{p.denar}</span>
               </div>
               <div className="num text-[14px] font-semibold">{p.gbp}</div>
-              <span className="mt-1.5 inline-block rounded bg-arena-2 px-1.5 py-px text-[11px] text-steel">{labels.soon}</span>
+              <div><BuyDenar locale={locale} soonLabel={labels.soon} /></div>
             </li>
           ))}
         </ul>

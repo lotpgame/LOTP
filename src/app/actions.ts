@@ -21,6 +21,7 @@ import {
   clearReport,
   clearAwayReport,
   clearTraitReport,
+  currentPlayerCode,
   submitFeedback,
   createCareer,
   getCategoryRanking,
@@ -122,6 +123,11 @@ export async function watchAdAction(): Promise<
     if (e instanceof GameError) return { ok: false, reason: e.code };
     throw e;
   }
+}
+
+/** Mevcut oyuncunun lisans kodu — Paddle checkout customData için (ödeme bu oyuncuya bağlanır). İstemci çağırır. */
+export async function getPlayerCodeAction(): Promise<string | null> {
+  return currentPlayerCode();
 }
 
 /** Bir ekipman parçasını çöp atar (slot + o slottaki sıra). */

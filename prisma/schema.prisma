@@ -406,3 +406,16 @@ model Feedback {
 
   @@index([createdAt])
 }
+
+/// Paddle (gerçek para) satın alma kaydı — ÇİFT KREDİ önlemek (idempotency) + kayıt. Webhook geldiğinde
+/// transactionId benzersiz olduğu için aynı ödeme iki kez Denar eklemez. Eklemeli.
+model PaddlePurchase {
+  id            Int      @id @default(autoincrement())
+  transactionId String   @unique // Paddle transaction id (txn_...)
+  playerCode    String // kime kredilendi (Player.code, "P-000xxx")
+  denar         Int // eklenen Denar
+  amount        String // ödenen tutar + para birimi (ör. "4.99 GBP") — kayıt
+  createdAt     DateTime @default(now())
+
+  @@index([playerCode])
+}

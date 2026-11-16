@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (16.11 — Paddle ödeme entegrasyonu (gerçek para Denar satın alma))
+- **Denar satın alma** artık gerçek (sandbox'ta test): Market → Denar → **Satın Al** → **parental gate** (çocuk
+  kitlesi: yetişkin onayı) → **Paddle checkout** (£4.99 → 500 Đ). Ödeme oyuncuya `custom_data.code` ile bağlanır.
+- **Webhook** `/api/paddle-webhook`: Paddle-Signature (HMAC-SHA256, `PADDLE_WEBHOOK_SECRET`) imza doğrulama →
+  `transaction.completed`'ta ilgili oyuncuya Denar ekler + Kumbara "Denar satın alma" satırı. **İdempotent**:
+  `PaddlePurchase.transactionId` unique → çift webhook çift kredi yapmaz. Yeni: `BuyDenar`, `creditPaddlePurchase`,
+  `getPlayerCodeAction`. 9 dil. Paddle yapılandırılmamışsa "yakında" rozetine düşer.
+- **Şema (eklemeli):** `PaddlePurchase` tablosu. **Migration gerek** (Neon SQL ayrı).
+- Env: `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN/ENV/PRICE_ID` + `PADDLE_API_KEY` + `PADDLE_WEBHOOK_SECRET`.
+
 ### Değişti (16.11 — Turnuva ödül dengesi: "A-hibrit" (madalist artık zarar etmez))
 - `PRIZE_TABLES` yeniden dengelendi (para-modeli analizi, `docs/EKONOMI_DENGE.md`): şehir dışı/uluslararası
   turnuvada madalist (özellikle bronz) kayıt+yol masrafını çıkaramayıp **zarar ediyordu**; artık **ödül(3.) ≥
