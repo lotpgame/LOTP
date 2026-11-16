@@ -28,6 +28,7 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
   const [ready, setReady] = useState(false);
   const [gate, setGate] = useState(false); // parental gate açık mı
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(false);
   const inited = useRef(false);
 
   useEffect(() => {
@@ -61,15 +62,21 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
   const openCheckout = async () => {
     if (!ready || busy) return;
     setBusy(true);
+    setErr(false);
     try {
       const code = await getPlayerCodeAction();
-      if (!code) return;
+      if (!code) {
+        setErr(true);
+        return;
+      }
       window.Paddle?.Checkout.open({
         items: [{ priceId: PRICE_ID, quantity: 1 }],
         customData: { code }, // webhook bunu okuyup bu oyuncuya Denar ekler
-        settings: { displayMode: "overlay", theme: "dark", locale },
+        settings: { displayMode: "overlay", theme: "dark" },
       });
       setGate(false);
+    } catch {
+      setErr(true); // ör. domain onaylı değil → "something went wrong" yerine düzgün mesaj
     } finally {
       setBusy(false);
     }
@@ -80,11 +87,12 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
     return (
       <div className="mt-2 rounded-md border border-sig-red/40 bg-sig-red/[0.06] p-2 text-left">
         <p className="text-[12px] text-steel">{t(locale, "denar.gateNote")}</p>
-        <div className="mt-2 flex gap-2">
-          <button type="button" onClick={openCheckout} disabled={!ready || busy} className="btn-ink press flex-1 text-[13px] disabled:opacity-50">
+        {err && <p className="mt-1.5 text-[12px] font-semibold text-sig-red">{t(locale, "denar.buyError")}</p>}
+        <div className="mt-2 flex flex-col gap-1.5">
+          <button type="button" onClick={openCheckout} disabled={!ready || busy} className="btn-ink press text-[13px] disabled:opacity-50">
             {t(locale, "denar.gateOk")}
           </button>
-          <button type="button" onClick={() => setGate(false)} className="btn-ghost press text-[13px]">
+          <button type="button" onClick={() => { setGate(false); setErr(false); }} className="btn-ghost press text-[13px]">
             {t(locale, "denar.gateCancel")}
           </button>
         </div>

@@ -45,6 +45,7 @@ export function DenarBadge({
           <dialog
             ref={dialog}
             className="modal"
+            style={{ maxWidth: "34rem" }} // reklam + satın alma iki sütun sığsın (24rem dar kalıyordu)
             aria-label={t(locale, "denar.title")}
             onClick={(e) => {
               if (e.target === e.currentTarget) close();
