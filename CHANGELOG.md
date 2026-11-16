@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (17.11 — Paddle checkout akışı + giriş ekranı)
+- **Ödeme sonrası bakiye bayat kalmıyor:** Paddle `checkout.completed` olayında kısa gecikmeyle (webhook DB'ye
+  Denar'ı eklesin diye) sunucu bileşenleri tazeleniyor → sağ üstteki Denar rozeti anında güncel bakiyeyi gösterir.
+  (Önce ödeme başarılıydı, Kumbara'da "Denar satın alma" görünüyordu ama rozet eski değeri gösteriyordu.)
+- **Checkout z-index:** Denar penceresi native `<dialog>` (top-layer) Paddle overlay'in üstünde kalıyordu (order
+  summary altta görünüyordu); checkout açılmadan önce pencere kapatılıyor → overlay en üstte, temiz.
+- **Giriş ekranı boşa giden buton:** Telefonda, giriş yapılmamışken "başla" CTA'sı olmayan `#olustur` formuna
+  atlıyordu (tıklayınca bir şey olmuyordu). Artık yalnız girişliyken gösteriliyor; girişsizken Google butonu zaten altta.
+
 ### Değişti (16.11 — Denar penceresi görsel iyileştirme (sıkışıklık giderildi))
 - Denar kazan/satın al penceresi iki sütundan **tek sütun** (alt alta) düzene geçti: reklam kartı + satın alma
   kartı tam genişlik, artık sıkışmıyor. Satın alma kartı yatay (solda miktar/fiyat, altta tam-genişlik "Satın Al").

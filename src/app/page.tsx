@@ -96,11 +96,15 @@ export default async function Home({
 
           <Steps locale={locale} className="mt-8 hidden lg:grid" />
 
-          {/* Masaüstünde form zaten yanda görünür → atlama butonu yalnız telefonda */}
-          <a href="#olustur" className="btn-ink press mt-auto h-12 w-full text-[16px] lg:hidden">
-            {t(locale, "landing.cta")}
-            <Icon name="chevron-down" size={18} />
-          </a>
+          {/* Masaüstünde form zaten yanda görünür → atlama butonu yalnız telefonda.
+              Yalnız girişliyken: `#olustur` formu yalnız o zaman render edilir; giriş yoksa hedef yok →
+              buton boşa giderdi (kullanıcı 17.11). Girişsizken Google butonu zaten aşağıda, CTA gereksiz. */}
+          {signedIn && (
+            <a href="#olustur" className="btn-ink press mt-auto h-12 w-full text-[16px] lg:hidden">
+              {t(locale, "landing.cta")}
+              <Icon name="chevron-down" size={18} />
+            </a>
+          )}
         </div>
       </section>
 

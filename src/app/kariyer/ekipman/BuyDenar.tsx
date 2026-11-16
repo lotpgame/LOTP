@@ -7,6 +7,7 @@
  * (NEXT_PUBLIC_PADDLE_CLIENT_TOKEN yoksa) "yakında" rozetine düşer (graceful).
  */
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getPlayerCodeAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
 
@@ -14,7 +15,7 @@ declare global {
   interface Window {
     Paddle?: {
       Environment?: { set: (env: string) => void };
-      Initialize: (opts: { token: string }) => void;
+      Initialize: (opts: { token: string; eventCallback?: (e: { name?: string }) => void }) => void;
       Checkout: { open: (opts: Record<string, unknown>) => void };
     };
   }
@@ -25,6 +26,7 @@ const PRICE_ID = process.env.NEXT_PUBLIC_PADDLE_PRICE_ID;
 const PADDLE_ENV = process.env.NEXT_PUBLIC_PADDLE_ENV; // "sandbox" | "production"
 
 export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: string }) {
+  const router = useRouter();
   const [ready, setReady] = useState(false);
   const [gate, setGate] = useState(false); // parental gate açık mı
   const [busy, setBusy] = useState(false);
@@ -37,7 +39,14 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
     const init = () => {
       try {
         if (PADDLE_ENV === "sandbox") window.Paddle?.Environment?.set("sandbox");
-        window.Paddle?.Initialize({ token: TOKEN! });
+        window.Paddle?.Initialize({
+          token: TOKEN!,
+          // Ödeme tamamlanınca: webhook Denar'ı DB'ye ekler (async). Kısa gecikmeyle sunucu bileşenlerini
+          // tazele → sağ üstteki Denar rozeti yeni bakiyeyi gösterir (yoksa eski değer bayat kalıyordu).
+          eventCallback: (e) => {
+            if (e?.name === "checkout.completed") setTimeout(() => router.refresh(), 2500);
+          },
+        });
         setReady(true);
       } catch {
         /* yoksay */
@@ -69,6 +78,9 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
         setErr(true);
         return;
       }
+      // Denar penceresi native <dialog> (top-layer) → Paddle overlay'in ÜSTünde kalıyordu (order summary altta
+      // görünüyordu). Checkout açmadan önce pencereyi kapat → overlay en üstte, temiz görünür (kullanıcı 17.11).
+      document.querySelector<HTMLDialogElement>("dialog.modal[open]")?.close();
       window.Paddle?.Checkout.open({
         items: [{ priceId: PRICE_ID, quantity: 1 }],
         customData: { code }, // webhook bunu okuyup bu oyuncuya Denar ekler
