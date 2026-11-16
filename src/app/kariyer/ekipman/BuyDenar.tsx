@@ -56,7 +56,7 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
 
   // Yapılandırılmamış → eski "yakında" rozeti (gerçek ödeme kapalı).
   if (!TOKEN || !PRICE_ID) {
-    return <span className="mt-1.5 inline-block rounded bg-arena-2 px-1.5 py-px text-[11px] text-steel">{soonLabel}</span>;
+    return <span className="inline-block self-start rounded bg-arena-2 px-1.5 py-px text-[11px] text-steel">{soonLabel}</span>;
   }
 
   const openCheckout = async () => {
@@ -85,7 +85,7 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
   if (gate) {
     // Parental gate — gerçek para uyarısı + yetişkin onayı.
     return (
-      <div className="mt-2 rounded-md border border-sig-red/40 bg-sig-red/[0.06] p-2 text-left">
+      <div className="rounded-md border border-sig-red/40 bg-sig-red/[0.06] p-2 text-left">
         <p className="text-[12px] text-steel">{t(locale, "denar.gateNote")}</p>
         {err && <p className="mt-1.5 text-[12px] font-semibold text-sig-red">{t(locale, "denar.buyError")}</p>}
         <div className="mt-2 flex flex-col gap-1.5">
@@ -105,7 +105,7 @@ export function BuyDenar({ locale, soonLabel }: { locale: Locale; soonLabel: str
       type="button"
       onClick={() => setGate(true)}
       disabled={!ready}
-      className="press mt-1.5 inline-flex min-h-9 items-center justify-center rounded-md bg-sig-red px-3 text-[13px] font-semibold text-white disabled:opacity-50"
+      className="press flex min-h-10 w-full items-center justify-center rounded-md bg-sig-red px-3 text-[14px] font-semibold text-white disabled:opacity-50"
     >
       {t(locale, "denar.buy")}
     </button>

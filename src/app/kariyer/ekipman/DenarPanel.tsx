@@ -101,7 +101,7 @@ export function DenarPanel({
   }, [playing, pending, onCooldown, adReward, labels]);
 
   return (
-    <div className="grid gap-2.5 border-t border-line px-4 pb-4 pt-3 sm:grid-cols-2">
+    <div className="flex flex-col gap-2.5 border-t border-line px-4 pb-4 pt-3">
       {/* Reklam izle → +Denar (yeşil "kazan" vurgusu) */}
       <div className="panel flex flex-col gap-2 p-3 border-sig-green/30" style={{ background: "color-mix(in srgb, var(--sig-green) 7%, transparent)" }}>
         <div className="flex items-center gap-1.5 text-[15px] font-semibold">📺 {labels.earnTitle}</div>
@@ -131,19 +131,23 @@ export function DenarPanel({
       {/* Denar paketleri (lansmanta açılacak — satın alma yok) */}
       <div className="panel flex flex-col gap-2 p-3" style={{ background: "color-mix(in srgb, var(--sig-red) 6%, transparent)" }}>
         <div className="flex items-center gap-1.5 text-[15px] font-semibold"><DenarMark size={16} /> {labels.buyTitle}</div>
-        <ul className={`grid gap-2 ${packages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+        <ul className={`grid gap-2 ${packages.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}`}>
           {packages.map((p) => (
             <li
               key={p.denar}
-              className="rounded-lg border border-sig-red/40 p-3 text-center"
+              className="flex flex-col gap-3 rounded-lg border border-sig-red/40 p-3.5"
               style={{ background: "color-mix(in srgb, var(--sig-red) 10%, transparent)" }}
             >
-              {p.best && <div className="kicker mb-0.5 text-[10px] font-bold text-sig-red">{labels.best}</div>}
-              <div className="flex items-center justify-center gap-1 text-[19px] font-bold">
-                <DenarMark size={17} /> <span className="num">{p.denar}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col">
+                  {p.best && <div className="kicker mb-0.5 text-[10px] font-bold text-sig-red">{labels.best}</div>}
+                  <div className="flex items-center gap-1.5 text-[22px] font-bold leading-none">
+                    <DenarMark size={20} /> <span className="num">{p.denar}</span>
+                  </div>
+                </div>
+                <div className="num rounded-md bg-sig-red/15 px-2.5 py-1 text-[16px] font-bold text-sig-red">{p.gbp}</div>
               </div>
-              <div className="num text-[14px] font-semibold">{p.gbp}</div>
-              <div><BuyDenar locale={locale} soonLabel={labels.soon} /></div>
+              <BuyDenar locale={locale} soonLabel={labels.soon} />
             </li>
           ))}
         </ul>

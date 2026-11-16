@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (16.11 — Denar penceresi görsel iyileştirme (sıkışıklık giderildi))
+- Denar kazan/satın al penceresi iki sütundan **tek sütun** (alt alta) düzene geçti: reklam kartı + satın alma
+  kartı tam genişlik, artık sıkışmıyor. Satın alma kartı yatay (solda miktar/fiyat, altta tam-genişlik "Satın Al").
+  Parental gate ferah sığıyor; pencere genişliği 34rem → 26rem (tek sütun için uygun, telefon dostu).
+
 ### Eklendi (16.11 — Paddle ödeme entegrasyonu (gerçek para Denar satın alma))
 - **Denar satın alma** artık gerçek (sandbox'ta test): Market → Denar → **Satın Al** → **parental gate** (çocuk
   kitlesi: yetişkin onayı) → **Paddle checkout** (£4.99 → 500 Đ). Ödeme oyuncuya `custom_data.code` ile bağlanır.
