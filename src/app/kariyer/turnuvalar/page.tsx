@@ -8,6 +8,7 @@ import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments }
 import { Icon } from "@/app/ui/Icon";
 import { DenarMark } from "../DenarMark";
 import { RegisterDialog } from "./RegisterDialog";
+import { prizeFor } from "@/engine/economy";
 import type { Locale } from "@/i18n";
 
 /** Turnuva ödül etiketi (kapsama göre): Open = tecrübe; diğerleri = "{İl/Ulusal/Dünya klasmanı} + tecrübe". */
@@ -135,6 +136,7 @@ export default async function TurnuvalarPage({
                     rewardText={rewardTextFor(locale, u.level)}
                     entryFee={u.entryFee}
                     travelCost={u.travelCost}
+                    prizes={[1, 2, 3].map((p) => prizeFor(u.level, p))}
                     playerCity={c.club?.city ?? ""}
                     defaultTactic={u.tactic}
                     registered={u.registered}

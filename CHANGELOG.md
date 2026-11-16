@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (16.11 — Kayıt penceresinde turnuva ödülleri (eskrim-doğru derece))
+- Kayıt onay penceresinde **Ödüller** bölümü: **1. · 2. · 3.** derece Denar ödülü. Eskrim gerçeği: **bronz
+  maçı yok** → yarı finalde elenen iki sporcu da **3.** olur (4. yok); pencerede bu not da var. `prizeFor`
+  ile hesaplanır. 9 dil (`tour.prizes`, `tour.bronzeNote`).
+
 ### Değişti (16.11 — Turnuva kayıt onay penceresi + Denar paketi 500)
 - **Kaydol → resmi onay pop-up'ı** (`RegisterDialog`): açılan pencerede turnuva adı, ne verir (ödül),
   **kayıt ücreti + yol/konaklama** (kendi şehrinde "yol yok", şehir dışında "{şehir} dışında — yol+konaklama"),

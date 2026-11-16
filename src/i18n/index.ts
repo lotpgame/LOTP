@@ -202,6 +202,8 @@ const TR: Dict = {
   "tour.decline": "Vazgeç",
   "tour.travelReason": "{city} dışında — yol + konaklama",
   "tour.localNoTravel": "{city}'desin — yol masrafı yok",
+  "tour.prizes": "Ödüller",
+  "tour.bronzeNote": "Eskrimde 3.lük maçı yok — yarı finalde elenen iki sporcu da 3. olur.",
   "tour.program": "Haftalık program",
   "tour.programNote": "Etkinlikler akşam başlar; Open turnuvalar iki haftada bir. Uluslararası turnuvalar (Satellite / Grand Prix / Avrupa / Dünya) sezonda birkaç kez, uygunluk klasman sırasına bağlı.",
   // Ayarlar
@@ -1006,6 +1008,8 @@ const EN: Dict = {
   "tour.decline": "Cancel",
   "tour.travelReason": "Away from {city} — travel + lodging",
   "tour.localNoTravel": "In {city} — no travel cost",
+  "tour.prizes": "Prizes",
+  "tour.bronzeNote": "No bronze bout in fencing — both semifinal losers share 3rd.",
   "tour.program": "Weekly schedule",
   "tour.programNote": "Events start in the evening; Opens every other week. International events (Satellite / Grand Prix / European / World) a few times per season, entry depends on ranking.",
   "settings.title": "Settings",
@@ -1805,6 +1809,8 @@ const DE: Dict = {
   "tour.decline": "Abbrechen",
   "tour.travelReason": "Außerhalb von {city} — Reise + Unterkunft",
   "tour.localNoTravel": "In {city} — keine Reisekosten",
+  "tour.prizes": "Preisgeld",
+  "tour.bronzeNote": "Kein Bronze-Gefecht im Fechten — beide Halbfinalverlierer teilen sich Platz 3.",
   "tour.program": "Wochenprogramm",
   "tour.programNote": "Veranstaltungen beginnen abends; Open-Turniere alle zwei Wochen. Internationale Turniere (Satellite / Grand Prix / Europa / Welt) einige Male pro Saison, Teilnahme abhängig vom Ranglistenplatz.",
   "settings.title": "Einstellungen",
@@ -2607,6 +2613,8 @@ const FR: Dict = {
   "tour.decline": "Annuler",
   "tour.travelReason": "Hors de {city} — voyage + hébergement",
   "tour.localNoTravel": "À {city} — pas de frais de voyage",
+  "tour.prizes": "Prix",
+  "tour.bronzeNote": "Pas de match pour la 3e en escrime — les deux perdants de demi-finale sont 3es.",
   "tour.program": "Programme hebdomadaire",
   "tour.programNote": "Les événements commencent le soir ; les tournois Open ont lieu une semaine sur deux. Les tournois internationaux (Satellite / Grand Prix / Europe / Monde) quelques fois par saison, l'éligibilité dépend du rang au classement.",
   // Ayarlar
@@ -3413,6 +3421,8 @@ const ES: Dict = {
   "tour.decline": "Cancelar",
   "tour.travelReason": "Fuera de {city} — viaje + alojamiento",
   "tour.localNoTravel": "En {city} — sin gastos de viaje",
+  "tour.prizes": "Premios",
+  "tour.bronzeNote": "Sin combate por el bronce en esgrima — ambos perdedores de semifinal comparten el 3.º.",
   "tour.program": "Programa semanal",
   "tour.programNote": "Los eventos empiezan por la tarde; los torneos Open son cada dos semanas. Los torneos internacionales (Satélite / Grand Prix / Europa / Mundo) unas pocas veces por temporada, la elegibilidad depende del puesto en la clasificación.",
   // Ayarlar
@@ -4219,6 +4229,8 @@ const IT: Dict = {
   "tour.decline": "Annulla",
   "tour.travelReason": "Fuori da {city} — viaggio + alloggio",
   "tour.localNoTravel": "A {city} — nessun costo di viaggio",
+  "tour.prizes": "Premi",
+  "tour.bronzeNote": "Niente finalina nella scherma — entrambi i perdenti di semifinale sono 3i.",
   "tour.program": "Programma settimanale",
   "tour.programNote": "Gli eventi iniziano la sera; i tornei Open sono ogni due settimane. I tornei internazionali (Satellite / Grand Prix / Europa / Mondo) poche volte a stagione, l'idoneità dipende dalla posizione in classifica.",
   // Ayarlar
@@ -5025,6 +5037,8 @@ const RU: Dict = {
   "tour.decline": "Отмена",
   "tour.travelReason": "За пределами {city} — дорога + проживание",
   "tour.localNoTravel": "В {city} — без расходов на дорогу",
+  "tour.prizes": "Призы",
+  "tour.bronzeNote": "В фехтовании нет боя за 3-е — оба проигравших в полуфинале делят 3-е место.",
   "tour.program": "Недельная программа",
   "tour.programNote": "События начинаются вечером; турниры Опен — раз в две недели. Международные турниры (Сателлит / Гран-при / Европа / Мир) несколько раз за сезон, допуск зависит от места в рейтинге.",
   // Ayarlar
@@ -5831,6 +5845,8 @@ const PT: Dict = {
   "tour.decline": "Cancelar",
   "tour.travelReason": "Fora de {city} — viagem + estadia",
   "tour.localNoTravel": "Em {city} — sem custos de viagem",
+  "tour.prizes": "Prémios",
+  "tour.bronzeNote": "Sem combate pelo bronze na esgrima — ambos os perdedores da meia-final ficam em 3.º.",
   "tour.program": "Programa semanal",
   "tour.programNote": "Os eventos começam à noite; os torneios Open são a cada duas semanas. Torneios internacionais (Satélite / Grand Prix / Europa / Mundo) algumas vezes por temporada, a elegibilidade depende da posição no ranking.",
   // Ayarlar
@@ -6637,6 +6653,8 @@ const ZH: Dict = {
   "tour.decline": "取消",
   "tour.travelReason": "{city} 以外 — 差旅 + 住宿",
   "tour.localNoTravel": "在 {city} — 无差旅费",
+  "tour.prizes": "奖金",
+  "tour.bronzeNote": "击剑无铜牌赛 — 两名半决赛负者并列第3。",
   "tour.program": "每周赛程",
   "tour.programNote": "赛事在傍晚开始；公开赛每两周一次。国际赛事（卫星赛 / 大奖赛 / 欧洲 / 世界）每赛季几次，资格取决于排名位置。",
   // Ayarlar

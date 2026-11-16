@@ -22,6 +22,7 @@ export function RegisterDialog({
   rewardText,
   entryFee,
   travelCost,
+  prizes,
   playerCity,
   defaultTactic,
   registered,
@@ -35,6 +36,7 @@ export function RegisterDialog({
   rewardText: string;
   entryFee: number;
   travelCost: number;
+  prizes: number[]; // 1./2./3. derece Denar ödülü
   playerCity: string;
   defaultTactic: string;
   registered: boolean;
@@ -90,6 +92,23 @@ export function RegisterDialog({
                   <div className="font-display text-[17px] font-bold leading-snug">{label}</div>
                   <div className="mt-0.5 text-[13px] text-steel">{rewardText}</div>
                 </div>
+
+                {/* Ödüller (derece) — ne kazanabilirsin. Eskrimde 3.lük maçı yok → iki yarı finalist de 3. (4. yok). */}
+                {prizes.some((p) => p > 0) && (
+                  <div className="mt-3 rounded-lg border border-line p-3">
+                    <div className="kicker mb-2">{t(locale, "tour.prizes")}</div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px]">
+                      {prizes.map((amt, i) =>
+                        amt > 0 ? (
+                          <span key={i} className="flex items-center gap-1">
+                            <span className="num text-steel">{i + 1}.</span> <DenarMark size={13} /> <span className="num font-semibold">{amt}</span>
+                          </span>
+                        ) : null,
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-[12px] text-steel">{t(locale, "tour.bronzeNote")}</p>
+                  </div>
+                )}
 
                 {/* Masraf dökümü — yalnız YENİ kayıtta (zaten kayıtlıysa ödendi) */}
                 {!registered && (
