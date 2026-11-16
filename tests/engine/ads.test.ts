@@ -50,9 +50,9 @@ describe("ads — ödüllü reklam (gerçek-zaman cooldown)", () => {
     expect(r.state).toEqual(s);
   });
 
-  it("paket kataloğu: tek ürün — 1.000 Đ / £4.99 (kullanıcı kararı 06.11)", () => {
+  it("paket kataloğu: tek ürün — 500 Đ / £4.99 (kullanıcı kararı 16.11)", () => {
     expect(DENAR_PACKAGES).toHaveLength(1);
-    expect(DENAR_PACKAGES[0].denar).toBe(1000);
+    expect(DENAR_PACKAGES[0].denar).toBe(500);
     expect(DENAR_PACKAGES[0].gbp).toBe("£4.99");
   });
 });

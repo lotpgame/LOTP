@@ -1,13 +1,21 @@
 import Link from "next/link";
 import { ArenaPage } from "@/app/ArenaPage";
 import { redirect } from "next/navigation";
-import { attendTournamentAction, registerTournamentAction, unregisterTournamentAction } from "@/app/actions";
+import { attendTournamentAction } from "@/app/actions";
 import { t } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getNextTournament, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
-import { TacticSegment } from "@/app/ui/TacticSegment";
 import { DenarMark } from "../DenarMark";
+import { RegisterDialog } from "./RegisterDialog";
+import type { Locale } from "@/i18n";
+
+/** Turnuva ödül etiketi (kapsama göre): Open = tecrübe; diğerleri = "{İl/Ulusal/Dünya klasmanı} + tecrübe". */
+function rewardTextFor(locale: Locale, level: string): string {
+  if (level === "OPEN") return t(locale, "tour.rewardXp");
+  const scope = level === "IL" ? "tour.scopeCity" : level === "TURKIYE" ? "tour.scopeNational" : "tour.scopeWorld";
+  return t(locale, "tour.rewardRank", { scope: t(locale, scope) });
+}
 import { serverWorldDay } from "@/server/world";
 import { LevelTag, NextTournament } from "../NextTournament";
 import { levelColor } from "../levelColor";
@@ -87,18 +95,7 @@ export default async function TurnuvalarPage({
               {/* #28: bu turnuva ne verir — Open tecrübe, şampiyona klasman puanı */}
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <span className="rounded-md border border-line px-1.5 py-0.5 text-[12px] text-steel">
-                  {u.level === "OPEN"
-                    ? t(locale, "tour.rewardXp")
-                    : t(locale, "tour.rewardRank", {
-                        scope: t(
-                          locale,
-                          u.level === "IL"
-                            ? "tour.scopeCity"
-                            : u.level === "TURKIYE"
-                              ? "tour.scopeNational"
-                              : "tour.scopeWorld",
-                        ),
-                      })}
+                  {rewardTextFor(locale, u.level)}
                 </span>
                 {/* Masraf: kayıt + yol/konaklama (ev sahibi şehir kendi şehrinse yol 0 → gizli). */}
                 {(u.entryFee > 0 || u.travelCost > 0) && (
@@ -128,35 +125,23 @@ export default async function TurnuvalarPage({
                 // Bugünün turnuvası: yeni kayıt gün-00:00'da kapandı (06.10 kuralı) — yalnız kayıtlı taktik değiştirir.
                 <p className="mt-3 text-[13px] text-steel">{t(locale, "turnuvalar.todayClosed")}</p>
               ) : u.qualified ? (
-                // Taktik seçici "Kaydol"a basınca açılır (liste kısa kalır). JS yok: native <details>.
-                // Listede ikincil buton — ekrandaki tek ana (mürekkep) buton üstteki kartta.
-                <details className="group mt-3">
-                  <summary
-                    className="btn-ghost press w-full cursor-pointer list-none group-open:border-ink [&::-webkit-details-marker]:hidden"
-                  >
-                    {u.registered ? t(locale, "tour.changeTactic") : t(locale, "turnuvalar.register")}
-                    <Icon name="chevron-down" size={16} className="transition-transform group-open:rotate-180" />
-                  </summary>
-                  <form action={registerTournamentAction} className="mt-2 flex flex-col gap-2">
-                    <input type="hidden" name="worldDay" value={u.worldDay} />
-                    <input type="hidden" name="level" value={u.level} />
-                    <TacticSegment defaultValue={u.tactic} locale={locale} />
-                    {u.isToday && <p className="text-[13px] text-steel">{t(locale, "turnuvalar.todayTactic")}</p>}
-                    <div className="flex gap-2">
-                      <button className="btn-ink press flex-1">
-                        {u.registered ? t(locale, "turnuvalar.update") : t(locale, "tour.confirm")}
-                      </button>
-                      {u.registered && !u.isToday && (
-                        <button
-                          formAction={unregisterTournamentAction}
-                          className="min-h-11 px-3 text-[14px] text-steel underline underline-offset-2"
-                        >
-                          {t(locale, "turnuvalar.cancel")}
-                        </button>
-                      )}
-                    </div>
-                  </form>
-                </details>
+                // Kaydol → "resmi fiş" onay penceresi (RegisterDialog): ad + ödül + kayıt/yol masrafı + taktik.
+                <div className="mt-3">
+                  <RegisterDialog
+                    locale={locale}
+                    worldDay={u.worldDay}
+                    level={u.level}
+                    label={u.label}
+                    rewardText={rewardTextFor(locale, u.level)}
+                    entryFee={u.entryFee}
+                    travelCost={u.travelCost}
+                    playerCity={c.club?.city ?? ""}
+                    defaultTactic={u.tactic}
+                    registered={u.registered}
+                    isToday={u.isToday}
+                    triggerClassName="btn-ghost press w-full"
+                  />
+                </div>
               ) : (
                 <div className="mt-2 flex items-center gap-1.5 text-[13px] text-steel">
                   <Icon name="lock" size={15} /> {u.requirement}

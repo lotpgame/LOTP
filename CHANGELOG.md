@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (16.11 — Turnuva kayıt onay penceresi + Denar paketi 500)
+- **Kaydol → resmi onay pop-up'ı** (`RegisterDialog`): açılan pencerede turnuva adı, ne verir (ödül),
+  **kayıt ücreti + yol/konaklama** (kendi şehrinde "yol yok", şehir dışında "{şehir} dışında — yol+konaklama"),
+  **toplam**, taktik seçimi (varsayılan hazır) ve **"Onaylıyorum" / "Vazgeç"**. Eski satır-içi açılır form kalktı.
+  DTO'ya `hostCity` eklendi.
+- **Denar paketi 1.000 → 500 Đ** (£4.99 aynı) — ekonomi sıkılaştı. Test güncellendi.
+
 ### Eklendi (16.11 — Turnuva yol/konaklama masrafı (Denar sink))
 - Turnuva kaydında **kayıt ücreti + yol/konaklama gideri**: ev sahibi şehir oyuncunun **kendi şehriyse 0**
   (İl, ya da Türkiye şamp. tesadüfen kendi ilinde); **başka şehir (aynı ülke) → 5 Đ**; **uluslararası**

@@ -1426,6 +1426,7 @@ export interface UpcomingTournamentDTO {
   registrationOpen: boolean; // yeni kayıt mümkün mü (turnuva gününün 00:00'ında kapanır)
   entryFee: number; // kayıt ücreti (Denar)
   travelCost: number; // yol+konaklama (Denar); ev sahibi şehir kendi şehrinse 0
+  hostCity: string | null; // ev sahibi şehir (yol masrafı açıklaması için); uluslararası şehirsizlerde null
 }
 
 /** Önümüzdeki turnuvalar + kayıt durumu (mevcut kullanıcının insanı için). */
@@ -1483,6 +1484,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       registrationOpen: d > today,
       entryFee: entryFee(act.level),
       travelCost: travelCost(act.level, hostCity, pcity),
+      hostCity,
     });
   }
   return out;
