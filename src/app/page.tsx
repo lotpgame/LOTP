@@ -197,6 +197,22 @@ export default async function Home({
         )}
       </div>
 
+      {/* Alt bilgi — yasal/politika sayfaları siteden erişilebilsin (Paddle doğrulaması + şeffaflık). İki sütunu kaplar. */}
+      <footer className="border-t border-line px-4 py-6 text-center text-[13px] text-steel lg:col-span-2">
+        <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-ink">
+          <a href="/fiyatlandirma">Fiyatlandırma</a>
+          <span aria-hidden>·</span>
+          <a href="/kosullar">Kullanım Koşulları</a>
+          <span aria-hidden>·</span>
+          <a href="/gizlilik">Gizlilik</a>
+          <span aria-hidden>·</span>
+          <a href="/iade">İade</a>
+          <span aria-hidden>·</span>
+          <a href="mailto:lotpgame@gmail.com">İletişim</a>
+        </nav>
+        <p className="mt-2 text-[12px]">© 2026 Legends of the Piste</p>
+      </footer>
+
       {/* "App gibi yükle" uyarısı (yalnız tarayıcıda, yüklü değilken) — iOS'ta yönerge, Android'de tek dokunuş. */}
       <InstallPrompt locale={locale} />
     </main>
