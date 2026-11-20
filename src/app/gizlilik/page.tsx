@@ -12,7 +12,7 @@ export default function GizlilikPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-5 py-10 text-[15px] leading-relaxed sm:px-6">
       <h1 className="font-display text-[30px] font-bold">Gizlilik Politikası</h1>
-      <p className="mt-1 text-[13px] text-steel">Son güncelleme: 9 Kasım 2026</p>
+      <p className="mt-1 text-[13px] text-steel">Son güncelleme: 20 Kasım 2026</p>
 
       <p className="mt-6">
         <strong>Legends of the Piste</strong> (“oyun”, “biz”), eskrim temalı bir metin-tabanlı kariyer
@@ -32,7 +32,9 @@ export default function GizlilikPage() {
           </li>
         </ul>
         <p className="mt-3">
-          Ad, telefon, adres, ödeme bilgisi veya konum gibi başka kişisel veriler toplamıyoruz.
+          Ad, telefon, adres veya konum gibi başka kişisel veriler toplamıyoruz. Denar satın alırsan
+          ödeme, güvenli ödeme sağlayıcımız <strong>Paddle</strong> üzerinden yapılır; kart bilgini biz
+          <strong> görmeyiz ve saklamayız</strong> (ödemeyi Paddle işler).
         </p>
       </Section>
 
@@ -40,26 +42,53 @@ export default function GizlilikPage() {
         <p>
           Verileri yalnızca <strong>oyunun çalışması</strong> için kullanırız: hesabına giriş yapabilmen,
           kariyerinin kaydedilip kaldığın yerden devam edebilmen ve klasman/istatistiklerin gösterilebilmesi.
-          Reklam veya profilleme amacıyla kullanmayız.
+          Oyun verilerini kendimiz reklam hedefleme veya profilleme için kullanmayız. (Reklam gösterimi
+          hakkında aşağıdaki “Reklamlar” bölümüne bak.)
         </p>
       </Section>
 
       <Section title="Paylaşım ve altyapı">
         <p>
-          Verilerini <strong>satmayız</strong> ve pazarlama amacıyla üçüncü taraflarla paylaşmayız. Oyun
-          aşağıdaki hizmetler üzerinde çalışır; verilerin yalnızca oyunun çalışması için bu altyapıda işlenir:
+          Verilerini <strong>satmayız</strong>. Oyun aşağıdaki hizmetler üzerinde çalışır; verilerin yalnızca
+          oyunun çalışması için bu altyapıda işlenir:
         </p>
         <ul className="ml-5 mt-2 list-disc space-y-1">
           <li><strong>Vercel</strong> — barındırma (hosting)</li>
           <li><strong>Neon</strong> — veritabanı (oyun verilerinin saklanması)</li>
-          <li><strong>Google</strong> — güvenli giriş (OAuth)</li>
+          <li><strong>Google</strong> — güvenli giriş (OAuth) ve reklam (Google AdSense)</li>
+          <li><strong>Paddle</strong> — ödeme (Denar satın alma; kart bilgisini onlar işler)</li>
+        </ul>
+      </Section>
+
+      <Section title="Reklamlar">
+        <p>
+          Oyun, <strong>Google AdSense</strong> üzerinden reklam gösterebilir. Google ve iş ortakları, reklam
+          göstermek ve ölçmek için <strong>çerez</strong> kullanabilir; bu çerezler senin cihazında saklanır.
+          Oyun verilerini (sporcun, kariyerin) reklam için Google ile paylaşmayız.
+        </p>
+        <ul className="ml-5 mt-2 list-disc space-y-1">
+          <li>
+            Google’ın kişiselleştirilmiş reklam çerezlerini{" "}
+            <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="underline">adssettings.google.com</a>{" "}
+            adresinden yönetebilir veya kapatabilirsin.
+          </li>
+          <li>
+            Üçüncü taraf reklam sağlayıcıların çerez kullanımı hakkında:{" "}
+            <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="underline">aboutads.info</a>.
+          </li>
+          <li>
+            <strong>Çocuklar:</strong> oyun genç kitleye de hitap ettiği için, küçük yaştaki oyunculara
+            <strong> kişiselleştirilmiş (hedefli) reklam göstermemeye</strong> özen gösteririz.
+          </li>
         </ul>
       </Section>
 
       <Section title="Çerezler">
         <p>
-          Yalnızca giriş durumunu hatırlamak için zorunlu bir <strong>oturum çerezi</strong> kullanırız.
-          Takip/reklam çerezi kullanmayız.
+          Oyunun kendisi, yalnızca giriş durumunu ve dil tercihini hatırlamak için <strong>zorunlu
+          çerezler</strong> kullanır (takip amaçlı değil). Ayrıca <strong>Google AdSense</strong>, reklam
+          göstermek için kendi <strong>reklam çerezlerini</strong> kullanabilir — ayrıntı ve kapatma için
+          yukarıdaki “Reklamlar” bölümüne bak.
         </p>
       </Section>
 

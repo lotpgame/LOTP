@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (20.11 — Gizlilik politikası reklamı yansıtacak şekilde güncellendi)
+- `/gizlilik`: **Reklamlar** bölümü eklendi — Google AdSense reklam çerezleri açıkça belirtildi, kapatma/opt-out
+  linkleri (adssettings.google.com, aboutads.info), çocuk kitlesine kişiselleştirilmiş reklam göstermeme notu.
+  Çerezler ve altyapı bölümleri AdSense'i içerecek şekilde güncellendi; ödeme için **Paddle** eklendi (kart
+  bilgisini biz görmeyiz/saklamayız). **Neden:** eski metin "reklam çerezi kullanmayız" diyordu — AdSense ile
+  çelişiyordu ve onayı tıkayabilirdi; reklam monetizasyonu için bu açıklama şart.
+
 ### Düzeltildi (17.11 — Paddle checkout akışı + giriş ekranı)
 - **Ödeme sonrası bakiye bayat kalmıyor:** Paddle `checkout.completed` olayında kısa gecikmeyle (webhook DB'ye
   Denar'ı eklesin diye) sunucu bileşenleri tazeleniyor → sağ üstteki Denar rozeti anında güncel bakiyeyi gösterir.
