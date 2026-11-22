@@ -233,6 +233,9 @@ model GameState {
   // Kumbaram: Denar işlem kaydı (JSON dizi {day, key, amount, arg?}) — "o hafta neye ne harcadı ne aldı".
   // Her bakiye hareketi ekler; son LEDGER_MAX tutulur. Eklemeli alan (canlı veri korunur). src/engine/ledger.ts
   ledger String?
+  // Kariyer Günlüğü: antrenman + psikoloji/malzeme olaylarının tarihli kaydı (JSON dizi). Turnuvalar ve para
+  // olayları ayrı kaynaklardan (TournamentParticipant + ledger) birleştirilir. Eklemeli alan. src/engine/diary.ts
+  diary String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

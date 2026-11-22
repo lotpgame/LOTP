@@ -9,6 +9,14 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (22.11 — Kariyer Günlüğü (tarihli olay/antrenman/para/turnuva akışı))
+- Kariyer sayfasının en altına açılır **"Kariyer Günlüğü"**: tarih tarih, satır satır — antrenman özetleri (skill
+  kazanımları + kondisyon), psikoloji/kırılma olayları, para hareketleri (harçlık/ödül/aidat — ledger'dan),
+  turnuvalar (katılım + derece). Tek akışta, yeni→eski, GMT tarihli. **Neden:** antrenman raporu + olaylar
+  GEÇİCİydi (her ilerlemede üzerine yazılıyordu) → oyuncu "hiç olay olmuyor" sanıyordu; artık KALICI günlükte
+  "geçmiş günlerde ne oldu" görünür. Yeni alan `GameState.diary` (eklemeli), `src/engine/diary.ts`. 9 dil.
+  **Migration gerek** (Neon'da `ALTER TABLE "GameState" ADD COLUMN "diary" TEXT;` — deploy'dan ÖNCE).
+
 ### Eklendi (22.11 — Public içerik sayfaları (AdSense onayı için) + sitemap/robots)
 - Girişsiz, crawl edilebilir **içerik sayfaları**: `/eskrim` (eskrim sporu rehberi — silahlar, avantaj kuralı,
   puanlama, turnuva formatı, ekipman), `/nasil-oynanir` (oyun rehberi), `/hakkinda`, `/sss`. **Neden:** AdSense

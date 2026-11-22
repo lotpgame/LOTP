@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import { t, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareerHistory } from "@/server/careerService";
+import { getCareerHistory, type CareerDiaryRow } from "@/server/careerService";
+import { DenarMark } from "../DenarMark";
 import { Icon } from "@/app/ui/Icon";
 import { ACH_ICON } from "@/app/ui/achievementBadge";
 import { buildShowcase, buildTimeline, nextGoal, type Badge, type BadgeKey } from "@/app/ui/showcase";
@@ -41,6 +43,46 @@ function badgeLabel(locale: Locale, key: BadgeKey): string {
   if (key === "european") return t(locale, "tournament.EUROPEAN");
   if (key === "worldCup") return t(locale, "tournament.WORLD_CUP");
   return t(locale, `gecmis.badge.${key}`);
+}
+
+/** Günlük tarihi: gün.ay.yıl (GMT), ör. "22.11.2026". */
+function diaryDate(locale: Locale, ms: number): string {
+  return new Date(ms).toLocaleDateString(DATE_LOCALE[locale] ?? "tr-TR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+/** Bir günlük satırının metni — kaynak tipine göre (antrenman / olay / para / turnuva). */
+function diaryLine(locale: Locale, row: CareerDiaryRow): ReactNode {
+  switch (row.kind) {
+    case "train": {
+      const parts = row.gains.map((g) => `${t(locale, `skill.${g.key}`)} +${g.delta}`).join(" · ");
+      return (
+        <span>
+          <span className="font-medium">{t(locale, "diary.train")}</span>
+          {parts ? <span className="text-steel"> — {parts}</span> : null}
+        </span>
+      );
+    }
+    case "event":
+      return <span>{t(locale, `event.${row.key}`)}</span>;
+    case "money": {
+      const pos = row.amount >= 0;
+      return (
+        <span className="inline-flex flex-wrap items-center gap-x-1.5">
+          {t(locale, `ledger.${row.key}`, { arg: row.arg ?? "" })}
+          <span className={`num inline-flex items-center gap-0.5 ${pos ? "text-sig-green" : "text-sig-red"}`}>
+            {pos ? "+" : "−"}
+            {Math.abs(row.amount)} <DenarMark size={11} />
+          </span>
+        </span>
+      );
+    }
+    case "tournament":
+      return (
+        <span>
+          {row.level} <span className="num text-steel">— {row.position}.</span>
+        </span>
+      );
+  }
 }
 
 function BadgeTile({ b, locale }: { b: Badge; locale: Locale }) {
@@ -170,6 +212,22 @@ export default async function GecmisPage() {
                 <span className="num shrink-0 text-[14px] text-steel">
                   {t(locale, "gecmis.record", { m: r.matches, w: r.wins, l: r.losses })}
                 </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </CollapsibleSection>
+
+      {/* Kariyer Günlüğü — tarihli tek akış (antrenman + olay + para + turnuva). En altta, kapalı başlar. */}
+      <CollapsibleSection title={t(locale, "diary.title")}>
+        {h.diary.length === 0 ? (
+          <p className="text-[14px] text-steel">{t(locale, "diary.empty")}</p>
+        ) : (
+          <ol className="panel divide-y divide-line overflow-hidden">
+            {h.diary.map((row, i) => (
+              <li key={i} className="flex items-start gap-3 px-3 py-2 text-[14px]">
+                <span className="num w-[76px] shrink-0 pt-px text-[12px] tabular-nums text-steel">{diaryDate(locale, row.dateMs)}</span>
+                <span className="min-w-0">{diaryLine(locale, row)}</span>
               </li>
             ))}
           </ol>
