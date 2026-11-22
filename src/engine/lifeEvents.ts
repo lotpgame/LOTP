@@ -78,21 +78,25 @@ export interface MaterialEvent {
   tone: "pos" | "neg";
   weight: number;
   denar?: number; // pos: harçlık/hediye (+Denar)
-  effect?: "breakWeapon" | "wearWeapon"; // neg: silaha etki
+  effect?: "breakWeapon" | "wearWeapon" | "breakCord" | "breakMaskCord"; // neg: hangi parça kırılır/yıpranır
   durabilityHit?: number; // wearWeapon: aktif silahın dayanıklılığından düşülür
+  weapons?: readonly Weapon[]; // yalnız bu silahlarda geçerli (ör. maske kordonu flöre+kılıç; epede yok). yoksa hepsi.
 }
 
 export const MATERIAL_EVENTS: readonly MaterialEvent[] = [
-  // — Olumsuz (silah) —
+  // — Olumsuz (malzeme) —
   { key: "weaponBroke", tone: "neg", weight: 4, effect: "breakWeapon" },
   { key: "gearChipped", tone: "neg", weight: 7, effect: "wearWeapon", durabilityHit: 15 },
+  { key: "bodyCordBroke", tone: "neg", weight: 4, effect: "breakCord" }, // vücut kordonu — tüm silahlar
+  { key: "maskCordBroke", tone: "neg", weight: 3, effect: "breakMaskCord", weapons: ["FOIL", "SABRE"] }, // maske kordonu yalnız flöre/kılıç
   // — Olumlu (Denar harçlığı) — çeşitli, sıcak küçük anlar (kullanıcı 10.11): oyuncuyu gülümsetsin.
   { key: "pocketMoney", tone: "pos", weight: 8, denar: 8 },
   { key: "clubGift", tone: "pos", weight: 4, denar: 12 },
   { key: "mowedLawn", tone: "pos", weight: 6, denar: 6 },
   { key: "groceryRun", tone: "pos", weight: 6, denar: 5 },
   { key: "grandmaGift", tone: "pos", weight: 5, denar: 10 },
-  { key: "washedCar", tone: "pos", weight: 5, denar: 6 },
+  { key: "washedCar", tone: "pos", weight: 5, denar: 6 }, // babanın arabası
+  { key: "washedMomCar", tone: "pos", weight: 5, denar: 6 }, // annenin arabası
   { key: "birthdayMoney", tone: "pos", weight: 3, denar: 15 },
   { key: "foundMoney", tone: "pos", weight: 4, denar: 4 },
 ] as const;
@@ -101,10 +105,11 @@ export const MATERIAL_EVENTS: readonly MaterialEvent[] = [
 export const MATERIAL_WEEK_CHANCE = 0.22;
 
 /** Bir hafta: olasılıkla (nadir) 1 olumsuz (kırılma/yıpranma) + 1 olumlu (harçlık/hediye) malzeme olayı. */
-export function rollWeeklyMaterial(rng: SeededRng): MaterialEvent[] {
+export function rollWeeklyMaterial(rng: SeededRng, weapon: Weapon): MaterialEvent[] {
   if (rng.next() >= MATERIAL_WEEK_CHANCE) return [];
-  const neg = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "neg"));
-  const pos = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "pos"));
+  const fits = (e: MaterialEvent) => !e.weapons || e.weapons.includes(weapon); // silaha uygun (ör. maske kordonu epede yok)
+  const neg = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "neg" && fits(e)));
+  const pos = pickWeighted(rng, MATERIAL_EVENTS.filter((e) => e.tone === "pos" && fits(e)));
   return [neg, pos].filter((e): e is MaterialEvent => e != null);
 }
 

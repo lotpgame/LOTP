@@ -341,7 +341,7 @@ describe("Hayat Olayları (Dilim 3-1)", () => {
     let fired = 0;
     let twoBreaks = 0;
     for (let i = 0; i < 400; i++) {
-      const m = rollWeeklyMaterial(createRng(`m${i}`));
+      const m = rollWeeklyMaterial(createRng(`m${i}`), "FOIL");
       if (m.length === 0) continue;
       fired++;
       expect(m.length).toBe(2);

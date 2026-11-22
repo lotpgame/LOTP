@@ -9,6 +9,11 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (23.11 — Yeni olaylar: vücut/maske kordonu kırılması + annenin arabası)
+- Malzeme olayları: **vücut kordonu bozuldu** (tüm silahlar, CORD slotu kırılır), **maske kordonu koptu**
+  (yalnız flöre/kılıç — epede maske kordonu yok; MASK_CORD slotu). Harçlık: **annenin arabasını yıkadın**.
+  `rollWeeklyMaterial` artık silaha göre filtreler (`MaterialEvent.weapons`). 9 dil. (Kullanıcı 23.11.)
+
 ### Eklendi (23.11 — Reroll caydırıcı: restart başına kümülatif %10 başlangıç cezası)
 - "Yeni Başla" bir sayacı artırır (`User.restarts`); yeni karakter başlangıç yeteneği **0.9^restarts** ile
   düşük başlar (1. restart −%10, 2. −%20…). **Neden:** başlangıç yeteneği rastgele (`playerTalent`) → oyuncu

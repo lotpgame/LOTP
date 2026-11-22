@@ -2032,7 +2032,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       weekEvents.push({ key: ev.key });
       diaryDays.push({ day: wDay, kind: "event", key: ev.key }); // psikoloji olayı
     }
-    for (const mv of rollWeeklyMaterial(createRng(`matev:${human.id}:${w}`))) {
+    for (const mv of rollWeeklyMaterial(createRng(`matev:${human.id}:${w}`), human.weapon as Weapon)) {
       matEvents.push(mv); // 3-2: nadir malzeme olayı
       // Kırılma/yıpranma → olay; harçlık/hediye → olay + tutar (lezzetiyle: "büyükanneden hediye +10").
       diaryDays.push({ day: wDay, kind: "event", key: mv.key, denar: mv.denar });
@@ -2045,6 +2045,8 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   for (const mv of matEvents) {
     if (mv.effect === "breakWeapon") eventKit = damageActive(eventKit, "WEAPON", cur.age, cur.ageCategory, { break: true });
     else if (mv.effect === "wearWeapon") eventKit = damageActive(eventKit, "WEAPON", cur.age, cur.ageCategory, { hit: mv.durabilityHit });
+    else if (mv.effect === "breakCord") eventKit = damageActive(eventKit, "CORD", cur.age, cur.ageCategory, { break: true });
+    else if (mv.effect === "breakMaskCord") eventKit = damageActive(eventKit, "MASK_CORD", cur.age, cur.ageCategory, { break: true });
   }
   const harclik = matEvents.reduce((s, e) => s + (e.denar ?? 0), 0);
 
