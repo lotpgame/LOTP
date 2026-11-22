@@ -12,7 +12,8 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
 ### Eklendi (22.11 — Kariyer Günlüğü (tarihli olay/antrenman/para/turnuva akışı))
 - Kariyer sayfasının en altına açılır **"Kariyer Günlüğü"**: tarih tarih, satır satır — antrenman özetleri (skill
   kazanımları + kondisyon), psikoloji/kırılma olayları, para hareketleri (harçlık/ödül/aidat — ledger'dan),
-  turnuvalar (katılım + derece). Tek akışta, yeni→eski, GMT tarihli. **Neden:** antrenman raporu + olaylar
+  turnuvalar (katılım + derece) + **"Eskrime ilk adım — {kulüp}'a katıldın"** açılış satırı (her kariyerde, mevcut
+  karakterlerde de; careerStartDay+kulüp'ten türetilir). Tek akışta, yeni→eski, GMT tarihli. **Neden:** antrenman raporu + olaylar
   GEÇİCİydi (her ilerlemede üzerine yazılıyordu) → oyuncu "hiç olay olmuyor" sanıyordu; artık KALICI günlükte
   "geçmiş günlerde ne oldu" görünür. Yeni alan `GameState.diary` (eklemeli), `src/engine/diary.ts`. 9 dil.
   **Migration gerek** (Neon'da `ALTER TABLE "GameState" ADD COLUMN "diary" TEXT;` — deploy'dan ÖNCE).

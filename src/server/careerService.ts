@@ -2427,6 +2427,7 @@ export interface CareerHistoryDTO {
 
 /** Kariyer Günlüğü satırı — kaynak ne olursa olsun (günlük/ledger/turnuva) ortak gösterim. dateMs = GMT gün başı. */
 export type CareerDiaryRow =
+  | { kind: "start"; dateMs: number; club: string } // kariyerin ilk günü: "Eskrime ilk adım — {kulüp}"
   | { kind: "train"; dateMs: number; gains: { key: string; delta: number }[]; cond: number }
   | { kind: "event"; dateMs: number; key: string } // event.<key> (psikoloji/kırılma)
   | { kind: "money"; dateMs: number; key: string; amount: number; arg?: string } // ledger.<key> (harçlık/ödül/aidat…)
@@ -2436,7 +2437,7 @@ export type CareerDiaryRow =
 export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   const gs = await currentGameState();
   if (!gs) return null;
-  const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId } });
+  const human = await prisma.player.findUnique({ where: { id: gs.humanPlayerId }, include: { club: true } });
   if (!human) return null;
   const hid = human.id;
   const locale = await getLocale();
@@ -2532,7 +2533,11 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   ]
     .filter((r) => r.dateMs > 0)
     .sort((a, b) => b.dateMs - a.dateMs)
-    .slice(0, 80);
+    .slice(0, 79);
+  // "Eskrime ilk adım" — her kariyerin ilk satırı (careerStartDay + kulüp'ten türetilir, mevcut karakterlerde de).
+  // Her zaman en altta (en eski) durur; uzun kariyerde listeden düşmesin diye slice sonrası eklenir.
+  const startMs = dayMs(gs.careerStartDay) ?? 0;
+  if (startMs > 0 && human.club) diaryRows.push({ kind: "start", dateMs: startMs, club: human.club.name });
 
   return {
     name: `${human.firstName} ${human.lastName}`,

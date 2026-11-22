@@ -53,6 +53,8 @@ function diaryDate(locale: Locale, ms: number): string {
 /** Bir günlük satırının metni — kaynak tipine göre (antrenman / olay / para / turnuva). */
 function diaryLine(locale: Locale, row: CareerDiaryRow): ReactNode {
   switch (row.kind) {
+    case "start":
+      return <span className="font-medium text-sig-red">{t(locale, "diary.firstStep", { club: row.club })}</span>;
     case "train": {
       const parts = row.gains.map((g) => `${t(locale, `skill.${g.key}`)} +${g.delta}`).join(" · ");
       return (
