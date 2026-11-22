@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (24.11 — Karşılama ekranı her oyuncuda garanti (kalıcı bayrak))
+- WelcomeDialog artık `?welcome=1` yönlendirmesine değil, kalıcı **`GameState.welcomeSeen`** bayrağına bağlı.
+  **Neden:** wipe sonrası ilk karakter dünyayı sıfırdan kurarken (ağır/yavaş) yönlendirme kaybolup welcome
+  çıkmıyordu; artık kaybolsa bile **her yeni oyuncu welcome'ı görür**; kapatınca (await ile persist edilir) bir
+  daha çıkmaz. Yerelde uçtan uca doğrulandı. **Migration gerek** (`GameState.welcomeSeen`).
+
 ### Eklendi (23.11 — Yeni olaylar: vücut/maske kordonu kırılması + annenin arabası)
 - Malzeme olayları: **vücut kordonu bozuldu** (tüm silahlar, CORD slotu kırılır), **maske kordonu koptu**
   (yalnız flöre/kılıç — epede maske kordonu yok; MASK_CORD slotu). Harçlık: **annenin arabasını yıkadın**.

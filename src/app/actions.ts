@@ -32,6 +32,7 @@ import {
   playLiveMatch,
   registerTournament,
   resetCareer,
+  markWelcomeSeen,
   setTrainingPlan,
   signOut,
   submitTournamentTactic,
@@ -197,6 +198,11 @@ export async function getNationalTeamAction(categoryId: string) {
 export async function resetCareerAction(): Promise<void> {
   await resetCareer();
   redirect("/");
+}
+
+/** Karşılama ekranı kapatıldı → kalıcı olarak bir daha gösterme (WelcomeDialog'dan çağrılır). */
+export async function markWelcomeSeenAction(): Promise<void> {
+  await markWelcomeSeen();
 }
 
 /** Oturumu kapatır. */

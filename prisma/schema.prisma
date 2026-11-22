@@ -239,6 +239,9 @@ model GameState {
   // Kariyer Günlüğü: antrenman + psikoloji/malzeme olaylarının tarihli kaydı (JSON dizi). Turnuvalar ve para
   // olayları ayrı kaynaklardan (TournamentParticipant + ledger) birleştirilir. Eklemeli alan. src/engine/diary.ts
   diary String?
+  // Karşılama ekranı (WelcomeDialog) BİR KEZ gösterildi mi (kullanıcı 24.11). ?welcome=1 yönlendirmesine bağlı
+  // kalmak yerine kalıcı bayrak → yavaş ilk-kurulumda yönlendirme kaybolsa bile her oyuncu welcome'ı görür.
+  welcomeSeen Boolean @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

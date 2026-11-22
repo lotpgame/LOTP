@@ -10,6 +10,7 @@
  */
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { markWelcomeSeenAction } from "@/app/actions";
 import { t, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 
@@ -30,9 +31,10 @@ export function WelcomeDialog({
   const [open, setOpen] = useState(true);
   if (!open) return null;
 
-  const close = () => {
-    setOpen(false);
-    router.replace("/kariyer"); // ?welcome=1 düşsün
+  const close = async () => {
+    setOpen(false); // anında kapan (kullanıcı beklemez)
+    await markWelcomeSeenAction(); // kalıcı bayrağı persist ET (navigate iptal etmesin) → bir daha gösterme
+    router.replace("/kariyer");
   };
 
   return (

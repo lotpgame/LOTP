@@ -40,7 +40,7 @@ export default async function BugunPage({
   const [h, upcoming] = await Promise.all([getCareerHeader(), getUpcomingTournaments()]);
   if (!h) redirect("/");
   const locale = await getLocale();
-  const { err, welcome } = await searchParams;
+  const { err } = await searchParams;
 
   const condition = 100 - c.fatigue;
 
@@ -50,7 +50,7 @@ export default async function BugunPage({
 
   return (
     <ArenaPage bg="/img/bg-bugun.webp" className="flex flex-col gap-4">
-      {welcome === "1" && (
+      {!c.welcomeSeen && (
         <WelcomeDialog
           locale={locale}
           name={c.name.split(" ")[0] || c.name}

@@ -537,6 +537,7 @@ export interface CareerDTO {
   equipmentUpgradeCost: number;
   canUpgradeEquipment: boolean;
   liveTournamentActive: boolean; // devam eden canlı turnuva var mı → ekrana yönlendir
+  welcomeSeen: boolean; // karşılama ekranı bir kez gösterildi mi (false → WelcomeDialog çıkar)
   trainingPlan: string[]; // 7 günlük plan (Pzt..Paz); turnuva günleri yalnız katılmazsan uygulanır
   physique: { heightCm: number; reachCm: number; legLengthCm: number; weightKg: number; leftHanded: boolean };
   skills: { key: string; label: string; category: string; current: number; potential: number }[];
@@ -1154,6 +1155,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
       human.equipmentLevel < MAX_EQUIPMENT_LEVEL &&
       human.balance >= equipmentUpgradeCost(human.equipmentLevel),
     liveTournamentActive: gs.liveTournament != null,
+    welcomeSeen: gs.welcomeSeen,
     trainingPlan: (gs.trainingPlan || DEFAULT_PLAN).split(","),
     physique: (() => {
       const p = computePhysique(geneticsOf(human), age);
@@ -2843,6 +2845,13 @@ export async function resetCareer(): Promise<void> {
     // düşük başlar (bkz. createCareer). Seri silip-kurup iyi başlangıç yeteneği "zarlamak" cezalandırılır.
     prisma.user.update({ where: { id: uid }, data: { restarts: { increment: 1 } } }),
   ]);
+}
+
+/** Karşılama ekranı kapatıldı → bir daha gösterme (kalıcı bayrak). WelcomeDialog kapanınca çağrılır. */
+export async function markWelcomeSeen(): Promise<void> {
+  const uid = await currentUserId();
+  if (uid == null) return;
+  await prisma.gameState.updateMany({ where: { userId: uid }, data: { welcomeSeen: true } });
 }
 
 export interface PoolViewDTO {
