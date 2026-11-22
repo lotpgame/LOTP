@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (22.11 — Public içerik sayfaları (AdSense onayı için) + sitemap/robots)
+- Girişsiz, crawl edilebilir **içerik sayfaları**: `/eskrim` (eskrim sporu rehberi — silahlar, avantaj kuralı,
+  puanlama, turnuva formatı, ekipman), `/nasil-oynanir` (oyun rehberi), `/hakkinda`, `/sss`. **Neden:** AdSense
+  "low value content" (yetersiz public içerik) ile reddetti — oyun giriş arkasında, Google az içerik görüyordu;
+  bu özgün/eğitici sayfalar onay şansını artırır. Giriş ekranı footer'ına linklendi (ana sayfadan ulaşılır).
+- **`sitemap.xml` + `robots.txt`** (Next metadata route'ları) — public sayfalar indekslensin; `/api/` hariç.
+
 ### Değişti (20.11 — Gizlilik politikası reklamı yansıtacak şekilde güncellendi)
 - `/gizlilik`: **Reklamlar** bölümü eklendi — Google AdSense reklam çerezleri açıkça belirtildi, kapatma/opt-out
   linkleri (adssettings.google.com, aboutads.info), çocuk kitlesine kişiselleştirilmiş reklam göstermeme notu.

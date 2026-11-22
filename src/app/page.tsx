@@ -200,6 +200,14 @@ export default async function Home({
       {/* Alt bilgi — yasal/politika sayfaları siteden erişilebilsin (Paddle doğrulaması + şeffaflık). İki sütunu kaplar. */}
       <footer className="border-t border-line px-4 py-6 text-center text-[13px] text-steel lg:col-span-2">
         <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-ink">
+          <a href="/eskrim">Eskrim Nedir?</a>
+          <span aria-hidden>·</span>
+          <a href="/nasil-oynanir">Nasıl Oynanır?</a>
+          <span aria-hidden>·</span>
+          <a href="/hakkinda">Hakkında</a>
+          <span aria-hidden>·</span>
+          <a href="/sss">SSS</a>
+          <span aria-hidden>·</span>
           <a href="/fiyatlandirma">Fiyatlandırma</a>
           <span aria-hidden>·</span>
           <a href="/kosullar">Kullanım Koşulları</a>
