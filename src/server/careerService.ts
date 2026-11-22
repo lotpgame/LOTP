@@ -1916,6 +1916,10 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     skillBase = rollSkillQuarterBase(skillBase, quarterOf(d), Object.fromEntries(SKILLS.map((s) => [s.key, skills[s.key].current])));
   };
 
+  // Kariyer Günlüğü: gün-gün kayıt (kullanıcı 23.11 — "hiçbir şey kaçmasın"). Her antrenman seansı (REST
+  // hariç) o günün tarihiyle bir satır düşer; olaylar + harçlıklar aşağıda eklenir. Offline günler dahil.
+  const diaryDays: DiaryEntry[] = [];
+
   // Bir antrenman/dinlenme seansı uygular; sakatlanırsa true döner. (Sakatlık advance başına en çok
   // bir kez.) Turnuvaya katılmadığın gün de PLANINDAKİ seans uygulanır (Dinlenme koyabilirsin).
   const applySession = (type: TrainingType): boolean => {
@@ -1945,6 +1949,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       });
       skills = res.skills;
       fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
+      diaryDays.push({ day: d, kind: "train", session: type }); // gün-gün: o günün seansı (REST yazılmaz)
     }
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
     if (type !== "REST" && !injuredNow) {
@@ -2011,16 +2016,16 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   const toWeek = Math.floor(d / DAYS_PER_MONTH);
   const weekEvents: { key: string }[] = [];
   const matEvents: MaterialEvent[] = [];
-  const diaryEvents: DiaryEntry[] = []; // Kariyer Günlüğü: psikoloji + kırılma olayları (harçlık ledger'da)
   for (let w = Math.max(fromWeek, toWeek - 8); w < toWeek; w++) {
     const wDay = w * DAYS_PER_MONTH + (DAYS_PER_MONTH - 1); // haftanın son günü (günlükte gösterim tarihi)
     for (const ev of rollWeeklyEvents(createRng(`events:${human.id}:${w}`), cur.age)) {
       weekEvents.push({ key: ev.key });
-      diaryEvents.push({ day: wDay, kind: "event", key: ev.key });
+      diaryDays.push({ day: wDay, kind: "event", key: ev.key }); // psikoloji olayı
     }
     for (const mv of rollWeeklyMaterial(createRng(`matev:${human.id}:${w}`))) {
       matEvents.push(mv); // 3-2: nadir malzeme olayı
-      if (mv.effect) diaryEvents.push({ day: wDay, kind: "event", key: mv.key }); // yalnız kırılma/yıpranma (harçlık ledger'da)
+      // Kırılma/yıpranma → olay; harçlık/hediye → olay + tutar (lezzetiyle: "büyükanneden hediye +10").
+      diaryDays.push({ day: wDay, kind: "event", key: mv.key, denar: mv.denar });
     }
   }
   const eventDefs = weekEvents.map((e) => LIFE_EVENTS.find((d2) => d2.key === e.key)!).filter(Boolean);
@@ -2072,13 +2077,6 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   }))
     .filter((g) => g.delta >= 0.01)
     .sort((a, b) => b.delta - a.delta);
-  // Kariyer Günlüğü: bu ilerlemenin antrenman özeti (en çok gelişen 4 skill + kondisyon). Rapor geçicidir;
-  // günlük KALICIdır → geçmiş günlerde ne olduğu satır satır görünsün.
-  const diaryTrain: DiaryEntry[] =
-    days > 0 && gains.length > 0
-      ? [{ day: Math.max(startDay, d - 1), kind: "train", gains: gains.slice(0, 4), cond: Math.round(fatigueBefore - fatigue) }]
-      : [];
-
   const report =
     days > 0
       ? JSON.stringify({
@@ -2129,7 +2127,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
         skillQuarterBase: JSON.stringify(skillBase),
         pendingOffer: offer ? JSON.stringify(offer) : null,
         ledger: nextLedgerJson(gs.ledger, ...ledgerEntries),
-        diary: encodeDiary(appendDiary(parseDiary(gs.diary), [...diaryTrain, ...diaryEvents])),
+        diary: encodeDiary(appendDiary(parseDiary(gs.diary), diaryDays)),
       },
     });
   });
@@ -2428,9 +2426,8 @@ export interface CareerHistoryDTO {
 /** Kariyer Günlüğü satırı — kaynak ne olursa olsun (günlük/ledger/turnuva) ortak gösterim. dateMs = GMT gün başı. */
 export type CareerDiaryRow =
   | { kind: "start"; dateMs: number; club: string } // kariyerin ilk günü: "Eskrime ilk adım — {kulüp}"
-  | { kind: "train"; dateMs: number; gains: { key: string; delta: number }[]; cond: number }
-  | { kind: "event"; dateMs: number; key: string } // event.<key> (psikoloji/kırılma)
-  | { kind: "money"; dateMs: number; key: string; amount: number; arg?: string } // ledger.<key> (harçlık/ödül/aidat…)
+  | { kind: "train"; dateMs: number; session?: string; gains?: { key: string; delta: number }[] } // gün seansı (session) / eski özet (gains)
+  | { kind: "event"; dateMs: number; key: string; denar?: number } // event.<key> (psikoloji/kırılma/harçlık) + varsa tutar
   | { kind: "tournament"; dateMs: number; level: string; levelCode: string; position: number };
 
 /** Kariyer geçmişi: başarılar, istatistikler ve rakiplikler (GDD 21, 22.36–22.37). */
@@ -2522,13 +2519,14 @@ export async function getCareerHistory(): Promise<CareerHistoryDTO | null> {
   });
 
   // Kariyer Günlüğü: günlük (antrenman + psikoloji/kırılma) + ledger (para) + turnuvalar → güne göre, yeni→eski.
+  // Kumbaradaki para satırları (ödül/aidat/kayıt/ekipman) GÜNLÜĞE GİRMEZ — zaten Kumbara'da (kullanıcı 23.11).
+  // Yalnız harçlık/hediye günlükte görünür (olay olarak, kendi lezzetiyle — aşağıdaki event.denar).
   const diaryRows: CareerDiaryRow[] = [
     ...parseDiary(gs.diary).map((e) =>
       e.kind === "train"
-        ? ({ kind: "train", dateMs: dayMs(e.day) ?? 0, gains: e.gains, cond: e.cond } as CareerDiaryRow)
-        : ({ kind: "event", dateMs: dayMs(e.day) ?? 0, key: e.key } as CareerDiaryRow),
+        ? ({ kind: "train", dateMs: dayMs(e.day) ?? 0, session: e.session, gains: e.gains } as CareerDiaryRow)
+        : ({ kind: "event", dateMs: dayMs(e.day) ?? 0, key: e.key, denar: e.denar } as CareerDiaryRow),
     ),
-    ...parseLedger(gs.ledger).map((e) => ({ kind: "money", dateMs: dayMs(e.day) ?? 0, key: e.key, amount: e.amount, arg: e.arg }) as CareerDiaryRow),
     ...tournaments.map((tr) => ({ kind: "tournament", dateMs: tr.dateMs ?? 0, level: tr.level, levelCode: tr.levelCode, position: tr.position }) as CareerDiaryRow),
   ]
     .filter((r) => r.dateMs > 0)

@@ -8,20 +8,22 @@
 export interface DiaryTrain {
   day: number; // antrenmanın işlendiği oyun-günü
   kind: "train";
-  gains: { key: string; delta: number }[]; // en çok gelişen birkaç skill (küçük)
-  cond: number; // kondisyon değişimi (+ toparladı, − yoruldu)
+  session?: string; // o günün seans tipi (TECHNICAL/PHYSICAL/MENTAL/TACTICAL) — gün-gün log (yeni)
+  gains?: { key: string; delta: number }[]; // ESKİ (per-advance özet) — geriye uyumluluk
+  cond?: number;
 }
 
 export interface DiaryEvent {
   day: number; // olayın ait olduğu oyun-günü
   kind: "event";
   key: string; // i18n: event.<key> (psikoloji ya da malzeme: badDay, pocketMoney, weaponBroke…)
+  denar?: number; // harçlık/hediye ise tutarı (+Denar) — günlükte "babadan harçlık +8" gibi gösterilir
 }
 
 export type DiaryEntry = DiaryTrain | DiaryEvent;
 
-/** Saklanan en çok kayıt (eskiler budanır — alan şişmesin). ~150 kayıt uzun bir kariyeri rahat kapsar. */
-export const DIARY_MAX = 150;
+/** Saklanan en çok kayıt (eskiler budanır — alan şişmesin). Gün-gün log → sık kayıt; 240 ≈ son ~8 ay. */
+export const DIARY_MAX = 240;
 
 export function parseDiary(json: string | null | undefined): DiaryEntry[] {
   if (!json) return [];

@@ -56,28 +56,30 @@ function diaryLine(locale: Locale, row: CareerDiaryRow): ReactNode {
     case "start":
       return <span className="font-medium text-sig-red">{t(locale, "diary.firstStep", { club: row.club })}</span>;
     case "train": {
-      const parts = row.gains.map((g) => `${t(locale, `skill.${g.key}`)} +${g.delta}`).join(" · ");
+      // Gün-gün: o günün seansı (Teknik/Fizik/…). Eski kayıtlar (gains) geriye uyumlu gösterilir.
+      const detail = row.session
+        ? t(locale, `training.${row.session}`)
+        : row.gains && row.gains.length > 0
+          ? row.gains.map((g) => `${t(locale, `skill.${g.key}`)} +${g.delta}`).join(" · ")
+          : "";
       return (
         <span>
           <span className="font-medium">{t(locale, "diary.train")}</span>
-          {parts ? <span className="text-steel"> — {parts}</span> : null}
+          {detail ? <span className="text-steel"> — {detail}</span> : null}
         </span>
       );
     }
     case "event":
-      return <span>{t(locale, `event.${row.key}`)}</span>;
-    case "money": {
-      const pos = row.amount >= 0;
       return (
         <span className="inline-flex flex-wrap items-center gap-x-1.5">
-          {t(locale, `ledger.${row.key}`, { arg: row.arg ?? "" })}
-          <span className={`num inline-flex items-center gap-0.5 ${pos ? "text-sig-green" : "text-sig-red"}`}>
-            {pos ? "+" : "−"}
-            {Math.abs(row.amount)} <DenarMark size={11} />
-          </span>
+          {t(locale, `event.${row.key}`)}
+          {row.denar != null && row.denar > 0 ? (
+            <span className="num inline-flex items-center gap-0.5 text-sig-green">
+              +{row.denar} <DenarMark size={11} />
+            </span>
+          ) : null}
         </span>
       );
-    }
     case "tournament":
       return (
         <span>

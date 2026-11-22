@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (23.11 — Kariyer Günlüğü: gün-gün detay + harçlık lezzeti (hiçbir şey kaçmasın))
+- Antrenman artık **gün gün** loglanıyor (her seans günü ayrı satır, offline günler dahil — "hiçbir şey kaçmasın",
+  kullanıcı 23.11), tek özet yerine. Böylece o garanti **haftada 2 olay** gün gün net görünür.
+- **Harçlıklar günlükte** kendi metniyle + tutarıyla ("Büyükannen harçlık verdi +10"), olay olarak. Diğer
+  Kumbara para satırları (ödül/aidat/kayıt/ekipman) **günlükten çıkarıldı** — zaten Kumbara'da (tekrar yok).
+- `DiaryTrain.session` + `DiaryEvent.denar` eklendi; eski kayıtlar geriye uyumlu. DIARY_MAX 150→240. Migration yok.
+
 ### Eklendi (22.11 — Kariyer Günlüğü (tarihli olay/antrenman/para/turnuva akışı))
 - Kariyer sayfasının en altına açılır **"Kariyer Günlüğü"**: tarih tarih, satır satır — antrenman özetleri (skill
   kazanımları + kondisyon), psikoloji/kırılma olayları, para hareketleri (harçlık/ödül/aidat — ledger'dan),
