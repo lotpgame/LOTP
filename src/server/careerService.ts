@@ -195,6 +195,7 @@ import {
   parseTraitPlan,
   reputationAfterEvent,
   traitCombatModifier,
+  traitInjuryMultiplier,
   traitTrainingMultiplier,
   type TraitKey,
   type TraitEventNote,
@@ -1893,8 +1894,11 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // Çevre çarpanları (GDD 14.60): trait × psikoloji × ekipman. (Kulüp artık ÇARPAN değil, seans TABANI
   // — clubTrainingBase, aşağıda.) Kullanıcı 10.11.
   const psych = psychologyOf(human);
+  // Trait antrenman çarpanı artık KATEGORİYE göre (seans başına) uygulanır (aşağıda applySession) — bir trait
+  // bir kategoride kaybedip başkasında kazanabildiğinden global envMult'a konmaz (kullanıcı 24.11).
+  const activeTraits = activeTraitsOf(human.traits, age);
+  const traitInjuryMult = traitInjuryMultiplier(activeTraits);
   const envMult =
-    traitTrainingMultiplier(activeTraitsOf(human.traits, age)) *
     psychologyTrainingMultiplier(psych) *
     equipmentTrainingMultiplier(human.equipmentLevel);
   const speedMult = speedTrainingMultiplier(human.buildFactor);
@@ -1951,12 +1955,14 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       const coachSpec = clubSpecs.includes(type) ? (type as SkillCategory) : null;
       const coachMult = human.club ? coachSpecialtyBonus(coachSpec, type) : 1; // uzman koç → +%20
       const profileMult = profileCat && type === profileCat ? 1.001 : 1; // profil afinitesi (+%0.1)
+      // Trait antrenman çarpanı seansın KATEGORİSİNE göre (Tembel: fizik/teknikte <1, mental/taktikte >1).
+      const traitMult = traitTrainingMultiplier(activeTraits, type as SkillCategory);
       const res = applyTraining(skills, {
         type,
         age,
         currentFatigue: fatigue,
         baseStimulus: trainingBase,
-        efficiencyMultiplier: envMult * coachMult * profileMult,
+        efficiencyMultiplier: envMult * coachMult * profileMult * traitMult,
         skillMultipliers: { speed: speedMult },
       });
       skills = res.skills;
@@ -1965,7 +1971,7 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
     }
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
     if (type !== "REST" && !injuredNow) {
-      const inj = rollInjury(createRng(`${gs.seed}:injury:${d}`), fatigue, age);
+      const inj = rollInjury(createRng(`${gs.seed}:injury:${d}`), fatigue, age, traitInjuryMult);
       if (inj.injured) {
         injuryDays = inj.days;
         injuredNow = true;

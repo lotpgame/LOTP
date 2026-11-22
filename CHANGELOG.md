@@ -9,6 +9,22 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (24.11 — Trait dengesi: her trait artık bir ARTI + bir EKSİ taşır)
+- Eskiden bazı trait'ler tek yönlüydü (Çalışkan +%10 bedava, Tembel −%10 bedelsiz). Artık **her trait bir
+  ödün**: 8 yaşında dört çocuk da toplamda eşit güçte başlar, farklı YÖNE gelişir (profil sistemiyle aynı
+  sıfır-toplam felsefe, kullanıcı 24.11). Mevcut canlı karakterlerin trait'leri aynı kalır (yalnız etkileri
+  yeni dengeye göre işler) — **migration yok.**
+- **Yeni kanca — kategoriye göre antrenman çarpanı** (`TraitDef.trainTilt`, `traitTrainingMultiplier(traits, kategori)`):
+  bir trait bir kategoride kaybedip başkasında kazanabilir. Çocukluk mizaçları: Çalışkan (+fizik/teknik, −mental/taktik),
+  **Tembel (−fizik/teknik, +mental/taktik = oyun zekâsı)**, Disiplinli (+teknik/taktik, −fizik). Hassas +teknik.
+  Çocukluk 4'lüsü 4 kategoride TOPLAMDA nötr (assert testle sabitlendi).
+- **Yeni kanca — trait sakatlık riski** (`TraitDef.injuryRisk`, `traitInjuryMultiplier`): yıpratıcı/kontrolsüz
+  stiller daha çok sakatlanır (Agresif ×1.3, Sabırsız/Hırslı ×1.15). `rollInjury` opsiyonel `riskMult` aldı.
+- Combat/psikoloji trait'leri güç↔bedel ekseninde dengelendi: Agresif +1.5 ama sakatlık+kendi risk; Soğukkanlı
+  +composure ama düşük atak; Kaygılı −composure ama +antrenman; Sabırsız +atak ama −composure+risk; Mücadeleci/
+  Özgüvenli combat'ta güçlü ama antrenmanda hafif gerisinde. (Değerler beta geri bildirimiyle ayarlanacak.)
+- Testler: 267 geçer (yeni: kategori-ödünü, çocukluk nötrlüğü, sakatlık çarpanı).
+
 ### Düzeltildi (24.11 — Yabancı dillerde sızan Türkçe tarih/saat/yüzde biçimleri)
 - İngilizce (ve DE/FR/ES/IT/RU/PT/ZH) hesaplarda **turnuva tarih/saatleri ve yüzdeler Türkçe biçimdeydi**
   ("17 Kasım Salı", "%89"). Sebep: kodda sabit `"tr-TR"` tarih biçimi ve sabit `%{n}` yazımı. Düzeltme:

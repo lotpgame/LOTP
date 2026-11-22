@@ -14,6 +14,7 @@ import {
   type TraitSignals,
   traitCombatModifier,
   traitTrainingMultiplier,
+  traitInjuryMultiplier,
 } from "@/engine/trait";
 import { equipmentUpgradeCost, prizeFor } from "@/engine/economy";
 import { applyKitPurchase, applyMatchWear, applyRestAging, activeInSlot, damageActive, discardKitItem, encodeKit, itemById, itemsForWeapon, itemsInSlot, kitItemFits, requiredSize, resolveKit, sizeLabel, validateKit, weaponsInKit, weaponSizeLabel, starterKit } from "@/engine/equipment";
@@ -27,9 +28,29 @@ import {
 } from "@/engine/environment";
 
 describe("Trait Engine", () => {
-  it("çalışkan verimi artırır, tembel azaltır", () => {
-    expect(traitTrainingMultiplier(["HARDWORKING"])).toBeGreaterThan(1);
-    expect(traitTrainingMultiplier(["LAZY"])).toBeLessThan(1);
+  it("trait antrenman ödünü KATEGORİYE göre (Çalışkan: +fizik −mental, Tembel tersi)", () => {
+    // Denge felsefesi (kullanıcı 24.11): her trait bir kategoride kaybedip başkasında kazanır.
+    // Çalışkan: fizik/teknik ↑, mental/taktik ↓.
+    expect(traitTrainingMultiplier(["HARDWORKING"], "PHYSICAL")).toBeGreaterThan(1);
+    expect(traitTrainingMultiplier(["HARDWORKING"], "MENTAL")).toBeLessThan(1);
+    // Tembel: tam tersi — fizik/teknik ↓, mental/taktik ↑ (yetenekli tembel "farklı bir yol").
+    expect(traitTrainingMultiplier(["LAZY"], "PHYSICAL")).toBeLessThan(1);
+    expect(traitTrainingMultiplier(["LAZY"], "MENTAL")).toBeGreaterThan(1);
+    // Kategori verilmezse kategori-bağımsız taban (çocukluk mizaçları için nötr = 1).
+    expect(traitTrainingMultiplier(["HARDWORKING"])).toBe(1);
+  });
+  it("çocukluk mizaçları 4 kategoride TOPLAMDA nötr (yön verir, güç vermez)", () => {
+    // Her çocukluk trait'i kategoriler arası sıfır-toplam olmalı → 8 yaşta dört çocuk eşit güçte başlar.
+    const cats = ["PHYSICAL", "TECHNICAL", "MENTAL", "TACTICAL"] as const;
+    for (const key of ["HARDWORKING", "LAZY", "DISCIPLINED"] as const) {
+      const sum = cats.reduce((acc, c) => acc + traitTrainingMultiplier([key], c), 0);
+      expect(sum).toBeCloseTo(4, 5); // dört kategori çarpanı toplamı = 4 (ortalama 1.0)
+    }
+  });
+  it("yıpratıcı stiller sakatlık riskini artırır, diğerleri etkisiz", () => {
+    expect(traitInjuryMultiplier(["AGGRESSIVE"])).toBeGreaterThan(1);
+    expect(traitInjuryMultiplier(["IMPATIENT"])).toBeGreaterThan(1);
+    expect(traitInjuryMultiplier(["LAZY"])).toBe(1);
   });
   it("agresif/soğukkanlı combat katkısı verir", () => {
     expect(traitCombatModifier(["AGGRESSIVE"])).toBeGreaterThan(0);

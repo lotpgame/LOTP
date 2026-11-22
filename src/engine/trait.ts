@@ -9,7 +9,7 @@
  * - Zıt-çift kuralı (GDD 10.28): zıt trait'ler birlikte verilmez (Disiplinli+Tembel gibi).
  * - Yoğunluk 0–4 (GDD 10.6) V2 — V1'de her trait sabit "belirgin" şiddette; etkiler küçük tutulur.
  */
-import { clamp } from "./domain";
+import { clamp, type SkillCategory } from "./domain";
 import type { SeededRng } from "./probability";
 
 export type TraitKey =
@@ -43,10 +43,18 @@ export interface TraitDef {
   label: string;
   category: TraitCategory;
   description: string;
-  /** Antrenman verimi çarpanı (1 = etkisiz). GDD 10.22–10.23: skill'e dolaylı etki. */
+  /** Antrenman verimi çarpanı (1 = etkisiz). GDD 10.22–10.23: skill'e dolaylı etki. Kategori-bağımsız taban. */
   trainingMult: number;
+  /**
+   * Kategoriye özel antrenman eğimi (varsa o kategoride `trainingMult` yerine bu geçerli). Böylece bir
+   * trait bir kategoride kaybedip başkasında kazanabilir (ör. Tembel: −fizik/teknik, +mental/taktik) →
+   * karakterler ayrı YÖNE gelişir, toplam güç korunur (kullanıcı 24.11, profil sıfır-toplam felsefesi).
+   */
+  trainTilt?: Partial<Record<SkillCategory, number>>;
   /** Combat effective strength'e katkı (puan, küçük). GDD 10.24: davranışsal. */
   combatMod: number;
+  /** Sakatlık riski çarpanı (1 = etkisiz; >1 daha riskli). Yıpratıcı/kontrolsüz stillerin bedeli (Agresif/Sabırsız/Hırslı). */
+  injuryRisk?: number;
   /** Zıt trait (aynı anda verilmez, GDD 10.28). */
   opposite?: TraitKey;
   /** Gamesmanship: rakibin sükûnetini bozma gücü (0–1.2). RAKİBE etki eder (combat'ta). */
@@ -57,27 +65,35 @@ export interface TraitDef {
   composure?: number;
 }
 
+/**
+ * ⚖️ DENGE FELSEFESİ (kullanıcı 24.11): her trait bir ARTI + bir EKSİ taşır → hiçbiri "düpedüz daha iyi"
+ * değildir, her biri bir KİMLİK ve ÖDÜNDÜR. 8 yaşındaki dört çocuk da toplamda eşit güçte başlar, farklı
+ * YÖNE gelişir (profil sistemiyle aynı sıfır-toplam mantık). Ödün eksenleri: (A) kategoriler arası antrenman
+ * (trainTilt), (B) combat gücü ↔ soğukkanlılık/kendi risk/sakatlık. Değerler küçük tutulur; beta geri
+ * bildirimiyle ayarlanır. Combat'ta atak/savunma mekanik ayrımı YOK → combat ödünleri composure/selfRisk/
+ * injuryRisk'e bağlanır.
+ */
 export const TRAITS: Record<TraitKey, TraitDef> = {
-  // — Karakter —
-  DISCIPLINED: { key: "DISCIPLINED", label: "Disiplinli", category: "CHARACTER", description: "Antrenman programına istikrarlı uyar; verimi biraz artar.", trainingMult: 1.06, combatMod: 0 },
-  HARDWORKING: { key: "HARDWORKING", label: "Çalışkan", category: "CHARACTER", description: "Antrenmandan daha çok verim alır (uzun kariyerde avantaj).", trainingMult: 1.1, combatMod: 0, opposite: "LAZY" },
-  LAZY: { key: "LAZY", label: "Tembel", category: "CHARACTER", description: "Antrenman verimi düşüktür (ama yetenekliyse yine başarılı olabilir).", trainingMult: 0.9, combatMod: 0, opposite: "HARDWORKING" },
-  PATIENT: { key: "PATIENT", label: "Sabırlı", category: "CHARACTER", description: "Taktiksel, bekleme gerektiren maçlarda kontrollü; küçük combat avantajı.", trainingMult: 1.0, combatMod: 0.6, opposite: "IMPATIENT" },
-  IMPATIENT: { key: "IMPATIENT", label: "Sabırsız", category: "CHARACTER", description: "Erken saldırır, acele eder; toparlanma/verim biraz düşük.", trainingMult: 0.97, combatMod: -0.3, opposite: "PATIENT" },
-  // — Psikolojik —
-  CALM: { key: "CALM", label: "Soğukkanlı", category: "PSYCH", description: "Baskı altında sakin kalır; kritik anlarda avantaj. Rakibin oyununa (çirkef/hilekâr) gelmez.", trainingMult: 1.0, combatMod: 1.0, opposite: "ANXIOUS", composure: 1.0 },
-  PRESSURE_PROOF: { key: "PRESSURE_PROOF", label: "Baskıya Dayanıklı", category: "PSYCH", description: "Final, son vuruş, eşitlik gibi kritik anlarda güçlü. Provokasyona dirençli.", trainingMult: 1.0, combatMod: 1.0, composure: 1.0 },
-  CONFIDENT: { key: "CONFIDENT", label: "Özgüvenli", category: "PSYCH", description: "Momentumu korur, yenilgiden çabuk toparlar.", trainingMult: 1.0, combatMod: 0.6, opposite: "SENSITIVE", composure: 0.5 },
-  SENSITIVE: { key: "SENSITIVE", label: "Hassas", category: "PSYCH", description: "Başarısızlıktan çok etkilenir; provokasyona/çirkefliğe açık (rakibin oyununa gelir).", trainingMult: 1.0, combatMod: -0.6, opposite: "CONFIDENT", composure: -1.0 },
-  ANXIOUS: { key: "ANXIOUS", label: "Kaygılı", category: "PSYCH", description: "Baskı altında zorlanır; kritik anlarda dezavantaj; provokasyona açık.", trainingMult: 1.0, combatMod: -0.6, opposite: "CALM", composure: -1.0 },
-  // — Rekabetçi —
-  AGGRESSIVE: { key: "AGGRESSIVE", label: "Agresif", category: "COMPETITIVE", description: "Maçta baskı kurar, çok atağa çıkar; risk de yüksek.", trainingMult: 1.0, combatMod: 1.5, opposite: "CONTROLLED" },
-  COMPETITIVE: { key: "COMPETITIVE", label: "Mücadeleci", category: "COMPETITIVE", description: "Pes etmez, zorlu maçlarda direnir.", trainingMult: 1.0, combatMod: 0.8 },
-  RISK_TAKER: { key: "RISK_TAKER", label: "Risk Alan", category: "COMPETITIVE", description: "Cesur hamleler yapar; bazen kazandırır, bazen açık verir.", trainingMult: 1.0, combatMod: 0.5 },
-  CONTROLLED: { key: "CONTROLLED", label: "Kontrollü", category: "COMPETITIVE", description: "Riskten kaçınır, rakibin hatasını bekler; sağlam ama fırsat kaçırabilir.", trainingMult: 1.0, combatMod: 0.8, opposite: "AGGRESSIVE" },
-  AMBITIOUS: { key: "AMBITIOUS", label: "Hırslı", category: "COMPETITIVE", description: "Gelişime aç, hedef odaklı; antrenmana biraz katkı.", trainingMult: 1.05, combatMod: 0.5 },
+  // — Karakter (çocukluk mizacı → kategoriler arası antrenman ödünü) —
+  DISCIPLINED: { key: "DISCIPLINED", label: "Disiplinli", category: "CHARACTER", description: "Programlı: teknik/taktik gelişir, fiziği sınıra zorlamaz.", trainingMult: 1.0, trainTilt: { TECHNICAL: 1.1, TACTICAL: 1.1, PHYSICAL: 0.8 }, combatMod: 0 },
+  HARDWORKING: { key: "HARDWORKING", label: "Çalışkan", category: "CHARACTER", description: "Koluyla çalışır: fizik/teknik gelişir, mental/taktik gerisinde kalır.", trainingMult: 1.0, trainTilt: { PHYSICAL: 1.1, TECHNICAL: 1.1, MENTAL: 0.9, TACTICAL: 0.9 }, combatMod: 0, opposite: "LAZY" },
+  LAZY: { key: "LAZY", label: "Tembel", category: "CHARACTER", description: "Az çalışır ama rahat/gözlemci: fizik/teknik düşük gelişir, mental/taktik (oyun zekâsı) öne çıkar.", trainingMult: 1.0, trainTilt: { PHYSICAL: 0.9, TECHNICAL: 0.9, MENTAL: 1.1, TACTICAL: 1.1 }, combatMod: 0, opposite: "HARDWORKING" },
+  PATIENT: { key: "PATIENT", label: "Sabırlı", category: "CHARACTER", description: "Bekler, kontrollü: soğukkanlı ama inisiyatifi/atağı az.", trainingMult: 1.0, combatMod: 0.2, opposite: "IMPATIENT", composure: 0.5 },
+  IMPATIENT: { key: "IMPATIENT", label: "Sabırsız", category: "CHARACTER", description: "Erken/hızlı atak: inisiyatif alır ama baskıda hata yapar ve kendini yıpratır.", trainingMult: 1.0, combatMod: 0.5, opposite: "PATIENT", composure: -0.5, injuryRisk: 1.15 },
+  // — Psikolojik (combat gücü ↔ soğukkanlılık/antrenman ödünü) —
+  CALM: { key: "CALM", label: "Soğukkanlı", category: "PSYCH", description: "Rakibin oyununa (çirkef/hilekâr) gelmez; ama sakin olduğundan baskı kurup atak üretmez.", trainingMult: 1.0, combatMod: 0.4, opposite: "ANXIOUS", composure: 1.0 },
+  PRESSURE_PROOF: { key: "PRESSURE_PROOF", label: "Baskıya Dayanıklı", category: "PSYCH", description: "Kritik anlarda (final, son vuruş) ve provokasyona dayanıklı; sıradan akışta ise parlak değil.", trainingMult: 1.0, combatMod: 0.3, composure: 1.0 },
+  CONFIDENT: { key: "CONFIDENT", label: "Özgüvenli", category: "PSYCH", description: "Sahada parlak, momentumu korur; ama fazla rahat olduğundan antrenmanda biraz gevşer.", trainingMult: 0.96, combatMod: 0.6, opposite: "SENSITIVE", composure: 0.5 },
+  SENSITIVE: { key: "SENSITIVE", label: "Hassas", category: "PSYCH", description: "Detaya duyarlı ince teknik işçisi; ama kırılgan, provokasyona/çirkefliğe açık.", trainingMult: 1.0, trainTilt: { TECHNICAL: 1.1 }, combatMod: 0, opposite: "CONFIDENT", composure: -1.0 },
+  ANXIOUS: { key: "ANXIOUS", label: "Kaygılı", category: "PSYCH", description: "Baskıda zorlanır (provokasyona açık); ama telafi için çok çalışır → antrenman verimi yüksek.", trainingMult: 1.08, combatMod: 0, opposite: "CALM", composure: -1.0 },
+  // — Rekabetçi (combat gücü ↔ risk/yıpranma/antrenman ödünü) —
+  AGGRESSIVE: { key: "AGGRESSIVE", label: "Agresif", category: "COMPETITIVE", description: "Baskı kurar, en çok atağa çıkar; ama açık verir ve çok yıpranır (sakatlık riski yüksek).", trainingMult: 1.0, combatMod: 1.5, opposite: "CONTROLLED", selfRisk: 0.4, injuryRisk: 1.3 },
+  COMPETITIVE: { key: "COMPETITIVE", label: "Mücadeleci", category: "COMPETITIVE", description: "Pes etmez, zorlu maçta direnir; ama maça odaklı olduğundan gelişime az vakit ayırır.", trainingMult: 0.95, combatMod: 0.8 },
+  RISK_TAKER: { key: "RISK_TAKER", label: "Risk Alan", category: "COMPETITIVE", description: "Cesur hamleler: kazandırır ya da açık verir (kendi riski yüksek).", trainingMult: 1.0, combatMod: 0.8, selfRisk: 0.5 },
+  CONTROLLED: { key: "CONTROLLED", label: "Kontrollü", category: "COMPETITIVE", description: "Riskten kaçınır, sağlam; soğukkanlı ama atak üretmez (fırsat kaçırabilir).", trainingMult: 1.0, combatMod: 0.5, opposite: "AGGRESSIVE", composure: 0.4 },
+  AMBITIOUS: { key: "AMBITIOUS", label: "Hırslı", category: "COMPETITIVE", description: "Hedefe aç, tüm antrenmana katkı; ama sonuç baskısıyla gerilir ve kendini yıpratır.", trainingMult: 1.05, combatMod: 0, composure: -0.6, injuryRisk: 1.15 },
   // — Ahlak / Sportmenlik (gamesmanship KÜÇÜK + RİSKLİ; eskrim saygı sporu → itibar/dışlanma V2) —
-  HONEST: { key: "HONEST", label: "Dürüst", category: "MORAL", description: "Fair-play; itibarı yüksek, rakibin oyununa gelmez. Oyun-kurma avantajı yok.", trainingMult: 1.0, combatMod: 0, opposite: "DECEITFUL", composure: 0.5 },
+  HONEST: { key: "HONEST", label: "Dürüst", category: "MORAL", description: "Fair-play; itibarı yüksek, rakibin oyununa gelmez. Oyun-kurma (kurnazlık) avantajı yok.", trainingMult: 1.0, combatMod: 0, opposite: "DECEITFUL", composure: 0.5 },
   DECEITFUL: { key: "DECEITFUL", label: "Hilekâr", category: "MORAL", description: "Kurnazlık (zamanlama oyunları, itiraz) — rakibi bozabilir ama kendi de risk alır; itibar düşer (uzun vadede dışlanma).", trainingMult: 1.0, combatMod: 0, opposite: "HONEST", gamesmanship: 0.9, selfRisk: 0.5 },
   NASTY: { key: "NASTY", label: "Çirkef", category: "MORAL", description: "Rakibin sinirini bozar (özellikle hassas/kaygılı rakibe) ama kendi stresini artırır; itibar düşer, zamanla dışlanır.", trainingMult: 1.0, combatMod: 0, gamesmanship: 1.2, selfRisk: 0.7 },
 };
@@ -243,9 +259,24 @@ export function applyTraitChange(plan: readonly TraitPlanEntry[], change: TraitC
   return kept;
 }
 
-/** Verilen (aktif) trait'lerin antrenman verimi çarpanları çarpımı. */
-export function traitTrainingMultiplier(traits: readonly TraitKey[]): number {
-  return traits.reduce((acc, t) => acc * (TRAITS[t]?.trainingMult ?? 1), 1);
+/**
+ * Verilen (aktif) trait'lerin antrenman verimi çarpanları çarpımı.
+ * `category` verilirse, o kategori için trait'in `trainTilt`'i (varsa) kullanılır; yoksa kategori-bağımsız
+ * `trainingMult`'e düşer. Böylece bir trait kategoriye göre farklı etki eder (Tembel: −fizik/teknik, +mental).
+ * `category` verilmezse (kategori-dışı bağlam) tüm trait'ler `trainingMult` ile değerlendirilir.
+ */
+export function traitTrainingMultiplier(traits: readonly TraitKey[], category?: SkillCategory): number {
+  return traits.reduce((acc, t) => {
+    const def = TRAITS[t];
+    if (!def) return acc;
+    const tilt = category != null ? def.trainTilt?.[category] : undefined;
+    return acc * (tilt ?? def.trainingMult ?? 1);
+  }, 1);
+}
+
+/** Verilen (aktif) trait'lerin sakatlık riski çarpanları çarpımı (1 = etkisiz). Yıpratıcı stiller >1. */
+export function traitInjuryMultiplier(traits: readonly TraitKey[]): number {
+  return traits.reduce((acc, t) => acc * (TRAITS[t]?.injuryRisk ?? 1), 1);
 }
 
 /** Verilen (aktif) trait'lerin combat katkıları toplamı. */

@@ -57,8 +57,10 @@ export interface InjuryResult {
  * #35 (kullanıcı 09-29): ŞİMDİLİK tüm sakatlıklar HAFİF (1–2 gün) — test sırasında uzun sakatlık istenmiyor.
  * (Eskiden bazen 3–5, nadiren 7–14 gündü; ağır kademeler test sonrası geri gelebilir.)
  */
-export function rollInjury(rng: SeededRng, fatigue: number, age: number): InjuryResult {
-  if (!rng.bool(injuryChance(fatigue, age))) return { injured: false, days: 0 };
+export function rollInjury(rng: SeededRng, fatigue: number, age: number, riskMult = 1): InjuryResult {
+  // riskMult: trait kaynaklı yıpranma çarpanı (Agresif/Sabırsız/Hırslı > 1). Olasılık en çok 0.4'e kadar.
+  const chance = clamp(injuryChance(fatigue, age) * riskMult, 0, 0.4);
+  if (!rng.bool(chance)) return { injured: false, days: 0 };
   return { injured: true, days: rng.int(1, 2) };
 }
 
