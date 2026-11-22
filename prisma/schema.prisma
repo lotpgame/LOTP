@@ -44,6 +44,9 @@ model User {
   phoneVerifiedAt DateTime? // OTP doğrulama zamanı (gerçek SMS yayına alırken; şimdilik dev)
   email        String?  @unique // ileride e-posta seçeneği
   passwordHash String?
+  // Kaç kez "Yeni Başla" yapıldı (reroll caydırıcı — kullanıcı 23.11). Her restart +1; yeni karakter
+  // başlangıç yeteneği KÜMÜLATİF %10 düşük başlar (0.9^restarts) → seri silip-kurma caydırılır. Eklemeli.
+  restarts     Int      @default(0)
   createdAt    DateTime @default(now())
 
   player    Player? // sahip olduğu insan oyuncu

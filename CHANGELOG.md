@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (23.11 — Reroll caydırıcı: restart başına kümülatif %10 başlangıç cezası)
+- "Yeni Başla" bir sayacı artırır (`User.restarts`); yeni karakter başlangıç yeteneği **0.9^restarts** ile
+  düşük başlar (1. restart −%10, 2. −%20…). **Neden:** başlangıç yeteneği rastgele (`playerTalent`) → oyuncu
+  silip-kurup iyi bir başlangıç "zarlıyordu"; artık seri reroll cezalanır. Potansiyel/tavan aynı kalır (yine
+  gelişir, sadece daha geriden başlar). **Migration gerek** (Neon: `User.restarts`).
+
 ### Değişti (23.11 — Kariyer Günlüğü: gün-gün detay + harçlık lezzeti (hiçbir şey kaçmasın))
 - Antrenman artık **gün gün** loglanıyor (her seans günü ayrı satır, offline günler dahil — "hiçbir şey kaçmasın",
   kullanıcı 23.11), tek özet yerine. Böylece o garanti **haftada 2 olay** gün gün net görünür.

@@ -772,6 +772,16 @@ export async function createCareer(input: unknown): Promise<{ humanPlayerId: num
   const clubRng = createRng(`${seed}:club`);
 
   const userId = await ensureUserId(); // çerez + kullanıcı (yoksa oluştur, çerezi set eder)
+  // Reroll caydırıcı (kullanıcı 23.11): restart başına KÜMÜLATİF %10 düşük başlangıç yeteneği (0.9^restarts).
+  // İlk kariyerde restarts=0 → ceza yok. Seri silip-kurup iyi başlangıç "zarlamak" cezalandırılır. (current
+  // düşer; potansiyel/tavan aynı → yine gelişebilir, sadece daha geriden başlar.)
+  const restarts = (await prisma.user.findUnique({ where: { id: userId }, select: { restarts: true } }))?.restarts ?? 0;
+  const restartPenalty = Math.pow(0.9, restarts);
+  if (restartPenalty < 1) {
+    for (const s of Object.values(humanSkills)) {
+      s.current = Math.round(Math.max(s.floor, s.current * restartPenalty) * 100) / 100;
+    }
+  }
   const worldDay = serverWorldDay(); // M10: kariyer "şu anki" dünya gününde başlar (yaş çıpası)
 
   const humanPlayerId = await prisma.$transaction(async (tx) => {
@@ -2827,6 +2837,9 @@ export async function resetCareer(): Promise<void> {
   await prisma.$transaction([
     prisma.gameState.deleteMany({ where: { userId: uid } }),
     ...(gs ? [prisma.player.deleteMany({ where: { id: gs.humanPlayerId } })] : []),
+    // Reroll caydırıcı (kullanıcı 23.11): her "Yeni Başla" sayacı artırır; sonraki karakter kümülatif %10
+    // düşük başlar (bkz. createCareer). Seri silip-kurup iyi başlangıç yeteneği "zarlamak" cezalandırılır.
+    prisma.user.update({ where: { id: uid }, data: { restarts: { increment: 1 } } }),
   ]);
 }
 
