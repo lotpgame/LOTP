@@ -45,6 +45,8 @@ export const metadata: Metadata = {
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-180.png" },
   // AdSense site doğrulaması (meta yöntemi) — <head>'e düzgün basılır.
   other: { "google-adsense-account": "ca-pub-7563750911534744" },
+  // Google Search Console sahiplik doğrulaması (HTML tag yöntemi — URL prefix mülkü için).
+  verification: { google: "Gi_mOUIvqCyyvu-wSDKXfqMkS52Eos56iuYXW9MVTHY" },
   // Link önizleme görseli (og:image) `src/app/opengraph-image.tsx` dosya-kuralından gelir (1200×630 yatay).
 };
 
