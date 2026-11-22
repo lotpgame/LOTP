@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { advanceLiveStageAction, leaveLiveTournamentAction, playLiveMatchAction } from "@/app/actions";
 import { TACTICS } from "@/engine/combat";
-import { t, type Locale } from "@/i18n";
+import { t, fmtPct, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getLiveTournament, type LiveTournamentDTO } from "@/server/careerService";
 import { CanliMac } from "../[id]/CanliMac";
@@ -222,8 +222,8 @@ export default async function CanliTurnuvaPage() {
 
       {/* Oyuncu durumu — turnuva boyunca güncel */}
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <MiniStat img="/img/ui/kondisyon.webp" label={t(locale, "profil.condition")} value={`%${tour.player.condition}`} />
-        <MiniStat img="/img/ui/form.webp" label={t(locale, "profil.form")} value={`%${tour.player.sharpness}`} />
+        <MiniStat img="/img/ui/kondisyon.webp" label={t(locale, "profil.condition")} value={fmtPct(locale, tour.player.condition)} />
+        <MiniStat img="/img/ui/form.webp" label={t(locale, "profil.form")} value={fmtPct(locale, tour.player.sharpness)} />
         <MiniStat icon="rating" label={t(locale, "profil.overall")} value={tour.player.overall.toFixed(1)} />
       </div>
 

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ArenaPage } from "@/app/ArenaPage";
 import type { AgeCategory, Gender, Weapon } from "@/engine/domain";
 import { itemById, itemName, kitItemFits, sizeLabel, type EquipmentSlot } from "@/engine/equipment";
-import { t } from "@/i18n";
+import { t, fmtPct } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon, weaponIcon, type IconName } from "@/app/ui/Icon";
@@ -91,7 +91,7 @@ export default async function EkipmanPage({ searchParams }: { searchParams: Prom
                     <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-arena-2" aria-hidden="true">
                       <span className="block h-full rounded-full bg-ink" style={{ width: `${Math.max(0, Math.min(100, k.durability))}%` }} />
                     </span>
-                    <span className="num text-[11px] text-steel">%{k.durability.toFixed(0)}</span>
+                    <span className="num text-[11px] text-steel">{fmtPct(locale, k.durability)}</span>
                   </div>
                 </div>
                 {/* Çöp at — 2 kademeli onay (iade yok). */}

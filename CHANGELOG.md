@@ -9,6 +9,16 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (24.11 — Yabancı dillerde sızan Türkçe tarih/saat/yüzde biçimleri)
+- İngilizce (ve DE/FR/ES/IT/RU/PT/ZH) hesaplarda **turnuva tarih/saatleri ve yüzdeler Türkçe biçimdeydi**
+  ("17 Kasım Salı", "%89"). Sebep: kodda sabit `"tr-TR"` tarih biçimi ve sabit `%{n}` yazımı. Düzeltme:
+  tarih/saat artık `dateLocale(locale)` ile oyuncunun diline göre (NextTournament + careerService); yüzde için
+  tek kaynak **`fmtPct(locale, n)`** — Türkçe "%89", diğer diller "89%" (dashboard kondisyon/form/moral,
+  antrenman, ekipman dayanıklılık, canlı turnuva, psikoloji çubukları). **Neden:** İngilizce bir okuyucu
+  sayfada Türkçe biçim görmemeli (beta öncesi kullanıcı tespiti). Migration yok.
+- 9 dil tamlık taraması yapıldı: çeviri sözlüğü (DICT) ve ekipman çevirileri (ITEM_I18N) tüm aktif içerik için
+  9 dilde tam; yalnız gizli legacy ekipman (mağazada görünmez) çevirisiz — DB sıfırlanacağı için beta'da etkisiz.
+
 ### Düzeltildi (24.11 — Karşılama ekranı her oyuncuda garanti (kalıcı bayrak))
 - WelcomeDialog artık `?welcome=1` yönlendirmesine değil, kalıcı **`GameState.welcomeSeen`** bayrağına bağlı.
   **Neden:** wipe sonrası ilk karakter dünyayı sıfırdan kurarken (ağır/yavaş) yönlendirme kaybolup welcome

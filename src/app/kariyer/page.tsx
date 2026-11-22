@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArenaPage } from "@/app/ArenaPage";
 import { redirect } from "next/navigation";
 import { clearAllReportsAction } from "@/app/actions";
-import { t } from "@/i18n";
+import { t, fmtPct } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer, getCareerHeader, getUpcomingTournaments } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
@@ -198,7 +198,7 @@ export default async function BugunPage({
         <Stat
           img="/img/ui/kondisyon.webp"
           label={t(locale, "profil.condition")}
-          value={`%${condition.toFixed(0)}`}
+          value={fmtPct(locale, condition)}
           gauge={condition}
           glow={condition >= GLOW_FROM}
           traffic
@@ -207,7 +207,7 @@ export default async function BugunPage({
         <Stat
           img="/img/ui/form.webp"
           label={t(locale, "profil.form")}
-          value={`%${c.sharpness.toFixed(0)}`}
+          value={fmtPct(locale, c.sharpness)}
           gauge={c.sharpness}
           glow={c.sharpness >= GLOW_FROM}
           traffic
@@ -252,17 +252,17 @@ export default async function BugunPage({
             <img src={trainingImg("MENTAL")} alt="" aria-hidden="true" className="shrink-0 rounded-md object-cover" style={{ width: 26, height: 26 }} />
             <span className="flex-1 font-display text-[17px] font-bold uppercase tracking-wide">{t(locale, "profil.psychology")}</span>
             <span className="text-[13px] text-steel">
-              {t(locale, "profil.morale")} <span className="num">%{c.psychology.morale.toFixed(0)}</span>
+              {t(locale, "profil.morale")} <span className="num">{fmtPct(locale, c.psychology.morale)}</span>
             </span>
             <Icon name="chevron-down" size={18} className="text-steel transition-transform group-open:rotate-180" />
           </summary>
           <div className="space-y-3 px-4 pb-4">
-            <StatBar label={t(locale, "profil.morale")} value={c.psychology.morale} tone="good" />
-            <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} tone="good" />
-            <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} tone="good" />
-            <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} tone="bad" />
+            <StatBar label={t(locale, "profil.morale")} value={c.psychology.morale} tone="good" locale={locale} />
+            <StatBar label={t(locale, "profil.motivation")} value={c.psychology.motivation} tone="good" locale={locale} />
+            <StatBar label={t(locale, "profil.confidence")} value={c.psychology.confidence} tone="good" locale={locale} />
+            <StatBar label={t(locale, "profil.stress")} value={c.psychology.stress} tone="bad" locale={locale} />
             {/* İtibar/fair-play (GDD 10 ahlak ekseni): Çirkef/Hilekâr düşürür. Oyun-içi ceza V2. */}
-            <StatBar label={t(locale, "profil.reputation")} value={c.psychology.reputation} tone="good" />
+            <StatBar label={t(locale, "profil.reputation")} value={c.psychology.reputation} tone="good" locale={locale} />
             {c.traits.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {c.traits.map((tr) => (

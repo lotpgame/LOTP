@@ -39,7 +39,7 @@ import {
 import { createRng } from "@/engine/probability";
 import { pickAvatar } from "@/engine/avatars";
 import { assignClubLogo, resolveClubLogo } from "@/app/kariyer/clubLogo";
-import { t, type Locale } from "@/i18n";
+import { t, dateLocale, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import {
   SKILLS,
@@ -1098,7 +1098,7 @@ export async function getCareer(): Promise<CareerDTO | null> {
     quarter,
     month,
     dayName: dayLabel,
-    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
+    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString(dateLocale(locale), {
       timeZone: "UTC",
       day: "numeric",
       month: "long",
@@ -1371,7 +1371,7 @@ export async function getCareerHeader(): Promise<CareerHeaderDTO | null> {
     quarter,
     month: monthOfQuarter(gs.dayIndex),
     dayName: dayLabel,
-    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString("tr-TR", {
+    dateLabel: new Date(worldDayStartMs(gs.dayIndex, worldClockConfig())).toLocaleDateString(dateLocale(locale), {
       timeZone: "UTC",
       day: "numeric",
       month: "long",
@@ -1479,7 +1479,7 @@ export async function getUpcomingTournaments(): Promise<UpcomingTournamentDTO[]>
       label: tournamentDisplayName(locale, id.ageCategory, act.level, hostCity, human.nationality?.code ?? "TR"),
       categoryId: id.categoryId,
       dayName: t(locale, `day.${dayOfWeek(d)}`),
-      dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString("tr-TR", {
+      dateLabel: new Date(worldEventStartMs(d, cfg)).toLocaleString(dateLocale(locale), {
         timeZone: "UTC",
         day: "numeric",
         month: "long",
@@ -2693,7 +2693,7 @@ export async function getTournament(id: number): Promise<TournamentResultDTO | n
 
   // Başlık altı: turnuvanın GERÇEK takvim tarihi (GMT). Saat podyumda zaten var → burada yalnız tarih (#başlık).
   const dateMs = tourn.worldDay != null ? worldDayStartMs(tourn.worldDay, worldClockConfig()) : tourn.date.getTime();
-  const dateLabel = new Date(dateMs).toLocaleDateString("tr-TR", {
+  const dateLabel = new Date(dateMs).toLocaleDateString(dateLocale(locale), {
     timeZone: "UTC",
     weekday: "long",
     day: "numeric",

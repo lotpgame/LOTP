@@ -8,7 +8,7 @@
  */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { t, type Locale } from "@/i18n";
+import { t, dateLocale, type Locale } from "@/i18n";
 import { Icon } from "@/app/ui/Icon";
 import { levelColor } from "./levelColor";
 
@@ -27,7 +27,8 @@ export interface NextTournamentInfo {
 const TZ = "UTC"; // oyun zamanı GMT (dünya saati); oyuncu kendi yerel saatine çevirir
 
 function hhmmGMT(ms: number): string {
-  return new Date(ms).toLocaleTimeString("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+  // GMT saat 24s (18:00) — dile bağlı değil; "en-GB" 24s biçim (WorldClockBadge ile tutarlı), tr-TR sabiti kalksın.
+  return new Date(ms).toLocaleTimeString("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 /** GMT takvim günü anahtarı (YYYY-MM-DD) — "Bugün/Yarın" kararı dünya (GMT) tarihine göre verilir. */
@@ -36,7 +37,7 @@ function dateKeyGMT(ms: number): string {
 }
 
 function weekday(ms: number, locale: Locale): string {
-  return new Date(ms).toLocaleDateString(locale === "tr" ? "tr-TR" : locale, { timeZone: TZ, weekday: "long" });
+  return new Date(ms).toLocaleDateString(dateLocale(locale), { timeZone: TZ, weekday: "long" });
 }
 
 function fmtRemaining(ms: number, locale: Locale): string {

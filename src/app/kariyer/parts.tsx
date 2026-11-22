@@ -2,7 +2,7 @@
  * Kariyer sayfalarında ortak sunum bileşenleri (saf; hook yok → server component'lerde kullanılır).
  */
 import type { SkillCategory } from "@/engine/domain";
-import { t, type Locale } from "@/i18n";
+import { t, fmtPct, type Locale } from "@/i18n";
 import type { RankingRowDTO } from "@/server/careerService";
 import { Icon, type IconName } from "@/app/ui/Icon";
 import { PisteRail, Segments } from "@/app/ui/Piste";
@@ -114,12 +114,12 @@ function psychFill(value: number, bad: boolean): string {
 
 /** Yüzde değer + pist rayı (psikoloji). `tone`: "good" = yüksek iyi (moral/motivasyon/özgüven); "bad" = yüksek
  * kötü (stres → ters renk); verilmezse nötr (kullanıcı 11.10 renklendirme). */
-export function StatBar({ label, value, tone }: { label: string; value: number; tone?: "good" | "bad" }) {
+export function StatBar({ label, value, tone, locale }: { label: string; value: number; tone?: "good" | "bad"; locale: Locale }) {
   return (
     <div>
       <div className="flex items-baseline justify-between text-[14px]">
         <span>{label}</span>
-        <span className="num text-[15px]">%{value.toFixed(0)}</span>
+        <span className="num text-[15px]">{fmtPct(locale, value)}</span>
       </div>
       <PisteRail value={value} max={100} fill={tone ? psychFill(value, tone === "bad") : undefined} className="mt-1.5" />
     </div>

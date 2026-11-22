@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { type SkillCategory } from "@/engine/domain";
 import { SKILLS } from "@/engine/skill";
-import { t } from "@/i18n";
+import { t, fmtPct, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
 import { getCareer } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
@@ -24,13 +24,13 @@ const TRAIN_INFO: { cat: SkillCategory; fatigueKey: string; color: string }[] = 
 ];
 
 /** Hero'daki büyük enerji barı (Kondisyon/Form) — koyu konsol bandında parlak dolum. */
-function EnergyBar({ label, value, color }: { label: string; value: number; color: string }) {
+function EnergyBar({ label, value, color, locale }: { label: string; value: number; color: string; locale: Locale }) {
   const v = Math.max(0, Math.min(100, value));
   return (
     <div>
       <div className="flex items-baseline justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wide text-console-steel">{label}</span>
-        <span className="num text-[16px] leading-none text-console-ink">%{v.toFixed(0)}</span>
+        <span className="num text-[16px] leading-none text-console-ink">{fmtPct(locale, v)}</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-console-line">
         <div
@@ -61,8 +61,8 @@ export default async function AntrenmanPage() {
             </span>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-4">
-            <EnergyBar label={t(locale, "profil.condition")} value={condition} color="#22c55e" />
-            <EnergyBar label={t(locale, "profil.form")} value={c.sharpness} color="#e0b23f" />
+            <EnergyBar label={t(locale, "profil.condition")} value={condition} color="#22c55e" locale={locale} />
+            <EnergyBar label={t(locale, "profil.form")} value={c.sharpness} color="#e0b23f" locale={locale} />
           </div>
         </div>
       </section>

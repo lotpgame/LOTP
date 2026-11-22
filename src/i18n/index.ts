@@ -13,6 +13,25 @@ export type Locale = "tr" | "en" | "de" | "es" | "fr" | "it" | "ru" | "pt" | "zh
 export const LOCALES: Locale[] = ["tr", "en", "de", "es", "fr", "it", "ru", "pt", "zh"];
 export const LOCALE_COOKIE = "engarde_locale";
 
+/** Uygulama dilini tarih/saat biçimi için BCP-47 locale'ine çevirir (toLocaleDateString/Time vb.). TEK kaynak →
+ * "tr-TR" sabitlemesi kalmasın; İngilizce/Almanca/… kullanıcı kendi dilinde tarih görsün (kullanıcı 24.11). */
+export function dateLocale(locale: Locale): string {
+  const map: Record<Locale, string> = {
+    tr: "tr-TR", en: "en-GB", de: "de-DE", es: "es-ES", fr: "fr-FR", it: "it-IT", ru: "ru-RU", pt: "pt-BR", zh: "zh-CN",
+  };
+  return map[locale] ?? "tr-TR";
+}
+
+/**
+ * Yüzde biçimi — dile göre % işaretinin yeri değişir.
+ * Türkçe: "%89" (işaret başta). İngilizce ve diğerleri: "89%" (işaret sonda).
+ * Sabit "%{n}" yazımı İngilizce sayfalarda Türkçe gibi görünüyordu; bu yüzden tek kaynaktan basılır.
+ */
+export function fmtPct(locale: Locale, n: number): string {
+  const v = Math.round(n);
+  return locale === "tr" ? `%${v}` : `${v}%`;
+}
+
 /**
  * Ülke → UI dili (18 ülke). Oyuncu hangi ülkeden bağlandıysa (IP) UI o ülkenin dilinde açılır.
  * Kendi dili desteklenmeyen ülkeler → İngilizce (uluslararası); Tunus → Fransızca (yaygın).
