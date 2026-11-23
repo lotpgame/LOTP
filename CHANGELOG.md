@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Eklendi (23.11 — Gizli canlı istatistik panosu (/istatistik))
+- Beta kayıt takibi için gizli yönetici sayfası: `/istatistik?key=...` (geri bildirim panosuyla **aynı**
+  anahtar — `FEEDBACK_ADMIN_KEY`, yeni env yok). Gösterir: büyük **gerçek oyuncu** sayısı (isAI=false; botlar
+  hariç) + hesap sayısı, silah dağılımı, ülke dağılımı (SVG bayraklı), son 25 katılan (ad/şehir/silah/zaman).
+  Salt-okunur, hafif sorgular; migration yok. Telefondan bakılabilir.
+
 ### Düzeltildi (23.11 — Ülke bayrakları masaüstünde çıkmıyordu + arka plan pixelleşmesi)
 - **Bayraklar:** sporcu oluşturma ülke seçimi native `<select>` + emoji bayrak kullanıyordu; Windows masaüstü
   bayrak emojisini "GB" harfleri gösteriyor (kullanıcı 23.11). Native `<option>` içine görsel konamadığından,

@@ -2211,6 +2211,36 @@ export async function getFeedback(limit = 200) {
   return prisma.feedback.findMany({ orderBy: { createdAt: "desc" }, take: limit });
 }
 
+/**
+ * Yönetici istatistikleri (gizli /istatistik sayfası için). Yalnız GERÇEK oyuncular (isAI=false) sayılır;
+ * AI rakipler (dünya botları) hariç. Beta gecesi kayıt takibi için — hafif sorgular.
+ */
+export async function getStats(recentLimit = 25) {
+  const [realCount, accountCount, recent, byWeapon, byCountry] = await Promise.all([
+    prisma.player.count({ where: { isAI: false } }),
+    prisma.user.count(),
+    prisma.player.findMany({
+      where: { isAI: false },
+      orderBy: { careerStartDate: "desc" },
+      take: recentLimit,
+      select: { firstName: true, lastName: true, weapon: true, careerStartDate: true, nationality: { select: { code: true } }, club: { select: { city: true } } },
+    }),
+    prisma.player.groupBy({ by: ["weapon"], where: { isAI: false }, _count: { _all: true } }),
+    prisma.player.groupBy({ by: ["nationalityId"], where: { isAI: false }, _count: { _all: true } }),
+  ]);
+  // Ülke id → kod (nationalityId gruplarını ülke koduna çevir).
+  const countryIds = byCountry.map((c) => c.nationalityId).filter((x): x is number => x != null);
+  const countries = countryIds.length
+    ? await prisma.country.findMany({ where: { id: { in: countryIds } }, select: { id: true, code: true } })
+    : [];
+  const codeById = new Map(countries.map((c) => [c.id, c.code]));
+  const weaponCounts = byWeapon.map((w) => ({ weapon: w.weapon, count: w._count._all })).sort((a, b) => b.count - a.count);
+  const countryCounts = byCountry
+    .map((c) => ({ code: c.nationalityId != null ? (codeById.get(c.nationalityId) ?? "?") : "?", count: c._count._all }))
+    .sort((a, b) => b.count - a.count);
+  return { realCount, accountCount, recent, weaponCounts, countryCounts };
+}
+
 /** M11.4: offline oynanan bir turnuvayı "yokken neler oldu" özetine ekler (birikimli JSON dizi). */
 async function appendAwayReport(gsId: number, entry: AwayTournamentEntry): Promise<void> {
   const cur = await prisma.gameState.findUnique({ where: { id: gsId }, select: { awayReport: true } });
