@@ -9,6 +9,15 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (23.11 — Ülke bayrakları masaüstünde çıkmıyordu + arka plan pixelleşmesi)
+- **Bayraklar:** sporcu oluşturma ülke seçimi native `<select>` + emoji bayrak kullanıyordu; Windows masaüstü
+  bayrak emojisini "GB" harfleri gösteriyor (kullanıcı 23.11). Native `<option>` içine görsel konamadığından,
+  ülke seçimi **özel açılır listeye** çevrildi → her platformda gerçek **SVG bayrak** (flagcdn). Form değeri
+  gizli input ile korunur; şehir seçimi native kalır. Kariyer sayfaları zaten SVG `Flag` kullanıyordu.
+- **Arka plan:** arena bg görselleri geniş-kısa şerit (1660×458); masaüstünde tüm yüksekliğe gerilince ~2.4x
+  upscale → pixelleşme (mobilde dar sütunda sorun yok). Yalnız `lg+` ekranlarda hafif blur + scale → artefakt
+  derinlik hissine döner, yazı/panel okunur kalır. Mobil görünüm değişmez. Yeni görsel/asset gerekmedi.
+
 ### Değişti (24.11 — Trait dengesi: her trait artık bir ARTI + bir EKSİ taşır)
 - Eskiden bazı trait'ler tek yönlüydü (Çalışkan +%10 bedava, Tembel −%10 bedelsiz). Artık **her trait bir
   ödün**: 8 yaşında dört çocuk da toplamda eşit güçte başlar, farklı YÖNE gelişir (profil sistemiyle aynı

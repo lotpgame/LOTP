@@ -26,7 +26,10 @@ export function ArenaPage({
       {/* translateZ(0): arka planı ayrı compositor katmanına al → üstteki panellerin backdrop-filter'ı
           açılıp/kapanırken arka plan yeniden çizilip "derinlik gidip geliyor" titremesi olmasın. */}
       <div aria-hidden="true" className="fixed inset-0 z-0" style={{ transform: "translateZ(0)", willChange: "transform" }}>
-        <img src={bg} alt="" className="h-full w-full object-cover object-center" />
+        {/* bg görselleri geniş-kısa şerit (1660×458); masaüstünde tüm yüksekliğe gerilince ~2.4x upscale →
+            pixelleşir. Mobilde dar sütunda sorun yok. Çözüm: yalnız lg+ ekranlarda hafif blur + hafif scale
+            (blurun yumuşak kenarını örter) → upscale artefaktı derinlik hissine dönüşür (kullanıcı 23.11). */}
+        <img src={bg} alt="" className="h-full w-full object-cover object-center lg:scale-[1.08] lg:blur-[3px]" />
         <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${dim / 100})` }} />
       </div>
       <div className={`relative z-10 ${className}`}>{children}</div>
