@@ -82,14 +82,18 @@ export default async function IstatistikPage({
         ) : (
           <ul className="flex flex-col gap-2">
             {recent.map((p, i) => (
-              <li key={i} className="flex items-center gap-2.5 rounded-xl border border-line bg-black/20 px-3 py-2 text-[14px]">
-                <Flag code={p.nationality?.code ?? ""} />
-                <span className="min-w-0 flex-1 truncate font-semibold">
-                  {p.firstName} {p.lastName}
-                </span>
-                {p.club?.city && <span className="shrink-0 text-[12px] opacity-60">{p.club.city}</span>}
-                <span className="shrink-0 rounded bg-white/10 px-1.5 text-[12px]">{WEAPON_TR[p.weapon] ?? p.weapon}</span>
-                <span className="shrink-0 text-[11px] opacity-50">{new Date(p.careerStartDate).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+              <li key={i} className="flex flex-col gap-0.5 rounded-xl border border-line bg-black/20 px-3 py-2 text-[14px]">
+                <div className="flex items-center gap-2.5">
+                  <Flag code={p.nationality?.code ?? ""} />
+                  <span className="min-w-0 flex-1 truncate font-semibold">
+                    {p.firstName} {p.lastName}
+                  </span>
+                  {p.club?.city && <span className="shrink-0 text-[12px] opacity-60">{p.club.city}</span>}
+                  <span className="shrink-0 rounded bg-white/10 px-1.5 text-[12px]">{WEAPON_TR[p.weapon] ?? p.weapon}</span>
+                  <span className="shrink-0 text-[11px] opacity-50">{new Date(p.careerStartDate).toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+                {/* E-posta: Google ile giriş yapan oyuncunun hesabı (kimin olduğunu eşlemek için — yalnız admin görür). */}
+                <div className="truncate pl-[26px] text-[12px] text-sky-300/80">{p.user?.email ?? <span className="opacity-40">— (e-posta yok)</span>}</div>
               </li>
             ))}
           </ul>

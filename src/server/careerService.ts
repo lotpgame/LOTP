@@ -2231,7 +2231,7 @@ export async function getStats(recentLimit = 25) {
       where: { isAI: false },
       orderBy: { careerStartDate: "desc" },
       take: recentLimit,
-      select: { firstName: true, lastName: true, weapon: true, careerStartDate: true, nationality: { select: { code: true } }, club: { select: { city: true } } },
+      select: { firstName: true, lastName: true, weapon: true, careerStartDate: true, nationality: { select: { code: true } }, club: { select: { city: true } }, user: { select: { email: true } } },
     }),
     prisma.player.groupBy({ by: ["weapon"], where: { isAI: false }, _count: { _all: true } }),
     prisma.player.groupBy({ by: ["nationalityId"], where: { isAI: false }, _count: { _all: true } }),

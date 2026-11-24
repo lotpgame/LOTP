@@ -21,6 +21,11 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ekranda +0.0 olacak satırlar artık **listelenmez** → rapor temiz. **Oyuncu bu payı yine alır** (mekanik aynı,
   skill 2 ondalık artar ve birikir); biriktikçe 0.05'i aşan skill tekrar görünür. (Kullanıcı 24.11.)
 
+### Değişti (24.11 — İstatistik panosu: son katılanlara e-posta eklendi)
+- `/istatistik` son katılanlar listesinde her oyuncunun **Google hesabı e-postası** gösterilir (hangi karakter
+  kime ait eşlemek için — yalnız admin görür, anahtar korumalı). `getStats` sorgusuna `user.email` eklendi.
+  E-posta yoksa "— (e-posta yok)". Migration yok.
+
 ### Eklendi (23.11 — Gizli canlı istatistik panosu (/istatistik))
 - Beta kayıt takibi için gizli yönetici sayfası: `/istatistik?key=...` (geri bildirim panosuyla **aynı**
   anahtar — `FEEDBACK_ADMIN_KEY`, yeni env yok). Gösterir: büyük **gerçek oyuncu** sayısı (isAI=false; botlar
