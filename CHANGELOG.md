@@ -21,6 +21,15 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ekranda +0.0 olacak satırlar artık **listelenmez** → rapor temiz. **Oyuncu bu payı yine alır** (mekanik aynı,
   skill 2 ondalık artar ve birikir); biriktikçe 0.05'i aşan skill tekrar görünür. (Kullanıcı 24.11.)
 
+### Eklendi (24.11 — İsim normalize + küfür filtresi (sporcu oluşturma))
+- Ad/soyad artık **Title Case**'e normalize edilir ("aLLaN WeBB" → "Allan Webb"; çoklu boşluk, tire/kesme
+  işareti alt-parçaları dahil). İsimler uluslararası olduğundan Türkçe-locale casing kullanılmaz (İngilizce
+  adları bozardı) — varsayılan casing.
+- **Küfür/uygunsuz ad filtresi** (güvenlik): sunucu tarafı (Zod `refine`), kaçışa dayanıklı (harf-dışı silinir:
+  "a.m.k"→"amk" yakalanır; Türkçe/aksan Latin'e indirgenir). Liste bilerek dar — gerçek adları (Picard, Amina)
+  engellemez; beta geri bildirimiyle genişletilir. Reddedilen ad → landing formunda 9 dilde uyarı.
+- Yeni saf modül `nameModeration.ts` (titleCaseName + isCleanName), 3 yeni test. Migration yok.
+
 ### Değişti (24.11 — İstatistik panosu: son katılanlara e-posta eklendi)
 - `/istatistik` son katılanlar listesinde her oyuncunun **Google hesabı e-postası** gösterilir (hangi karakter
   kime ait eşlemek için — yalnız admin görür, anahtar korumalı). `getStats` sorgusuna `user.email` eklendi.

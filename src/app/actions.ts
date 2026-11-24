@@ -7,6 +7,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { ZodError } from "zod";
 import { LOCALE_COOKIE, LOCALES, type Locale } from "@/i18n";
 import { TACTICS, type Tactic } from "@/engine/combat";
 import { type TournamentLevel } from "@/engine/domain";
@@ -43,16 +44,22 @@ import type { TacticSubmitResult } from "@/server/liveTournament";
 
 export async function createCareerAction(formData: FormData): Promise<void> {
   if (await hasCareer()) redirect("/kariyer");
-  await createCareer({
-    firstName: String(formData.get("firstName") ?? ""),
-    lastName: String(formData.get("lastName") ?? ""),
-    gender: String(formData.get("gender") ?? ""),
-    weapon: String(formData.get("weapon") ?? ""),
-    profile: String(formData.get("profile") ?? ""),
-    birthDate: String(formData.get("birthDate") ?? ""),
-    country: String(formData.get("country") ?? ""), // 18-ülke: formdaki ülke seçimini ilet (yoksa Zod patlar)
-    city: String(formData.get("city") ?? ""),
-  });
+  try {
+    await createCareer({
+      firstName: String(formData.get("firstName") ?? ""),
+      lastName: String(formData.get("lastName") ?? ""),
+      gender: String(formData.get("gender") ?? ""),
+      weapon: String(formData.get("weapon") ?? ""),
+      profile: String(formData.get("profile") ?? ""),
+      birthDate: String(formData.get("birthDate") ?? ""),
+      country: String(formData.get("country") ?? ""), // 18-ülke: formdaki ülke seçimini ilet (yoksa Zod patlar)
+      city: String(formData.get("city") ?? ""),
+    });
+  } catch (e) {
+    // Girdi doğrulama (ör. uygunsuz/küfürlü ad, geçersiz alan) → landing'e dön + forma kaydır, mesaj göster.
+    if (e instanceof ZodError) redirect("/?err=name#olustur");
+    throw e;
+  }
   redirect("/kariyer?welcome=1"); // kayıt sonrası antrenör "hoş geldin" + ekipman hediyesi ekranı
 }
 

@@ -19,14 +19,16 @@ import { PROFILES } from "../domain";
 import { generateStartingSkills, type PlayerSkills } from "../skill";
 import type { SeededRng } from "../probability";
 import { firstNamesFor, lastNamesFor } from "./names";
+import { titleCaseName, isCleanName } from "./nameModeration";
 
 /** Oyuncu oluşturma girdisi — sunucu tarafında doğrulanır (GDD 7.27, güvenlik: Zod). */
 // Herkes SABİT yaşta başlar (kariyeri sıfırdan inşa etme). Test 1 = 8 (U10). Test 2'de değiştirilir.
 export const START_AGE = 8;
 
 export const createPlayerSchema = z.object({
-  firstName: z.string().trim().min(1, "Ad zorunlu").max(30),
-  lastName: z.string().trim().min(1, "Soyad zorunlu").max(30),
+  // Ad/soyad: Title Case normalize ("aLLaN"→"Allan") + küfür/uygunsuz ad engeli (kullanıcı 24.11).
+  firstName: z.string().trim().min(1, "Ad zorunlu").max(30).transform(titleCaseName).refine(isCleanName, "Uygun olmayan ad"),
+  lastName: z.string().trim().min(1, "Soyad zorunlu").max(30).transform(titleCaseName).refine(isCleanName, "Uygun olmayan soyad"),
   gender: z.enum(["MALE", "FEMALE"]),
   weapon: z.enum(["FOIL", "EPEE", "SABRE"]),
   profile: z.enum(["BALANCED", "TECHNICAL", "PHYSICAL", "MENTAL", "TACTICAL"]),

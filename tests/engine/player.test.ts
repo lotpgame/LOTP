@@ -6,8 +6,41 @@ import {
   generateAiOpponents,
 } from "@/engine/player";
 import { firstNamesFor, lastNamesFor } from "@/engine/player/names";
+import { titleCaseName, isCleanName } from "@/engine/player/nameModeration";
 
 const GAME_DATE = new Date("2026-01-01");
+
+describe("İsim normalize + moderasyon (kullanıcı 24.11)", () => {
+  it("titleCaseName: ilk harf büyük, gerisi küçük (çoklu boşluk/tire/kesme)", () => {
+    expect(titleCaseName("aLLaN WeBB")).toBe("Allan Webb");
+    expect(titleCaseName("  mehmet   ali ")).toBe("Mehmet Ali");
+    expect(titleCaseName("JEAN-pierre")).toBe("Jean-Pierre");
+    expect(titleCaseName("o'BRIEN")).toBe("O'Brien");
+  });
+  it("isCleanName: küfürlü adları engeller, gerçek adları geçirir", () => {
+    expect(isCleanName("Allan Webb")).toBe(true);
+    expect(isCleanName("Picard")).toBe(true); // 'pic' alt-dizesi gerçek adı engellemez
+    expect(isCleanName("Amina")).toBe(true); // gerçek ad
+    expect(isCleanName("siktir")).toBe(false);
+    expect(isCleanName("a.m.k")).toBe(false); // kaçış: harf-dışı silinince 'amk'
+    expect(isCleanName("orospu")).toBe(false);
+    expect(isCleanName("fuck")).toBe(false);
+  });
+  it("createPlayerSchema: adı Title Case'e çevirir ve küfürü reddeder", () => {
+    const ok = createPlayerSchema.safeParse({
+      firstName: "aLLaN", lastName: "WeBB", gender: "MALE", weapon: "FOIL", profile: "BALANCED", country: "GB", city: "London",
+    });
+    expect(ok.success).toBe(true);
+    if (ok.success) {
+      expect(ok.data.firstName).toBe("Allan");
+      expect(ok.data.lastName).toBe("Webb");
+    }
+    const bad = createPlayerSchema.safeParse({
+      firstName: "Siktir", lastName: "Git", gender: "MALE", weapon: "FOIL", profile: "BALANCED", country: "TR", city: "İstanbul",
+    });
+    expect(bad.success).toBe(false);
+  });
+});
 
 describe("Player Engine", () => {
   it("createPlayerSchema geçerli girdiyi kabul eder", () => {

@@ -34,15 +34,17 @@ const STEPS: { img: string; key: string }[] = [
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ auth?: string }>;
+  searchParams: Promise<{ auth?: string; err?: string }>;
 }) {
   const user = await currentUser();
   const signedIn = !!user?.email; // Google ile giriş yapılmış mı
   if (signedIn && (await hasCareer())) redirect("/kariyer");
   const locale = await getLocale();
   // Google dönüşünde hata/çözülmemiş yapılandırma → sessiz kalmasın, kullanıcının dilinde uyar.
-  const { auth } = await searchParams;
+  const { auth, err } = await searchParams;
   const authMsg = auth === "error" ? "auth.error" : auth === "unconfigured" ? "auth.unconfigured" : null;
+  // Sporcu oluşturma doğrulama hatası (ör. uygunsuz/küfürlü ad) → formun üstünde uyarı.
+  const formErr = err === "name" ? "create.invalidName" : null;
   // IP'den ülke (Vercel `x-vercel-ip-country` — ücretsiz, dış servis yok). Desteklediğimiz 18 ülkeden
   // biriyse formu ona ön-seçeriz (akıllı varsayılan; oyuncu değiştirebilir). Yoksa/yerelde → TR.
   const ipCountry = (await headers()).get("x-vercel-ip-country")?.toUpperCase() ?? "";
@@ -127,6 +129,12 @@ export default async function Home({
         ) : (
           <form id="olustur" action={createCareerAction} className="scroll-mt-4 space-y-6 pb-10">
           <h2 className="display text-[28px]">{t(locale, "landing.formTitle")}</h2>
+
+          {formErr && (
+            <p role="alert" className="panel border-l-4 border-l-sig-red bg-red-50 p-3 text-[14px] text-ink dark:bg-red-950/30">
+              {t(locale, formErr)}
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t(locale, "create.firstName")}>

@@ -290,6 +290,7 @@ const TR: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Eskrim kariyeri simülasyonu. Bir eskrimci yarat ve kariyerini yönet.",
   "create.firstName": "Ad",
+  "create.invalidName": "Lütfen geçerli bir ad ve soyad girin (uygunsuz kelime olmasın).",
   "create.lastName": "Soyad",
   "create.gender": "Cinsiyet",
   "create.country": "Ülke",
@@ -1104,6 +1105,7 @@ const EN: Dict = {
   "settings.themePreviewDefault": "Sample text — system default.",
   "create.tagline": "Fencing career simulator. Create a fencer and manage their career.",
   "create.firstName": "First name",
+  "create.invalidName": "Please enter a valid first and last name (no inappropriate words).",
   "create.lastName": "Last name",
   "create.gender": "Gender",
   "create.country": "Country",
@@ -1921,6 +1923,7 @@ const DE: Dict = {
   "settings.earnMore": "Verdiene es bei Turnieren.",
   "create.tagline": "Fecht-Karriere-Simulation. Erstelle einen Charakter und führe seine Karriere.",
   "create.firstName": "Vorname",
+  "create.invalidName": "Bitte gib einen gültigen Vor- und Nachnamen ein (keine unangemessenen Wörter).",
   "create.lastName": "Nachname",
   "create.gender": "Geschlecht",
   "create.country": "Land",
@@ -2740,6 +2743,7 @@ const FR: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Simulation de carrière d'escrime. Crée un escrimeur et gère sa carrière.",
   "create.firstName": "Prénom",
+  "create.invalidName": "Veuillez saisir un prénom et un nom valides (pas de mots inappropriés).",
   "create.lastName": "Nom",
   "create.gender": "Sexe",
   "create.country": "Pays",
@@ -3561,6 +3565,7 @@ const ES: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Simulación de carrera de esgrima. Crea un esgrimista y gestiona su carrera.",
   "create.firstName": "Nombre",
+  "create.invalidName": "Introduce un nombre y apellido válidos (sin palabras inapropiadas).",
   "create.lastName": "Apellido",
   "create.gender": "Sexo",
   "create.country": "País",
@@ -4382,6 +4387,7 @@ const IT: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Simulazione di carriera di scherma. Crea uno schermidore e gestisci la sua carriera.",
   "create.firstName": "Nome",
+  "create.invalidName": "Inserisci un nome e un cognome validi (niente parole inappropriate).",
   "create.lastName": "Cognome",
   "create.gender": "Sesso",
   "create.country": "Paese",
@@ -5203,6 +5209,7 @@ const RU: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Симулятор карьеры фехтовальщика. Создайте фехтовальщика и ведите его карьеру.",
   "create.firstName": "Имя",
+  "create.invalidName": "Введите корректные имя и фамилию (без недопустимых слов).",
   "create.lastName": "Фамилия",
   "create.gender": "Пол",
   "create.country": "Страна",
@@ -6024,6 +6031,7 @@ const PT: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "Simulação de carreira de esgrima. Crie um esgrimista e gerencie a carreira dele.",
   "create.firstName": "Nome",
+  "create.invalidName": "Insira um nome e sobrenome válidos (sem palavras impróprias).",
   "create.lastName": "Sobrenome",
   "create.gender": "Sexo",
   "create.country": "País",
@@ -6845,6 +6853,7 @@ const ZH: Dict = {
   // Oyuncu oluşturma
   "create.tagline": "击剑生涯模拟。创建一名击剑手并管理其生涯。",
   "create.firstName": "名",
+  "create.invalidName": "请输入有效的姓名（不得包含不当词语）。",
   "create.lastName": "姓",
   "create.gender": "性别",
   "create.country": "国家",
