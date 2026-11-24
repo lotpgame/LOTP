@@ -1967,7 +1967,13 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
       });
       skills = res.skills;
       fatigue = clamp(fatigue + res.fatigueDelta, 0, 100);
-      diaryDays.push({ day: d, kind: "train", session: type }); // gün-gün: o günün seansı (REST yazılmaz)
+      // Gün-gün günlük: o günün seansı + GÖRÜNÜR kazanımlar. Rapordaki eşikle aynı: <0.05 (ekranda "+0.0")
+      // çapraz-pay'ler yazılmaz, sadece belirgin olanlar (çalışılan kategori) listelenir (kullanıcı 24.11).
+      const dayGains = Object.entries(res.gains)
+        .map(([key, delta]) => ({ key, delta: delta as number }))
+        .filter((g) => g.delta >= 0.05)
+        .sort((a, b) => b.delta - a.delta);
+      diaryDays.push({ day: d, kind: "train", session: type, ...(dayGains.length ? { gains: dayGains } : {}) });
     }
     sharpness = applySharpness(sharpness, sessionSharpnessDelta(type));
     if (type !== "REST" && !injuredNow) {

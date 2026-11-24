@@ -56,16 +56,20 @@ function diaryLine(locale: Locale, row: CareerDiaryRow): ReactNode {
     case "start":
       return <span className="font-medium text-sig-red">{t(locale, "diary.firstStep", { club: row.club })}</span>;
     case "train": {
-      // Gün-gün: o günün seansı (Teknik/Fizik/…). Eski kayıtlar (gains) geriye uyumlu gösterilir.
-      const detail = row.session
-        ? t(locale, `training.${row.session}`)
-        : row.gains && row.gains.length > 0
-          ? row.gains.map((g) => `${t(locale, `skill.${g.key}`)} +${g.delta}`).join(" · ")
-          : "";
+      // Gün-gün: o günün seansı (Teknik/Fizik/…) + GÖRÜNÜR kazanımlar (≥0.05; +0.0 çapraz-pay yazılmaz,
+      // rapordaki eşikle aynı — kullanıcı 24.11). Kazanımlar "+0.1 Zamanlama" biçiminde, yeşil.
+      const sessionLabel = row.session ? t(locale, `training.${row.session}`) : "";
+      // Eski kayıtlarda session olmayabilir → sadece gains; yenilerde ikisi birlikte.
+      const gains = row.gains ?? [];
       return (
-        <span>
+        <span className="inline-flex flex-wrap items-center gap-x-1.5">
           <span className="font-medium">{t(locale, "diary.train")}</span>
-          {detail ? <span className="text-steel"> — {detail}</span> : null}
+          {sessionLabel ? <span className="text-steel">— {sessionLabel}</span> : null}
+          {gains.map((g) => (
+            <span key={g.key} className="num text-sig-green">
+              +{g.delta.toFixed(1)} <span className="text-ink/80">{t(locale, `skill.${g.key}`)}</span>
+            </span>
+          ))}
         </span>
       );
     }

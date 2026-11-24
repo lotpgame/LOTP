@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (24.11 — Kariyer Günlüğü antrenman satırına görünür kazanımlar)
+- Günlükteki antrenman satırı artık seans adıyla birlikte **o günün gerçek kazanımlarını** da yazar
+  ("Taktik Çalışma — +0.1 Zamanlama · +0.1 Rakip Okuma"), her oyuncunun kendi seansına göre. Rapordaki eşikle
+  aynı: **<0.05 (ekranda +0.0) çapraz-pay yazılmaz**, sadece belirgin olanlar. Kazanım yeşil, +0.1 biçiminde.
+  Her gün seansın gains'i (`res.gains`) günlük kaydına eklenir; eski kayıtlar (gains yok) geriye uyumlu. (Kullanıcı 24.11.)
+
 ### Değişti (24.11 — Antrenman raporu: "+0.0" çapraz-pay satırları gizlendi)
 - Antrenman raporunda çalışılmayan skill'ler "+0.0" görünüyordu (çapraz-pay/spill: çalıştığın kategori tam,
   diğerleri %10 alır — gerçek ama küçük kazanç, `toFixed(1)` ile 0.0'a yuvarlanıyordu). Rapor eşiği 0.01→**0.05**:
