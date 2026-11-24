@@ -7,30 +7,8 @@
 > ✅ **06.10 — B Faz 2-4 CANLIDA.** PR #45 squash (`e5581d3`) + prod migration + deploy; canlıda 18:00 GMT
 > tur-tur turnuva doğrulandı. (PR #45 kapatıldı.)
 > ✅ **06.10 — GÖRSELLER (#2/#3/#4) CANLIDA.** PR #46/#47/#48 (stack) squash (`d6b808a`) + 2 prod migration + deploy. (PR #46/#47/#48 GitHub'dan elle kapatılacak.)
-> 🆕 **08.10 — Yeni görev: AVATAR** (karakter yüz portreleri, AI üretimi özgün set) → aşağıda "Yusuf → Osman: Avatar" (şartname tam burada; başka dosyaya bakma gerekmez).
-
-## 🆕 Yusuf → Osman: Avatar — karakter yüz portreleri (AÇIK İŞ, 08.10)
-
-**Görev:** Oyuncu profil avatarı = **karakter YÜZ portreleri** ("setten seç" — katmanlı oluşturucu DEĞİL). Şartnamenin tamamı burada; başka dosyaya bakmana gerek yok.
-
-**Sanat (SENİN AI'ınla ÜRETİLİR, ÖZGÜN/telifsiz):**
-- Yusuf'un gönderdiği lisanslı çizgi-film çocuk-sporcu seti **yalnız STİL referansı — KOPYALANMAZ.** Hedef: o çekicilik/kalite ama **bizim özgün** setimiz (AI üretimi). Referans sitenin görseli hiçbir biçimde kullanılmaz.
-- **Baş-omuz portresi**, dairesel kadraj, küçük boyutta (40–60 px) net okunur.
-- **Tek tutarlı stil + çeşitlilik**: farklı ten tonu, saç, cinsiyet → herkes kendini bulur. Çocuk-dostu, canlı.
-- **Maske YOK — yüz görünür** (eskrim dokunuşu opsiyonel: kıyafet yakası/aksesuar).
-- **Şeffaf arka plan PNG** (daire kadrajı uygulama çizer). İlk set ~10–14 varyant.
-
-**Sistem (kod):**
-- Şema **eklemeli**: `Player.avatar` (TEXT, nullable; seçilen avatar id). Boşsa **varsayılan silüet** → mevcut oyuncular bozulmaz, sonra seçerler.
-- **Seçici**: Sporcu Oluşturma ekranı + Ayarlar → Görünüm (ızgara, seçili halka).
-- **Gösterim**: Kimlik kartı (baş-harf rozetinin yerine) + klasman / turnuva / milli takım / pul kağıdı listelerinde küçük yuvarlak.
-- Hepsi istemci + statik görsel varlık; motor (`src/engine`) değişmez.
-
-**Yaşlandırma** (ileride / V2): karakterin çocuk/genç/yetişkin varyantı → avatar yaş kategorisiyle büyür (U10→U17→Büyükler). **İlk sette STATİK** (tek yaş).
-
-**İLK ADIM:** önce **3–4 örnek portre** üret + seçici/kimlik kartına bağla (silüet varsayılan) → Yusuf+Claude onaylasın, sonra tam set + tüm ekranlar. ("Bir denesin bakalım ne çıkar.")
-
-**Teslim:** branch + PR, **push/deploy YOK** (canlıya Yusuf alır). Şema eklemeli → merge öncesi prod DB adımı.
+> ✅ **08.10 — AVATAR görevi İPTAL/KAPANDI (24.11).** Avatar seti Yusuf+Claude tarafında halledildi (gerçekçi
+> kafa-hizalı havuz, canlıda). Osman'a verilmiş avatar görevi artık geçersiz — kaldırıldı.
 
 ## ⭐ Çalışma kuralı — Osman'ın AI (Yusuf kararı, 06.10)
 
