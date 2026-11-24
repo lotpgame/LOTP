@@ -2090,12 +2090,14 @@ export async function advanceDay(skipFirst = false): Promise<AdvanceResult> {
   // Antrenman haberi: skill kazanımları + kondisyon/keskinlik değişimi (kullanıcıya "+2 Atak, -20 kondisyon").
   // `key` yazılır, etiket dile göre `page.tsx`'te `t(locale, "skill." + key)` ile çevrilir.
   const days = d - startDay;
-  // Kazançlar artık küçük (0.05–0.09/seans) → 2 ondalık + daha düşük eşik ki görünsün (kullanıcı 10.11).
+  // Rapor eşiği: ekranda `toFixed(1)` ile "+0.0" görünecek küçük ÇAPRAZ-PAY kazanımlarını (spill, SPILL_FRACTION
+  // = 0.1 → ~0.01–0.04/gün) LİSTELEME — rapor temiz kalsın (kullanıcı 24.11). Oyuncu bu payı YİNE ALIR (mekanik
+  // değişmez, skill değeri 2 ondalık artar ve birikir); sadece görünmez. Biriktikçe 0.05'i aşan skill görünür.
   const gains = SKILLS.map((def) => ({
     key: def.key,
     delta: Math.round((skills[def.key].current - beforeSkills[def.key]) * 100) / 100,
   }))
-    .filter((g) => g.delta >= 0.01)
+    .filter((g) => g.delta >= 0.05) // <0.05 → ekranda "+0.0" olurdu; gizle (ama kazanç gerçekleşmiş olarak kalır)
     .sort((a, b) => b.delta - a.delta);
   const report =
     days > 0

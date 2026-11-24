@@ -9,6 +9,12 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (24.11 — Antrenman raporu: "+0.0" çapraz-pay satırları gizlendi)
+- Antrenman raporunda çalışılmayan skill'ler "+0.0" görünüyordu (çapraz-pay/spill: çalıştığın kategori tam,
+  diğerleri %10 alır — gerçek ama küçük kazanç, `toFixed(1)` ile 0.0'a yuvarlanıyordu). Rapor eşiği 0.01→**0.05**:
+  ekranda +0.0 olacak satırlar artık **listelenmez** → rapor temiz. **Oyuncu bu payı yine alır** (mekanik aynı,
+  skill 2 ondalık artar ve birikir); biriktikçe 0.05'i aşan skill tekrar görünür. (Kullanıcı 24.11.)
+
 ### Eklendi (23.11 — Gizli canlı istatistik panosu (/istatistik))
 - Beta kayıt takibi için gizli yönetici sayfası: `/istatistik?key=...` (geri bildirim panosuyla **aynı**
   anahtar — `FEEDBACK_ADMIN_KEY`, yeni env yok). Gösterir: büyük **gerçek oyuncu** sayısı (isAI=false; botlar
