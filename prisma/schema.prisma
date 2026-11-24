@@ -108,6 +108,10 @@ model Player {
   totalAdsWatched Int       @default(0) // toplam izlenen ödüllü reklam (ortalama/log ölçümü). Eklemeli.
   careerBestRank Int? // kariyer boyunca en iyi Quarter Ranking sırası (GDD 19.36)
   tactic         String @default("BALANCED") // maç öncesi taktik tercihi (GDD 18.22): OFFENSIVE|BALANCED|DEFENSIVE
+  // Branş (silah) değiştirme (kullanıcı 24.11). weaponChanges = kaç kez değiştirdi (artan ücret: 100×2^n).
+  // lastWeaponChangeDay = son değişim günü (sezon/Quarter başına 1 kez kuralı için). İkisi de eklemeli.
+  weaponChanges       Int @default(0)
+  lastWeaponChangeDay Int @default(-1)
 
   // M11.5: yalnız isAI=true için anlamlı — bu AI'nın aylık gelişiminin işlendiği SON ay indeksi. Ortak
   // AI havuzu paylaşıldığı için (birden çok insanın world-advance'i aynı ayı geçebilir) bu alan olmadan

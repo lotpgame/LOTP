@@ -228,6 +228,7 @@ import { applyKitPurchase, applyMatchWear, applyRestAging, damageActive, discard
 import { applyEventsToPsych, discountedPrice, LIFE_EVENTS, offerActive, rollOffer, rollWeeklyEvents, rollWeeklyMaterial, type GearOffer, type MaterialEvent } from "@/engine/lifeEvents";
 import { AD_REWARD, adReadyAtMs, canWatchAd, watchAd, type AdState } from "@/engine/ads";
 import { appendLedger, encodeLedger, entriesForWeek, parseLedger, totals as ledgerTotals, type LedgerEntry } from "@/engine/ledger";
+import { planWeaponChange, canChangeWeaponThisSeason, WEAPON_CHANGE_SHARPNESS } from "@/engine/weaponChange";
 import { appendDiary, encodeDiary, parseDiary, type DiaryEntry } from "@/engine/diary";
 
 /** Kumbaram: mevcut ledger JSON'una yeni kayıt(lar) ekleyip güncel JSON string döndürür (saf). */
@@ -2355,6 +2356,110 @@ export async function buyEquipment(itemId: string): Promise<void> {
   await prisma.gameState.update({
     where: { id: gs.id },
     data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "equipment", amount: -price, arg: item.id }), ...(onOffer ? { pendingOffer: null } : {}) },
+  });
+}
+
+// ---------- Branş (silah) değiştirme (kullanıcı 24.11) ----------
+
+const ALL_WEAPONS: Weapon[] = ["FOIL", "EPEE", "SABRE"];
+
+export interface WeaponChangeOption {
+  weapon: Weapon;
+  equipmentCost: number;
+  fee: number;
+  total: number;
+  affordable: boolean;
+  missing: string[]; // alınacak parça id'leri (UI itemName ile çevirir)
+}
+export interface WeaponChangeInfo {
+  currentWeapon: Weapon;
+  balance: number;
+  allowedThisSeason: boolean; // bu sezon (Quarter) hakkı var mı
+  changeCount: number; // kaç kez değiştirdi (bir sonraki ücret buna göre)
+  options: WeaponChangeOption[]; // diğer 2 silah + maliyetleri
+}
+
+/** Branş değiştirme pop-up'ı için önizleme: mevcut silah + diğer silahların maliyet dökümü. */
+export async function getWeaponChangeInfo(): Promise<WeaponChangeInfo | null> {
+  const state = await loadState();
+  if (!state) return null;
+  const { gs, human } = state;
+  const curKit = resolveKit(human.equipmentState, human.weapon as Weapon);
+  const options: WeaponChangeOption[] = ALL_WEAPONS.filter((w) => w !== human.weapon).map((w) => {
+    const plan = planWeaponChange({
+      newWeapon: w,
+      currentWeapon: human.weapon as Weapon,
+      currentKit: curKit,
+      gender: human.gender as Gender,
+      balance: human.balance,
+      priorChanges: human.weaponChanges,
+      lastChangeDay: human.lastWeaponChangeDay,
+      currentDay: gs.dayIndex,
+    });
+    return { weapon: w, equipmentCost: plan.equipmentCost, fee: plan.fee, total: plan.total, affordable: plan.affordable, missing: plan.missing.map((i) => i.id) };
+  });
+  return {
+    currentWeapon: human.weapon as Weapon,
+    balance: human.balance,
+    allowedThisSeason: canChangeWeaponThisSeason(human.lastWeaponChangeDay, gs.dayIndex),
+    changeCount: human.weaponChanges,
+    options,
+  };
+}
+
+/**
+ * Branşı (silahı) değiştirir. Sunucuda TÜM kurallar yeniden doğrulanır (hile önleme): farklı silah, sezon hakkı,
+ * yeterli bakiye (hesap EKSİYE DÜŞMEZ). Uygular: bakiye −toplam, silah=yeni, ortak ekipman korunur + yeni silah
+ * takımı eklenir, keskinlik düşer (geçici uyum), weaponChanges++, lastWeaponChangeDay=bugün, KLASMAN sıfırlanır.
+ */
+export async function changeWeapon(newWeaponRaw: string): Promise<void> {
+  const state = await loadState();
+  if (!state) throw new Error("Aktif kariyer yok.");
+  const { gs, human } = state;
+  if (!ALL_WEAPONS.includes(newWeaponRaw as Weapon)) throw new GameError("bad_weapon", "Geçersiz silah.");
+  const newWeapon = newWeaponRaw as Weapon;
+  if (newWeapon === (human.weapon as Weapon)) throw new GameError("same_weapon", "Zaten bu branştasın.");
+  const curKit = resolveKit(human.equipmentState, human.weapon as Weapon);
+  const plan = planWeaponChange({
+    newWeapon,
+    currentWeapon: human.weapon as Weapon,
+    currentKit: curKit,
+    gender: human.gender as Gender,
+    balance: human.balance,
+    priorChanges: human.weaponChanges,
+    lastChangeDay: human.lastWeaponChangeDay,
+    currentDay: gs.dayIndex,
+  });
+  if (!plan.allowedThisSeason) throw new GameError("season_locked", "Bu sezon zaten branş değiştirdin.");
+  if (!plan.affordable) throw new GameError("insufficient_denar", "Yeterli Denar yok.");
+
+  const ident = currentIdentity(human, careerQuarter(gs.dayIndex, gs.careerStartDay));
+  // Yeni kit: ORTAK parçalar korunur (beden/dayanıklılık dahil), silaha-özel parçalar yeni silahın TAZE takımı.
+  const commonItems = curKit.filter((k) => itemById(k.itemId)?.weapon == null);
+  const newWeaponItems = starterKit(newWeapon, ident.age, ident.ageCategory, human.gender as Gender).filter(
+    (k) => itemById(k.itemId)?.weapon === newWeapon,
+  );
+  const newKit = [...commonItems, ...newWeaponItems];
+  const newOwned = encodeOwned([...parseOwned(human.ownedEquipment), ...newWeaponItems.map((k) => k.itemId)]);
+
+  await prisma.player.update({
+    where: { id: human.id },
+    data: {
+      weapon: newWeapon,
+      balance: { decrement: plan.total },
+      equipmentState: encodeKit(newKit),
+      ownedEquipment: newOwned,
+      sharpness: WEAPON_CHANGE_SHARPNESS, // geçici uyum düşüşü — antrenmanla toparlar
+      weaponChanges: { increment: 1 },
+      lastWeaponChangeDay: gs.dayIndex,
+    },
+  });
+  // KLASMAN sıfırla: eski silah kategorisindeki ranking satırları silinir → yeni silahta sıfırdan (kullanıcı).
+  await prisma.ranking.deleteMany({ where: { playerId: human.id } });
+  // Kumbaram: branş değişim gideri (tek kalem — ekipman + ücret birlikte).
+  await prisma.gameState.update({
+    where: { id: gs.id },
+    data: { ledger: nextLedgerJson(gs.ledger, { day: serverWorldDay(), key: "weaponChange", amount: -plan.total, arg: newWeapon }) },
   });
 }
 

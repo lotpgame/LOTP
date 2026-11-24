@@ -3,7 +3,7 @@ import { type SkillCategory } from "@/engine/domain";
 import { SKILLS } from "@/engine/skill";
 import { t, fmtPct, type Locale } from "@/i18n";
 import { getLocale } from "@/i18n/server";
-import { getCareer } from "@/server/careerService";
+import { getCareer, getWeaponChangeInfo } from "@/server/careerService";
 import { Icon } from "@/app/ui/Icon";
 import { SkillsByCategory } from "../parts";
 import { trainingImg } from "../trainingImage";
@@ -11,6 +11,7 @@ import { InfoNote } from "../InfoNote";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { ArenaPage } from "@/app/ArenaPage";
 import { TrainingPlanForm } from "./TrainingPlanForm";
+import { WeaponChangeButton } from "./WeaponChangeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +43,24 @@ function EnergyBar({ label, value, color, locale }: { label: string; value: numb
   );
 }
 
-export default async function AntrenmanPage() {
+export default async function AntrenmanPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string; branch?: string }>;
+}) {
   const c = await getCareer();
   if (!c) redirect("/");
   const locale = await getLocale();
   const condition = 100 - c.fatigue;
+  const { err, branch } = await searchParams;
+  const weaponInfo = await getWeaponChangeInfo();
+  // Branş değiştirme sonucu mesajı (başarı/hata) — bilinen hata kodları → kendi mesajı, bilinmeyen → genel.
+  const branchMsg =
+    branch === "ok" ? { ok: true, key: "branch.done" }
+    : err === "season_locked" ? { ok: false, key: "branch.lockedSeason" }
+    : err === "insufficient_denar" ? { ok: false, key: "branch.notEnough" }
+    : err === "same_weapon" ? { ok: false, key: "branch.sameWeapon" }
+    : null;
 
   return (
     <ArenaPage bg="/img/bg-antrenman.webp" dim={60} className="flex flex-col gap-5">
@@ -137,6 +151,18 @@ export default async function AntrenmanPage() {
           <SkillsByCategory skills={c.skills} locale={locale} categoryId={c.categoryId} />
         </div>
       </CollapsibleSection>
+
+      {/* ——— Branş (silah) değiştirme — en altta (kullanıcı 24.11) ——— */}
+      {weaponInfo && (
+        <section className="flex flex-col gap-2">
+          {branchMsg && (
+            <p role="alert" className={`panel border-l-4 p-3 text-[14px] ${branchMsg.ok ? "border-l-sig-green bg-green-50 dark:bg-green-950/30" : "border-l-sig-red bg-red-50 dark:bg-red-950/30"}`}>
+              {t(locale, branchMsg.key)}
+            </p>
+          )}
+          <WeaponChangeButton info={weaponInfo} locale={locale} />
+        </section>
+      )}
     </ArenaPage>
   );
 }

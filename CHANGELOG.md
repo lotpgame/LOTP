@@ -21,6 +21,18 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   ekranda +0.0 olacak satırlar artık **listelenmez** → rapor temiz. **Oyuncu bu payı yine alır** (mekanik aynı,
   skill 2 ondalık artar ve birikir); biriktikçe 0.05'i aşan skill tekrar görünür. (Kullanıcı 24.11.)
 
+### Eklendi (24.11 — Branş (silah) değiştirme (antrenman sayfası altında))
+- Oyuncu kariyer ortasında **silahını değiştirebilir** (epe→flöre gibi). Antrenman sayfasının altındaki
+  **"Branş Değiştir"** butonu → pop-up (çift onay). Kurallar (kullanıcı 24.11):
+  - **Maliyet** = eksik silah-özel ekipman (ortaklar taşınır, dolap analizi) **+ artan branş ücreti** (100→200→400, ×2).
+    Gerçek: epeye geçiş ~470 Đ, flöre/kılıca ~640 Đ (ilk). Epe en ucuz (yelek/maske kordonu gerektirmez).
+  - **Temel yetenekler KALMAZ düşmez**; sadece **geçici uyum**: keskinlik düşer (→25), antrenmanla toparlar.
+  - **Sezonda (Quarter) en fazla 1 kez.** Bakiye yetmezse yapılamaz (**hesap asla eksiye düşmez**, sunucu doğrular).
+  - **Klasman sıfırlanır** (yeni silah = yeni kategori) → eski ranking satırları silinir, yeni silahta sıfırdan.
+- Yeni saf modül `weaponChange.ts` (plan/maliyet/ücret/sezon kuralı) + 5 test. `careerService`: `getWeaponChangeInfo`
+  (önizleme) + `changeWeapon` (uygula, tüm kuralları yeniden doğrular). UI: `WeaponChangeButton` (çift onaylı pop-up),
+  9 dil (`branch.*` + `ledger.weaponChange`). **Migration gerekir** (`Player.weaponChanges` + `lastWeaponChangeDay`).
+
 ### Eklendi (24.11 — İsim normalize + küfür filtresi (sporcu oluşturma))
 - Ad/soyad artık **Title Case**'e normalize edilir ("aLLaN WeBB" → "Allan Webb"; çoklu boşluk, tire/kesme
   işareti alt-parçaları dahil). İsimler uluslararası olduğundan Türkçe-locale casing kullanılmaz (İngilizce

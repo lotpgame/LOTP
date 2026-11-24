@@ -25,6 +25,7 @@ import {
   currentPlayerCode,
   submitFeedback,
   createCareer,
+  changeWeapon,
   getCategoryRanking,
   getNationalTeam,
   hasCareer,
@@ -93,6 +94,18 @@ export async function attendTournamentAction(): Promise<void> {
   if (result.tournamentId != null) redirect(`/turnuva/${result.tournamentId}`);
   if (result.live) redirect("/turnuva/canli");
   revalidatePath("/kariyer", "layout");
+}
+
+/** Branş (silah) değiştirir. Sunucuda kurallar yeniden doğrulanır; hata → antrenman sayfasına kod ile döner. */
+export async function changeWeaponAction(formData: FormData): Promise<void> {
+  try {
+    await changeWeapon(String(formData.get("weapon") ?? ""));
+  } catch (e) {
+    if (e instanceof GameError) redirect(`/kariyer/antrenman?err=${e.code}`);
+    throw e;
+  }
+  revalidatePath("/kariyer", "layout"); // silah/klasman/keskinlik değişti → başlık + sayfalar tazelensin
+  redirect("/kariyer/antrenman?branch=ok");
 }
 
 /** 7 günlük antrenman planını kaydeder (Pzt..Paz; her gün antrenman türü veya Dinlenme). */
