@@ -13,6 +13,7 @@ import { Avatar } from "@/app/kariyer/Avatar";
 import { avatarSrc } from "@/app/kariyer/avatarImage";
 import { HeadlineCard, whatsAppHref } from "@/app/ui/HeadlineCard";
 import { buildHeadline, lastBoutFrom } from "@/app/ui/headlineText";
+import { ArenaPage } from "@/app/ArenaPage";
 
 type MatchDTO = TournamentResultDTO["matches"][number];
 type RevealedMatch = MatchDTO & {
@@ -217,7 +218,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
   );
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+    <ArenaPage bg="/img/bg-turnuvalar.webp" className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       {!tour.isFullyRevealed && <LiveAutoRefresh everyMs={tour.live ? 4_000 : 15_000} />}
 
       <div className="flex items-start justify-between gap-3">
@@ -341,7 +342,7 @@ export default async function TurnuvaPage({ params }: PageProps<"/turnuva/[id]">
           <button className="btn-ink press h-12 w-full text-[16px]">{t(locale, "idp.backHome")}</button>
         </form>
       </div>
-    </main>
+    </ArenaPage>
   );
 }
 

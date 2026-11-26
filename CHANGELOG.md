@@ -9,6 +9,13 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Değişti (26.11 — Turnuva detay sayfasına arena arka planı)
+- Turnuva detay sayfası (`/turnuva/[id]`) artık düz siyah yerine **arena arka plan görseli** kullanıyor
+  (`bg-turnuvalar.webp`, diğer sayfalarla aynı), `ArenaPage` ile sarıldı. Okunurluk otomatik: `[data-arena]`
+  tüm metne ince gölge + ikincil metni parlatma + panelleri **camsı** (yarı şeffaf + blur) yapar — yani şeffaf
+  `HeadlineCard` sonuç başlığı bile görsel üstünde net okunur. Hem canlı hem bitmiş turnuva görünümü kapsanır.
+  (Kullanıcı 26.11.) Not: `/turnuva/canli` listesi hâlâ düz — istenirse eklenir.
+
 ### Düzeltildi (26.11 — Canlı turnuva: spoiler + periyot-arası ifadeler)
 - **Spoiler giderildi:** Senin eleme maçın canlı akarken (podium animasyonu bitmeden) alttaki çatalda bir
   ÜST turun eşleşmesi doluyordu → kazananın üst tura yazılması, maç bitmeden elendiğini/geçtiğini ele veriyordu.
