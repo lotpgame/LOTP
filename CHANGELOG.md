@@ -9,6 +9,20 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (26.11 — Canlı turnuva: spoiler + periyot-arası ifadeler)
+- **Spoiler giderildi:** Senin eleme maçın canlı akarken (podium animasyonu bitmeden) alttaki çatalda bir
+  ÜST turun eşleşmesi doluyordu → kazananın üst tura yazılması, maç bitmeden elendiğini/geçtiğini ele veriyordu.
+  Artık maçın canlı akarken üst tur(lar) **isimsiz kilitli** gösterilir (`Bracket.tsx`: `lockedAhead` — podium
+  oynarken `currentLive`'ın turundan SONRAKİ turlar kilitli; "me" vurgusu da gizli). Maç bitince tur açılır.
+  Kök sebep: pending maç iki oyuncusu atandığı an isimleri gösteriyordu; sunucu maçı "oynama başında" çözüp
+  kazananı hemen üst tura yazıyor, ama canlı animasyon birkaç sn daha sürüyordu. (Kullanıcı 26.11.)
+- **"Devre arası" → net ifade:** Periyot arası üst etiket artık **"1. periyot bitti"** yazar (biten periyodu
+  söyler); alttaki bantta zaten "2. PERİYOT BAŞLIYOR" var. Yeni i18n anahtarı `podium.periodBreak` (9 dil).
+- **"Bu turda maçın yok" yanıltıcısı düzeltildi:** "Çözülüyor" anında (pencere kapanırken) taktik basınca sunucu
+  `no_match` → "Bu turda maçın yok" diyordu; oysa maçın var, sadece pencere kapandı. Artık **"Süre doldu — bu tur
+  çözülüyor"** (`window_closed`) döner (`liveTournament.ts`). Ayrıca UI, "çözülüyor" anında taktik butonlarını
+  **kilitler** (`LivePodium.tsx`: `resolving`) → yanlış gönderim/yarış (race) baştan engellenir. (Kullanıcı 26.11.)
+
 ### Değişti (24.11 — Kariyer Günlüğü antrenman satırına görünür kazanımlar)
 - Günlükteki antrenman satırı artık seans adıyla birlikte **o günün gerçek kazanımlarını** da yazar
   ("Taktik Çalışma — +0.1 Zamanlama · +0.1 Rakip Okuma"), her oyuncunun kendi seansına göre. Rapordaki eşikle

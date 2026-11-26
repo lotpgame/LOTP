@@ -140,6 +140,9 @@ export function LivePodium({
   // ——— HAZIRLIK ———
   const startsIn =
     nextAtMs == null ? null : nowOr >= nextAtMs ? t(locale, "live.resolving") : fmtLeft(nextAtMs - nowOr);
+  // "Çözülüyor" anı: pencere teknik olarak açık görünse de bu tur sunucuda kapanıyor → taktik gönderimi
+  // sunucuda reddedilir ("Bu turda maçın yok" yanıltıcısı). Butonları o an kilitle → yanlış gönderim olmasın.
+  const resolving = nextAtMs != null && nowOr >= nextAtMs;
   const prepTitle =
     periodNo != null && periodNo > 1 ? t(locale, "podium.periodStarts", { p: periodNo }) : t(locale, "podium.matchStarts");
   // Periyot arası: aynı maçın o ana dek skoru (devam eden eleme maçı).
@@ -162,7 +165,7 @@ export function LivePodium({
       ) : you?.nextMatch ? (
         <div>
           <div className="flex items-baseline justify-between gap-2">
-            <div className="kicker">{showScoreSoFar ? t(locale, "podium.break") : t(locale, "podium.prep")}</div>
+            <div className="kicker">{showScoreSoFar ? t(locale, "podium.periodBreak", { n: (periodNo ?? 2) - 1 }) : t(locale, "podium.prep")}</div>
             {startsIn && <div className="num text-[22px] leading-none" aria-live="polite">{startsIn}</div>}
           </div>
           {prepBug ? (
@@ -195,7 +198,7 @@ export function LivePodium({
                       key={tac}
                       type="button"
                       onClick={() => send(tac)}
-                      disabled={!windowOpen || pending}
+                      disabled={!windowOpen || resolving || pending}
                       aria-pressed={active}
                       className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-[5px] text-[14px] transition-colors disabled:opacity-50 ${
                         active ? "bg-ink font-semibold text-arena-0" : "text-steel"

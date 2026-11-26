@@ -600,7 +600,10 @@ export async function submitLiveTactic(
     // Pencere, adımın ÇÖZÜMÜNDE değil, (elemede) periyodun OYNANMAYA başladığı an kapanır — periyot arası taktik.
     if (windowCloseAt(t.startsAt, next, dePeriods).getTime() <= nowMs) return reject("window_closed", next);
     const s = liveStep(next, dePeriods);
-    if (s.kind === "RESULTS") return reject("no_match", next);
+    // Pencere kenarında yarış (race): oyuncu "çözülüyor" anında taktik basınca sıradaki adım artık bir
+    // RESULTS/çözüm olabilir ya da maçı o an bitmiş olabilir. Buton yalnız kendi maçı sıradayken gösterildiği
+    // için bu, "maçın yok" değil "süre doldu — bu tur çözülüyor" durumudur (yanıltıcı mesaj yerine doğrusu).
+    if (s.kind === "RESULTS") return reject("window_closed", next);
     // Sıradaki adım bu oyuncunun maçının (bu turdaki, henüz bitmemiş) periyodu mu? PENDING = maç sürüyor.
     const match = await tx.match.findFirst({
       where: {
@@ -612,7 +615,7 @@ export async function submitLiveTactic(
       },
       select: { id: true },
     });
-    if (!match) return reject("no_match", next);
+    if (!match) return reject("window_closed", next);
     await tx.tournamentParticipant.update({ where: { id: part.id }, data: { pendingTactic: valid } });
     await tx.tournamentEvent.create({ data: { tournamentId, playerId, type: "TACTIC", step: next, detail: valid } });
     return { ok: true as const, tactic: valid };

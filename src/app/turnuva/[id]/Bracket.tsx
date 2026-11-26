@@ -23,6 +23,9 @@ export function Bracket({
   currentLive: MatchDTO | null;
   podiumPlaying: boolean;
 }) {
+  // SPOILER önlemi (2b, kullanıcı 26.11): senin eleme maçın canlı akarken (podium animasyonu bitene kadar),
+  // bir ÜST turdaki eşleşmeleri kilitli tut — kazananın üst tura yazılması maç bitmeden sonucu ele vermesin.
+  const liveRoundIdx = podiumPlaying && currentLive?.phase === "DE" ? deRounds.indexOf(currentLive.round) : -1;
   return (
     <details open className="panel group">
       <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 [&::-webkit-details-marker]:hidden">
@@ -38,16 +41,20 @@ export function Bracket({
             return (
               <div key={round} className="flex min-w-[164px] shrink-0 flex-col justify-around gap-3">
                 <h3 className="text-center kicker">{round}</h3>
-                {roundMatches.map((m, i) => (
-                  <BracketMatch
-                    key={i}
-                    m={m}
-                    mine={m.aIsHuman || m.bIsHuman}
-                    isFinal={isFinal}
-                    playing={podiumPlaying && m === currentLive}
-                    locale={locale}
-                  />
-                ))}
+                {roundMatches.map((m, i) => {
+                  const lockedAhead = liveRoundIdx >= 0 && ri > liveRoundIdx;
+                  return (
+                    <BracketMatch
+                      key={i}
+                      m={m}
+                      mine={!lockedAhead && (m.aIsHuman || m.bIsHuman)}
+                      isFinal={isFinal}
+                      playing={podiumPlaying && m === currentLive}
+                      lockedAhead={lockedAhead}
+                      locale={locale}
+                    />
+                  );
+                })}
               </div>
             );
           })}
@@ -62,19 +69,21 @@ function BracketMatch({
   mine,
   isFinal,
   playing,
+  lockedAhead,
   locale,
 }: {
   m: MatchDTO;
   mine: boolean;
   isFinal: boolean;
   playing: boolean;
+  lockedAhead: boolean;
   locale: Locale;
 }) {
-  // Henüz oynanmadı (eşleşme belli / değil) — kilitli.
-  if (m.isPending) {
+  // Henüz oynanmadı VEYA spoiler-kilidi (üst tur; senin maçın hâlâ canlı akıyor) — isimsiz kilitli göster.
+  if (m.isPending || lockedAhead) {
     return (
       <div className={`rounded-lg border border-dashed p-2.5 text-[12px] text-steel ${mine ? "border-me" : "border-line"}`}>
-        {m.aName && m.bName ? (
+        {!lockedAhead && m.aName && m.bName ? (
           <>
             <div className="flex items-center justify-between gap-2">
               <span className="truncate">{m.aName}</span>

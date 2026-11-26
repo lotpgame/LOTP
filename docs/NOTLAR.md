@@ -9,6 +9,18 @@ Sohbette bir not verildiğinde bu dosyaya eklenir; hallolunca **✅ Yapıldı** 
 
 ## Durum: Açık
 
+> 🟢 **26.11 — CANLI turnuva doğrulaması (gerçek etkinlik, U10 Türkiye Şampiyonası · Erzurum) — 3 bulgu, KOD HAZIR (etkinlik bitince push):**
+> - **#56 (hata · spoiler) ✅ yerelde:** Eleme maçın canlı akarken (podium animasyonu bitmeden) alttaki çatalda bir ÜST
+>   turun eşleşmesi doluyordu → kazanan üst tura yazılınca maç bitmeden elendiğin/geçtiğin görünüyordu. Çözüm: maçın
+>   akarken üst tur(lar) **isimsiz kilitli** (`Bracket.tsx` `lockedAhead`; podium oynarken `currentLive` turundan sonraki
+>   turlar + "me" vurgusu gizli). Kök sebep: `careerService` pending maç iki oyuncusu atandığı an isim gösteriyordu.
+> - **#57 (ux · ifade) ✅ yerelde:** "Devre arası" generic etiketi → **"1. periyot bitti"** (biten periyodu söyler); altta
+>   zaten "2. PERİYOT BAŞLIYOR" bandı var. Yeni i18n `podium.periodBreak` (9 dil).
+> - **#58 (ux · yanıltıcı mesaj) ✅ yerelde:** "Çözülüyor" anında taktik basınca "Bu turda maçın yok" çıkıyordu; doğrusu
+>   **"Süre doldu — bu tur çözülüyor"** (`liveTournament.ts` no_match→window_closed). UI "çözülüyor"da butonları kilitler
+>   (`LivePodium.tsx` `resolving`) → yarış (race) engellenir.
+> - **Push:** canlı turnuva akışını etkilememek için **bugünkü etkinlik tamamlanınca** push edilecek (kullanıcı kararı).
+
 > 🔧 **08.10 — turnuva ekranı yeniden düzeni CANLIYA ALINDI (re-test bekliyor):** **#41** (olay anı üstte/podyum),
 > **#42** (tempo ~50sn'ye yayıldı), **#45** (baştan sarma/replay stabil key+instantThrough ile bitti; kontroller
 > kaldırıldı; panel+olay anı üstte → scroll-jump zararsız), **#46** (katlanır pul/geçmiş), **#47** (Hızlı/Atla/Tekrar
