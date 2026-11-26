@@ -204,6 +204,40 @@ export async function tickLiveTournament(tournamentId: number, opts: { locale?: 
   }
 }
 
+/**
+ * Sunucu-tarafı YAKALAMA (kullanıcı 26.11): canlı turnuva yalnız SAYFASI yüklenince ilerliyordu; izleyen
+ * kimse kalmayınca (ör. az-insanlı / AI-ağırlıklı kategoriler) şampiyona RUNNING'de asılı kalıp finalize
+ * olmuyordu → derece + klasman (DOMESTIC/CITY/WORLD) HİÇ yazılmıyordu. Bu süpürge, sıradaki adımının zamanı
+ * tamamen geçmiş tüm RUNNING canlı turnuvaları `tickLiveTournament` ile sona erdirir (kim tetiklerse aynı
+ * sonuç — seed'li, deterministik). Dünya yüklemesinde (getCareer) çağrılır. İstek başına `limit` ile sınırlı
+ * (ilk yüklemede birikmiş kuyruk sayfayı yavaşlatmasın; gerisi sonraki yüklemelerde biter).
+ */
+export async function catchUpDueLiveTournaments(
+  opts: { locale?: Locale; limit?: number; nowMs?: number } = {},
+): Promise<number> {
+  const now = opts.nowMs ?? Date.now();
+  const limit = opts.limit ?? 12;
+  const running = await prisma.tournament.findMany({
+    where: { status: "RUNNING", startsAt: { not: null }, scopeKey: { not: null } },
+    select: { id: true, step: true, startsAt: true, categoryId: true },
+    orderBy: { startsAt: "asc" }, // en eski asılı kalan önce → birikmiş kuyruk baştan temizlenir
+  });
+  let done = 0;
+  for (const t of running) {
+    if (done >= limit) break;
+    if (!t.startsAt) continue;
+    // Yalnız SIRADAKİ adımının zamanı GEÇMİŞ turnuvalara dokun → şu an canlı akanı boşa ilerletme.
+    if (stepAt(t.startsAt, t.step + 1, dePeriodsOf(t.categoryId)).getTime() > now) continue;
+    try {
+      await tickLiveTournament(t.id, { locale: opts.locale, nowMs: now });
+      done++;
+    } catch {
+      // Bir turnuva takılırsa diğerlerini ve sayfayı etkilemesin (best-effort).
+    }
+  }
+  return done;
+}
+
 interface ParticipantRow {
   id: number;
   playerId: number;

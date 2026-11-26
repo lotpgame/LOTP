@@ -9,6 +9,19 @@ Sürümleme: [Semantic Versioning](https://semver.org/lang/tr/).
 Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayrıntılı liste
 `docs/NOTLAR.md`.
 
+### Düzeltildi (26.11 — Asılı kalan canlı turnuvalar + eksik klasmanlar)
+- **Kök hata:** Canlı turnuva yalnız SAYFASI yüklenince ilerliyordu (`tickLiveTournament`). İzleyen kimse
+  kalmayınca (az-insanlı / AI-ağırlıklı kategoriler) şampiyona **RUNNING'de asılı** kalıp finalize olmuyordu →
+  derece + **klasman (DOMESTIC/CITY/WORLD) HİÇ yazılmıyordu**. Belirti: başka kategorilerin ulusal klasmanı boş
+  (ör. Erkek U10 Türkiye Şampiyonası oynandı, Yağız finalist oldu ama turnuva step 12'de takılı → DOMESTIC satırı yok).
+- **Düzeltme:** Sunucu-tarafı **yakalama (catch-up)** — `catchUpDueLiveTournaments` (`liveTournament.ts`): sıradaki
+  adımının zamanı tamamen geçmiş tüm RUNNING canlı turnuvaları `tickLiveTournament` ile **sona erdirir** (en eski
+  önce, istek başına `limit`=12 ile sınırlı, best-effort). `getCareer` başında (klasman okunmadan önce) çağrılır →
+  kim oynarsa oynasın, zamanı geçmiş şampiyonalar finalize olur (seed'li, deterministik). Çözdüğü iki şey:
+  **(1) geriye dönük** asılı turnuvalar ilk yüklemede biter, derece + klasmanları otomatik yazılır (elle backfill yok);
+  **(2) ileriye dönük** hiçbir kategoride şampiyona asılı kalmaz → her kategorinin klasmanı düzgün oluşur, herkes görür.
+  (Kullanıcı 26.11, canlı doğrulama.)
+
 ### Değişti (26.11 — Turnuva detay sayfasına arena arka planı)
 - Turnuva detay sayfası (`/turnuva/[id]`) artık düz siyah yerine **arena arka plan görseli** kullanıyor
   (`bg-turnuvalar.webp`, diğer sayfalarla aynı), `ArenaPage` ile sarıldı. Okunurluk otomatik: `[data-arena]`

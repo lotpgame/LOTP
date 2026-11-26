@@ -9,6 +9,7 @@ import { cookies } from "next/headers";
 import { COUNTRIES, continentOfCountry, countryByCode, citiesForCountry, clubNameFor, clubCityLabel, countryCodeOfCity } from "@/engine/geo";
 import { serverEventDay, serverEventStartMs, serverWorldDay, worldClockConfig } from "./world";
 import {
+  catchUpDueLiveTournaments,
   createLiveTournament,
   getLiveView,
   submitLiveTactic,
@@ -967,6 +968,11 @@ export async function getCareer(): Promise<CareerDTO | null> {
   if (!state) return null;
   const { gs, human } = state;
   const locale = await getLocale();
+
+  // Sunucu yakalama (kullanıcı 26.11): izleyen kalmadığı için RUNNING'de asılı kalmış canlı turnuvaları bitir
+  // → derece + klasman yazılsın (az-insanlı kategorilerde şampiyonalar finalize olmuyordu). Best-effort; klasman
+  // okunmadan ÖNCE çalışır ki bu yüklemede taze bitmiş turnuvalar klasmana yansısın.
+  await catchUpDueLiveTournaments({ locale }).catch(() => {});
 
   const skills = rowsToSkills(human.skills);
   const quarter = quarterOf(gs.dayIndex);
