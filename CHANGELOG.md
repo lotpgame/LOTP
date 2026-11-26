@@ -14,7 +14,7 @@ Playtest (oyun sahibi) geri bildirimlerine göre oynanış iyileştirmeleri. Ayr
   (`bg-turnuvalar.webp`, diğer sayfalarla aynı), `ArenaPage` ile sarıldı. Okunurluk otomatik: `[data-arena]`
   tüm metne ince gölge + ikincil metni parlatma + panelleri **camsı** (yarı şeffaf + blur) yapar — yani şeffaf
   `HeadlineCard` sonuç başlığı bile görsel üstünde net okunur. Hem canlı hem bitmiş turnuva görünümü kapsanır.
-  (Kullanıcı 26.11.) Not: `/turnuva/canli` listesi hâlâ düz — istenirse eklenir.
+  **Canlı turnuva akış sayfası (`/turnuva/canli`) de aynı şekilde sarıldı** → her iki turnuva yüzeyi tutarlı. (Kullanıcı 26.11.)
 
 ### Düzeltildi (26.11 — Canlı turnuva: spoiler + periyot-arası ifadeler)
 - **Spoiler giderildi:** Senin eleme maçın canlı akarken (podium animasyonu bitmeden) alttaki çatalda bir

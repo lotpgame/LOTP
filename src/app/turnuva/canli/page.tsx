@@ -14,6 +14,7 @@ import { CanliPeriyot } from "./CanliPeriyot";
 import { SideScore } from "./matchParts";
 import { Countdown } from "./Countdown";
 import { TournamentTabs } from "./TournamentTabs";
+import { ArenaPage } from "@/app/ArenaPage";
 
 // Canlı turnuva: her istekte taze (DB durumuna bağlı).
 export const dynamic = "force-dynamic";
@@ -204,7 +205,7 @@ export default async function CanliTurnuvaPage() {
   ];
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
+    <ArenaPage bg="/img/bg-turnuvalar.webp" className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       {/* Başlık */}
       <div className="flex items-center justify-between">
         <div>
@@ -248,7 +249,7 @@ export default async function CanliTurnuvaPage() {
 
       {/* Aşamalı sekmeler — aynı anda tek bölüm; sekmeler ilerledikçe açılır (spoiler yok) */}
       <TournamentTabs key={stage} tabs={tabs} defaultTab={liveTab} panels={panels} lockedMsg={t(locale, "canli.tabLocked")} />
-    </main>
+    </ArenaPage>
   );
 }
 
